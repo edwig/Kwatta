@@ -42,6 +42,10 @@ TestStepIN::ReadFromXML(CString p_filename)
   m_anchor = msg.GetElement(def,"Anchor");
   m_body   = msg.GetElement(def,"Body");
 
+  m_useStatus  = msg.GetElementBoolean(def,"UseStatus");
+  m_useHeaders = msg.GetElementBoolean(def,"UseHeaders");
+  m_useBody    = msg.GetElementBoolean(def,"UseBody");
+
   XMLElement* params = msg.FindElement(def,"Parameters");
   if(params)
   {
@@ -105,6 +109,10 @@ TestStepIN::WriteToXML(CString p_filename)
   msg.AddElement(def,"VERB",  XDT_String,m_verb);
   msg.AddElement(def,"URL",   XDT_String |XDT_CDATA,m_url);
   msg.AddElement(def,"Anchor",XDT_String |XDT_CDATA,m_anchor);
+
+  msg.SetElement(def,"UseStatus", m_useStatus);
+  msg.SetElement(def,"UseHeaders",m_useHeaders);
+  msg.SetElement(def,"UseBody",   m_useBody);
 
   // Parameters
   XMLElement* params = msg.AddElement(def,"Parameters",XDT_String,"");

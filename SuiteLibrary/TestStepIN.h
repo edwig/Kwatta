@@ -106,7 +106,7 @@ protected:
   UrlHeaders    m_effectiveHeaders;
 
   // How to execute
-  bool          m_useStatus;
-  bool          m_useHeaders;
-  bool          m_useBody;
+  bool          m_useStatus  { false };
+  bool          m_useHeaders { false };
+  bool          m_useBody    { false };
 };

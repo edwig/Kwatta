@@ -278,28 +278,19 @@ InetRunner::PerformCommand()
   m_result.SetOSErrorString(message);
 
   // Keep the return status
-  if(m_testStep.GetUseStatus())
-  {
-    m_result.SetStatus(m_message.GetStatus());
-  }
+  m_result.SetStatus(m_message.GetStatus());
 
   // Keep result headers
-  if(m_testStep.GetUseHeaders())
+  for(auto& header : *m_message.GetHeaderMap())
   {
-    for(auto& header : *m_message.GetHeaderMap())
-    {
-      INPair pair;
-      pair.m_name  = header.first;
-      pair.m_value = header.second;
-      m_result.SetHeader(pair);
-    }
+    INPair pair;
+    pair.m_name  = header.first;
+    pair.m_value = header.second;
+    m_result.SetHeader(pair);
   }
 
   // Keep result body
-  if(m_testStep.GetUseBody())
-  {
-    m_result.SetBody(m_message.GetBody());
-  }
+  m_result.SetBody(m_message.GetBody());
 
   // Keep last OAuth2 bearer token
   m_result.SetBearerToken(m_client->GetLastBearerToken());

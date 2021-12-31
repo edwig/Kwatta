@@ -1,0 +1,239 @@
+﻿///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// 
+// ██╗░░██╗░██╗░░░░░░░██╗░█████╗░████████╗████████╗░█████╗░
+// ██║░██╔╝░██║░░██╗░░██║██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗
+// █████═╝░░╚██╗████╗██╔╝███████║░░░██║░░░░░░██║░░░███████║
+// ██╔═██╗░░░████╔═████║░██╔══██║░░░██║░░░░░░██║░░░██╔══██║
+// ██║░╚██╗░░╚██╔╝░╚██╔╝░██║░░██║░░░██║░░░░░░██║░░░██║░░██║
+// ╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝
+// 
+// 
+// This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
+// This program: TestEditor
+// This File   : CombiEditorDlg.cpp
+// What it does: Multiple (combined) validations for a teststep in the test-set
+// Author      : ir. W.E. Huisman
+// License     : See license.md file in the root directory
+// 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include "TestEditor.h"
+#include "CombiEditorDlg.h"
+#include "NewStepDlg.h"
+#include "TestEditorDlg.h"
+#include "MutateDlg.h" 
+#include "afxdialogex.h"
+
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#define new DEBUG_NEW
+#endif
+
+// CombeEditorDlg dialog
+
+IMPLEMENT_DYNAMIC(CombiEditorDlg, StyleDialog)
+
+CombiEditorDlg::CombiEditorDlg(CWnd* p_parent,TestSet& p_testSet,CString p_stepname,int p_row)
+               :StyleDialog(IDD_COMBIEDITOR,p_parent)
+               ,m_testSet(p_testSet)
+               ,m_stepName(p_stepname)
+               ,m_row(p_row)
+{
+}
+
+CombiEditorDlg::~CombiEditorDlg()
+{
+}
+
+void CombiEditorDlg::DoDataExchange(CDataExchange* pDX)
+{
+  StyleDialog::DoDataExchange(pDX);
+  DDX_Control(pDX,IDC_NAME,         m_editName,m_name);
+  DDX_Control(pDX,IDC_DOCUMENTATION,m_editDocu,m_documentation);
+  DDX_Control(pDX,IDC_COMMANDLINE,  m_editStep,m_stepName);
+  DDX_Control(pDX,IDC_GRID,         m_grid);
+  DDX_Control(pDX,IDC_ADDVAL,       m_buttonAddValidation);
+  DDX_Control(pDX,IDC_DELVAL,       m_buttonDelValidation);
+  DDX_Control(pDX,IDC_BUT_MUTATE,   m_buttonMutValidation);
+  DDX_Control(pDX,IDOK,             m_buttonOK);
+  DDX_Control(pDX,IDCANCEL,         m_buttonCancel);
+}
+
+BEGIN_MESSAGE_MAP(CombiEditorDlg, StyleDialog)
+  ON_NOTIFY(NM_DBLCLK, IDC_GRID, OnGridDblClick)
+  ON_BN_CLICKED(IDC_ADDVAL,      OnBnClickedAddValidation)
+  ON_BN_CLICKED(IDC_DELVAL,      OnBnClickedDelValidation)
+  ON_BN_CLICKED(IDC_BUT_MUTATE,  OnBnClickedMutValidation)
+END_MESSAGE_MAP()
+
+BOOL
+CombiEditorDlg::OnInitDialog()
+{
+  StyleDialog::OnInitDialog();
+  SetWindowText("Multiple Validations");
+
+  m_name          = m_testSet.GetName();
+  m_documentation = m_testSet.GetDocumentation();
+
+  InitButtons();
+  FillGrid();
+
+  UpdateData(FALSE);
+  return TRUE;
+}
+
+void
+CombiEditorDlg::InitButtons()
+{
+  m_buttonOK.SetStyle("ok");
+  m_buttonCancel.SetStyle("can");
+
+  m_buttonAddValidation.SetIconImage(IDI_NEW);
+  m_buttonDelValidation.SetIconImage(IDI_DELETE);
+  m_buttonMutValidation.SetIconImage(IDI_MUTATE);
+
+  EnableToolTips();
+  RegisterTooltip(m_buttonAddValidation,"Add a new validation to the teststep.");
+  RegisterTooltip(m_buttonDelValidation,"Delete a validation from the teststep.");
+  RegisterTooltip(m_buttonMutValidation,"Change the underlying filename of the validation.");
+}
+
+void
+CombiEditorDlg::FillGrid()
+{
+  m_grid.SetColumnCount(3);
+  m_grid.SetRowCount(1);
+  m_grid.SetFixedRowCount(1);
+  m_grid.SetFixedColumnCount(1);
+  m_grid.SetEditable(FALSE);
+  m_grid.GetCell(0, 0)->SetText("GT");
+  m_grid.GetCell(0, 1)->SetText("Validation");
+  m_grid.GetCell(0, 2)->SetText("Filename");
+  m_grid.SetSingleRowSelection();
+  m_grid.SetSortColumn(0);
+
+  m_grid.SetColumnWidth(0, 50);
+  m_grid.SetColumnWidth(1, 200);
+  m_grid.SetColumnWidth(2, 300);
+
+  TSValSet* vals = m_testSet.GetValidations(m_stepName);
+
+  if(vals)
+  {
+    for(auto& val : *vals)
+    {
+      CString glob = val.m_global ? "G" : "T";
+      int row = m_grid.InsertRow(glob);
+      m_grid.GetCell(row,1)->SetText(val.m_name);
+      m_grid.GetCell(row,2)->SetText(val.m_filename);
+    }
+  }
+}
+
+// CombeEditorDlg message handlers
+
+void 
+CombiEditorDlg::OnGridDblClick(NMHDR* pNMHDR, LRESULT* pResult)
+{
+  LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+  CCellID id = m_grid.GetFocusCell();
+  if (id.col == 1 || id.col == 2)
+  {
+    CString validation = m_grid.GetItemText(pNMLV->iItem, 2 /*VALIDATION*/);
+    theApp.StartValidateEditor(validation,GetSafeHwnd(),id.row);
+  }
+}
+
+void 
+CombiEditorDlg::OnBnClickedAddValidation()
+{
+  NewStepDlg dlg(this,true);
+  if (dlg.DoModal() == IDOK)
+  {
+    CString valiName = dlg.GetValiName();
+    CString valiFile = dlg.GetValiFile();
+    int     valiType = dlg.GetValiType();
+
+    TestEditorDlg* editor = reinterpret_cast<TestEditorDlg*>(GetParent());
+    if(editor)
+    {
+      editor->MakeNewVali(valiType,valiName,valiFile,m_row);
+
+      CString glob("T");
+      int row = m_grid.InsertRow(glob);
+      m_grid.GetCell(row,1)->SetText(valiName);
+      m_grid.GetCell(row,2)->SetText(valiFile);
+      m_grid.Refresh();
+    }
+  }
+}
+
+void 
+CombiEditorDlg::OnBnClickedDelValidation()
+{
+  CCellID id = m_grid.GetFocusCell();
+  if (id.row >= 1)
+  {
+    CString validation = m_grid.GetItemText(id.row,1 /*VALIDATION*/);
+    TSValSet* vals = m_testSet.GetValidations(m_stepName);
+
+    TSValSet::iterator it = vals->begin();
+    while(it != vals->end())
+    {
+      if(it->m_name.CompareNoCase(validation) == 0)
+      {
+        CString ask;
+        ask.Format("Delete validation [%s] definitely! Are you sure?",validation.GetString());
+        if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+        {
+          CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + it->m_filename;
+          DeleteFile(filename);
+          vals->erase(it);
+          m_grid.DeleteRow(id.row);
+          m_grid.Refresh();
+
+          m_testSet.WriteToXML();
+        }
+        return;
+      }
+      ++it;
+    }
+  }
+}
+
+void 
+CombiEditorDlg::OnBnClickedMutValidation()
+{
+  CCellID id = m_grid.GetFocusCell();
+  if(id.row >= 1)
+  {
+    CString validation = m_grid.GetItemText(id.row, 1 /*VALIDATION*/);
+    TSValSet* vals = m_testSet.GetValidations(m_stepName);
+
+    TSValSet::iterator it = vals->begin();
+    while (it != vals->end())
+    {
+      if(it->m_name.CompareNoCase(validation) == 0)
+      {
+        CString filename = it->m_filename;
+
+        MutateDlg dlg(this,"validation",filename);
+        dlg.DoModal();
+
+        CString newfile = dlg.GetFilename();
+        if (newfile.CompareNoCase(filename))
+        {
+          it->m_filename = newfile;
+          m_grid.SetItemText(id.row,2,newfile);
+          m_grid.Refresh();
+          m_testSet.WriteToXML();
+          return;
+        }
+      }
+      ++it;
+    }
+  }
+}

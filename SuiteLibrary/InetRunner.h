@@ -1,0 +1,113 @@
+﻿///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// 
+// ██╗░░██╗░██╗░░░░░░░██╗░█████╗░████████╗████████╗░█████╗░
+// ██║░██╔╝░██║░░██╗░░██║██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗
+// █████═╝░░╚██╗████╗██╔╝███████║░░░██║░░░░░░██║░░░███████║
+// ██╔═██╗░░░████╔═████║░██╔══██║░░░██║░░░░░░██║░░░██╔══██║
+// ██║░╚██╗░░╚██╔╝░╚██╔╝░██║░░██║░░░██║░░░░░░██║░░░██║░░██║
+// ╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝
+// 
+// 
+// This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
+// This program: TestRunner
+// This File   : InetRunner.h
+// What it does: Running one (1) HTTPMessage call to the internet
+// Author      : ir. W.E. Huisman
+// License     : See license.md file in the root directory
+// 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TEST RUNNER for a HTTPMesssage making a call to the internet
+// including stdin, stdout and stderr
+//
+//////////////////////////////////////////////////////////////////////////
+
+#pragma once
+#include "TestStepIN.h"
+#include "Parameters.h"
+#include "ValidateIN.h"
+#include "StepResultIN.h"
+#include <HTTPMessage.h>
+#include <vector>
+
+// 50 milliseconds is the smallest amount of waiting time
+#define MINIMUM_INTERVAL_TIME  50 
+
+using ValiSteps = std::vector<CString>;
+class HTTPClient;
+class OAuth2Cache;
+
+class InetRunner
+{
+public:
+  InetRunner(CString      p_baseDirectory
+            ,CString      p_testDirectory
+            ,CString      p_testStepFilename
+            ,CString      p_parametersFilename
+            ,ValiSteps&   p_validations
+            ,HWND         p_reportHWND
+            ,HTTPClient*  p_client
+            ,OAuth2Cache* p_cache
+            ,HWND         p_callingHWND
+            ,int          p_callingROW);
+  ~InetRunner();
+
+  int   PerformTest();
+
+  // GETTERS
+  StepResultIN* GetStepResult() { return &m_result; }
+
+
+private:
+  // Running the test
+  void  InitRunner();
+  void  CleanUp();
+  void  ReadingAllFiles();
+  void  ParameterProcessing();
+  void  StartingLogfile();
+  void  PerformAuthentication();
+  void  PerformCommand();
+  void  PerformAllValidations();
+  void  SaveTestResults();
+  void  SaveResultParameters();
+  int   ReadTotalResult();
+  // Setting authentication
+  void  SetBasicAuthentication();
+  void  SetNTLMAuthentication();
+  void  SetNTLMSSOAuthentication();
+  void  SetOAuth2Authentication();
+
+  // Details
+  void  ReadTestStep();
+  void  ReadParameters();
+  void  ReadValidations();
+  void  PerformStep(CString p_stepName);
+
+  // Telling it the outside world
+  void  SetTest(CString p_test);
+  void  SetStep(CString p_step);
+  void  SetProgress(int p_percent);
+  void  EndTesting(int p_result);
+
+  CString       m_baseDirectory;
+  CString       m_testDirectory;
+  CString       m_testStepFilename;
+  CString       m_parametersFilename;
+  HWND          m_reportHWND  { NULL };
+  int           m_steps       { 0    };
+  int           m_stepSize    { 12   };
+  int           m_progress    { 0    };
+  TestStepIN    m_testStep;
+  Parameters    m_parameters;
+  ValiSteps     m_valiSteps;
+  Validations   m_validations;
+  StepResultIN  m_result;
+  HTTPMessage   m_message;
+  HTTPClient*   m_client      { nullptr };
+  OAuth2Cache*  m_oauth       { nullptr };
+  HWND          m_callingHWND { NULL };
+  int           m_callingROW  { 0    };
+};

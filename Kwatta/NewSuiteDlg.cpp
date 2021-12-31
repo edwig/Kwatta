@@ -1,0 +1,228 @@
+﻿///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// 
+// ██╗░░██╗░██╗░░░░░░░██╗░█████╗░████████╗████████╗░█████╗░
+// ██║░██╔╝░██║░░██╗░░██║██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗
+// █████═╝░░╚██╗████╗██╔╝███████║░░░██║░░░░░░██║░░░███████║
+// ██╔═██╗░░░████╔═████║░██╔══██║░░░██║░░░░░░██║░░░██╔══██║
+// ██║░╚██╗░░╚██╔╝░╚██╔╝░██║░░██║░░░██║░░░░░░██║░░░██║░░██║
+// ╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝
+// 
+// 
+// This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
+// This program: Kwatta
+// This File   : NewSuiteDlg.cpp
+// What it does: Creates a new test suite in a new and empty directory
+// Author      : ir. W.E. Huisman
+// License     : See license.md file in the root directory
+// 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "StdAfx.h"
+#include "NewSuiteDlg.h"
+#include "Resource.h"
+#include <FileDialog.h>
+#include <MapDialog.h>
+#include <TestSuite.h>
+#include <ExtraExtensions.h>
+#include <EnsureFile.h>
+#include <filesystem>
+
+// NewSuiteDlg dialog
+
+IMPLEMENT_DYNAMIC(NewSuiteDlg,StyleDialog)
+
+NewSuiteDlg::NewSuiteDlg(CWnd* p_parent)
+	          :StyleDialog(IDD_NEWSUITE,p_parent)
+            ,m_init(false)
+{
+}
+
+NewSuiteDlg::~NewSuiteDlg()
+{
+}
+
+void NewSuiteDlg::DoDataExchange(CDataExchange* pDX)
+{
+	StyleDialog::DoDataExchange(pDX);
+
+  DDX_Control(pDX,IDC_EXPLAIN,   m_editExplain,  m_explain);
+  DDX_Control(pDX,IDC_DIRECTORY, m_editDirectory,m_directory);
+  DDX_Control(pDX,IDC_SUITENAME, m_editSuiteName,m_suiteName);
+  DDX_Control(pDX,IDC_SEARCHDIR, m_buttonChooseDir);
+  DDX_Control(pDX,IDC_SEARCHFILE,m_buttonChooseFile);
+  DDX_Control(pDX,IDOK,          m_buttonOK);
+  DDX_Control(pDX,IDCANCEL,      m_buttonCancel);
+}
+
+BEGIN_MESSAGE_MAP(NewSuiteDlg,StyleDialog)
+  ON_EN_KILLFOCUS(IDC_DIRECTORY,  OnEnKillfocusDirectory)
+  ON_EN_KILLFOCUS(IDC_SUITENAME,  OnEnKillfocusSuiteName)
+  ON_BN_CLICKED  (IDC_SEARCHDIR,  OnBnClickedChooseDir)
+  ON_BN_CLICKED  (IDC_SEARCHFILE, OnBnClickedChooseFile)
+  ON_BN_CLICKED  (IDOK,           OnBnClickedOK)
+  ON_BN_CLICKED  (IDCANCEL,       OnBnClickedCancel)
+END_MESSAGE_MAP()
+
+BOOL
+NewSuiteDlg::OnInitDialog()
+{
+  StyleDialog::OnInitDialog();
+  SetWindowText("Create a new test suite");
+
+  m_buttonChooseDir.SetStyle("dir");
+  m_buttonChooseFile.SetIconImage(IDI_NEW);
+  m_buttonOK.SetStyle("ok");
+  m_buttonCancel.SetStyle("can");
+  m_editDirectory.SetEmpty(true,"Choose a new directory");
+  m_editSuiteName.SetEmpty(true,"Choose a new test suite name");
+
+  m_explain = "Create a new test suite by creating a new empty directory.\r\n"
+              "The directory will only contain your <projectname>.xtest file.";
+  UpdateData(FALSE);
+  m_editDirectory.SetFocus();
+  m_init = true;
+  return FALSE;
+}
+
+CString 
+NewSuiteDlg::GetNewProjectFile()
+{
+  return m_directory + "\\" + m_suiteName;
+}
+
+bool 
+NewSuiteDlg::CheckDirectory()
+{
+  if(m_directory.IsEmpty())
+  {
+    m_editDirectory.SetErrorState(true,"Choose a new directory!");
+    return false;
+  }
+  m_editDirectory.SetErrorState(false);
+
+  if(std::filesystem::exists(m_directory.GetString()))
+  {
+    if(std::filesystem::is_empty(m_directory.GetString()))
+    {
+      return true;
+    }
+    m_editDirectory.SetErrorState(true,"You must choose/create an empty directory!");
+    return false;
+  }
+  return true;
+}
+
+
+bool
+NewSuiteDlg::CheckSuiteName()
+{
+  if(m_suiteName.IsEmpty())
+  {
+    m_editSuiteName.SetErrorState(true);
+    return false;
+  }
+  m_editSuiteName.SetErrorState(false);
+
+  EnsureFile ensure;
+  CString extension = ensure.ExtensionPart(m_suiteName);
+  if(extension.IsEmpty())
+  {
+    m_suiteName += EXTENSION_SUITE;
+    UpdateData(FALSE);
+    return true;
+  }
+
+  if(extension.CompareNoCase(EXTENSION_SUITE) == 0)
+  {
+    return true;
+  }
+
+  m_editSuiteName.SetErrorState(true);
+  return false;
+}
+
+bool
+NewSuiteDlg::CreateEmptySuite()
+{
+  CString path = GetNewProjectFile();
+  TestSuite suite(m_directory);
+  suite.SetFilename(path);
+  return suite.WriteToXML(true);
+}
+
+// NewSuiteDlg message handlers
+
+void
+NewSuiteDlg::OnEnKillfocusExplain()
+{
+  UpdateData();
+}
+
+void 
+NewSuiteDlg::OnEnKillfocusDirectory()
+{
+  UpdateData();
+}
+
+void 
+NewSuiteDlg::OnEnKillfocusSuiteName()
+{
+  UpdateData();
+  if(m_init)
+  {
+    CheckSuiteName();
+  }
+}
+
+void 
+NewSuiteDlg::OnBnClickedChooseDir()
+{
+  MapDialog dlg;
+  if(dlg.Browse(GetSafeHwnd(),"Choose a new (empty) test suite directory","","",false,true))
+  {
+    m_directory = dlg.GetPath();
+    UpdateData(FALSE);
+    CheckDirectory();
+  }
+}
+
+void 
+NewSuiteDlg::OnBnClickedChooseFile()
+{
+  DocFileDialog dlg(false,"Choose a new test suite filename",EXTENSION_SUITE,"",0,"Kwatta test suite *.xtest|*.xtest");
+  if(dlg.DoModal())
+  {
+    CString file = dlg.GetChosenFile();
+    EnsureFile ensure;
+    m_directory = ensure.DirectoryPart(file);
+    m_suiteName = ensure.FilenamePart(file);
+    m_directory = m_directory.TrimRight('\\');
+    UpdateData(FALSE);
+    CheckDirectory();
+    CheckSuiteName();
+  }
+}
+
+void 
+NewSuiteDlg::OnBnClickedOK()
+{
+  if(!m_directory.IsEmpty() && !m_suiteName.IsEmpty())
+  {
+    if(CheckDirectory() && CheckSuiteName())
+    {
+      CreateEmptySuite();
+      StyleDialog::OnOK();
+      return;
+    }
+  }
+  StyleMessageBox(this,"You must supply both a directory name and a project name!",KWATTA,MB_OK|MB_ICONERROR);
+}
+
+void 
+NewSuiteDlg::OnBnClickedCancel()
+{
+  m_directory.Empty();
+  m_suiteName.Empty();
+  StyleDialog::OnCancel();
+}

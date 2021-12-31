@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{5c9bd453-0cb3-4c9a-98cd-54ffa61dac1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header files">
+      <UniqueIdentifier>{d5680ba7-cb3e-4150-b3b4-b7616600b1b2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TestStep.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamBuffer.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="Parameters.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="Validate.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="SearchVarDlg.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StepResult.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSuite.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestSet.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="GetExePath.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartProgram.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDialog.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="MapDialog.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtraMessages.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestStepCL.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtraExtensions.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestStepIN.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestMessages.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StepResultCL.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StepResultIN.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="SuiteLibrary.h" />
+    <ClInclude Include="ValidateCL.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValidateIN.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StyleRichEdit.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="AboutDlg.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ExecRunner.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="InetRunner.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="NewVariableDlg.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ResetAll.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TestStep.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StreamBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Parameters.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Validate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SearchVarDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StepResult.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSuite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GetExePath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StartProgram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MapDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStepCL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStepIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StepResultCL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StepResultIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidateCL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidateIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AboutDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StyleRichEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InetRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NewVariableDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResetAll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SuiteLibrary.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\TestEditor.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\new.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\remove.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

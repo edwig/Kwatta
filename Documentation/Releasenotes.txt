@@ -1,0 +1,10 @@
+KWATTA RELEASNOTES
+==================
+
+Version 1.0.1 Release date: 02-01-2022
+--------------------------------------
+1)  Fixes for TestRunner in releasemode. Absolute must to upgrade to this version!
+2)  All resources now have the proper version information for the executables
+3)  Bugfix for bcd class (decimal numbers)
+4)  Fix for build depedencies. To build a installer, just build the release mode configuration.
+    64Bits NSIS must be present in the "C:\Program Files\NSIS" directory.

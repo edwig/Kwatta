@@ -22,8 +22,8 @@
 
 #define KWATTA_VERSION_MAJOR  1
 #define KWATTA_VERSION_MINOR  0
-#define KWATTA_VERSION_SP     0
-#define KWATTA_VERSION_BUILD  89
+#define KWATTA_VERSION_SP     1
+#define KWATTA_VERSION_BUILD  92
 
 #define KWATTA                "Kwatta"
 #define KWATTA_VERSION        "1.0.0"

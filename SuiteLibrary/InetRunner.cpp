@@ -245,10 +245,10 @@ InetRunner::PerformCommand()
   m_message.SetBody(m_testStep.GetEffectiveBody());
   CString url = m_testStep.GetEffectiveCombinedURL();
   m_message.SetURL(url);
-  UrlParameters& params = m_testStep.GetEffectiveParameters();
-  for(auto& param : params)
+  UrlHeaders& headers = m_testStep.GetEffectiveHeaders();
+  for(auto& header : headers)
   {
-    m_message.AddHeader(param.m_name,param.m_value);
+    m_message.AddHeader(header.m_name,header.m_value);
   }
 
   // We want all return headers

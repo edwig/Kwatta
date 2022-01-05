@@ -159,7 +159,7 @@ RequestDlg::StoreVariables()
 {
   UpdateData();
 
-  m_payload.Replace("\r\n","\n");
+  m_payload.Replace("\r","");
   m_testStep->SetBody(m_payload);
   m_testStep->SetHeader("Content-type",m_contentType);
 }

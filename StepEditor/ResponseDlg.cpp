@@ -115,6 +115,7 @@ ResponseDlg::InitPayload()
   m_editPayload.SetFontName("Courier new",100);
   m_editPayload.SetMutable(false);
 }
+
 void 
 ResponseDlg::SetResult(StepResultIN* p_result)
 {

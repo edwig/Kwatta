@@ -269,6 +269,8 @@
     <Image Include="res\Check.ico" />
     <Image Include="res\Clear.ico" />
     <Image Include="res\List.ico" />
+    <Image Include="res\new.ico" />
+    <Image Include="res\remove.ico" />
     <Image Include="res\Return.ico" />
     <Image Include="res\run.ico" />
     <Image Include="res\StepEditor.ico" />

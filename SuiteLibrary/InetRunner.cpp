@@ -245,8 +245,9 @@ InetRunner::PerformCommand()
   m_message.SetBody(m_testStep.GetEffectiveBody());
   CString url = m_testStep.GetEffectiveCombinedURL();
   m_message.SetURL(url);
-  UrlHeaders& headers = m_testStep.GetEffectiveHeaders();
-  for(auto& header : headers)
+
+  // Adding all headers
+  for(auto& header : m_testStep.GetEffectiveHeaders())
   {
     m_message.AddHeader(header.m_name,header.m_value);
   }

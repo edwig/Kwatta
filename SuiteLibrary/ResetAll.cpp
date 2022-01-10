@@ -179,6 +179,8 @@ ResetAll::ResetTestStep()
       instep->ResetEffective();
     }
     step->WriteToXML(path);
+
+    delete step;
   }
   catch (StdException& ex)
   {

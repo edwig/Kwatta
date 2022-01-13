@@ -222,7 +222,7 @@ ValidateInternetDlg::EffectiveParameters()
 
     m_bound = "Parameters: OK";
     // Effectuate the parameters
-    m_unbound = m_validate.EffectiveReplacements(&m_parameters);
+    m_unbound = m_validate.EffectiveReplacements(&m_parameters,true);
 
     if(m_unbound > 0)
     {

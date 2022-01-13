@@ -162,12 +162,12 @@ ExecRunner::ParameterProcessing()
   PerformStep("Parameter processing...");
 
   // Effectuate the parameters for the step
-  unbound = m_testStep.EffectiveReplacements(&m_parameters);
+  unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
 
   // Effectuate the parameters for the validation steps
   for(auto& validate : m_validations)
   {
-    unbound += validate->EffectiveReplacements(&m_parameters);
+    unbound += validate->EffectiveReplacements(&m_parameters,false);
   }
 
   // Cannot perform a test step if still unbound parameters exists

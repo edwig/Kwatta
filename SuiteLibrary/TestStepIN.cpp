@@ -153,13 +153,13 @@ TestStepIN::WriteToXML(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-TestStepIN::EffectiveReplacements(Parameters* p_parameters)
+TestStepIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
-  int unbound = TestStep::EffectiveReplacements(p_parameters);
+  int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
 
-  unbound += p_parameters->Replace(m_url,   m_effectiveUrl);
-  unbound += p_parameters->Replace(m_anchor,m_effectiveAnchor);
-  unbound += p_parameters->Replace(m_body,  m_effectiveBody,ParType::PAR_BUFFER);
+  unbound += p_parameters->Replace(m_url,   m_effectiveUrl,   p_forDisplay);
+  unbound += p_parameters->Replace(m_anchor,m_effectiveAnchor,p_forDisplay);
+  unbound += p_parameters->Replace(m_body,  m_effectiveBody,  p_forDisplay,ParType::PAR_BUFFER);
 
   m_effectiveParameters.clear();
   m_effectiveHeaders.clear();
@@ -167,13 +167,13 @@ TestStepIN::EffectiveReplacements(Parameters* p_parameters)
   CString result;
   for(auto& param : m_parameters)
   {
-    unbound += p_parameters->Replace(param.m_value,result);
+    unbound += p_parameters->Replace(param.m_value,result,p_forDisplay);
     INPair pair{ param.m_name,result };
     m_effectiveParameters.push_back(pair);
   }
   for(auto& head : m_headers)
   {
-    unbound += p_parameters->Replace(head.m_value,result);
+    unbound += p_parameters->Replace(head.m_value,result,p_forDisplay);
     INPair pair{ head.m_name,result };
     m_effectiveHeaders.push_back(pair);
   }

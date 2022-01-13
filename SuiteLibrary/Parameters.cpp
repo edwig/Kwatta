@@ -259,7 +259,7 @@ bool
 Parameters::ExistsAsGlobalParameter(CString p_name)
 {
   // If we protect our password, the variable exists!
-  if(m_password && p_name.CompareNoCase("password") == 0)
+  if(p_name.CompareNoCase("password") == 0)
   {
     return true;
   }
@@ -329,15 +329,23 @@ Parameters::FindReturnParameter(CString p_name)
 }
 
 CString
-Parameters::FindGlobalParameter(CString p_name)
+Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
 {
   // In case we protect our password, it comes from the environment variable
-  if(m_password && p_name.CompareNoCase("password") == 0)
+  if(p_name.CompareNoCase("password") == 0)
   {
-    CString pwd;
-    if(pwd.GetEnvironmentVariable(KWATTA_PASSWORD))
+    if(p_forDisplay)
     {
-      return pwd;
+      return "############";
+    }
+
+    if(m_password)
+    {
+      CString pwd;
+      if(pwd.GetEnvironmentVariable(KWATTA_PASSWORD))
+      {
+        return pwd;
+      }
     }
   }
 
@@ -557,15 +565,15 @@ Parameters::RemoveGlobalParameter(CString p_name)
 
 // The general replace function for bound parameters
 int
-Parameters::Replace(CString p_input,CString& p_output,ParType p_exclude /*= PAR_NONE*/)
+Parameters::Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType p_exclude /*= PAR_NONE*/)
 {
   int notfound = 0;
 
   // Do all replacements
-  notfound += Replace(p_input,'$','$',ParType::PAR_GLOBAL, p_exclude);  // Global variables
-  notfound += Replace(p_input,'[',']',ParType::PAR_RETURN, p_exclude);  // Return variables
-  notfound += Replace(p_input,'<','>',ParType::PAR_BUFFER, p_exclude);  // Buffer variables
-  notfound += Replace(p_input,'%','%',ParType::PAR_ENVIRON,p_exclude);  // Environment variables
+  notfound += Replace(p_input,'$','$',ParType::PAR_GLOBAL, p_forDisplay,p_exclude);  // Global variables
+  notfound += Replace(p_input,'[',']',ParType::PAR_RETURN, p_forDisplay,p_exclude);  // Return variables
+  notfound += Replace(p_input,'<','>',ParType::PAR_BUFFER, p_forDisplay,p_exclude);  // Buffer variables
+  notfound += Replace(p_input,'%','%',ParType::PAR_ENVIRON,p_forDisplay,p_exclude);  // Environment variables
 
   // Set the output
   p_output = p_input;
@@ -614,7 +622,12 @@ Parameters::NameNotYetUsed(CString p_name)
 }
 
 int
-Parameters::Replace(CString& p_string,char p_first,char p_last,ParType p_find,ParType p_exclude /*= PAR_NONE*/)
+Parameters::Replace(CString& p_string
+                   ,char     p_first
+                   ,char     p_last
+                   ,ParType  p_find
+                   ,bool     p_forDisplay
+                   ,ParType  p_exclude /*= PAR_NONE*/)
 {
   int notReplaced = 0;
   CString replaced;
@@ -641,7 +654,7 @@ Parameters::Replace(CString& p_string,char p_first,char p_last,ParType p_find,Pa
         switch (p_find)
         {
           case ParType::PAR_GLOBAL:  exists = ExistsAsGlobalParameter(varName);
-                                     value  = FindGlobalParameter(varName); 
+                                     value  = FindGlobalParameter(varName,p_forDisplay); 
                                      break;
           case ParType::PAR_RETURN:  exists = ExistsAsReturnParameter(varName);
                                      value  = FindReturnParameter(varName); 

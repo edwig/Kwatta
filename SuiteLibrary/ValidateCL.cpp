@@ -77,13 +77,13 @@ ValidateCL::WriteToXML(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-ValidateCL::EffectiveReplacements(Parameters* p_parameters)
+ValidateCL::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = 0;
 
-  unbound += p_parameters->Replace(m_expectedReturn,m_effectiveReturn);
-  unbound += p_parameters->Replace(m_expectedOutput,m_effectiveOutput);
-  unbound += p_parameters->Replace(m_expectedError,m_effectiveError);
+  unbound += p_parameters->Replace(m_expectedReturn,m_effectiveReturn,p_forDisplay);
+  unbound += p_parameters->Replace(m_expectedOutput,m_effectiveOutput,p_forDisplay);
+  unbound += p_parameters->Replace(m_expectedError, m_effectiveError, p_forDisplay);
 
   return unbound;
 }

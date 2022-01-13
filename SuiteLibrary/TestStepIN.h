@@ -22,7 +22,7 @@ public:
   virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error
   virtual bool    WriteToXML(CString p_filename) override;
   // RE-Calculate the effective strings, returning the number of unbound parameters
-  virtual int     EffectiveReplacements(Parameters* p_parameters);
+  virtual int     EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay);
   // Check our filenames extension
   virtual void    CheckFilename(CString p_filename);
   // Reset effective parameter replacements

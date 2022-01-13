@@ -163,15 +163,15 @@ TestStepCL::SetStandardInput(CString p_input)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-TestStepCL::EffectiveReplacements(Parameters* p_parameters)
+TestStepCL::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
-  int unbound = TestStep::EffectiveReplacements(p_parameters);
+  int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
   CString input = GetStandardInput();
 
-  unbound += p_parameters->Replace(m_directoryPath,m_effectiveDirectory);
-  unbound += p_parameters->Replace(m_runtimer,     m_effectiveRuntimer);
-  unbound += p_parameters->Replace(m_commandLine,  m_effectiveCommandLine);
-  unbound += p_parameters->Replace(input,          m_effectiveInput);
+  unbound += p_parameters->Replace(m_directoryPath,m_effectiveDirectory,  p_forDisplay);
+  unbound += p_parameters->Replace(m_runtimer,     m_effectiveRuntimer,   p_forDisplay);
+  unbound += p_parameters->Replace(m_commandLine,  m_effectiveCommandLine,p_forDisplay);
+  unbound += p_parameters->Replace(input,          m_effectiveInput,      p_forDisplay);
 
   return unbound;
 }

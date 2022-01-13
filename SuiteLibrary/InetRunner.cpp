@@ -158,12 +158,12 @@ InetRunner::ParameterProcessing()
   PerformStep("Parameter processing...");
 
   // Effectuate the parameters for the step
-  unbound = m_testStep.EffectiveReplacements(&m_parameters);
+  unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
 
   // Effectuate the parameters for the validation steps
   for(auto& validate : m_validations)
   {
-    unbound += validate->EffectiveReplacements(&m_parameters);
+    unbound += validate->EffectiveReplacements(&m_parameters,false);
   }
 
   // Cannot perform a test step if still unbound parameters exists
@@ -489,8 +489,8 @@ InetRunner::SetBasicAuthentication()
   CString pswd = m_testStep.GetAuthPassword();
 
   // Allow for parameter replacements (but not the complete buffer!)
-  m_parameters.Replace(user, calluser, ParType::PAR_BUFFER);
-  m_parameters.Replace(pswd, callpswd, ParType::PAR_BUFFER);
+  m_parameters.Replace(user, calluser, false, ParType::PAR_BUFFER);
+  m_parameters.Replace(pswd, callpswd, false, ParType::PAR_BUFFER);
 
   // Tell it the client
   m_client->SetUser(calluser);
@@ -525,10 +525,10 @@ InetRunner::SetOAuth2Authentication()
   CString clientID;
   CString clientKey;
   CString clientScope;
-  m_parameters.Replace(m_testStep.GetAuthTokenServer(),tokenServer,ParType::PAR_BUFFER);
-  m_parameters.Replace(m_testStep.GetAuthClientID(),   clientID,   ParType::PAR_BUFFER);
-  m_parameters.Replace(m_testStep.GetAuthClientKey(),  clientKey,  ParType::PAR_BUFFER);
-  m_parameters.Replace(m_testStep.GetAuthClientScope(),clientScope,ParType::PAR_BUFFER);
+  m_parameters.Replace(m_testStep.GetAuthTokenServer(),tokenServer,false,ParType::PAR_BUFFER);
+  m_parameters.Replace(m_testStep.GetAuthClientID(),   clientID,   false,ParType::PAR_BUFFER);
+  m_parameters.Replace(m_testStep.GetAuthClientKey(),  clientKey,  false,ParType::PAR_BUFFER);
+  m_parameters.Replace(m_testStep.GetAuthClientScope(),clientScope,false,ParType::PAR_BUFFER);
 
   // Checking for a session
   int session = m_oauth->GetHasSession(clientID,clientKey);

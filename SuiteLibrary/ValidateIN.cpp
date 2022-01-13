@@ -127,15 +127,15 @@ ValidateIN::WriteToXML(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-ValidateIN::EffectiveReplacements(Parameters* p_parameters)
+ValidateIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = 0;
 
-  unbound += p_parameters->Replace(m_expectedStatus, m_effectiveStatus);
-  unbound += p_parameters->Replace(m_expectedHeader, m_effectiveHeaderValue);
-  unbound += p_parameters->Replace(m_expectedBody,   m_effectiveBody);
-  unbound += p_parameters->Replace(m_expectedXML,    m_effectiveXMLValue);
-  unbound += p_parameters->Replace(m_expectedJSON,   m_effectiveJSONValue);
+  unbound += p_parameters->Replace(m_expectedStatus, m_effectiveStatus,     p_forDisplay);
+  unbound += p_parameters->Replace(m_expectedHeader, m_effectiveHeaderValue,p_forDisplay);
+  unbound += p_parameters->Replace(m_expectedBody,   m_effectiveBody,       p_forDisplay);
+  unbound += p_parameters->Replace(m_expectedXML,    m_effectiveXMLValue,   p_forDisplay);
+  unbound += p_parameters->Replace(m_expectedJSON,   m_effectiveJSONValue,  p_forDisplay);
 
   return unbound;
 }

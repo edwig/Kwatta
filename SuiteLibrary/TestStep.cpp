@@ -41,7 +41,7 @@ TestStep* ReadTestStep(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-TestStep::EffectiveReplacements(Parameters* /*p_parameters*/)
+TestStep::EffectiveReplacements(Parameters* /*p_parameters*/,bool /*p_forDisplay*/)
 {
   // Nothing for now
   return 0;

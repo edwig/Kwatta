@@ -35,7 +35,7 @@ public:
   virtual void  ReadFromXML(CString p_filename) = 0;
   virtual bool  WriteToXML (CString p_filename) = 0;
   // RE-Calculate the effective strings, returning the number of unbound parameters
-  virtual int   EffectiveReplacements(Parameters* p_parameters);
+  virtual int   EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay);
   virtual void  CheckFilename(CString p_filename) = 0;
 
   // GETTERS

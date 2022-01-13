@@ -60,7 +60,7 @@ public:
   virtual void    ReadFromXML(CString p_filename) = 0;  // Throws in case of an error
   virtual bool    WriteToXML (CString p_filename) = 0;
   // RE-Calculate the effective strings, returning the number of unbound parameters
-  virtual int     EffectiveReplacements(Parameters* p_parameters) = 0;
+  virtual int     EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay) = 0;
   // Check our filenames extension
   virtual void    CheckFilename(CString p_filename) = 0;
 

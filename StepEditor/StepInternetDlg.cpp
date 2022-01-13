@@ -333,7 +333,7 @@ StepInternetDlg::EffectiveParameters()
 
     // Effectuate the parameters
     StoreVariables();
-    m_unbound = m_testStep->EffectiveReplacements(&m_parameters);
+    m_unbound = m_testStep->EffectiveReplacements(&m_parameters,true);
 
     if(m_unbound > 0)
     {

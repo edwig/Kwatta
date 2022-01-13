@@ -46,7 +46,7 @@ public:
   void     Reset();
 
   // The general replace function for bound parameters
-  int      Replace(CString p_input,CString& p_output,ParType p_exclude = ParType::PAR_NONE);
+  int      Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType p_exclude = ParType::PAR_NONE);
 
   // Interface with the file system
   void     ReadFromXML(CString p_filename,bool p_global = true);  // Throws in case of an error
@@ -59,7 +59,7 @@ public:
   bool     ExistsAsEnvironParameter(CString p_name);
 
   CString  FindSystemParameter (CString p_name);
-  CString  FindGlobalParameter (CString p_name);
+  CString  FindGlobalParameter (CString p_name,bool p_forDisplay);
   CString  FindReturnParameter (CString p_name);
   CString  FindBufferParameter (CString p_name);
   CString  FindEnvironParameter(CString p_name);
@@ -93,7 +93,7 @@ private:
   // Check if we should do password protection
   void    CheckPasswordProtection(CString p_name,CString p_value);
   // Replacement of values
-  int     Replace(CString& p_string,char p_first,char p_last,ParType p_find,ParType p_exclude = ParType::PAR_NONE);
+  int     Replace(CString& p_string,char p_first,char p_last,ParType p_find,bool p_forDisplay,ParType p_exclude = ParType::PAR_NONE);
 
   ParMap  m_system;   // System parameters
   ParMap  m_buffers;  // [name]   values

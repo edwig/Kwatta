@@ -244,7 +244,7 @@ void
 XMLNodeDlg::OnBnClickedNewvar()
 {
   SearchVarDlg dlg(m_parameters,true,true,true);
-  if (dlg.DoModal() == IDOK)
+  if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
     CString var = dlg.GetChosenVariable();
     CString variable;

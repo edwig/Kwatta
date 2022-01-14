@@ -227,7 +227,7 @@ void
 StatusDlg::OnBnClickedNewvar()
 {
   SearchVarDlg dlg(m_parameters,true,true,false);
-  if (dlg.DoModal() == IDOK)
+  if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
     CString var = dlg.GetChosenVariable();
     CString variable;

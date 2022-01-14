@@ -2,6 +2,8 @@
 // Microsoft Visual C++ generated include file.
 // Used by SuiteLibrary.rc
 //
+#define IDOK2                           3
+#define IDC_SAVE                        3
 #define IDI_REMOVE                      136
 #define IDD_SEARCHVAR                   190
 #define IDD_ABOUT                       192

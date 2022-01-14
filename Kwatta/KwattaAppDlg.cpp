@@ -610,7 +610,7 @@ void KwattaAppDlg::OnBnClickedButParam()
   SearchVarDlg dlg(m_parameters,true,false,false);
   dlg.DoModal();
 
-  if(dlg.GetChanged())
+  if(dlg.GetSaved())
   {
     m_parameters->WriteToXML();
   }

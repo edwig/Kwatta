@@ -233,6 +233,7 @@
     <Image Include="res\ArrowUP.ico" />
     <Image Include="res\edit.ico" />
     <Image Include="res\ERROR.bmp" />
+    <Image Include="res\global.bmp" />
     <Image Include="res\icon1.ico" />
     <Image Include="res\Kopieren.ico" />
     <Image Include="res\Mutate.ico" />

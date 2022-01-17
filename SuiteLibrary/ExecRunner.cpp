@@ -36,20 +36,24 @@ ExecRunner::ExecRunner(CString    p_baseDirectory
                       ,CString    p_testDirectory
                       ,CString    p_testStepFilename
                       ,CString    p_parametersFilename
-                      ,ValiSteps& p_validations
+                      ,ValiSteps& p_localValidations
+                      ,ValiSteps& p_globalValidations
                       ,HWND       p_consoleHWND
                       ,HWND       p_reportHWND
                       ,HWND       p_callingHWND
-                      ,int        p_callingROW)
+                      ,int        p_callingROW
+                      ,bool       p_global)
            :m_baseDirectory(p_baseDirectory)
            ,m_testDirectory(p_testDirectory)
            ,m_testStepFilename(p_testStepFilename)
            ,m_parametersFilename(p_parametersFilename)
-           ,m_valiSteps(p_validations)
+           ,m_localValidations(p_localValidations)
+           ,m_globalValidations(p_globalValidations)
            ,m_consoleHNWD(p_consoleHWND)
            ,m_reportHWND(p_reportHWND)
            ,m_callingHWND(p_callingHWND)
            ,m_callingROW(p_callingROW)
+           ,m_global(p_global)
 {
 }
 
@@ -108,6 +112,15 @@ ExecRunner::PerformTest()
   return result;
 }
 
+CString
+ExecRunner::GetEffectiveStepFilename()
+{
+  CString filename(m_baseDirectory);
+  filename += m_global ? CString("Steps\\") : m_testDirectory;
+  filename += m_testStepFilename;
+
+  return filename;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -137,7 +150,7 @@ ExecRunner::InitRunner()
   // 9   Reaching a conclusion
 
   // +   1 for every validation step
-  m_steps    = 9 + (int) m_valiSteps.size();
+  m_steps    = 9 + (int) m_localValidations.size();
   m_stepSize = 100 / m_steps;
 }
 
@@ -334,7 +347,7 @@ ExecRunner::PerformAllValidations()
     if(validate->ValidateErrorBuffer (m_result.GetStandardError())  == false) result = false;
 
     // Add the validation to the result set
-    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result);
+    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
   }
 }
 
@@ -344,7 +357,7 @@ ExecRunner::SaveTestResults()
 {
   PerformStep("Saving the test results");
 
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  CString filename = GetEffectiveStepFilename();
   filename.MakeLower();
   filename.Replace(".xrun",".xres");
 
@@ -416,7 +429,7 @@ void
 ExecRunner::ReadTestStep()
 {
   // Read in the definition file for a test step
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  CString filename = GetEffectiveStepFilename();
   m_testStep.ReadFromXML(filename);
 }
 
@@ -437,11 +450,19 @@ ExecRunner::ReadParameters()
 void
 ExecRunner::ReadValidations()
 {
-  for(auto& filename : m_valiSteps)
+  for(auto& filename : m_localValidations)
   {
     Validate* validate = new ValidateCL();
     CString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
+    m_validations.push_back(validate);
+  }
+  for(auto& filename : m_globalValidations)
+  {
+    Validate* validate = new ValidateCL();
+    CString file = m_baseDirectory + "Validations\\" + filename;
+    validate->ReadFromXML(file);
+    validate->SetGlobal(true);
     m_validations.push_back(validate);
   }
 }

@@ -68,11 +68,13 @@ public:
   virtual CString GetName()          { return m_name;          }
   virtual CString GetDocumentation() { return m_documentation; }
   virtual CString GetFilename()      { return m_filename;      }
+  virtual bool    GetGlobal()        { return m_global;        }
 
   // SETTERS
-  virtual void    SetName(CString p_name)         { m_name          = p_name; }
-  virtual void    SetDocumentation(CString p_doc) { m_documentation = p_doc;  }
-  virtual void    SetFilename(CString p_file)     { m_filename      = p_file; }
+  virtual void    SetName(CString p_name)         { m_name          = p_name;   }
+  virtual void    SetDocumentation(CString p_doc) { m_documentation = p_doc;    }
+  virtual void    SetFilename(CString p_file)     { m_filename      = p_file;   }
+  virtual void    SetGlobal(bool p_global)        { m_global        = p_global; }
 
 protected:
   // Interface with the file system
@@ -96,5 +98,5 @@ protected:
   CString         m_name;
   CString         m_documentation;
   CString         m_filename;
-
+  bool            m_global { false };
 };

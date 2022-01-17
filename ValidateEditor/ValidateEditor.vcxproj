@@ -256,6 +256,7 @@
     <None Include="test.xval" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\Earth.ico" />
     <Image Include="res\List.ico" />
     <Image Include="res\Return.ico" />
     <Image Include="res\ValidateEditor.ico" />

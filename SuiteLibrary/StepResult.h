@@ -27,6 +27,7 @@ typedef struct _valStep
   int     m_number;
   CString m_validation;
   CString m_filename;
+  bool    m_global;
   bool    m_ok;
 }
 ValStep;
@@ -64,7 +65,7 @@ public:
   void      SetTiming(double p_time)                  { m_seconds        = p_time;          }
 
   // Add an extra validation
-  void      AddValidation(int p_step,CString p_name,CString p_filename,bool p_result);
+  void      AddValidation(int p_step,CString p_name,CString p_filename,bool p_result,bool p_global);
 
 protected:
   // Interface with the file system

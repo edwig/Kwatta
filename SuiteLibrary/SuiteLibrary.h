@@ -32,6 +32,9 @@
 // Used for environment variables
 #define KWATTA_PASSWORD       "KWATTA_PASSWORD"
 
+// Used for global objects
+#define GLOBAL_COLOR          RGB(200,191,231)
+
 // Selecting the right library to link with automatically
 // So we do not need to worry about which library to use in the linker settings
 #if defined _M_IX86

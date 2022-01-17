@@ -122,5 +122,8 @@
     <Image Include="res\Return.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\Earth.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

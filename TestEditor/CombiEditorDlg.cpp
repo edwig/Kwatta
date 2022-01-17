@@ -41,6 +41,7 @@ CombiEditorDlg::CombiEditorDlg(CWnd* p_parent,TestSet& p_testSet,CString p_stepn
                ,m_testSet(p_testSet)
                ,m_stepName(p_stepname)
                ,m_row(p_row)
+               ,m_changed(false)
 {
 }
 
@@ -104,46 +105,123 @@ CombiEditorDlg::InitButtons()
 void
 CombiEditorDlg::FillGrid()
 {
-  m_grid.SetColumnCount(3);
+  m_grid.SetColumnCount(4);
   m_grid.SetRowCount(1);
   m_grid.SetFixedRowCount(1);
   m_grid.SetFixedColumnCount(1);
   m_grid.SetEditable(FALSE);
-  m_grid.GetCell(0, 0)->SetText("GT");
-  m_grid.GetCell(0, 1)->SetText("Validation");
-  m_grid.GetCell(0, 2)->SetText("Filename");
+  m_grid.GetCell(0, 0)->SetText("Number");
+  m_grid.GetCell(0, 1)->SetText("GT");
+  m_grid.GetCell(0, 2)->SetText("Validation");
+  m_grid.GetCell(0, 3)->SetText("Filename");
   m_grid.SetSingleRowSelection();
   m_grid.SetSortColumn(0);
 
-  m_grid.SetColumnWidth(0, 50);
-  m_grid.SetColumnWidth(1, 200);
-  m_grid.SetColumnWidth(2, 300);
+  m_grid.SetColumnWidth(0, 100);
+  m_grid.SetColumnWidth(1, 32);
+  m_grid.SetColumnWidth(2, 200);
+  m_grid.SetColumnWidth(3, 300);
+
+  // Create image list from bitmap
+  m_images.Create(MAKEINTRESOURCE(IDB_STATUS),16,1,RGB(256,256,256));
+  m_grid.SetImageList(&m_images);
 
   TSValSet* vals = m_testSet.GetValidations(m_stepName);
 
   if(vals)
   {
+    int number = 1;
+    CString num;
     for(auto& val : *vals)
     {
-      CString glob = val.m_global ? "G" : "T";
-      int row = m_grid.InsertRow(glob);
-      m_grid.GetCell(row,1)->SetText(val.m_name);
-      m_grid.GetCell(row,2)->SetText(val.m_filename);
+      num.Format("Number %d",number++);
+      int row = m_grid.InsertRow(num);
+      SetTextImage(row,1,"",val.m_global ? 2 : 3);
+      m_grid.GetCell(row,2)->SetText(val.m_name);
+      m_grid.GetCell(row,3)->SetText(val.m_filename);
     }
   }
 }
 
+void
+CombiEditorDlg::SetTextImage(int p_row,int p_col,CString p_text,int p_image)
+{
+  GV_ITEM item;
+  item.mask    = GVIF_IMAGE;
+  item.row     = p_row;
+  item.col     = p_col;
+  item.iImage  = p_image;
+  if(!p_text.IsEmpty())
+  {
+    item.mask   |= GVIF_TEXT;
+    item.strText = p_text;
+  }
+  m_grid.SetItem(&item);
+}
+
+void
+CombiEditorDlg::TryChangeValiGlobalLocal(int p_row)
+{
+  TSValSet& vals = *m_testSet.GetValidations(m_stepName);
+  if(vals.size() < p_row)
+  {
+    return;
+  }
+  TRValidation& vali = vals[p_row-1];
+
+  CString ask;
+  ask.Format("Do you want to change the validation to a [%s] validation?", vali.m_global ? "local" : "global");
+  if(StyleMessageBox(this,ask,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+  {
+    return;
+  }
+
+  if(vali.m_global)
+  {
+    // It was global. Try to make it local
+    if(theApp.DemoteValidation(this,vali.m_filename))
+    {
+      vali.m_global = false;
+      m_changed = true;
+    }
+  }
+  else
+  {
+    // It was local. Try to make it global
+    if(theApp.PromoteValidation(this,vali.m_filename))
+    {
+      vali.m_global = true;
+      m_changed = true;
+    }
+  }
+  SetTextImage(p_row,1,"",vali.m_global ? COL_STATUS_GLOBAL : COL_STATUS_LOCAL);
+  m_grid.Invalidate();
+}
+
+//////////////////////////////////////////////////////////////////////////
+// 
 // CombeEditorDlg message handlers
+//
+//////////////////////////////////////////////////////////////////////////
 
 void 
 CombiEditorDlg::OnGridDblClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
   LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
   CCellID id = m_grid.GetFocusCell();
-  if (id.col == 1 || id.col == 2)
+  if(id.col == 1)
   {
-    CString validation = m_grid.GetItemText(pNMLV->iItem, 2 /*VALIDATION*/);
-    theApp.StartValidateEditor(validation,GetSafeHwnd(),id.row);
+    TryChangeValiGlobalLocal(id.row);
+  } 
+  else if(id.col >= 2)
+  {
+    TSValSet& vals = *m_testSet.GetValidations(m_stepName);
+    if (vals.size() < id.row)
+    {
+      return;
+    }
+    TRValidation& vali = vals[id.row - 1];
+    theApp.StartValidateEditor(vali.m_filename,vali.m_global,GetSafeHwnd(),id.row);
   }
 }
 
@@ -162,10 +240,14 @@ CombiEditorDlg::OnBnClickedAddValidation()
     {
       editor->MakeNewVali(valiType,valiName,valiFile,m_row);
 
-      CString glob("T");
-      int row = m_grid.InsertRow(glob);
-      m_grid.GetCell(row,1)->SetText(valiName);
-      m_grid.GetCell(row,2)->SetText(valiFile);
+      CString num;
+      int number = m_grid.GetRowCount();
+      num.Format("Number %d",number);
+
+      int row = m_grid.InsertRow(num);
+      SetTextImage(row,1,"",3);
+      m_grid.GetCell(row,2)->SetText(valiName);
+      m_grid.GetCell(row,3)->SetText(valiFile);
       m_grid.Refresh();
     }
   }
@@ -177,7 +259,7 @@ CombiEditorDlg::OnBnClickedDelValidation()
   CCellID id = m_grid.GetFocusCell();
   if (id.row >= 1)
   {
-    CString validation = m_grid.GetItemText(id.row,1 /*VALIDATION*/);
+    CString validation = m_grid.GetItemText(id.row,2 /*VALIDATION*/);
     TSValSet* vals = m_testSet.GetValidations(m_stepName);
 
     TSValSet::iterator it = vals->begin();
@@ -210,7 +292,7 @@ CombiEditorDlg::OnBnClickedMutValidation()
   CCellID id = m_grid.GetFocusCell();
   if(id.row >= 1)
   {
-    CString validation = m_grid.GetItemText(id.row, 1 /*VALIDATION*/);
+    CString validation = m_grid.GetItemText(id.row,2);
     TSValSet* vals = m_testSet.GetValidations(m_stepName);
 
     TSValSet::iterator it = vals->begin();

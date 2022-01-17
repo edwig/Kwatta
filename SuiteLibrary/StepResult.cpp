@@ -128,7 +128,7 @@ StepResult::GetTotalResult()
 
 // Add an extra validation
 void
-StepResult::AddValidation(int p_step,CString p_name,CString p_filename,bool p_result)
+StepResult::AddValidation(int p_step,CString p_name,CString p_filename,bool p_result,bool p_global)
 {
   ValStep step;
   EnsureFile ensure;
@@ -137,6 +137,7 @@ StepResult::AddValidation(int p_step,CString p_name,CString p_filename,bool p_re
   step.m_validation = p_name;
   step.m_filename   = ensure.FilenamePart(p_filename);
   step.m_ok         = p_result;
+  step.m_global     = p_global;
 
   m_validations.push_back(step);
 }

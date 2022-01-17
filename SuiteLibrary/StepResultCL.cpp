@@ -57,6 +57,7 @@ StepResultCL::ReadFromXML(CString p_filename)
       vali.m_validation  = msg.GetElement(validation,"Name");
       vali.m_filename    = msg.GetElement(validation,"File");
       vali.m_ok          = msg.GetElement(validation,"Result") == "OK" ? true : false;
+      vali.m_global      = msg.GetElementBoolean(validation,"Global");
 
       m_validations.push_back(vali);
       validation = msg.GetElementSibling(validation);
@@ -88,6 +89,7 @@ StepResultCL::WriteToXML(CString p_filename)
     msg.SetElement(vali,"Name",  val.m_validation);
     msg.SetElement(vali,"File",  val.m_filename);
     msg.SetElement(vali,"Result",val.m_ok ? "OK" : "ERROR");
+    msg.SetElement(vali,"Global",val.m_global ? "true" : "false");
   }
   // Now save it
   return msg.SaveFile(p_filename);

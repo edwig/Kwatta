@@ -47,6 +47,7 @@ protected:
   DECLARE_MESSAGE_MAP()
 
   void         InitTabs();
+  void         InitButtons();
   void         InitValidation();
   void         InitParameters();
   void         LoadVariables();
@@ -60,6 +61,7 @@ protected:
   CString      m_bound;
 
   StyleEdit    m_editName;
+  StyleButton  m_buttonGlobal;
   StyleEdit    m_editDocumentation;
   StyleEdit    m_editBound;
   StyleTabCtrl m_tabs;
@@ -84,6 +86,7 @@ public:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
   afx_msg void OnEnChangeName();
+  afx_msg void OnBnClckedGlobal();
   afx_msg void OnEnChangeDocumentation();
   afx_msg void OnBnClickedOk();
   afx_msg void OnBnClickedCancel();

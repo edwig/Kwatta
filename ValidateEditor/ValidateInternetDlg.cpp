@@ -58,11 +58,17 @@ void ValidateInternetDlg::DoDataExchange(CDataExchange* pDX)
 {
   StyleDialog::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_NAME,         m_editName,m_name);
+  DDX_Control(pDX,IDC_GLOBAL,       m_buttonGlobal);
   DDX_Control(pDX,IDC_BOUND,        m_editBound,m_bound);
   DDX_Control(pDX,IDC_DOCUMENTATION,m_editDocumentation,m_documentation);
   DDX_Control(pDX,IDC_TABS,         m_tabs);
   DDX_Control(pDX,IDOK,             m_buttonOK);
   DDX_Control(pDX,IDCANCEL,         m_buttonCancel);
+
+  if(pDX->m_bSaveAndValidate == FALSE)
+  {
+    m_buttonGlobal.EnableWindow(!theApp.GetGlobal());
+  }
 }
 
 BEGIN_MESSAGE_MAP(ValidateInternetDlg,StyleDialog)
@@ -70,6 +76,7 @@ BEGIN_MESSAGE_MAP(ValidateInternetDlg,StyleDialog)
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
   ON_EN_CHANGE (IDC_NAME,         &ValidateInternetDlg::OnEnChangeName)
+  ON_BN_CLICKED(IDC_GLOBAL,       &ValidateInternetDlg::OnBnClckedGlobal)
   ON_EN_CHANGE (IDC_DOCUMENTATION,&ValidateInternetDlg::OnEnChangeDocumentation)
   ON_BN_CLICKED(IDOK,             &ValidateInternetDlg::OnBnClickedOk)
   ON_BN_CLICKED(IDCANCEL,         &ValidateInternetDlg::OnBnClickedCancel)
@@ -120,6 +127,7 @@ BOOL ValidateInternetDlg::OnInitDialog()
 
   // Read all the data
   InitTabs();
+  InitButtons();
   InitValidation();
   InitParameters();
 
@@ -132,6 +140,12 @@ BOOL ValidateInternetDlg::OnInitDialog()
 
   m_editBound.SetMutable(false);
   m_editBound.SetBorderSize(2);
+
+  if(theApp.GetGlobal())
+  {
+    m_editName.SetBkColor(GLOBAL_COLOR);
+    m_editDocumentation.SetBkColor(GLOBAL_COLOR);
+  }
 
   SetCanResize();
   UpdateData(FALSE);
@@ -152,6 +166,8 @@ ValidateInternetDlg::SetupDynamicLayout()
 #endif
 
   manager.AddItem(IDC_GRP_VALID,    CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_NAME,         CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_GLOBAL,       CMFCDynamicLayout::MoveHorizontal(100),               CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_BOUND,        CMFCDynamicLayout::MoveHorizontal(100),               CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_DOCUMENTATION,CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_TABS,         CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontalAndVertical(100,100));
@@ -178,9 +194,20 @@ ValidateInternetDlg::InitTabs()
 }
 
 void
+ValidateInternetDlg::InitButtons()
+{
+  m_buttonGlobal.SetIconImage(IDI_EARTH);
+  m_buttonOK.SetStyle("ok");
+  m_buttonCancel.SetStyle("can");
+
+  EnableToolTips();
+  RegisterTooltip(m_buttonGlobal,"Promote validation to a global validation");
+}
+
+void
 ValidateInternetDlg::InitValidation()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetValidateFilename();
+  CString filename = theApp.GetEffectiveValidation();
 
   // Read in the definition file for a test step
   try
@@ -371,6 +398,15 @@ void
 ValidateInternetDlg::OnEnChangeName()
 {
   UpdateData();
+}
+
+void 
+ValidateInternetDlg::OnBnClckedGlobal()
+{
+  if(StyleMessageBox(this,"Promote this validation to a global validation?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  {
+    theApp.PromoteValidation(this);
+  }
 }
 
 void

@@ -86,20 +86,27 @@ StepInternetDlg::DoDataExchange(CDataExchange* pDX)
 {
 	StyleDialog::DoDataExchange(pDX);
   DDX_Control (pDX,IDC_STEPNAME, m_editName,   m_name);
+  DDX_Control (pDX,IDC_GLOBAL,   m_buttonGlobal);
   DDX_Control (pDX,IDC_COMMENT , m_editComment,m_comment);
   DDX_Control (pDX,IDC_BOUND,    m_editBound,  m_bound);
   DDX_CBString(pDX,IDC_VERB,     m_comboVerb,  m_verb);
   DDX_Control (pDX,IDC_URL,      m_editUrl,    m_url);
-  DDX_Control(pDX, IDC_URL_PARM, m_buttonUrlParm);
+  DDX_Control (pDX,IDC_URL_PARM, m_buttonUrlParm);
   DDX_Control (pDX,IDC_TAB_REQ,  m_tabsRequest);
   DDX_Control (pDX,IDC_TAB_RES,  m_tabsResponse);
   DDX_Control (pDX,IDC_GO,       m_buttonGO);
   DDX_Control (pDX,IDOK,         m_buttonOK);
   DDX_Control (pDX,IDCANCEL,     m_buttonCancel);
+
+  if(pDX->m_bSaveAndValidate == FALSE)
+  {
+    m_buttonGlobal.EnableWindow(!theApp.GetGlobal());
+  }
 }
 
 BEGIN_MESSAGE_MAP(StepInternetDlg, StyleDialog)
   ON_EN_KILLFOCUS (IDC_STEPNAME,&StepInternetDlg::OnEnChangeStepname)
+  ON_BN_CLICKED   (IDC_GLOBAL,  &StepInternetDlg::OnBnClickedGlobal)
   ON_EN_KILLFOCUS (IDC_COMMENT, &StepInternetDlg::OnEnChangeComment)
   ON_CBN_SELCHANGE(IDC_VERB,    &StepInternetDlg::OnCbnSelchangeVerb)
   ON_EN_KILLFOCUS (IDC_URL,     &StepInternetDlg::OnEnChangeUrl)
@@ -166,8 +173,17 @@ StepInternetDlg::OnInitDialog()
   m_editBound.SetBorderColor(RGB(0, 255, 0));
   m_buttonUrlParm.SetIconImage(IDI_LIST);
   m_buttonGO.SetIconImage(IDI_RUN);
+  m_buttonGlobal.SetIconImage(IDI_EARTH);
+
+  if(theApp.GetGlobal())
+  {
+    m_editName.SetBkColor(GLOBAL_COLOR);
+    m_editComment.SetBkColor(GLOBAL_COLOR);
+  }
+
   EnableToolTips();
   RegisterTooltip(m_buttonUrlParm,"Choose global/test parameter(s) for the URL");
+  RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
 
   EffectiveParameters();
 
@@ -188,6 +204,7 @@ StepInternetDlg::SetupDynamicLayout()
 
   manager.AddItem(IDC_GRP_STEP,   CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontalAndVertical(100, 20));
   manager.AddItem(IDC_STEPNAME,   CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_GLOBAL,     CMFCDynamicLayout::MoveHorizontal(100),               CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_BOUND,      CMFCDynamicLayout::MoveHorizontal(100),               CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_COMMENT,    CMFCDynamicLayout::MoveNone(),                        CMFCDynamicLayout::SizeHorizontalAndVertical(100,20));
   manager.AddItem(IDC_GRP_URL,    CMFCDynamicLayout::MoveVertical(20),                  CMFCDynamicLayout::SizeHorizontal(100));
@@ -271,7 +288,7 @@ StepInternetDlg::InitVerbs()
 void
 StepInternetDlg::InitStep()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetTestStepFilename();
+  CString filename = theApp.GetEffectiveStep();
 
   // Read in the definition file for a test step
   try
@@ -399,7 +416,7 @@ StepInternetDlg::SaveStep()
 {
   StoreVariables();
 
-  CString filenameStep = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetTestStepFilename();
+  CString filenameStep = theApp.GetEffectiveStep();
   CString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   try
@@ -451,6 +468,15 @@ void
 StepInternetDlg::OnEnChangeStepname()
 {
   UpdateData();
+}
+
+void
+StepInternetDlg::OnBnClickedGlobal()
+{
+  if(StyleMessageBox(this,"Promote this test step to a global teststep?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  {
+    theApp.PromoteTestStep(this);
+  }
 }
 
 void 

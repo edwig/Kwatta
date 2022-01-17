@@ -44,14 +44,17 @@ public:
             ,CString    p_testDirectory
             ,CString    p_testStepFilename
             ,CString    p_parametersFilename
-            ,ValiSteps& p_validations
+            ,ValiSteps& p_localValidations
+            ,ValiSteps& p_globalValidations
             ,HWND       p_consoleHWND
             ,HWND       p_reportHWND
             ,HWND       p_callingHWND
-            ,int        p_callingROW);
+            ,int        p_callingROW
+            ,bool       p_global);
  ~ExecRunner();
 
-  int   PerformTest();
+  int     PerformTest();
+  CString GetEffectiveStepFilename();
 
 private:
   // Running the test
@@ -90,9 +93,11 @@ private:
   int           m_progress   {  0 };
   TestStepCL    m_testStep;
   Parameters    m_parameters;
-  ValiSteps     m_valiSteps;
+  ValiSteps     m_localValidations;
+  ValiSteps     m_globalValidations;
   Validations   m_validations;
   StepResultCL  m_result;
-  HWND          m_callingHWND { NULL };
-  int           m_callingROW  { 0    };
+  HWND          m_callingHWND { NULL  };
+  int           m_callingROW  { 0     };
+  bool          m_global      { false };
 };

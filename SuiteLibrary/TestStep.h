@@ -15,8 +15,6 @@ class XMLElement;
 enum class StepType
 {
   Step_command
- ,Step_soap
- ,Step_json
  ,Step_http
 };
 

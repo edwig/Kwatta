@@ -30,6 +30,8 @@ class CombiEditorDlg : public StyleDialog
 public:
   CombiEditorDlg(CWnd* p_parent,TestSet& p_testset,CString p_stepname,int p_row);
 	virtual ~CombiEditorDlg();
+  
+  bool GetIsChanged() { return m_changed; }
 
 // Dialog Data
 	enum { IDD = IDD_COMBIEDITOR };
@@ -39,8 +41,11 @@ protected:
 	virtual BOOL OnInitDialog() override;
           void FillGrid();
           void InitButtons();
+          void SetTextImage(int p_row,int p_col,CString p_text,int p_image);
+          void TryChangeValiGlobalLocal(int p_row);
 
   int           m_row;
+  bool          m_changed;
   CString       m_name;
   CString       m_documentation;
   CString       m_stepName;
@@ -56,6 +61,8 @@ protected:
   StyleButton   m_buttonMutValidation;
   StyleButton   m_buttonOK;
   StyleButton   m_buttonCancel;
+
+  CImageList    m_images;
 
 	DECLARE_MESSAGE_MAP()
 public:

@@ -116,5 +116,8 @@
     <Image Include="res\Mutate.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\global.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

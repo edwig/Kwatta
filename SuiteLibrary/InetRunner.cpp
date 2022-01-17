@@ -39,22 +39,26 @@ InetRunner::InetRunner(CString      p_baseDirectory
                       ,CString      p_testDirectory
                       ,CString      p_testStepFilename
                       ,CString      p_parametersFilename
-                      ,ValiSteps&   p_validations
+                      ,ValiSteps&   p_localValidations
+                      ,ValiSteps&   p_globalValidations
                       ,HWND         p_reportHWND
                       ,HTTPClient*  p_client
                       ,OAuth2Cache* p_cache
                       ,HWND         p_callingHWND
-                      ,int          p_callingROW)
+                      ,int          p_callingROW
+                      ,bool         p_global)
            :m_baseDirectory(p_baseDirectory)
            ,m_testDirectory(p_testDirectory)
            ,m_testStepFilename(p_testStepFilename)
            ,m_parametersFilename(p_parametersFilename)
-           ,m_valiSteps(p_validations)
+           ,m_localValidations(p_localValidations)
+           ,m_globalValidations(p_globalValidations)
            ,m_reportHWND(p_reportHWND)
            ,m_client(p_client)
            ,m_oauth(p_cache)
            ,m_callingHWND(p_callingHWND)
            ,m_callingROW(p_callingROW)
+           ,m_global(p_global)
 {
 }
 
@@ -106,6 +110,16 @@ InetRunner::PerformTest()
   return result;
 }
 
+CString
+InetRunner::GetEffectiveStepFilename()
+{
+  CString filename(m_baseDirectory);
+  filename += m_global ? CString("Steps\\") : m_testDirectory;
+  filename += m_testStepFilename;
+
+  return filename;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // PRIVATE
@@ -133,7 +147,7 @@ InetRunner::InitRunner()
   // 8   Reaching a conclusion
 
   // +   1 for every validation step
-  m_steps = 8 + (int)m_valiSteps.size();
+  m_steps = 8 + (int)m_localValidations.size();
   m_stepSize = 100 / m_steps;
 }
 
@@ -340,7 +354,7 @@ InetRunner::PerformAllValidations()
     }
 
     // Add the validation to the result set
-    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result);
+    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
   }
 }
 
@@ -349,7 +363,7 @@ InetRunner::SaveTestResults()
 {
   PerformStep("Saving the test results");
 
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  CString filename = GetEffectiveStepFilename();
   filename.MakeLower();
   filename.Replace(".irun",".ires");
 
@@ -391,7 +405,7 @@ void
 InetRunner::ReadTestStep()
 {
   // Read in the definition file for a test step
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  CString filename = GetEffectiveStepFilename();
   m_testStep.ReadFromXML(filename);
 }
 
@@ -410,11 +424,19 @@ InetRunner::ReadParameters()
 void
 InetRunner::ReadValidations()
 {
-  for(auto& filename : m_valiSteps)
+  for(auto& filename : m_localValidations)
   {
     Validate* validate = new ValidateIN();
     CString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
+    m_validations.push_back(validate);
+  }
+  for(auto& filename : m_globalValidations)
+  {
+    Validate* validate = new ValidateIN();
+    CString file = m_baseDirectory + "Validations\\" + filename;
+    validate->ReadFromXML(file);
+    validate->SetGlobal(true);
     m_validations.push_back(validate);
   }
 }

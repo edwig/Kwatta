@@ -73,6 +73,7 @@ protected:
   CString           m_url;
 
   StyleEdit         m_editName;
+  StyleButton       m_buttonGlobal;
   StyleEdit         m_editComment;
   StyleEdit         m_editBound;
   StyleButton       m_buttonGO;
@@ -103,6 +104,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
   afx_msg void OnEnChangeStepname();
+  afx_msg void OnBnClickedGlobal();
   afx_msg void OnEnChangeComment();
   afx_msg void OnCbnSelchangeVerb();
   afx_msg void OnEnChangeUrl();

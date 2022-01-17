@@ -51,25 +51,26 @@ void NewStepDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX,IDC_TESTTYPE, m_comboType);
   DDX_Control(pDX,IDC_NAME,     m_editName,     m_name);
   DDX_Control(pDX,IDC_FILENAME, m_editFilename, m_filename);
-	DDX_Control(pDX,IDC_VALITYPE, m_comboVali);
-	DDX_Control(pDX,IDC_VALIDAT,  m_editVali,			m_valiName);
-	DDX_Control(pDX,IDC_VALI_FILE,m_editValiFile, m_valiFile);
-	DDX_Control(pDX,IDOK,					m_buttonOK);
-	DDX_Control(pDX,IDCANCEL,			m_buttonCancel);
+  DDX_Control(pDX,IDC_VALITYPE, m_comboVali);
+  DDX_Control(pDX,IDC_VALIDAT,  m_editVali,     m_valiName);
+  DDX_Control(pDX,IDC_VALI_FILE,m_editValiFile, m_valiFile);
+  DDX_Control(pDX,IDOK,         m_buttonOK);
+  DDX_Control(pDX,IDCANCEL,     m_buttonCancel);
 
   m_comboType   .EnableWindow(!m_valiOnly);
   m_editName    .EnableWindow(!m_valiOnly);
   m_editFilename.EnableWindow(!m_valiOnly);
+  m_comboVali   .EnableWindow(m_valiOnly);
 }
 
 BEGIN_MESSAGE_MAP(NewStepDlg, StyleDialog)
-	ON_CBN_SELCHANGE(IDC_TESTTYPE,	&NewStepDlg::OnCbnSelchangeTestType)
-	ON_EN_KILLFOCUS (IDC_NAME,			&NewStepDlg::OnEnChangeName)
-	ON_EN_KILLFOCUS (IDC_FILENAME,	&NewStepDlg::OnEnChangeFilename)
-	ON_CBN_SELCHANGE(IDC_VALITYPE,	&NewStepDlg::OnCbnSelchangeValiType)
-	ON_EN_KILLFOCUS (IDC_VALIDAT,		&NewStepDlg::OnEnChangeValiName)
-	ON_EN_KILLFOCUS (IDC_VALI_FILE,	&NewStepDlg::OnEnChangeValiFile)
-	ON_BN_CLICKED		(IDOK,					&NewStepDlg::OnBnClickedOK)
+  ON_CBN_SELCHANGE(IDC_TESTTYPE,	&NewStepDlg::OnCbnSelchangeTestType)
+  ON_EN_KILLFOCUS (IDC_NAME,		  &NewStepDlg::OnEnChangeName)
+  ON_EN_KILLFOCUS (IDC_FILENAME,	&NewStepDlg::OnEnChangeFilename)
+  ON_CBN_SELCHANGE(IDC_VALITYPE,	&NewStepDlg::OnCbnSelchangeValiType)
+  ON_EN_KILLFOCUS (IDC_VALIDAT,	  &NewStepDlg::OnEnChangeValiName)
+  ON_EN_KILLFOCUS (IDC_VALI_FILE,	&NewStepDlg::OnEnChangeValiFile)
+  ON_BN_CLICKED	  (IDOK,          &NewStepDlg::OnBnClickedOK)
 END_MESSAGE_MAP()
 
 BOOL
@@ -79,14 +80,12 @@ NewStepDlg::OnInitDialog()
 	SetWindowText("New test step");
 
 	m_comboType.AddString("Command-line");
-	m_comboType.AddString("SOAP Message");
-	m_comboType.AddString("JSON Message");
-	m_comboType.AddString("HTTP Message");
+	m_comboType.AddString("Internet (HTTP)");
 	m_comboType.SetCurSel(0);
   m_type = StepType::Step_command;
 
 	m_comboVali.AddString("Command-line");
-	m_comboVali.AddString("HTTP");
+	m_comboVali.AddString("Internet (HTTP)");
 	m_comboVali.SetCurSel(0);
 
 	UpdateData(FALSE);
@@ -103,8 +102,6 @@ NewStepDlg::CheckFilename()
     switch (m_type)
     {
       case StepType::Step_command: file += EXTENSION_TESTSTEP_CL; break;
-      case StepType::Step_soap:
-      case StepType::Step_json:
       case StepType::Step_http:    file += EXTENSION_TESTSTEP_IN; break;
     }
 	}
@@ -153,6 +150,8 @@ NewStepDlg::OnCbnSelchangeTestType()
 	if(ind >= 0)
 	{
 		m_type = static_cast<StepType>(ind);
+    m_valiType = ind;
+    m_comboVali.SetCurSel(ind);
 	}
 	UpdateData();
 }

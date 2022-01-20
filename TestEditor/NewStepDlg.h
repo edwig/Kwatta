@@ -31,8 +31,8 @@ public:
   virtual ~NewStepDlg();
 
   StepType GetType()     { return m_type;      }
-  CString  GetName()     { return m_name;      }
-  CString  GetFilename() { return m_filename;  }
+  CString  GetName()     { return m_stepName;      }
+  CString  GetFilename() { return m_stepFile;  }
 
   int     GetValiType() { return m_valiType;  }
   CString GetValiName() { return m_valiName;  }
@@ -45,14 +45,17 @@ protected:
   virtual void DoDataExchange(CDataExchange* pDX) override;
   virtual BOOL OnInitDialog() override;
 
-  void CheckFilename();
-  void CheckValiFile();
+  CString StripExtension(CString p_filename);
+  void    CheckFilename();
+  void    CheckValiFile();
 
   StyleComboBox  m_comboType;
+  StyleButton    m_buttonStepGlobal;
   StyleEdit      m_editName;
   StyleEdit      m_editFilename;
 
   StyleComboBox  m_comboVali;
+  StyleButton    m_buttonValiGlobal;
   StyleEdit      m_editVali;
   StyleEdit      m_editValiFile;
 
@@ -60,21 +63,25 @@ protected:
   StyleButton    m_buttonCancel;
 
   StepType       m_type;
-  CString        m_name;
-  CString        m_filename;
+  CString        m_stepName;
+  CString        m_stepFile;
+  bool           m_stepGlobal { false };
 
   bool           m_valiOnly;
   int            m_valiType;
   CString        m_valiName;
   CString        m_valiFile;
+  bool           m_valiGlobal { false };
 
   DECLARE_MESSAGE_MAP()
 public:
   afx_msg void OnCbnSelchangeTestType();
+  afx_msg void OnBnClickedStepGlobal();
   afx_msg void OnEnChangeName();
   afx_msg void OnEnChangeFilename();
 
   afx_msg void OnCbnSelchangeValiType();
+  afx_msg void OnBnClickedValiGlobal();
   afx_msg void OnEnChangeValiName();
   afx_msg void OnEnChangeValiFile();
 

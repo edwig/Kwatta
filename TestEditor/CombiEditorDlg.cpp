@@ -265,7 +265,7 @@ CombiEditorDlg::OnBnClickedDelValidation()
     TSValSet::iterator it = vals->begin();
     while(it != vals->end())
     {
-      if(it->m_name.CompareNoCase(validation) == 0)
+      if((it->m_name.CompareNoCase(validation) == 0) && (it->m_global == false))
       {
         CString ask;
         ask.Format("Delete validation [%s] definitely! Are you sure?",validation.GetString());

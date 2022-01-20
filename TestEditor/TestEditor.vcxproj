@@ -231,6 +231,7 @@
   <ItemGroup>
     <Image Include="res\ArrowDN.ico" />
     <Image Include="res\ArrowUP.ico" />
+    <Image Include="res\Earth.ico" />
     <Image Include="res\edit.ico" />
     <Image Include="res\ERROR.bmp" />
     <Image Include="res\global.bmp" />

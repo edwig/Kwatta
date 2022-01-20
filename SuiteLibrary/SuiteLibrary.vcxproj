@@ -175,6 +175,7 @@
     <ClInclude Include="ExtraMessages.h" />
     <ClInclude Include="FileDialog.h" />
     <ClInclude Include="GetExePath.h" />
+    <ClInclude Include="GlobalFileDlg.h" />
     <ClInclude Include="InetRunner.h" />
     <ClInclude Include="MapDialog.h" />
     <ClInclude Include="NewVariableDlg.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="ExecRunner.cpp" />
     <ClCompile Include="FileDialog.cpp" />
     <ClCompile Include="GetExePath.cpp" />
+    <ClCompile Include="GlobalFileDlg.cpp" />
     <ClCompile Include="InetRunner.cpp" />
     <ClCompile Include="MapDialog.cpp" />
     <ClCompile Include="NewVariableDlg.cpp" />

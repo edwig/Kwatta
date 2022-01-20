@@ -11,6 +11,7 @@
 #define IDI_ADD                         194
 #define IDB_TEST                        196
 #define IDR_MENU                        197
+#define IDD_GLOBALFILE                  201
 #define IDD_NEWVAR                      206
 #define IDC_NAME                        1000
 #define IDC_CONTEXT                     1001
@@ -18,6 +19,7 @@
 #define IDC_ABOUT                       1003
 #define IDC_ADD                         1005
 #define IDC_DELETE                      1006
+#define IDC_FILEGRID                    1006
 #define IDC_EXPLAIN                     1022
 #define IDC_EXISTING                    1023
 #define ID_MENU_THEMELIME               40001
@@ -33,9 +35,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        201
+#define _APS_NEXT_RESOURCE_VALUE        203
 #define _APS_NEXT_COMMAND_VALUE         40009
-#define _APS_NEXT_CONTROL_VALUE         1006
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -22,6 +22,7 @@
 #include "TestEditor.h"
 #include "NewStepDlg.h"
 #include <ExtraExtensions.h>
+#include <GlobalFileDlg.h>
 #include "afxdialogex.h"
 #include <io.h>
 
@@ -48,14 +49,16 @@ NewStepDlg::~NewStepDlg()
 void NewStepDlg::DoDataExchange(CDataExchange* pDX)
 {
   StyleDialog::DoDataExchange(pDX);
-  DDX_Control(pDX,IDC_TESTTYPE, m_comboType);
-  DDX_Control(pDX,IDC_NAME,     m_editName,     m_name);
-  DDX_Control(pDX,IDC_FILENAME, m_editFilename, m_filename);
-  DDX_Control(pDX,IDC_VALITYPE, m_comboVali);
-  DDX_Control(pDX,IDC_VALIDAT,  m_editVali,     m_valiName);
-  DDX_Control(pDX,IDC_VALI_FILE,m_editValiFile, m_valiFile);
-  DDX_Control(pDX,IDOK,         m_buttonOK);
-  DDX_Control(pDX,IDCANCEL,     m_buttonCancel);
+  DDX_Control(pDX,IDC_TESTTYPE,   m_comboType);
+  DDX_Control(pDX,IDC_STEP_GLOBAL,m_buttonStepGlobal);
+  DDX_Control(pDX,IDC_NAME,       m_editName,     m_stepName);
+  DDX_Control(pDX,IDC_FILENAME,   m_editFilename, m_stepFile);
+  DDX_Control(pDX,IDC_VALITYPE,   m_comboVali);
+  DDX_Control(pDX,IDC_VALI_GLOBAL,m_buttonValiGlobal);
+  DDX_Control(pDX,IDC_VALIDAT,    m_editVali,     m_valiName);
+  DDX_Control(pDX,IDC_VALI_FILE,  m_editValiFile, m_valiFile);
+  DDX_Control(pDX,IDOK,           m_buttonOK);
+  DDX_Control(pDX,IDCANCEL,       m_buttonCancel);
 
   m_comboType   .EnableWindow(!m_valiOnly);
   m_editName    .EnableWindow(!m_valiOnly);
@@ -64,13 +67,15 @@ void NewStepDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(NewStepDlg, StyleDialog)
-  ON_CBN_SELCHANGE(IDC_TESTTYPE,	&NewStepDlg::OnCbnSelchangeTestType)
-  ON_EN_KILLFOCUS (IDC_NAME,		  &NewStepDlg::OnEnChangeName)
-  ON_EN_KILLFOCUS (IDC_FILENAME,	&NewStepDlg::OnEnChangeFilename)
-  ON_CBN_SELCHANGE(IDC_VALITYPE,	&NewStepDlg::OnCbnSelchangeValiType)
-  ON_EN_KILLFOCUS (IDC_VALIDAT,	  &NewStepDlg::OnEnChangeValiName)
-  ON_EN_KILLFOCUS (IDC_VALI_FILE,	&NewStepDlg::OnEnChangeValiFile)
-  ON_BN_CLICKED	  (IDOK,          &NewStepDlg::OnBnClickedOK)
+  ON_CBN_SELCHANGE(IDC_TESTTYPE,	  &NewStepDlg::OnCbnSelchangeTestType)
+  ON_EN_KILLFOCUS (IDC_NAME,		    &NewStepDlg::OnEnChangeName)
+  ON_BN_CLICKED   (IDC_STEP_GLOBAL, &NewStepDlg::OnBnClickedStepGlobal)
+  ON_EN_KILLFOCUS (IDC_FILENAME,	  &NewStepDlg::OnEnChangeFilename)
+  ON_CBN_SELCHANGE(IDC_VALITYPE,	  &NewStepDlg::OnCbnSelchangeValiType)
+  ON_BN_CLICKED   (IDC_VALI_GLOBAL, &NewStepDlg::OnBnClickedValiGlobal)
+  ON_EN_KILLFOCUS (IDC_VALIDAT,	    &NewStepDlg::OnEnChangeValiName)
+  ON_EN_KILLFOCUS (IDC_VALI_FILE,	  &NewStepDlg::OnEnChangeValiFile)
+  ON_BN_CLICKED	  (IDOK,            &NewStepDlg::OnBnClickedOK)
 END_MESSAGE_MAP()
 
 BOOL
@@ -88,6 +93,9 @@ NewStepDlg::OnInitDialog()
 	m_comboVali.AddString("Internet (HTTP)");
 	m_comboVali.SetCurSel(0);
 
+  m_buttonStepGlobal.SetIconImage(IDI_EARTH);
+  m_buttonValiGlobal.SetIconImage(IDI_EARTH);
+
 	UpdateData(FALSE);
 	return TRUE;
 }
@@ -96,7 +104,7 @@ void
 NewStepDlg::CheckFilename()
 {
 	CString path = theApp.GetTestDirectory();
-	CString file(m_filename);
+	CString file(m_stepFile);
 	if(file.Find('.') < 0)
 	{
     switch (m_type)
@@ -113,7 +121,7 @@ NewStepDlg::CheckFilename()
 	}
 	else
 	{
-    m_filename = file;
+    m_stepFile = file;
 		m_editFilename.SetErrorState(false);
 	}
 }
@@ -141,6 +149,17 @@ NewStepDlg::CheckValiFile()
   UpdateData(FALSE);
 }
 
+CString
+NewStepDlg::StripExtension(CString p_filename)
+{
+  int pos = p_filename.ReverseFind('.');
+  if (pos > 0)
+  {
+    return p_filename.Left(pos);
+  }
+  return p_filename;
+}
+
 // NewStepDlg message handlers
 
 void 
@@ -156,13 +175,29 @@ NewStepDlg::OnCbnSelchangeTestType()
 	UpdateData();
 }
 
+void
+NewStepDlg::OnBnClickedStepGlobal()
+{
+  GlobalFileDlg dlg(this,true,m_type,theApp.GetBaseDirectory());
+  if(dlg.DoModal() == IDOK)
+  {
+    m_stepName   = StripExtension(dlg.GetChosenFile());
+    m_stepFile   = dlg.GetChosenFile();
+    m_stepGlobal = true;
+    UpdateData(FALSE);
+
+    m_editName    .SetBkColor(GLOBAL_COLOR);
+    m_editFilename.SetBkColor(GLOBAL_COLOR);
+  }
+}
+
 void 
 NewStepDlg::OnEnChangeName()
 {
   UpdateData();
-	if(m_filename.IsEmpty())
+	if(m_stepFile.IsEmpty())
 	{
-		m_filename = m_name;
+		m_stepFile = m_stepName;
     CheckFilename();
     UpdateData(FALSE);
 	}
@@ -182,6 +217,8 @@ NewStepDlg::OnCbnSelchangeValiType()
   if(ind >= 0)
   {
     m_valiType = ind;
+    m_type = (StepType)ind;
+    m_comboType.SetCurSel(ind);
   }
   UpdateData();
 }
@@ -195,6 +232,22 @@ NewStepDlg::OnEnChangeValiName()
 		m_valiFile = m_valiName;
     CheckValiFile();
     UpdateData(FALSE);
+  }
+}
+
+void
+NewStepDlg::OnBnClickedValiGlobal()
+{
+  GlobalFileDlg dlg(this,false,m_type,theApp.GetBaseDirectory());
+  if(dlg.DoModal() == IDOK)
+  {
+    m_valiName   = StripExtension(dlg.GetChosenFile());
+    m_valiFile   = dlg.GetChosenFile();
+    m_stepGlobal = true;
+    UpdateData(FALSE);
+
+    m_editVali    .SetBkColor(GLOBAL_COLOR);
+    m_editValiFile.SetBkColor(GLOBAL_COLOR);
   }
 }
 
@@ -215,12 +268,14 @@ NewStepDlg::OnBnClickedOK()
 		  OnOK();
       return;
 	  }
+  	StyleMessageBox(this,"Provide a validation name!","ERROR",MB_OK|MB_ICONERROR);
+    return;
   }
-	if(!m_name    .IsEmpty() && !m_filename.IsEmpty() &&
+	if(!m_stepName.IsEmpty() && !m_stepFile.IsEmpty() &&
 		 !m_valiName.IsEmpty() && !m_valiFile.IsEmpty())
 	{
 		OnOK();
     return;
 	}
-	StyleMessageBox(this,"Provide a testname and a validation name!","ERROR",MB_OK|MB_ICONERROR);
+	StyleMessageBox(this,"Provide a teststep name and a validation name!","ERROR",MB_OK|MB_ICONERROR);
 }

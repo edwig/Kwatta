@@ -363,7 +363,7 @@ InetRunner::SaveTestResults()
 {
   PerformStep("Saving the test results");
 
-  CString filename = GetEffectiveStepFilename();
+  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(".irun",".ires");
 

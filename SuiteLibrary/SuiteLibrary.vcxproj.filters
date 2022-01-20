@@ -104,6 +104,9 @@
     <ClInclude Include="ResetAll.h">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="GlobalFileDlg.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestStep.cpp">
@@ -179,6 +182,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ResetAll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GlobalFileDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

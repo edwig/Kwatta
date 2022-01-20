@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,7 +29,7 @@
 #include "EventLogRegistration.h"
 #include "GetLastErrorAsString.h"
 #include "ServiceReporting.h"
-#include "WebConfig.h"
+#include "MarlinConfig.h"
 #include <strsafe.h>
 #include <io.h>
 
@@ -51,7 +51,7 @@ RegisterMessagesDllForService(CString p_serviceName,CString p_messageDLL,CString
   StringCchCopy(g_svcname,SERVICE_NAME_LENGTH,p_serviceName);
 
   // Construct absolute filename of the DLL
-  CString pathname = WebConfig::GetExePath();
+  CString pathname = MarlinConfig::GetExePath();
   if(pathname.IsEmpty())
   {
     p_error.Format("No working directory found. Cannot install service: [%s] Error: %s\n"

@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -325,7 +325,7 @@ WSDLCache::GenerateParameterTypes(CString&       p_wsdlcontent
     CString array;
     XMLElement* param = p_map[ind];
     //Only when the value is not empty or the number of children > 0
-    if(param->GetChildren().size()> 0 || !param->GetName().IsEmpty() || !param->GetValue().IsEmpty())
+    if(param->GetChildren().size() > 0 || !param->GetName().IsEmpty() || !param->GetValue().IsEmpty())
     {
       // Begin element
       p_wsdlcontent += "        <s:element ";

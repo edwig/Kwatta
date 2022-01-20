@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,7 +29,7 @@
 #include "ErrorReport.h"
 #include "StackTrace.h"
 #include "ProcInfo.h"
-#include "WebConfig.h"
+#include "MarlinConfig.h"
 #include "HTTPMessage.h"
 #include "AutoCritical.h"
 #include "Version.h"
@@ -547,6 +547,7 @@ SignalHandler(int signal)
   {
     // Gather stack information in our TMP directory
     ErrorReport::Report(signal,0,tempdir,"Crash_");
+    return;
   }
   // Gather stack information in the C:\ root directory
   ErrorReport::Report(signal,0,"","");

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// SourceFile: SiteHandlerSoap.h
+// SourceFile: Headers.h
 //
 // Marlin Server: Internet server/client
 // 
@@ -26,36 +26,20 @@
 // THE SOFTWARE.
 //
 #pragma once
-#include "SiteHandler.h"
-#include "SOAPSecurity.h"
+#include <map>
 
-// Remember SOAPMessage for this thread
-extern __declspec(thread) SOAPMessage* g_soapMessage;
-
-class SOAPMessage;
-
-// A SOAP handler is an override for the HTTP POST handler
-// Most likely you need to write an overload of this one
-// and provide a 'Handle' method yourself,
-// as long as you leave the PreHandle here intact
-// or copy the workings of the PreHandle
-
-class SiteHandlerSoap: public SiteHandler
+struct headerCompare
 {
-public:
-  virtual ~SiteHandlerSoap();
-
-  virtual bool      Handle(SOAPMessage* p_message);
-
-  // Handle WS-Security token profile tokens
-  virtual void  SetTokenProfile(bool p_token);
-  SOAPSecurity* GetSOAPSecurity();
-protected:
-  // Handlers: Override and return 'true' if handling is ready
-  virtual bool   PreHandle(HTTPMessage* p_message) override;
-  virtual bool      Handle(HTTPMessage* p_message) override;
-  virtual void  PostHandle(HTTPMessage* p_message) override;
-  virtual void  CleanUp   (HTTPMessage* p_message) override;
-
-  SOAPSecurity* m_soapSecurity { nullptr };
+  bool operator() (const CString& p_left,const CString& p_right) const
+  {
+    return p_left.CompareNoCase(p_right) < 0;
+  }
 };
+
+// HeaderMap is intended for the following objects
+// - HTTPMessage
+// - SOAPMessage
+// - JSONMessage
+// - HTTPClient
+using HeaderMap = std::multimap<CString,CString,headerCompare>;
+

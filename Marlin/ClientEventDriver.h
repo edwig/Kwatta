@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -71,11 +71,11 @@ public:
   ClientEventDriver();
  ~ClientEventDriver();
 
- // OPTIONAL: Set your thread pool
- void  SetThreadPool(ThreadPool* p_pool);
- // OPTIONAL: Set your logfile
- void  SetLogfile(LogAnalysis* p_logfile);
- // MANDATORY: Setting the application for which we work
+  // OPTIONAL: Set your thread pool
+  void  SetThreadPool(ThreadPool* p_pool);
+  // OPTIONAL: Set your logfile
+  void  SetLogfile(LogAnalysis* p_logfile);
+  // MANDATORY: Setting the application for which we work
   void  SetApplicationCallback(LPFN_EVENTCALLBACK p_callback,void* p_object);
   // OPTIONAL: Starting the driver in one go for the first (or only) session!
   bool  StartEventDriver(CString p_url,EVChannelPolicy p_policy,CString p_session,CString p_cookie,CString p_cookieValue);

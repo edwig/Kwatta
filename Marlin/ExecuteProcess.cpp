@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +27,7 @@
 //
 #include "stdafx.h"
 #include "ExecuteProcess.h"
-#include "WebConfig.h"
+#include "MarlinConfig.h"
 #include "GetLastErrorAsString.h"
 #include <io.h>
 
@@ -74,7 +74,7 @@ int ExecuteProcess(CString          p_program
   CString program = p_program;
   if(p_currentdir)
   {
-    CString path = WebConfig::GetExePath();
+    CString path = MarlinConfig::GetExePath();
     program = path + p_program;
 
     if(_access(program,04) == -1)

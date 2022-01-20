@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -94,7 +94,7 @@ public:
 
   // Read total config
   bool ReadConfig();
-  bool ReadConfig(CString p_baseWebConfig);
+  bool ReadConfig(CString p_application,CString p_extraWebConfig = "");
   // Set a different application before re-reading the config
   void SetApplication(CString p_app);
 

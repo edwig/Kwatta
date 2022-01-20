@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -764,7 +764,7 @@ WebServiceClient::MinimumCheck()
 
   }
   // Contract is in the SOAP-header for the WS-ReliableMessaging protocol
-  if(m_reliable == false && m_contract.IsEmpty())
+  if(m_reliable == true && m_contract.IsEmpty())
   {
     CString error("WebServiceClient without a contract definition, needed for reliable messaging.");
     DETAILLOG1(error);

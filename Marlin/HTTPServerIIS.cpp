@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -66,7 +66,7 @@ HTTPServerIIS::HTTPServerIIS(CString p_name)
 {
   m_counter.Start();
 
-  m_webConfig = new WebConfig("Marlin.config");
+  m_marlinConfig = new MarlinConfig("Marlin.config");
 }
 
 HTTPServerIIS::~HTTPServerIIS()

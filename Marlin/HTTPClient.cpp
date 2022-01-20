@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -304,21 +304,21 @@ HTTPClient::Initialize()
   DETAILLOG("Initializing HTTP Client");
   m_initialized = true;
 
-  // If no "web.config" read, fall back to "Marlin.config" for IIS mode applications
-  if(m_webConfig.IsFilled())
+  // Try to read the Marlin.config file in the current directory
+  if(m_marlinConfig.IsFilled())
   {
-    DETAILLOG("Configuration file \'web.config\' has been read!");
+    DETAILLOG("Configuration file \'Marlin.config\' has already been read!");
   }
   else
   {
-    m_webConfig.ReadConfig("Marlin.config");
-    if(m_webConfig.IsFilled())
+    m_marlinConfig.ReadConfig("Marlin.config");
+    if(m_marlinConfig.IsFilled())
     {
       DETAILLOG("Configuration file \'marlin.config\' has been read!");
     }
     else
     {
-      ERRORLOG("No configuration files found (marlin.config; web.config)!");
+      DETAILLOG("No configuration file [Marlin.config] found!");
     }
   }
 
@@ -353,7 +353,7 @@ HTTPClient::Initialize()
                                        m_proxy       = m_proxyFinder.Find(totalURL,m_secure);
                                        m_proxyBypass = m_proxyFinder.GetIngoreList();
                                        break;
-    case ProxyType::PROXY_MYPROXY:     // Use proxy settings from the web.config. Do nothing
+    case ProxyType::PROXY_MYPROXY:     // Use proxy settings from the marlin.config. Do nothing
                                        break;
     case ProxyType::PROXY_NOPROXY:     // Reset all proxy settings. Forget everything
                                        m_proxy.Empty();
@@ -428,24 +428,6 @@ HTTPClient::InitializeSingleSignOn()
     ErrorLog(__FUNCTION__,"Cannot set the auto-logon policy. Error [%d] %s");
     return;
   }
-
-//   COMMENTED OUT: NEVER SEEN WORKING ON ANY SYSTEM
-//   AND SYSTEM-WIDE SSO IS NOT VERY SECURE. SO DO NOT DO THIS AGAIN!!
-
-//   // See if we can optimize the single-sign-on procedure
-//   BOOL cred = TRUE;
-//   if(WinHttpSetOption(m_request,WINHTTP_OPTION_USE_GLOBAL_SERVER_CREDENTIALS,&cred,sizeof(BOOL)))
-//   {
-//     DETAILLOG("Single sign-on optimized to use global server credentials");
-//   }
-//   else
-//   {
-//     // NOT AN ERROR IF NOT SUCCEEDED!!!!!!
-//     // IT IS JUST AN OPTIMIZATION!!!
-//     // It's not very likely to work on Windows 2003 Server of Windows XP anyhow
-//     DETAILLOG("Cannot optimize the auto-logon with the use of global server credentials. Reason: %d",GetLastError());
-//     DETAILLOG("Maybe you must set the registry key: 'HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings!ShareCredsWithWinHttp' to TRUE");
-//   }
 }
 
 void
@@ -457,13 +439,13 @@ HTTPClient::InitLogging()
     return;
   }
 
-  // Get parameters from web.config
-  CString file = m_webConfig.GetParameterString ("Logging","Logfile",  "");
-  bool logging = m_webConfig.GetParameterBoolean("Logging","DoLogging",false);
-  bool timing  = m_webConfig.GetParameterBoolean("Logging","DoTiming", true);
-  bool events  = m_webConfig.GetParameterBoolean("Logging","DoEvents", false);
-  int  cache   = m_webConfig.GetParameterInteger("Logging","Cache",    100);
-  int  level   = m_webConfig.GetParameterBoolean("Logging","LogLevel", m_logLevel);
+  // Get parameters from Marlin.config
+  CString file = m_marlinConfig.GetParameterString ("Logging","Logfile",  "");
+  bool logging = m_marlinConfig.GetParameterBoolean("Logging","DoLogging",false);
+  bool timing  = m_marlinConfig.GetParameterBoolean("Logging","DoTiming", true);
+  bool events  = m_marlinConfig.GetParameterBoolean("Logging","DoEvents", false);
+  int  cache   = m_marlinConfig.GetParameterInteger("Logging","Cache",    100);
+  int  level   = m_marlinConfig.GetParameterBoolean("Logging","LogLevel", m_logLevel);
 
   // Check for a logging object
   if(m_log == NULL && !file.IsEmpty() && logging)
@@ -472,38 +454,33 @@ HTTPClient::InitLogging()
     m_log = new LogAnalysis(m_agent);
     m_logOwner = true;
   }
-  if(!file.IsEmpty())
+
+  // Make other settings effective on the created logfile
+  // BUT REMEMBER: "Logging.config" can override these settings.
+  if(m_log && !file.IsEmpty())
   {
     m_log->SetLogFilename(file);
   }
-  if(m_webConfig.HasParameter("Logging","DoLogging"))
+  if(m_log && m_marlinConfig.HasParameter("Logging","DoLogging"))
   {
     m_log->SetDoLogging(logging);
   }
-  if(m_webConfig.HasParameter("Logging","DoTiming"))
+  if(m_log && m_marlinConfig.HasParameter("Logging","DoTiming"))
   {
     m_log->SetDoTiming(timing);
   }
-  if(m_webConfig.HasParameter("Logging","DoEvents"))
+  if(m_log && m_marlinConfig.HasParameter("Logging","DoEvents"))
   {
     m_log->SetDoEvents(events);
   }
-  if(m_webConfig.HasParameter("Logging","Cache"))
+  if(m_log && m_marlinConfig.HasParameter("Logging","Cache"))
   {
     m_log->SetCache(cache);
   }
-
-  // Detailed logging for client
-  if (m_webConfig.HasParameter("Logging","LogLevel"))
+  if(m_log && m_marlinConfig.HasParameter("Logging","LogLevel"))
   {
-    m_logLevel = level;
-    if(m_log)
-    {
-      m_log->SetLogLevel(m_logLevel);
-    }
+    m_log->SetLogLevel(m_logLevel = level);
   }
-
-  // Now "Logging.config" can override these settings.
 }
 
 void
@@ -536,30 +513,30 @@ void
 HTTPClient::InitSettings()
 {
   // General client settings
-  m_retries        =             m_webConfig.GetParameterInteger("Client","RetryCount",       m_retries);
-  m_agent          =             m_webConfig.GetParameterString ("Client","Agent",            m_agent);
-  m_useProxy       = (ProxyType) m_webConfig.GetParameterInteger("Client","UseProxy",         (int)m_useProxy);
-  m_proxy          =             m_webConfig.GetParameterString ("Client","Proxy",            m_proxy);
-  m_proxyBypass    =             m_webConfig.GetParameterString ("Client","ProxyBypass",      m_proxyBypass);
-  m_timeoutResolve =             m_webConfig.GetParameterInteger("Client","TimeoutResolve",   m_timeoutResolve);
-  m_timeoutConnect =             m_webConfig.GetParameterInteger("Client","TimeoutConnect",   m_timeoutConnect);
-  m_timeoutSend    =             m_webConfig.GetParameterInteger("Client","TimeoutSend",      m_timeoutSend);
-  m_timeoutReceive =             m_webConfig.GetParameterInteger("Client","TimeoutReceive",   m_timeoutReceive);
-  m_soapCompress   =             m_webConfig.GetParameterBoolean("Client","SOAPCompress",     m_soapCompress);
-  m_httpCompression=             m_webConfig.GetParameterBoolean("Client","HTTPCompression",  m_httpCompression);
-  m_sendUnicode    =             m_webConfig.GetParameterBoolean("Client","SendUnicode",      m_sendUnicode);
-  m_sendBOM        =             m_webConfig.GetParameterBoolean("Client","SendBOM",          m_sendBOM);
-  m_verbTunneling  =             m_webConfig.GetParameterBoolean("Client","VerbTunneling",    m_verbTunneling);
-  m_certPreset     =             m_webConfig.GetParameterBoolean("Client","CertificatePreset",m_certPreset);
-  m_certStore      =             m_webConfig.GetParameterString ("Client","CertificateStore", m_certStore);
-  m_certName       =             m_webConfig.GetParameterString ("Client","CertificateName",  m_certName);
-  m_corsOrigin     =             m_webConfig.GetParameterString ("Client","CORS_Origin",      m_corsOrigin);
+  m_retries        =             m_marlinConfig.GetParameterInteger("Client","RetryCount",       m_retries);
+  m_agent          =             m_marlinConfig.GetParameterString ("Client","Agent",            m_agent);
+  m_useProxy       = (ProxyType) m_marlinConfig.GetParameterInteger("Client","UseProxy",         (int)m_useProxy);
+  m_proxy          =             m_marlinConfig.GetParameterString ("Client","Proxy",            m_proxy);
+  m_proxyBypass    =             m_marlinConfig.GetParameterString ("Client","ProxyBypass",      m_proxyBypass);
+  m_timeoutResolve =             m_marlinConfig.GetParameterInteger("Client","TimeoutResolve",   m_timeoutResolve);
+  m_timeoutConnect =             m_marlinConfig.GetParameterInteger("Client","TimeoutConnect",   m_timeoutConnect);
+  m_timeoutSend    =             m_marlinConfig.GetParameterInteger("Client","TimeoutSend",      m_timeoutSend);
+  m_timeoutReceive =             m_marlinConfig.GetParameterInteger("Client","TimeoutReceive",   m_timeoutReceive);
+  m_soapCompress   =             m_marlinConfig.GetParameterBoolean("Client","SOAPCompress",     m_soapCompress);
+  m_httpCompression=             m_marlinConfig.GetParameterBoolean("Client","HTTPCompression",  m_httpCompression);
+  m_sendUnicode    =             m_marlinConfig.GetParameterBoolean("Client","SendUnicode",      m_sendUnicode);
+  m_sendBOM        =             m_marlinConfig.GetParameterBoolean("Client","SendBOM",          m_sendBOM);
+  m_verbTunneling  =             m_marlinConfig.GetParameterBoolean("Client","VerbTunneling",    m_verbTunneling);
+  m_certPreset     =             m_marlinConfig.GetParameterBoolean("Client","CertificatePreset",m_certPreset);
+  m_certStore      =             m_marlinConfig.GetParameterString ("Client","CertificateStore", m_certStore);
+  m_certName       =             m_marlinConfig.GetParameterString ("Client","CertificateName",  m_certName);
+  m_corsOrigin     =             m_marlinConfig.GetParameterString ("Client","CORS_Origin",      m_corsOrigin);
 
   // Test environments must often do with relaxed certificate settings
-  bool m_relaxValid     = m_webConfig.GetParameterBoolean("Client","RelaxCertificateValid",     false);
-  bool m_relaxDate      = m_webConfig.GetParameterBoolean("Client","RelaxCertificateDate",      false);
-  bool m_relaxAuthority = m_webConfig.GetParameterBoolean("Client","RelaxCertificateAuthority", false);
-  bool m_relaxUsage     = m_webConfig.GetParameterBoolean("Client","RelaxCertificateUsage",     false);
+  bool m_relaxValid     = m_marlinConfig.GetParameterBoolean("Client","RelaxCertificateValid",     false);
+  bool m_relaxDate      = m_marlinConfig.GetParameterBoolean("Client","RelaxCertificateDate",      false);
+  bool m_relaxAuthority = m_marlinConfig.GetParameterBoolean("Client","RelaxCertificateAuthority", false);
+  bool m_relaxUsage     = m_marlinConfig.GetParameterBoolean("Client","RelaxCertificateUsage",     false);
 
   if(m_relaxValid)      m_relax |= SECURITY_FLAG_IGNORE_CERT_CN_INVALID;
   if(m_relaxDate)       m_relax |= SECURITY_FLAG_IGNORE_CERT_DATE_INVALID;
@@ -569,27 +546,27 @@ HTTPClient::InitSettings()
   // Overrides for Secure HTTP protocol
   unsigned ssltls = 0;
   CString  ssltlsLogging(":");
-  if(m_webConfig.GetParameterBoolean("Client","SecureSSL20",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_SSL2) > 0))
+  if(m_marlinConfig.GetParameterBoolean("Client","SecureSSL20",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_SSL2) > 0))
   {
     ssltls |= WINHTTP_FLAG_SECURE_PROTOCOL_SSL2;
     ssltlsLogging += "SSL2:";
   }
-  if(m_webConfig.GetParameterBoolean("Client","SecureSSL30",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_SSL3) > 0))
+  if(m_marlinConfig.GetParameterBoolean("Client","SecureSSL30",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_SSL3) > 0))
   {
     ssltls |= WINHTTP_FLAG_SECURE_PROTOCOL_SSL3;
     ssltlsLogging += "SSL3:";
   }
-  if(m_webConfig.GetParameterBoolean("Client","SecureTLS10",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_TLS1) > 0))
+  if(m_marlinConfig.GetParameterBoolean("Client","SecureTLS10",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_TLS1) > 0))
   {
     ssltls |= WINHTTP_FLAG_SECURE_PROTOCOL_TLS1;
     ssltlsLogging += "TLS1:";
   }
-  if(m_webConfig.GetParameterBoolean("Client","SecureTLS11",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_1) > 0))
+  if(m_marlinConfig.GetParameterBoolean("Client","SecureTLS11",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_1) > 0))
   {
     ssltls |= WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_1;
     ssltlsLogging += "TLS1.1:";
   }
-  if(m_webConfig.GetParameterBoolean("Client","SecureTLS12",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_2) > 0))
+  if(m_marlinConfig.GetParameterBoolean("Client","SecureTLS12",(m_ssltls & WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_2) > 0))
   {
     ssltls |= WINHTTP_FLAG_SECURE_PROTOCOL_TLS1_2;
     ssltlsLogging += "TLS1.2:";
@@ -597,11 +574,11 @@ HTTPClient::InitSettings()
   m_ssltls = ssltls;
 
   // Overrides of the URL can be set manual
-  m_user          = m_webConfig.GetParameterString ("Authentication","User",         m_user);
-  m_password      = m_webConfig.GetEncryptedString ("Authentication","Password",     m_password);
-  m_sso           = m_webConfig.GetParameterBoolean("Authentication","SSO",          m_sso);
-  m_proxyUser     = m_webConfig.GetParameterString ("Client",        "ProxyUser",    m_proxyUser);
-  m_proxyPassword = m_webConfig.GetEncryptedString ("Client",        "ProxyPassword",m_proxyPassword);
+  m_user          = m_marlinConfig.GetParameterString ("Authentication","User",         m_user);
+  m_password      = m_marlinConfig.GetEncryptedString ("Authentication","Password",     m_password);
+  m_sso           = m_marlinConfig.GetParameterBoolean("Authentication","SSO",          m_sso);
+  m_proxyUser     = m_marlinConfig.GetParameterString ("Client",        "ProxyUser",    m_proxyUser);
+  m_proxyPassword = m_marlinConfig.GetEncryptedString ("Client",        "ProxyPassword",m_proxyPassword);
 
   // Test that we do not keep on nagging the server
   if(m_retries > CLIENT_MAX_RETRIES)
@@ -615,7 +592,7 @@ HTTPClient::InitSettings()
   {
     case ProxyType::PROXY_IEPROXY:   proxyType = "Always use IE autoproxy settings in the connect if possible (default)"; break;
     case ProxyType::PROXY_AUTOPROXY: proxyType = "Use IE autoproxy if connection fails as a default fallback";            break;
-    case ProxyType::PROXY_MYPROXY:   proxyType = "Use MY proxy settings from web.config";                                 break;
+    case ProxyType::PROXY_MYPROXY:   proxyType = "Use MY proxy settings from Marlin.config";                              break;
     case ProxyType::PROXY_NOPROXY:   proxyType = "Never use any proxy";                                                   break;
     default:                         proxyType = "Unknown and unsupported proxy settings!!";
                                      ERRORLOG(proxyType);
@@ -685,8 +662,8 @@ HTTPClient::InitSecurity()
     case XMLEncryption::XENC_Body:    level = "body";    break;
     case XMLEncryption::XENC_Message: level = "message"; break;
   }
-  level          = m_webConfig.GetParameterString("Encryption","Level",   level);
-  m_enc_password = m_webConfig.GetEncryptedString("Encryption","Password",m_enc_password);
+  level          = m_marlinConfig.GetParameterString("Encryption","Level",   level);
+  m_enc_password = m_marlinConfig.GetEncryptedString("Encryption","Password",m_enc_password);
 
   // Now set the resulting security level
        if(level == "sign")    m_securityLevel = XMLEncryption::XENC_Signing;
@@ -750,43 +727,41 @@ HTTPClient::SetURL(CString p_url)
 
 // Add extra header for the call
 bool 
-HTTPClient::AddHeader(CString p_header,bool p_unique /*=true*/)
+HTTPClient::AddHeader(CString p_header)
 {
   int pos = p_header.Find(':');
   if (pos > 0)
   {
     CString name   = p_header.Left(pos);
-    CString value  = p_header.Mid(pos + 1);
+    CString value  = p_header.Mid(pos + 1).Trim();
 
-    return AddHeader(name,value,p_unique);
+    return AddHeader(name,value);
   }
   return false;
 }
 
 // Add extra header by name and value pair
 bool
-HTTPClient::AddHeader(CString p_name,CString p_value,bool p_unique /*=true*/)
+HTTPClient::AddHeader(CString p_name,CString p_value)
 {
-  HttpHeader header;
-  header.m_name   = p_name;
-  header.m_value  = p_value;
-  header.m_unique = true;
-    
-  for(auto& head : m_requestHeaders)
+  // Case-insensitive search!
+  HeaderMap::iterator it = m_requestHeaders.find(p_name);
+  if(it != m_requestHeaders.end() && p_name.CompareNoCase("Set-Cookie") != 0)
   {
-    if(head.m_name.Compare(p_name) == 0)
+    // Check if we set it a duplicate time
+    if(it->second.Find(p_value) >= 0)
     {
-      if(p_unique)
-      {
-        // OVERWRITE
-        head.m_value = p_value;
-        return false;
-      }
-      header.m_unique = false;
-      head.m_unique   = false;
+      return true;
     }
+    // Append to already existing value
+    it->second += ", ";
+    it->second += p_value;
   }
-  m_requestHeaders.push_back(header);
+  else
+  {
+    // Insert as a new header
+    m_requestHeaders.insert(std::make_pair(p_name,p_value));
+  }
   return true;
 }
 
@@ -945,45 +920,22 @@ HTTPClient::AddHostHeader()
   }
 
   // Create host header
-  USES_CONVERSION;
-  CString hostHeader = "Host: " + m_server;
-  if(m_port != INTERNET_DEFAULT_HTTP_PORT)
+  CString host(m_server);
+  if((m_secure && m_port != INTERNET_DEFAULT_HTTPS_PORT) ||
+    (!m_secure && m_port != INTERNET_DEFAULT_HTTP_PORT))
   {
-    hostHeader.AppendFormat(":%d",m_port);
+    host.AppendFormat(":%d",m_port);
   }
-  wstring hostString = A2CW(hostHeader);
-
-  if(!::WinHttpAddRequestHeaders(m_request
-                                ,hostString.c_str()
-                                ,(DWORD)hostString.size()
-                                ,WINHTTP_ADDREQ_FLAG_ADD | 
-                                 WINHTTP_ADDREQ_FLAG_REPLACE))
-  {
-    ErrorLog(__FUNCTION__,"Host header NOT set. Error [%d] %s");
-    return;
-  }
-  DETAILLOG("Header => %S",hostString.c_str());
+  AddHeader("Host",host);
 }
 
 // Add content length header
 void
 HTTPClient::AddLengthHeader()
 {
-  USES_CONVERSION;
   CString length;
-  length.Format("Content-Length: %lu",m_bodyLength);
-  wstring header = A2CW(length);
-
-  if(!::WinHttpAddRequestHeaders(m_request
-                                ,header.c_str()
-                                ,(DWORD)header.size()
-                                ,WINHTTP_ADDREQ_FLAG_ADD |
-                                 WINHTTP_ADDREQ_FLAG_REPLACE))
-  {
-    ErrorLog(__FUNCTION__,"Host header NOT set. Error [%d] %s");
-    return;
-  }
-  DETAILLOG("Header => %S",header.c_str());
+  length.Format("%lu",m_bodyLength);
+  AddHeader("Content-Length",length);
 }
 
 void
@@ -1070,17 +1022,17 @@ HTTPClient::AddExtraHeaders()
   {
     AddHeader("Content-Type",m_contentType);
   }
-  if (m_httpCompression)
+  if(m_httpCompression)
   {
     AddHeader("Accept-Encoding","gzip");
   }
-  if (m_soapAction.GetLength())
+  if(m_soapAction.GetLength())
   {
-    if (m_soapAction[0] != '\"' && m_soapAction.Find(':') >= 0)
+    if(m_soapAction[0] != '\"' && m_soapAction.Find(':') >= 0)
     {
       m_soapAction = "\"" + m_soapAction + "\"";
     }
-    AddHeader("SOAPAction", m_soapAction);
+    AddHeader("SOAPAction",m_soapAction);
   }
   if(m_terminalServices)
   {
@@ -1096,16 +1048,49 @@ HTTPClient::AddExtraHeaders()
       AddHeader("RemoteDesktop",number);
     }
   }
+}
 
+void
+HTTPClient::AddCookieHeaders()
+{
+  if(m_cookies.GetSize())
+  {
+    AddHeader("Cookie",m_cookies.GetCookieText());
+  }
+}
+
+// Add OAuth2 authorization if configured for this call
+bool
+HTTPClient::AddOAuth2authorization()
+{
+  bool result = false;
+
+  if(m_oauthCache && m_oauthSession)
+  {
+    CString token = m_oauthCache->GetBearerToken(m_oauthSession);
+    if(!token.IsEmpty())
+    {
+      CString bearerToken("Bearer ");
+      bearerToken += token;
+      AddHeader("Authorization",bearerToken);
+      m_lastBearerToken = token;
+      result = true;
+    }
+  }
+  return result;
+}
+
+void 
+HTTPClient::FlushAllHeaders()
+{
   // Set all of our headers
   USES_CONVERSION;
   for(auto& head : m_requestHeaders)
   {
-    CString header = head.m_name + ":" + head.m_value;
+    CString header = head.first + ":" + head.second;
     wstring theHeader = A2CW(header);
 
-    DWORD modifiers = head.m_unique ? WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE
-                                    : WINHTTP_ADDREQ_FLAG_COALESCE_WITH_SEMICOLON;
+    DWORD modifiers = WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE;
     if(!::WinHttpAddRequestHeaders(m_request
                                   ,theHeader.c_str()
                                   ,(DWORD)theHeader.size()
@@ -1115,36 +1100,6 @@ HTTPClient::AddExtraHeaders()
       ErrorLog(__FUNCTION__,"Request headers NOT set. Error [%d] %s");
     }
     DETAILLOG("Header => %S",theHeader.c_str());
-  }
-}
-
-void
-HTTPClient::AddCookieHeaders()
-{
-  // Remove previous cookies
-  wstring cookie(L"Cookie:");
-  WinHttpAddRequestHeaders(m_request
-                          ,cookie.c_str()
-                          ,(DWORD)cookie.size()
-                          ,WINHTTP_ADDREQ_FLAG_REPLACE);
-
-  if(m_cookies.GetSize())
-  {
-    USES_CONVERSION;
-
-    // Add our cookies, appended together
-    CString cookieText = "Cookie: " + m_cookies.GetCookieText();
-    wstring cookieStr  = A2CW(cookieText);
-
-    if(!::WinHttpAddRequestHeaders(m_request
-                                  ,cookieStr.c_str()
-                                  ,(DWORD)cookieStr.size()
-                                  ,WINHTTP_ADDREQ_FLAG_ADD|WINHTTP_ADDREQ_FLAG_REPLACE))
-    {
-      // Log error and continue. Some cookies are optional (e.g. advertorials)
-      ErrorLog(__FUNCTION__,"Cookie headers NOT set. Error [%d] %s");
-    }
-    DETAILLOG("Header => %S",cookieStr.c_str());
   }
 }
 
@@ -1215,40 +1170,6 @@ HTTPClient::AddPreEmptiveAuthorization()
       ERRORLOG("Illegal pre-emptive authorization setting: %d",m_preemtive);
     }
   }
-}
-
-// Add OAuth2 authorization if configured for this call
-bool
-HTTPClient::AddOAuth2authorization()
-{
-  bool result = false;
-
-  if(m_oauthCache && m_oauthSession)
-  {
-    CString token = m_oauthCache->GetBearerToken(m_oauthSession);
-    if(!token.IsEmpty())
-    {
-      USES_CONVERSION;
-      CString auth("Authorization: Bearer ");
-      auth += token;
-      wstring header = A2CW(auth);
-
-      if(!::WinHttpAddRequestHeaders(m_request
-                                    ,header.c_str()
-                                    ,(DWORD)header.size()
-                                    ,WINHTTP_ADDREQ_FLAG_ADD | 
-                                     WINHTTP_ADDREQ_FLAG_REPLACE))
-      {
-        ERRORLOG("Cannot add OAuth2 bearer token as 'Authorization' header");
-      }
-      else
-      {
-        result = true;
-        m_lastBearerToken = token;
-      }
-    }
-  }
-  return result;
 }
 
 void
@@ -2125,7 +2046,7 @@ HTTPClient::Send(HTTPMessage* p_msg)
   // Getting all headers from the answer
   if(m_readAllHeaders)
   {
-    for(ResponseMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
+    for(HeaderMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
     {
       p_msg->AddHeader(it->first,it->second);
     }
@@ -2276,6 +2197,8 @@ HTTPClient::Send(SOAPMessage* p_msg)
 
   // Process our answer
   p_msg->Reset();
+  p_msg->SetStatus(m_status);
+
   CString answer;
   bool sendBom = false;
   if(charset.Left(6).CompareNoCase("utf-16") == 0)
@@ -2338,7 +2261,7 @@ HTTPClient::Send(SOAPMessage* p_msg)
   // Getting all headers from the answer
   if(m_readAllHeaders)
   {
-    for(ResponseMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
+    for(HeaderMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
     {
       p_msg->AddHeader(it->first,it->second);
     }
@@ -2559,7 +2482,7 @@ HTTPClient::ProcessJSONResult(JSONMessage* p_msg,bool& p_result)
   // Getting all headers from the answer
   if(m_readAllHeaders)
   {
-    for(ResponseMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
+    for(HeaderMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
     {
       p_msg->AddHeader(it->first,it->second);
     }
@@ -2772,7 +2695,7 @@ HTTPClient::Send()
   switch(m_useProxy)
   {
     case ProxyType::PROXY_IEPROXY:  // Use explicit proxy from settings 
-    case ProxyType::PROXY_MYPROXY:  // Use explicit proxy from web.config
+    case ProxyType::PROXY_MYPROXY:  // Use explicit proxy from Marlin.config
                                     if(!m_proxy.IsEmpty())
                                     {
                                       CrackedURL url(m_proxy);
@@ -2867,6 +2790,8 @@ HTTPClient::Send()
   AddWebSocketUpgrade();
   // Always add content length
   AddLengthHeader();
+  // Now flush all headers to the WinHTTP client
+  FlushAllHeaders();
 
   // If always using a client certificate, set it upfront
   if(m_certPreset)
@@ -3106,7 +3031,17 @@ HTTPClient::Send()
       {
         m_response[ind] = out_data[ind];
       }
+      m_response[m_responseLength] = 0;
       DETAILLOG("Unzipped gzip content from [%lu] to [%lu] (%d %%)",before,m_responseLength,(100 * before)/m_responseLength);
+
+      // Replace the already read response header for the length of the content
+      HeaderMap::iterator it = m_responseHeaders.find("Content-length");
+      if(it != m_responseHeaders.end())
+      {
+        CString newlen;
+        newlen.Format("%d",m_responseLength);
+        it->second = newlen;
+      }
     }
   }
 
@@ -3229,7 +3164,7 @@ HTTPClient::TraceTheSend()
   // Trace all other extra headers, including CORS headers
   for(auto& head : m_requestHeaders)
   {
-    header = head.m_name + ":" + head.m_value;
+    header = head.first + ":" + head.second;
     m_log->BareStringLog(header.GetString(),header.GetLength());
   }
 
@@ -3461,6 +3396,9 @@ HTTPClient::ReadHeaderField(int p_header)
 void
 HTTPClient::ReadAllResponseHeaders()
 {
+  // Clean out previous response headers
+  m_responseHeaders.clear();
+
   DWORD dwSize = 0;
   WinHttpQueryHeaders(m_request
                      ,WINHTTP_QUERY_RAW_HEADERS_CRLF
@@ -3503,7 +3441,6 @@ HTTPClient::ReadAllResponseHeaders()
           {
             CString hname   = header.Left(namepos).Trim();
             CString hvalue  = header.Mid(namepos + 1).Trim();
-            hname.MakeLower();
             m_responseHeaders.insert(std::make_pair(hname,hvalue));
           }
           // Find next
@@ -3522,9 +3459,8 @@ HTTPClient::ReadAllResponseHeaders()
 CString  
 HTTPClient::FindHeader(CString p_header)
 {
-  p_header.MakeLower();
-
-  ResponseMap::iterator it = m_responseHeaders.find(p_header);
+  // Case insensitive find
+  HeaderMap::iterator it = m_responseHeaders.find(p_header);
   if(it != m_responseHeaders.end())
   {
     return it->second;

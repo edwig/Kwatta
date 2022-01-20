@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,7 +29,7 @@
 #include "Marlin.h"
 #include "AppConfig.h"
 #include "MarlinServer.h"
-#include "WebConfig.h"
+#include "MarlinConfig.h"
 #include <winhttp.h>
 #include <io.h>
 
@@ -104,7 +104,7 @@ CString
 AppConfig::GetConfigFilename()
 {
   // This is our config file
-  return WebConfig::GetExePath() + PRODUCT_NAME + ".Config";
+  return MarlinConfig::GetExePath() + PRODUCT_NAME + ".Config";
 }
 
 // Read the config from disk

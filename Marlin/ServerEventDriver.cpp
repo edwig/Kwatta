@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -277,10 +277,10 @@ ServerEventDriver::UnRegisterChannel(int p_channel,bool p_flush /*=true*/)
   // See if we can flush the channel
   if(p_flush)
   {
-  if(!FlushChannel(p_channel))
-  {
-    // If not, the channel stays for now
-    return false;
+    if(!FlushChannel(p_channel))
+    {
+      // If not, the channel stays for now
+      return false;
     }
   }
 

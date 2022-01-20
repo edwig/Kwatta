@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,6 +26,7 @@
 // THE SOFTWARE.
 //
 #pragma once
+#include "Headers.h"
 #include "FileBuffer.h"
 #include "CrackURL.h"
 #include "Cookie.h"
@@ -92,7 +93,6 @@ extern const char* header_fields[];
 extern const char* header_response[];
 
 using ushort    = unsigned short;
-using HeaderMap = std::map<CString,CString>;
 
 // Forward declarations
 class   SOAPMessage;
@@ -218,7 +218,7 @@ public:
   // Add a body from a binary BLOB
   void    AddBody(void* p_body,unsigned p_length);
   // Add a header-name / header-value pair
-  void    AddHeader(CString p_name,CString p_value,bool p_lower = true);
+  void    AddHeader(CString p_name,CString p_value);
   // Add a header by known header-id
   void    AddHeader(HTTP_HEADER_ID p_id,CString p_value);
   // Delete a header by name

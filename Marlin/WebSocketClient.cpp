@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -180,7 +180,7 @@ WebSocketClient::OpenSocket()
       if(m_socket)
       {
         // Remember the identity key
-        ResponseMap::iterator key = client.GetResponseHeaders().find("sec-websocket-accept");
+        HeaderMap::iterator key = client.GetResponseHeaders().find("Sec-Websocket-Accept");
         if(key != client.GetResponseHeaders().end())
         {
           m_key = key->second;

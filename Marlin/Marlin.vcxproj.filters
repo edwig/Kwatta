@@ -186,9 +186,6 @@
     <ClCompile Include="SOAPMessage.cpp">
       <Filter>MarlinGeneral</Filter>
     </ClCompile>
-    <ClCompile Include="WebConfig.cpp">
-      <Filter>MarlinGeneral</Filter>
-    </ClCompile>
     <ClCompile Include="ThreadPool.cpp">
       <Filter>MarlinGeneral</Filter>
     </ClCompile>
@@ -385,6 +382,9 @@
       <Filter>MarlinServer</Filter>
     </ClCompile>
     <ClCompile Include="XPath.cpp">
+      <Filter>MarlinGeneral</Filter>
+    </ClCompile>
+    <ClCompile Include="MarlinConfig.cpp">
       <Filter>MarlinGeneral</Filter>
     </ClCompile>
   </ItemGroup>
@@ -617,9 +617,6 @@
     <ClInclude Include="ThreadPool.h">
       <Filter>MarlinGeneral\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="WebConfig.h">
-      <Filter>MarlinGeneral\Headers</Filter>
-    </ClInclude>
     <ClInclude Include="WinINETError.h">
       <Filter>MarlinGeneral\Headers</Filter>
     </ClInclude>
@@ -783,6 +780,12 @@
       <Filter>MarlinServer\Headers</Filter>
     </ClInclude>
     <ClInclude Include="XPath.h">
+      <Filter>MarlinGeneral\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers.h">
+      <Filter>MarlinGeneral\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MarlinConfig.h">
       <Filter>MarlinGeneral\Headers</Filter>
     </ClInclude>
   </ItemGroup>

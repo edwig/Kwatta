@@ -1,10 +1,10 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// SourceFile: WebConfig.h
+// SourceFile: MarlinConfig.h
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -30,14 +30,14 @@
 #include <map>
 #include <list>
 
-#define WEBCONFIG_WACHTWOORD "W!e@b#.$C%o^n&f*i(g"
+#define MARLINCONFIG_WACHTWOORD "W!e@b#.$C%o^n&f*i(g"
 
-class WebConfig : public XMLMessage
+class MarlinConfig : public XMLMessage
 {
 public:
-  WebConfig();
-  WebConfig(CString p_filename);
-  virtual ~WebConfig();
+  MarlinConfig();
+  MarlinConfig(CString p_filename);
+  virtual ~MarlinConfig();
 
   // FILE METHODS
 

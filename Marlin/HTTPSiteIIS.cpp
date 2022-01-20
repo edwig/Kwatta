@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -90,7 +90,7 @@ HTTPSiteIIS::StartSite()
   // Getting the global settings
   InitSite();
  
-  // Now log the settings, once we read all web.config files
+  // Now log the settings, once we read all Marlin.config files
   LogSettings();
 
   // See if we have a reliable messaging WITH authentication

@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -33,7 +33,7 @@
 // DEFAULTS for the application config file: "<PRODUCT_NAME>.Config"
 
 #define DEFAULT_NAME        "<DTAP Name>"   // DTAP = "Development", "Test", "Acceptance", "Production"
-#define DEFAULT_SERVER      "localhost"
+#define DEFAULT_SERVER      "mymachine"
 #define DEFAULT_URL         "/myserver/"
 #define DEFAULT_SERVERLOG   "C:\\WWW\\Serverlog.txt"
 #define DEFAULT_WEBROOT     "C:\\WWW\\"

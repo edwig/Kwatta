@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -227,7 +227,7 @@ public:
 protected:
   // Start WSDL
   void          StartWsdl();
-  // Reading the settings from web.config files
+  // Reading the settings from Marlin.config files
   void          ReadingWebconfig();
   void          ReadingWebconfig(CString p_webconfig);
   // Define for your derived class by using the WEBSERVICE* macros

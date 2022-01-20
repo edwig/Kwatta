@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2021 ir. W.E. Huisman
+// Copyright (c) 2014-2022 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -42,7 +42,7 @@
 #include "AutoCritical.h"
 #include "EnsureFile.h"
 #include "ConvertWideString.h"
-#include "WebConfig.h"
+#include "MarlinConfig.h"
 #include <string.h>
 #include <sys/timeb.h>
 #include <io.h>
@@ -84,8 +84,8 @@ LogAnalysis::Reset()
     {
       // Flushing the cache and ending all writing activity
       SetEvent(m_event);
-      // Wait max 10 seconds to sync the logfile
-      for(unsigned ind = 0; ind < 100; ++ind)
+      // Wait max 100 seconds to sync the logfile
+      for(unsigned ind = 0; ind < 1000; ++ind)
       {
         // Extra context for lock
         {
@@ -671,7 +671,7 @@ void
 LogAnalysis::ReadConfig()
 {
   char buffer[256] = "";
-  CString fileName = WebConfig::GetExePath() + "Logfile.config";
+  CString fileName = MarlinConfig::GetExePath() + "Logfile.config";
 
   FILE* file = NULL;
   fopen_s(&file,fileName,"r");

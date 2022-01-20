@@ -1,6 +1,11 @@
 KWATTA RELEASNOTES
 ==================
 
+Version 1.0.4 Release date: 20-01-2022
+--------------------------------------
+1)  Added the possibility to promote test-steps and validations to the global directory
+    You can add global teststeps or validations to a new teststep.
+
 Version 1.0.1 Release date: 02-01-2022
 --------------------------------------
 1)  Fixes for TestRunner in releasemode. Absolute must to upgrade to this version!

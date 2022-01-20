@@ -10,8 +10,8 @@
 ; Versionnumber:     1.0.1
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.0.3"
- !define PRODUCT_BUILDNUMBER                  "96"
+ !define PRODUCT_VERSION                      "1.0.4"
+ !define PRODUCT_BUILDNUMBER                  "99"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"
  !define PRODUCT_DIR_REGKEY                   "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"

@@ -200,12 +200,12 @@ TestSet::GetValidations(CString p_filename)
 }
 
 TRun*
-TestSet::AddTestStep(CString p_name,CString p_filename)
+TestSet::AddTestStep(CString p_name,CString p_filename,bool p_global)
 {
   TRun run;
   run.m_name     = p_name;
   run.m_filename = p_filename;
-  run.m_global   = false;
+  run.m_global   = p_global;
   m_testruns.push_back(run);
   return &(m_testruns.back());
 }

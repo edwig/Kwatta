@@ -73,7 +73,7 @@ public:
   void      SetFilename(CString p_file)     { m_filename       = p_file; }
 
   // FUNCTIONS
-  TRun*     AddTestStep(CString p_stepname,CString p_filename);
+  TRun*     AddTestStep(CString p_stepname,CString p_filename,bool p_global);
   void      DeleteStep(int p_step);
   int       CopyStep(CString p_directory,CString p_filename,CString p_name);
 

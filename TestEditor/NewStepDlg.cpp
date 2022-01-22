@@ -87,7 +87,7 @@ NewStepDlg::OnInitDialog()
 	m_comboType.AddString("Command-line");
 	m_comboType.AddString("Internet (HTTP)");
 	m_comboType.SetCurSel(0);
-  m_type = StepType::Step_command;
+  m_stepType = StepType::Step_command;
 
 	m_comboVali.AddString("Command-line");
 	m_comboVali.AddString("Internet (HTTP)");
@@ -107,7 +107,7 @@ NewStepDlg::CheckFilename()
 	CString file(m_stepFile);
 	if(file.Find('.') < 0)
 	{
-    switch (m_type)
+    switch (m_stepType)
     {
       case StepType::Step_command: file += EXTENSION_TESTSTEP_CL; break;
       case StepType::Step_http:    file += EXTENSION_TESTSTEP_IN; break;
@@ -133,7 +133,7 @@ NewStepDlg::CheckValiFile()
   CString file(m_valiFile);
   if(file.Find('.') < 0)
   {
-    file += m_valiType ? EXTENSION_VALIDATE_IN : EXTENSION_VALIDATE_CL;
+    file += m_valiType == StepType::Step_http ? EXTENSION_VALIDATE_IN : EXTENSION_VALIDATE_CL;
   }
   path += file;
 
@@ -168,8 +168,8 @@ NewStepDlg::OnCbnSelchangeTestType()
 	int ind = m_comboType.GetCurSel();
 	if(ind >= 0)
 	{
-		m_type = static_cast<StepType>(ind);
-    m_valiType = ind;
+		m_stepType = static_cast<StepType>(ind);
+    m_valiType = (StepType) ind;
     m_comboVali.SetCurSel(ind);
 	}
 	UpdateData();
@@ -178,7 +178,7 @@ NewStepDlg::OnCbnSelchangeTestType()
 void
 NewStepDlg::OnBnClickedStepGlobal()
 {
-  GlobalFileDlg dlg(this,true,m_type,theApp.GetBaseDirectory());
+  GlobalFileDlg dlg(this,true,m_stepType,theApp.GetBaseDirectory());
   if(dlg.DoModal() == IDOK)
   {
     m_stepName   = StripExtension(dlg.GetChosenFile());
@@ -216,8 +216,8 @@ NewStepDlg::OnCbnSelchangeValiType()
   int ind = m_comboVali.GetCurSel();
   if(ind >= 0)
   {
-    m_valiType = ind;
-    m_type = (StepType)ind;
+    m_valiType = (StepType)ind;
+    m_stepType = (StepType)ind;
     m_comboType.SetCurSel(ind);
   }
   UpdateData();
@@ -238,12 +238,12 @@ NewStepDlg::OnEnChangeValiName()
 void
 NewStepDlg::OnBnClickedValiGlobal()
 {
-  GlobalFileDlg dlg(this,false,m_type,theApp.GetBaseDirectory());
+  GlobalFileDlg dlg(this,false,m_stepType,theApp.GetBaseDirectory());
   if(dlg.DoModal() == IDOK)
   {
     m_valiName   = StripExtension(dlg.GetChosenFile());
     m_valiFile   = dlg.GetChosenFile();
-    m_stepGlobal = true;
+    m_valiGlobal = true;
     UpdateData(FALSE);
 
     m_editVali    .SetBkColor(GLOBAL_COLOR);

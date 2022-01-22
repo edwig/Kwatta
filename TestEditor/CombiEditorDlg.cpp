@@ -231,21 +231,22 @@ CombiEditorDlg::OnBnClickedAddValidation()
   NewStepDlg dlg(this,true);
   if (dlg.DoModal() == IDOK)
   {
-    CString valiName = dlg.GetValiName();
-    CString valiFile = dlg.GetValiFile();
-    int     valiType = dlg.GetValiType();
+    CString  valiName   = dlg.GetValiName();
+    CString  valiFile   = dlg.GetValiFile();
+    StepType valiType   = dlg.GetValiType();
+    bool     valiGlobal = dlg.GetValiGlobal();
 
     TestEditorDlg* editor = reinterpret_cast<TestEditorDlg*>(GetParent());
     if(editor)
     {
-      editor->MakeNewVali(valiType,valiName,valiFile,m_row);
+      editor->MakeNewVali(valiType,valiGlobal,valiName,valiFile,m_row);
 
       CString num;
       int number = m_grid.GetRowCount();
       num.Format("Number %d",number);
 
       int row = m_grid.InsertRow(num);
-      SetTextImage(row,1,"",3);
+      SetTextImage(row,1,"",valiGlobal ? 2 : 3);
       m_grid.GetCell(row,2)->SetText(valiName);
       m_grid.GetCell(row,3)->SetText(valiFile);
       m_grid.Refresh();
@@ -265,20 +266,28 @@ CombiEditorDlg::OnBnClickedDelValidation()
     TSValSet::iterator it = vals->begin();
     while(it != vals->end())
     {
-      if((it->m_name.CompareNoCase(validation) == 0) && (it->m_global == false))
+      if(it->m_name.CompareNoCase(validation) == 0)
       {
-        CString ask;
-        ask.Format("Delete validation [%s] definitely! Are you sure?",validation.GetString());
-        if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+        if(it->m_global == false)
         {
+          CString ask;
+          ask.Format("Delete validation [%s] definitely! Are you sure?",validation.GetString());
+          if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+          {
+            return;
+          }
           CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + it->m_filename;
           DeleteFile(filename);
-          vals->erase(it);
-          m_grid.DeleteRow(id.row);
-          m_grid.Refresh();
-
-          m_testSet.WriteToXML();
         }
+        else
+        {
+          StyleMessageBox(this,"Global validation no longer connected to this teststep",KWATTA,MB_OK|MB_ICONINFORMATION);
+        }
+        vals->erase(it);
+        m_grid.DeleteRow(id.row);
+        m_grid.Refresh();
+
+        m_testSet.WriteToXML();
         return;
       }
       ++it;
@@ -300,19 +309,26 @@ CombiEditorDlg::OnBnClickedMutValidation()
     {
       if(it->m_name.CompareNoCase(validation) == 0)
       {
-        CString filename = it->m_filename;
-
-        MutateDlg dlg(this,"validation",filename);
-        dlg.DoModal();
-
-        CString newfile = dlg.GetFilename();
-        if (newfile.CompareNoCase(filename))
+        if(it->m_global)
         {
-          it->m_filename = newfile;
-          m_grid.SetItemText(id.row,2,newfile);
-          m_grid.Refresh();
-          m_testSet.WriteToXML();
-          return;
+          StyleMessageBox(this,"Global validation cannot be edited!",KWATTA,MB_OK|MB_ICONWARNING);
+        }
+        else
+        {
+          CString filename = it->m_filename;
+
+          MutateDlg dlg(this, "validation", filename);
+          dlg.DoModal();
+
+          CString newfile = dlg.GetFilename();
+          if (newfile.CompareNoCase(filename))
+          {
+            it->m_filename = newfile;
+            m_grid.SetItemText(id.row, 2, newfile);
+            m_grid.Refresh();
+            m_testSet.WriteToXML();
+            return;
+          }
         }
       }
       ++it;

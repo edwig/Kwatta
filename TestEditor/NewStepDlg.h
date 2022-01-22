@@ -30,13 +30,16 @@ public:
   NewStepDlg(CWnd* pParent = nullptr,bool p_valiOnly = false);
   virtual ~NewStepDlg();
 
-  StepType GetType()     { return m_type;      }
-  CString  GetName()     { return m_stepName;      }
-  CString  GetFilename() { return m_stepFile;  }
+  StepType GetType()        { return m_stepType;       }
+  CString  GetName()        { return m_stepName;   }
+  CString  GetFilename()    { return m_stepFile;   }
+  bool     GetStepGlobal()  { return m_stepGlobal; }
 
-  int     GetValiType() { return m_valiType;  }
-  CString GetValiName() { return m_valiName;  }
-  CString GetValiFile() { return m_valiFile;  }
+
+  StepType GetValiType()    { return m_valiType;   }
+  CString  GetValiName()    { return m_valiName;   }
+  CString  GetValiFile()    { return m_valiFile;   }
+  bool     GetValiGlobal()  { return m_valiGlobal; }
 
   // Dialog Data
   enum { IDD = IDD_NEW_STEP };
@@ -62,13 +65,13 @@ protected:
   StyleButton    m_buttonOK;
   StyleButton    m_buttonCancel;
 
-  StepType       m_type;
+  StepType       m_stepType;
   CString        m_stepName;
   CString        m_stepFile;
   bool           m_stepGlobal { false };
 
   bool           m_valiOnly;
-  int            m_valiType;
+  StepType       m_valiType;
   CString        m_valiName;
   CString        m_valiFile;
   bool           m_valiGlobal { false };

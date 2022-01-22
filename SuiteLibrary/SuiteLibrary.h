@@ -22,11 +22,11 @@
 
 #define KWATTA_VERSION_MAJOR  1
 #define KWATTA_VERSION_MINOR  0
-#define KWATTA_VERSION_SP     4
-#define KWATTA_VERSION_BUILD  99
+#define KWATTA_VERSION_SP     5
+#define KWATTA_VERSION_BUILD  101
 
 #define KWATTA                "Kwatta"
-#define KWATTA_VERSION        "1.0.4"
+#define KWATTA_VERSION        "1.0.5"
 #define KWATTA_YEAR           "2022"
 
 // Used for environment variables

@@ -90,11 +90,7 @@ TestStepCL::ReadFromXML(CString p_filename)
   XMLElement* param = msg.FindElement(root,"Parameters",false);
   if(param)
   {
-    m_maxExecution      = FindElementInteger(msg, param, "MaxExecutionTime");
     m_waitForIdle       = FindElementBoolean(msg, param, "WaitForIdle");
-    m_killOnTimeout     = FindElementBoolean(msg, param, "KillOnTimeout");
-    m_waitBeforeRun     = FindElementInteger(msg, param, "WaitBeforeRun");
-    m_waitAfterRun      = FindElementInteger(msg, param, "WaitAfterRun");
     m_startWindow       = FindElementInteger(msg, param, "StartWindow");
     m_handleEnvironment = FindElementInteger(msg, param, "HandleEnvironment");
 
@@ -126,15 +122,10 @@ TestStepCL::WriteToXML(CString p_filename)
   msg.AddElement(definition, "Runtimer",    XDT_String, m_runtimer);
   msg.AddElement(definition, "CommandLine", XDT_String, m_commandLine);
 
-  XMLElement* parameters = msg.AddElement(root, "Parameters", XDT_String, "");
-  msg.SetElement(parameters, "MaxExecutionTime",  m_maxExecution);
+  XMLElement* parameters = msg.FindElement(root,"Parameters");
   msg.SetElement(parameters, "WaitForIdle",       m_waitForIdle);
-  msg.SetElement(parameters, "KillOnTimeout",     m_killOnTimeout);
-  msg.SetElement(parameters, "WaitBeforeRun",     m_waitBeforeRun);
-  msg.SetElement(parameters, "WaitAfterRun",      m_waitAfterRun);
   msg.SetElement(parameters, "StartWindow",       m_startWindow);
   msg.SetElement(parameters, "HandleEnvironment", m_handleEnvironment);
-
   msg.SetElement(parameters, "UseReturnValue",    m_useReturnValue);
   msg.SetElement(parameters, "UseOutputStream",   m_useOutputValue);
   msg.SetElement(parameters, "UseErrorStream",    m_useErrorValue);

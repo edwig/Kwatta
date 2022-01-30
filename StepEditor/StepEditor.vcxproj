@@ -216,6 +216,7 @@
     <ClInclude Include="RawResponseDlg.h" />
     <ClInclude Include="RespHeadersDlg.h" />
     <ClInclude Include="ResponseDlg.h" />
+    <ClInclude Include="TimingDlg.h" />
     <ClInclude Include="UrlHeaderDlg.h" />
     <ClInclude Include="URLParameterDlg.h" />
     <ClInclude Include="InputDlg.h" />
@@ -236,6 +237,7 @@
     <ClCompile Include="RawResponseDlg.cpp" />
     <ClCompile Include="RespHeadersDlg.cpp" />
     <ClCompile Include="ResponseDlg.cpp" />
+    <ClCompile Include="TimingDlg.cpp" />
     <ClCompile Include="UrlHeaderDlg.cpp" />
     <ClCompile Include="URLParameterDlg.cpp" />
     <ClCompile Include="InputDlg.cpp" />

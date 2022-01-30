@@ -841,16 +841,22 @@ HTTPMessage::AddHeader(CString p_name,CString p_value)
 {
   // Case-insensitive search!
   HeaderMap::iterator it = m_headers.find(p_name);
-  if(it != m_headers.end() && p_name.CompareNoCase("Set-Cookie") != 0)
+  if(it != m_headers.end())
   {
     // Check if we set it a duplicate time
+    // If appended, we do not append it a second time
     if(it->second.Find(p_value) >= 0)
     {
       return;
     }
-    // Append to already existing value
-    it->second += ", ";
-    it->second += p_value;
+    if(p_name.CompareNoCase("Set-Cookie") == 0)
+    {
+      // Insert as a new header
+      m_headers.insert(std::make_pair(p_name,p_value));
+      return;
+    }
+    // New value of the header
+    it->second = p_value;
   }
   else
   {

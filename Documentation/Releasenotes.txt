@@ -1,6 +1,12 @@
 KWATTA RELEASNOTES
 ==================
 
+Version 1.0.5 Release date: 30-01-2022
+--------------------------------------
+1)  Updated the Marlin component to version 7.3.0
+2)  Timing and waiting before/after a teststep on both Command-Line and Internet tests
+3)  The possiblity to end a teststap after a maximum time
+
 Version 1.0.4 Release date: 20-01-2022
 --------------------------------------
 1)  Added the possibility to promote test-steps and validations to the global directory

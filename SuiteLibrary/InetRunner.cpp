@@ -88,7 +88,9 @@ InetRunner::PerformTest()
     // SetAuthentication
     PerformAuthentication();
     // Perform the test (3 steps)
+    PreCommandWaiting();
     PerformCommand();
+    PostCommandWaiting();
     // Perform the validations (x * 1 steps)
     PerformAllValidations();
     // Write the results (1 step)
@@ -120,6 +122,18 @@ InetRunner::GetEffectiveStepFilename()
   return filename;
 }
 
+int
+InetRunner::GetMaxRunningTime()
+{
+  return atoi(m_testStep.GetEffectiveMaxExecution());
+}
+
+void
+InetRunner::DisconnectClient()
+{
+  m_client->Disconnect();
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // PRIVATE
@@ -141,13 +155,15 @@ InetRunner::InitRunner()
   // 2   Initial parameter processing
   // 3   Starting logfile (if any)
   // 4   Set the authentication correct
-  // 5   Testing THE ACTUAL COMMAND
-  // 6   Writing the results file
-  // 7   Writing the return parameters
-  // 8   Reaching a conclusion
+  // 5   Pre-command waiting
+  // 6   Testing THE ACTUAL COMMAND
+  // 7   Post-command waiting
+  // 8   Writing the results file
+  // 9   Writing the return parameters
+  // 10  Reaching a conclusion
 
   // +   1 for every validation step
-  m_steps = 8 + (int)m_localValidations.size();
+  m_steps = 10 + (int)m_localValidations.size();
   m_stepSize = 100 / m_steps;
 }
 
@@ -219,7 +235,6 @@ InetRunner::StartingLogfile()
   }
 }
 
-
 // SetAuthentication
 void
 InetRunner::PerformAuthentication()
@@ -242,6 +257,20 @@ InetRunner::PerformAuthentication()
   else if(auth.Find("OAuth2") >= 0)
   {
     SetOAuth2Authentication();
+  }
+}
+
+// Waiting before we run a command
+void
+InetRunner::PreCommandWaiting()
+{
+  CString step("Pre-command waiting.");
+  PerformStep(step);
+
+  int time = atoi(m_testStep.GetEffectiveWaitBeforeRun());
+  if (time > 0)
+  {
+    WaitingForATimeout(step, time);
   }
 }
 
@@ -276,6 +305,16 @@ InetRunner::PerformCommand()
                             SECURITY_FLAG_IGNORE_UNKNOWN_CA        | 
                             SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE  );
 
+  // See if we must set a boobytrap
+  if(m_testStep.GetKillOnTimeout())
+  {
+    int maxtime = atoi(m_testStep.GetEffectiveMaxExecution());
+    if(maxtime > 0)
+    {
+      SetBoobytrap();
+    }
+  }
+
   // RUN THE TEST !!
   // 
   // Start counter and send message
@@ -309,6 +348,20 @@ InetRunner::PerformCommand()
 
   // Keep last OAuth2 bearer token
   m_result.SetBearerToken(m_client->GetLastBearerToken());
+}
+
+// Waiting for cleanup after a command
+void
+InetRunner::PostCommandWaiting()
+{
+  CString step("Post-command waiting.");
+  PerformStep(step);
+
+  int time = atoi(m_testStep.GetEffectiveWaitAfterRun());
+  if (time >= 0)
+  {
+    WaitingForATimeout(step, time);
+  }
 }
 
 void
@@ -447,6 +500,69 @@ InetRunner::PerformStep(CString p_stepName)
   SetStep(p_stepName);
   m_progress += m_stepSize;
   SetProgress(m_progress);
+}
+
+void
+InetRunner::WaitingForATimeout(CString p_stepname,int p_milliseconds)
+{
+  // Reset the progress step-name and progress-controlbar
+  p_stepname.AppendFormat(" %.3f seconds",((double)p_milliseconds / 1000.0));
+  SetStep(p_stepname);
+  SetProgress(0);
+
+  // Preset the progress
+  int progress = 1;
+  int count    = 100;
+  int interval = p_milliseconds / 100;
+
+  // Progress intervals cannot be to short
+  if(interval < MINIMUM_INTERVAL_TIME)
+  {
+    count    = (p_milliseconds / MINIMUM_INTERVAL_TIME) + 1;
+    interval = p_milliseconds / count;
+    progress = 100 / count;
+  }
+
+  // Perform the waiting
+  for(int index = 0; index < count; ++index)
+  {
+    SetProgress(index * progress);
+    Sleep(interval);
+  }
+
+  // Progress complete
+  SetProgress(100);
+}
+
+/*static*/ unsigned
+__stdcall InetBoobytrap(void* p_data)
+{
+  InetRunner* runner = reinterpret_cast<InetRunner*>(p_data);
+  int maxtime = runner->GetMaxRunningTime();
+  // Wait the maximum time of the test
+  Sleep(maxtime);
+  // End the HTTPClient connection
+  runner->DisconnectClient();
+
+  return 0;
+}
+
+void
+InetRunner::SetBoobytrap()
+{
+  // Start a new thread
+  unsigned int threadID = 0L;
+  if ((m_thread = (HANDLE)_beginthreadex(NULL,0,InetBoobytrap,this,0,&threadID)) == INVALID_HANDLE_VALUE)
+  {
+    threadID = 0;
+    m_thread = NULL;
+  }
+}
+
+void
+InetRunner::StopBoobytrap()
+{
+  TerminateThread(m_thread,0xFFFFFFFF);
 }
 
 //////////////////////////////////////////////////////////////////////////

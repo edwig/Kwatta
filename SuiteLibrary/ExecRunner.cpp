@@ -122,6 +122,21 @@ ExecRunner::GetEffectiveStepFilename()
   return filename;
 }
 
+int
+ExecRunner::GetMaxRunningTime()
+{
+  return atoi(m_testStep.GetEffectiveMaxExecution());
+}
+
+void
+ExecRunner::StopTestProgram()
+{
+  if(m_redirect)
+  {
+    m_redirect->TerminateChildProcess();
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // PRIVATE
@@ -237,7 +252,7 @@ ExecRunner::PreCommandWaiting()
   CString step("Pre-command waiting.");
   PerformStep(step);
 
-  int time = m_testStep.GetWaitBeforeRun();
+  int time = atoi(m_testStep.GetEffectiveWaitBeforeRun());
   if (time > 0)
   {
     WaitingForATimeout(step,time);
@@ -253,12 +268,21 @@ ExecRunner::PerformCommand()
   m_result.SetName(m_testStep.GetName());
   m_result.SetDocumentation(m_testStep.GetDocumentation());
 
-  CString standardout;
-  CString standarderr;
-  HPFCounter counter;
+  CString     standardout;
+  CString     standarderr;
+  HPFCounter  counter;
+
+  // See if we must set a boobytrap
+  if(m_testStep.GetKillOnTimeout())
+  {
+    int maxtime = atoi(m_testStep.GetEffectiveMaxExecution());
+    if (maxtime > 0)
+    {
+      SetBoobytrap();
+    }
+  }
 
   // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,TRUE,0);
-
   int retval = PosixCallProgram(m_testStep.GetEffectiveDirectory()
                                ,m_testStep.GetEffectiveRuntimer()
                                ,m_testStep.GetEffectiveCommandLine()
@@ -268,9 +292,12 @@ ExecRunner::PerformCommand()
                                ,m_consoleHNWD
                                ,m_testStep.GetStartWindow()
                                ,m_testStep.GetWaitForIdle()
-                               ,m_testStep.GetMaxExecution());
-
+                               ,atoi(m_testStep.GetMaxExecution())
+                               ,&m_redirect);
   // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,FALSE,0);
+
+  // No more killing of the child program by the boobytrap
+  m_redirect = nullptr;
 
   // Stop the high-performance timer!
   counter.Stop();
@@ -324,7 +351,7 @@ ExecRunner::PostCommandWaiting()
   CString step("Post-command waiting.");
   PerformStep(step);
 
-  int time = m_testStep.GetWaitAfterRun();
+  int time = atoi(m_testStep.GetEffectiveWaitAfterRun());
   if (time >= 0)
   {
     WaitingForATimeout(step,time);
@@ -497,6 +524,37 @@ ExecRunner::WaitingForATimeout(CString p_stepname,int p_milliseconds)
 
   // Progress complete
   SetProgress(100);
+}
+
+/*static*/ unsigned
+__stdcall ExecBoobytrap(void* p_data)
+{
+  ExecRunner* runner = reinterpret_cast<ExecRunner*>(p_data);
+  int maxtime = runner->GetMaxRunningTime();
+  // Wait the maximum time of the test
+  Sleep(maxtime);
+  // End the test program
+  runner->StopTestProgram();
+
+  return 0;
+}
+
+void
+ExecRunner::SetBoobytrap()
+{
+  // Start a new thread
+  unsigned int threadID = 0L;
+  if((m_thread = (HANDLE)_beginthreadex(NULL,0,ExecBoobytrap,this,0,&threadID)) == INVALID_HANDLE_VALUE)
+  {
+    threadID = 0;
+    m_thread = NULL;
+  }
+}
+
+void
+ExecRunner::StopBoobytrap()
+{
+  TerminateThread(m_thread,0xFFFFFFFF);
 }
 
 //////////////////////////////////////////////////////////////////////////

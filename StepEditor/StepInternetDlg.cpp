@@ -29,6 +29,7 @@
 #include "ResponseDlg.h"
 #include "RespHeadersDlg.h"
 #include "RawResponseDlg.h"
+#include "TimingDlg.h"
 #include <AboutDlg.h>
 #include <SearchVarDlg.h>
 #include <TestStepIN.h>
@@ -56,6 +57,7 @@ StepInternetDlg::StepInternetDlg(CWnd* pParent /*=nullptr*/)
   m_page3 = new UrlHeaderDlg(this);
   m_page4 = new AuthenticateDlg(this);
   m_page5 = new RawRequestDlg(this);
+  m_page6 = new TimingDlg(this);
 
   m_page10 = new ResponseDlg(this);
   m_page11 = new RespHeadersDlg(this);
@@ -69,6 +71,7 @@ StepInternetDlg::~StepInternetDlg()
   delete m_page3;
   delete m_page4;
   delete m_page5;
+  delete m_page6;
 
   delete m_page10;
   delete m_page11;
@@ -226,12 +229,14 @@ StepInternetDlg::InitTabs()
   m_page3->Create(IDD_URL_HEADERS,  &m_tabsRequest);
   m_page4->Create(IDD_AUTHENTICATE, &m_tabsRequest);
   m_page5->Create(IDD_RAW_REQUEST,  &m_tabsRequest);
+  m_page6->Create(IDD_TIMING,       &m_tabsRequest);
 
   m_tabsRequest.InsertItem(0, m_page1, "Request");
   m_tabsRequest.InsertItem(1, m_page2, "Parameters");
   m_tabsRequest.InsertItem(2, m_page3, "Headers");
   m_tabsRequest.InsertItem(3, m_page4, "Authenticate");
   m_tabsRequest.InsertItem(4, m_page5, "Raw request");
+  m_tabsRequest.InsertItem(5, m_page6, "Timing");
 
   m_tabsRequest.Init();
 
@@ -342,7 +347,7 @@ StepInternetDlg::ReadParameters(CString p_file, bool p_global /*= true*/)
 void
 StepInternetDlg::EffectiveParameters()
 {
-  if(m_busy == false)
+  if(m_busy == false && m_testStep)
   {
     m_busy = true;
 
@@ -390,6 +395,7 @@ StepInternetDlg::LoadVariablesTabs()
   m_page3->InitTab(m_testStep,&m_parameters);
   m_page4->InitTab(m_testStep,&m_parameters);
   m_page5->InitTab(m_testStep);
+  m_page6->InitTab(m_testStep,&m_parameters);
 
   ResetStepResult();
 }
@@ -453,6 +459,7 @@ StepInternetDlg::StoreVariables()
   m_page3->StoreVariables();
   m_page4->StoreVariables();
   m_page5->StoreVariables();
+  m_page6->StoreVariables();
 }
 
 // StepInternetDlg message handlers
@@ -521,6 +528,7 @@ StepInternetDlg::OnBnClickedUrlParm()
 void
 StepInternetDlg::OnBnClickedGO()
 {
+  CWaitCursor sigh;
   if(SaveStep())
   {
     theApp.StartTheInetRunner(this);
@@ -530,6 +538,7 @@ StepInternetDlg::OnBnClickedGO()
 void 
 StepInternetDlg::OnBnClickedOk()
 {
+  CWaitCursor sigh;
   if(SaveStep())
   {
     StyleDialog::OnOK();
@@ -539,6 +548,7 @@ StepInternetDlg::OnBnClickedOk()
 void
 StepInternetDlg::OnExit()
 {
+  CWaitCursor sigh;
   if(SaveStep())
   {
     StyleDialog::OnOK();

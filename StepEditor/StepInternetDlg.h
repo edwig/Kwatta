@@ -29,6 +29,7 @@ class AuthenticateDlg;
 class ResponseDlg;
 class RespHeadersDlg;
 class RawResponseDlg;
+class TimingDlg;
 class TestStepIN;
 class StepResultIN;
 
@@ -93,6 +94,7 @@ protected:
   UrlHeaderDlg*     m_page3;
   AuthenticateDlg*  m_page4;
   RawRequestDlg*    m_page5;
+  TimingDlg*        m_page6;
 
   ResponseDlg*      m_page10;
   RespHeadersDlg*   m_page11;

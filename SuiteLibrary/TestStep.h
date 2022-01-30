@@ -51,14 +51,25 @@ public:
   virtual void  CheckFilename(CString p_filename) = 0;
 
   // GETTERS
-  CString  GetName()                 { return m_name;          };
-  StepType GetType()                 { return m_type;          };
-  CString  GetDocumentation()        { return m_documentation; };
+  CString  GetName()                   { return m_name;                   }
+  StepType GetType()                   { return m_type;                   }
+  CString  GetDocumentation()          { return m_documentation;          }
+  bool     GetKillOnTimeout()          { return m_killOnTimeout;          }
+  CString  GetMaxExecution()           { return m_maxExecution;           }
+  CString  GetWaitBeforeRun()          { return m_waitBeforeRun;          }
+  CString  GetWaitAfterRun()           { return m_waitAfterRun;           }
+  CString  GetEffectiveMaxExecution()  { return m_effectiveMaxEcecution;  }
+  CString  GetEffectiveWaitBeforeRun() { return m_effectiveWaitBeforeRun; }
+  CString  GetEffectiveWaitAfterRun()  { return m_effectiveWaitAfterRun;  }
 
   // SETTERS
-  void    SetName(CString p_name)           { m_name              = p_name;     };
-  void    SetType(StepType p_type)          { m_type              = p_type;     };
-  void    SetDocumentation(CString p_doc)   { m_documentation     = p_doc;      };
+  void    SetName(CString p_name)           { m_name              = p_name;     }
+  void    SetType(StepType p_type)          { m_type              = p_type;     }
+  void    SetDocumentation(CString p_doc)   { m_documentation     = p_doc;      }
+  void    SetKillOnTimeout(bool p_kill)     { m_killOnTimeout     = p_kill;     }
+  void    SetMaxExecution(CString p_exec)   { m_maxExecution      = p_exec;     }
+  void    SetWaitBeforeRun(CString p_wait)  { m_waitBeforeRun     = p_wait;     }
+  void    SetWaitAfterRun (CString p_wait)  { m_waitAfterRun      = p_wait;     }
 
 protected:
   // Interface with the file system
@@ -74,4 +85,13 @@ protected:
   CString       m_name;
   CString       m_documentation;
   StepType      m_type;
+  // General parameters
+  bool          m_killOnTimeout       { false   };    // Do kill (or not) after m_maxExecution
+  CString       m_maxExecution        { "90000" };    // Time in ms. 90 seconds
+  CString       m_waitBeforeRun;                      // Time in ms.  0 seconds
+  CString       m_waitAfterRun;                       // Time in ms.  0 seconds
+
+  CString       m_effectiveMaxEcecution;
+  CString       m_effectiveWaitBeforeRun;
+  CString       m_effectiveWaitAfterRun;
 };

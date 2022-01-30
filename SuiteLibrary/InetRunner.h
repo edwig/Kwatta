@@ -62,7 +62,8 @@ public:
   // GETTERS
   StepResultIN* GetStepResult() { return &m_result; }
   CString       GetEffectiveStepFilename();
-
+  int           GetMaxRunningTime();
+  void          DisconnectClient();
 
 private:
   // Running the test
@@ -72,11 +73,15 @@ private:
   void  ParameterProcessing();
   void  StartingLogfile();
   void  PerformAuthentication();
+  void  PreCommandWaiting();
   void  PerformCommand();
+  void  PostCommandWaiting();
   void  PerformAllValidations();
   void  SaveTestResults();
   void  SaveResultParameters();
   int   ReadTotalResult();
+  void  SetBoobytrap();
+  void  StopBoobytrap();
   // Setting authentication
   void  SetBasicAuthentication();
   void  SetNTLMAuthentication();
@@ -88,6 +93,7 @@ private:
   void  ReadParameters();
   void  ReadValidations();
   void  PerformStep(CString p_stepName);
+  void  WaitingForATimeout(CString p_stepname,int p_milliseconds);
 
   // Telling it the outside world
   void  SetTest(CString p_test);
@@ -115,4 +121,5 @@ private:
   HWND          m_callingHWND { NULL    };
   int           m_callingROW  { 0       };
   bool          m_global      { false   };
+  HANDLE        m_thread      { NULL    };
 };

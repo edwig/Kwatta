@@ -170,7 +170,6 @@ TestStepIN::WriteToXML(CString p_filename)
   return msg.SaveFile(p_filename);
 }
 
-
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
 TestStepIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)

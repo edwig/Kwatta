@@ -36,6 +36,7 @@
 #define MINIMUM_INTERVAL_TIME  50 
 
 using ValiSteps = std::vector<CString>;
+class RunRedirect;
 
 class ExecRunner
 {
@@ -55,6 +56,8 @@ public:
 
   int     PerformTest();
   CString GetEffectiveStepFilename();
+  int     GetMaxRunningTime();
+  void    StopTestProgram();
 
 private:
   // Running the test
@@ -69,6 +72,8 @@ private:
   void  SaveTestResults();
   void  SaveResultParameters();
   int   ReadTotalResult();
+  void  SetBoobytrap();
+  void  StopBoobytrap();
   // Details
   void  ReadTestStep();
   void  ReadParameters();
@@ -97,7 +102,9 @@ private:
   ValiSteps     m_globalValidations;
   Validations   m_validations;
   StepResultCL  m_result;
-  HWND          m_callingHWND { NULL  };
-  int           m_callingROW  { 0     };
-  bool          m_global      { false };
+  HWND          m_callingHWND { NULL    };
+  int           m_callingROW  { 0       };
+  bool          m_global      { false   };
+  HANDLE        m_thread      { NULL    };
+  RunRedirect*  m_redirect    { nullptr };
 };

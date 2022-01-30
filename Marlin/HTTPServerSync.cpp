@@ -955,13 +955,6 @@ HTTPServerSync::SendResponse(HTTPMessage* p_message)
   // Initialize the HTTP response structure.
   InitializeHttpResponse(&response,(USHORT)status,(PSTR) GetHTTPStatusText(status));
 
-  // Add a known header. (octet-stream or the message content type)
-  if(!p_message->GetContentType().IsEmpty())
-  {
-    contentType = p_message->GetContentType();
-  }
-  AddKnownHeader(response,HttpHeaderContentType,contentType);
-
   // In case of a HTTP 401
   if(status == HTTP_STATUS_DENIED)
   {
@@ -978,6 +971,22 @@ HTTPServerSync::SendResponse(HTTPMessage* p_message)
     AddKnownHeader(response,HttpHeaderDate,date);
   }
 
+  // Add a known header. (octet-stream or the message content type)
+  if(!p_message->GetContentType().IsEmpty())
+  {
+    contentType = p_message->GetContentType();
+  }
+  else
+  {
+    CString cttype = p_message->GetHeader("Content-type");
+    if(!cttype.IsEmpty())
+    {
+      contentType = cttype;
+    }
+  }
+  p_message->DelHeader("Content-Type");
+  AddKnownHeader(response,HttpHeaderContentType,contentType);
+
   // Add the server header or suppress it
   switch(m_sendHeader)
   {
@@ -993,6 +1002,7 @@ HTTPServerSync::SendResponse(HTTPMessage* p_message)
                                           AddKnownHeader(response,HttpHeaderServer,"");
                                           break;
   }
+  p_message->DelHeader("Server");
 
   // Cookie settings
   bool cookiesHasSecure(false);
@@ -1020,16 +1030,31 @@ HTTPServerSync::SendResponse(HTTPMessage* p_message)
   // and HTTP API just supports one set-cookie.
   UKHeaders ukheaders;
   Cookies& cookies = p_message->GetCookies();
-  for(auto& cookie : cookies.GetCookies())
+  if(cookies.GetCookies().empty())
   {
-    if(cookiesHasSecure)  cookie.SetSecure  (cookiesSecure);
-    if(cookiesHasHttp)    cookie.SetHttpOnly(cookiesHttpOnly);
-    if(cookiesHasSame)    cookie.SetSameSite(cookiesSameSite);
-
-    ukheaders.insert(std::make_pair("Set-Cookie",cookie.GetSetCookieText()));
+    CString cookie = p_message->GetHeader("Set-Cookie");
+    if(!cookie.IsEmpty())
+    {
+      AddKnownHeader(response,HttpHeaderSetCookie,cookie);
+    }
   }
+  else
+  {
+    for(auto& cookie : cookies.GetCookies())
+    {
+      if(cookiesHasSecure)  cookie.SetSecure  (cookiesSecure);
+      if(cookiesHasHttp)    cookie.SetHttpOnly(cookiesHttpOnly);
+      if(cookiesHasSame)    cookie.SetSameSite(cookiesSameSite);
 
-  // Add extra headers from the message
+      ukheaders.insert(std::make_pair("Set-Cookie",cookie.GetSetCookieText()));
+    }
+  }
+  p_message->DelHeader("Set-Cookie");
+
+
+  // Add extra headers from the message, except for content-length
+  p_message->DelHeader("Content-Length");
+
   HeaderMap* map = p_message->GetHeaderMap();
   for(HeaderMap::iterator it = map->begin(); it != map->end(); ++it)
   {

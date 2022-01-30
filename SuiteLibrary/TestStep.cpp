@@ -55,10 +55,15 @@ TestStep* ReadTestStep(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-TestStep::EffectiveReplacements(Parameters* /*p_parameters*/,bool /*p_forDisplay*/)
+TestStep::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
-  // Nothing for now
-  return 0;
+  int unbound = 0;
+
+  unbound += p_parameters->Replace(m_maxExecution, m_effectiveMaxEcecution, p_forDisplay);
+  unbound += p_parameters->Replace(m_waitBeforeRun,m_effectiveWaitBeforeRun,p_forDisplay);
+  unbound += p_parameters->Replace(m_waitAfterRun, m_effectiveWaitAfterRun, p_forDisplay);
+
+  return unbound;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -98,6 +103,15 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
   m_name           = FindElementString(msg,root,"Name");
   m_documentation  = FindElementString(msg,root,"Documentation");
 
+    // Find Parameters
+  XMLElement* param = msg.FindElement(root,"Parameters",false);
+  if(param)
+  {
+    m_killOnTimeout = FindElementBoolean(msg,param,"KillOnTimeout");
+    m_maxExecution  = FindElementString (msg,param,"MaxExecutionTime");
+    m_waitBeforeRun = FindElementString (msg,param,"WaitBeforeRun");
+    m_waitAfterRun  = FindElementString (msg,param,"WaitAfterRun");
+  }
 }
 
 bool
@@ -108,6 +122,12 @@ TestStep::WriteToXML(XMLMessage& msg,CString p_filename)
   XMLElement* root = msg.GetRoot();
   msg.AddElement(root, "Name",         XDT_String|XDT_CDATA,m_name);
   msg.AddElement(root, "Documentation",XDT_String|XDT_CDATA,m_documentation);
+
+  XMLElement* parameters = msg.AddElement(root,"Parameters",XDT_String,"");
+  msg.SetElement(parameters,"KillOnTimeout",   m_killOnTimeout);
+  msg.SetElement(parameters,"MaxExecutionTime",m_maxExecution);
+  msg.SetElement(parameters,"WaitBeforeRun",   m_waitBeforeRun);
+  msg.SetElement(parameters,"WaitAfterRun",    m_waitAfterRun);
 
   return true;
 }

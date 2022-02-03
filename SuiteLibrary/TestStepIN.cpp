@@ -23,6 +23,7 @@
 #include "XMLMessage.h"
 #include "StdException.h"
 #include "ExtraExtensions.h"
+#include <CrackURL.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -265,6 +266,7 @@ TestStepIN::DeleteParameter(CString p_parameter)
       m_parameters.erase(it);
       return;
     }
+    ++it;
   }
 }
 
@@ -286,7 +288,7 @@ TestStepIN::SetHeader(CString p_header,CString p_value)
 CString
 TestStepIN::GetEffectiveCombinedURL()
 {
-  CString url(m_effectiveUrl);
+  CString url = CrackedURL::EncodeURLChars(m_effectiveUrl);
 
   // Add URL parameters
   if(!m_effectiveParameters.empty())
@@ -301,7 +303,7 @@ TestStepIN::GetEffectiveCombinedURL()
       }
       url += param.m_name;
       url += "=";
-      url += param.m_value;
+      url += CrackedURL::EncodeURLChars(param.m_value);
       extra = true;
     }
   }
@@ -310,9 +312,9 @@ TestStepIN::GetEffectiveCombinedURL()
   if(!m_effectiveAnchor.IsEmpty())
   {
     url += "#";
-    url += m_effectiveAnchor;
+    url += CrackedURL::EncodeURLChars(m_effectiveAnchor);
   }
-
+ 
   // Ready
   return url;
 }
@@ -343,7 +345,7 @@ TestStepIN::GetRawRequest()
   CString body(m_effectiveBody);
   body.Replace("\n","\r\n");
   raw += body;
- 
+
   return raw;
 }
 

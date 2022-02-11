@@ -31,7 +31,7 @@ public:
 	NewSuiteDlg(CWnd* p_parent);   // standard constructor
 	virtual ~NewSuiteDlg();
 
-  CString GetNewProjectFile();
+  CString GetNewTestsuiteFile();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

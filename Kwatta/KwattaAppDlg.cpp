@@ -266,7 +266,7 @@ KwattaAppDlg::DoStarter()
     INT_PTR res = starter.DoModal();
     if(res == IDOK)
     {
-      CString path = starter.GetChosenProject();
+      CString path = starter.GetChosenSuite();
       if(!path.IsEmpty())
       {
         m_testsuite = path;
@@ -329,9 +329,9 @@ KwattaAppDlg::InitGrid()
   m_list.SetSingleColSelection(TRUE);
   m_list.SetSingleRowSelection(TRUE);
 
-  m_list.GetCell(0,0)->SetText("TEST");
-  m_list.GetCell(0,1)->SetText("Run this test");
-  m_list.GetCell(0,2)->SetText("Name of the test");
+  m_list.GetCell(0,0)->SetText("Testset");
+  m_list.GetCell(0,1)->SetText("Run this testset");
+  m_list.GetCell(0,2)->SetText("Name of the testset");
   m_list.GetCell(0,3)->SetText("Result of last run");
 
   m_list.SetColumnWidth(0,100);

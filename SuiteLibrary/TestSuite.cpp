@@ -12,7 +12,7 @@
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: SuiteLibrary
 // This File   : TestSuite.cpp
-// What it does: The complete test suite. All tests and teststeps. The main project level!
+// What it does: The complete test suite. All tests and teststeps. The main suite level!
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
 // 

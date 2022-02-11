@@ -12,7 +12,7 @@
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: Kwatta
 // This File   : StarterDlg.cpp
-// What it does: Choose a project to work on, or create a new one
+// What it does: Choose a test suite to work on, or create a new one
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
 // 
@@ -45,13 +45,13 @@ void StarterDlg::DoDataExchange(CDataExchange* pDX)
 {
 	StyleDialog::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_TITLE,    m_editTitle,m_title);
-  DDX_Control(pDX,IDC_PROJECT1, m_buttonProject1);
-  DDX_Control(pDX,IDC_PROJECT2, m_buttonProject2);
-  DDX_Control(pDX,IDC_PROJECT3, m_buttonProject3);
-  DDX_Control(pDX,IDC_PROJECT4, m_buttonProject4);
-  DDX_Control(pDX,IDC_PROJECT5, m_buttonProject5);
+  DDX_Control(pDX,IDC_SUITE1,   m_buttonSuite1);
+  DDX_Control(pDX,IDC_SUITE2,   m_buttonSuite2);
+  DDX_Control(pDX,IDC_SUITE3,   m_buttonSuite3);
+  DDX_Control(pDX,IDC_SUITE4,   m_buttonSuite4);
+  DDX_Control(pDX,IDC_SUITE5,   m_buttonSuite5);
   DDX_Control(pDX,IDC_SEARCH,   m_buttonSearch);
-  DDX_Control(pDX,IDC_NEW,      m_buttonNewProject);
+  DDX_Control(pDX,IDC_NEW,      m_buttonNewSuite);
   DDX_Control(pDX,IDCANCEL,     m_buttonCancel);
   DDX_Control(pDX,IDC_STOP,     m_buttonStop);
 }
@@ -62,11 +62,11 @@ BEGIN_MESSAGE_MAP(StarterDlg, StyleDialog)
   ON_BN_CLICKED(IDC_NEW,      &StarterDlg::OnBnClickedNew)
   ON_BN_CLICKED(IDCANCEL,     &StarterDlg::OnBnClickedCancel)
   ON_BN_CLICKED(IDC_STOP,     &StarterDlg::OnBnClickedStop)
-  ON_BN_CLICKED(IDC_PROJECT1, &StarterDlg::OnBnClickedProject1)
-  ON_BN_CLICKED(IDC_PROJECT2, &StarterDlg::OnBnClickedProject2)
-  ON_BN_CLICKED(IDC_PROJECT3, &StarterDlg::OnBnClickedProject3)
-  ON_BN_CLICKED(IDC_PROJECT4, &StarterDlg::OnBnClickedProject4)
-  ON_BN_CLICKED(IDC_PROJECT5, &StarterDlg::OnBnClickedProject5)
+  ON_BN_CLICKED(IDC_SUITE1,   &StarterDlg::OnBnClickedSuite1)
+  ON_BN_CLICKED(IDC_SUITE2,   &StarterDlg::OnBnClickedSuite2)
+  ON_BN_CLICKED(IDC_SUITE3,   &StarterDlg::OnBnClickedSuite3)
+  ON_BN_CLICKED(IDC_SUITE4,   &StarterDlg::OnBnClickedSuite4)
+  ON_BN_CLICKED(IDC_SUITE5,   &StarterDlg::OnBnClickedSuite5)
 END_MESSAGE_MAP()
 
 BOOL
@@ -77,11 +77,11 @@ StarterDlg::OnInitDialog()
   ShowCloseButton();
 
   InitTitle();
-  InitProjects();
+  InitTestSuites();
   InitButtons();
 
   UpdateData(FALSE);
-  m_buttonProject1.SetFocus();
+  m_buttonSuite1.SetFocus();
   return FALSE;
 }
 
@@ -97,57 +97,57 @@ StarterDlg::InitTitle()
 }
 
 void
-StarterDlg::InitProjects()
+StarterDlg::InitTestSuites()
 {
   RegistryManager reg;
   reg.SetRegistryKey("EDO","Kwatta");
 
-  for(int index = 0; index < MAX_PROJECTS; ++index)
+  for(int index = 0; index < MAX_SUITES; ++index)
   {
     CString key;
-    key.Format("Project_%d",index + 1);
+    key.Format("TestSuite_%d",index + 1);
 
-    CString project = reg.GetRegistryString("Projects",key,"");
-    if(!project.IsEmpty())
+    CString suite = reg.GetRegistryString("Suites",key,"");
+    if(!suite.IsEmpty())
     {
-      m_projects.push_back(project);
+      m_suites.push_back(suite);
     }
   }
 }
 
 bool
-StarterDlg::SaveProjects()
+StarterDlg::SaveTestSuites()
 {
   RegistryManager reg;
   reg.SetRegistryKey("EDO","Kwatta");
 
-  // Put chosen project in front
+  // Put chosen suite in front
   // So it comes back at the top of the list
-  if(!m_chosenProject.IsEmpty())
+  if(!m_chosenSuite.IsEmpty())
   {
-    AllProjects::iterator it = m_projects.begin();
-    while(it != m_projects.end())
+    AllSuites::iterator it = m_suites.begin();
+    while(it != m_suites.end())
     {
-      if((*it).CompareNoCase(m_chosenProject) == 0)
+      if((*it).CompareNoCase(m_chosenSuite) == 0)
       {
-        m_projects.erase(it);
+        m_suites.erase(it);
         break;
       }
       ++it;
     }
   }
-  m_projects.push_front(m_chosenProject);
+  m_suites.push_front(m_chosenSuite);
 
-  for(int index = 0; index < MAX_PROJECTS; ++index)
+  for(int index = 0; index < MAX_SUITES; ++index)
   {
     CString key;
-    key.Format("Project_%d", index + 1);
+    key.Format("TestSuite_%d", index + 1);
 
-    if(index < (int)m_projects.size())
+    if(index < (int)m_suites.size())
     {
-      if(!m_projects[index].IsEmpty())
+      if(!m_suites[index].IsEmpty())
       {
-        if(!reg.SetRegistryString("Projects",key,m_projects[index]))
+        if(!reg.SetRegistryString("Suites",key,m_suites[index]))
         {
           return false;
         }
@@ -155,7 +155,7 @@ StarterDlg::SaveProjects()
     }
     else
     {
-      reg.SetRegistryString("Projects",key,"");
+      reg.SetRegistryString("Suites",key,"");
     }
   }
   return true;
@@ -167,67 +167,67 @@ StarterDlg::InitButtons()
   EnsureFile ensure;
   EnableToolTips();
 
-  // Do the project buttons
-  for(int index = 0;index < MAX_PROJECTS;++index)
+  // Do the test suite buttons
+  for(int index = 0;index < MAX_SUITES;++index)
   {
-    CString project;
+    CString suite;
     CString shorter;
     bool active(false);
     bool bold(false);
 
-    if (index < (int)m_projects.size())
+    if (index < (int)m_suites.size())
     {
-      project = m_projects[index];
-      shorter = ensure.FilenamePart(project);
+      suite   = m_suites[index];
+      shorter = ensure.FilenamePart(suite);
       active  = true;
       bold    = true;
     }
     else
     {
-      shorter = "<No project yet>";
+      shorter = "<No test suite yet>";
     }
 
     switch (index)
     {
-      case 0: m_buttonProject1.SetWindowText(shorter);
-              m_buttonProject1.EnableWindow(active);
-              m_buttonProject1.SetBold(bold);
-              m_buttonProject1.SetStyle("ok");
-              RegisterTooltip(m_buttonProject1,project);
+      case 0: m_buttonSuite1.SetWindowText(shorter);
+              m_buttonSuite1.EnableWindow(active);
+              m_buttonSuite1.SetBold(bold);
+              m_buttonSuite1.SetStyle("ok");
+              RegisterTooltip(m_buttonSuite1,suite);
               break;
-      case 1: m_buttonProject2.SetWindowText(shorter);
-              m_buttonProject2.EnableWindow(active);
-              m_buttonProject2.SetBold(bold);
-              m_buttonProject2.SetStyle("ok");
-              RegisterTooltip(m_buttonProject2,project);
+      case 1: m_buttonSuite2.SetWindowText(shorter);
+              m_buttonSuite2.EnableWindow(active);
+              m_buttonSuite2.SetBold(bold);
+              m_buttonSuite2.SetStyle("ok");
+              RegisterTooltip(m_buttonSuite2,suite);
               break;
-      case 2: m_buttonProject3.SetWindowText(shorter);
-              m_buttonProject3.EnableWindow(active);
-              m_buttonProject3.SetBold(bold);
-              m_buttonProject3.SetStyle("ok");
-              RegisterTooltip(m_buttonProject3,project);
+      case 2: m_buttonSuite3.SetWindowText(shorter);
+              m_buttonSuite3.EnableWindow(active);
+              m_buttonSuite3.SetBold(bold);
+              m_buttonSuite3.SetStyle("ok");
+              RegisterTooltip(m_buttonSuite3,suite);
               break;
-      case 3: m_buttonProject4.SetWindowText(shorter);
-              m_buttonProject4.EnableWindow(active);
-              m_buttonProject4.SetBold(bold);
-              m_buttonProject4.SetStyle("ok");
-              RegisterTooltip(m_buttonProject4,project);
+      case 3: m_buttonSuite4.SetWindowText(shorter);
+              m_buttonSuite4.EnableWindow(active);
+              m_buttonSuite4.SetBold(bold);
+              m_buttonSuite4.SetStyle("ok");
+              RegisterTooltip(m_buttonSuite4,suite);
               break;
-      case 4: m_buttonProject5.SetWindowText(shorter);
-              m_buttonProject5.EnableWindow(active);
-              m_buttonProject5.SetBold(bold);
-              m_buttonProject5.SetStyle("ok");
-              RegisterTooltip(m_buttonProject5,project);
+      case 4: m_buttonSuite5.SetWindowText(shorter);
+              m_buttonSuite5.EnableWindow(active);
+              m_buttonSuite5.SetBold(bold);
+              m_buttonSuite5.SetStyle("ok");
+              RegisterTooltip(m_buttonSuite5,suite);
               break;
     }
   }
 
   // Do the starter buttons
   m_buttonSearch.SetBold(true);
-  RegisterTooltip(m_buttonSearch,"Search for an existing project in the filesystem.");
-  m_buttonNewProject.SetBold(true);
-  RegisterTooltip(m_buttonNewProject,"Start a new project in a new empty directory from scratch.");
-  RegisterTooltip(m_buttonCancel,"Create a project totally from scratch.");
+  RegisterTooltip(m_buttonSearch,"Search for an existing test suite in the filesystem.");
+  m_buttonNewSuite.SetBold(true);
+  RegisterTooltip(m_buttonNewSuite,"Start a new test suite in a new empty directory from scratch.");
+  RegisterTooltip(m_buttonCancel,"Create a test suite totally from scratch.");
   m_buttonStop.SetBold(true);
   m_buttonStop.SetStyle("can");
   RegisterTooltip(m_buttonStop,"Close-down the Kwatta application");
@@ -235,20 +235,20 @@ StarterDlg::InitButtons()
 
 // Service for our callers
 CString
-StarterDlg::GetChosenProject()
+StarterDlg::GetChosenSuite()
 {
-  return m_chosenProject;
+  return m_chosenSuite;
 }
 
 bool
 StarterDlg::CheckExists(int p_num)
 {
-  CString path = m_projects[p_num];
+  CString path = m_suites[p_num];
   if(!std::filesystem::exists(path.GetString()))
   {
-    if(StyleMessageBox(this,"This project does no longer exists. Remove from this list?",KWATTA,MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
+    if(StyleMessageBox(this,"This test suite does no longer exists. Remove from this list?",KWATTA,MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
     {
-      m_projects.erase(m_projects.begin() + p_num);
+      m_suites.erase(m_suites.begin() + p_num);
       InitButtons();
       return false;
     }
@@ -280,8 +280,8 @@ StarterDlg::OnBnClickedSearch()
                    ,"Kwatta test suite *.xtest|*.xtest|All files|*.*");
   if(dlg.DoModal() == IDOK)
   {
-    m_chosenProject = dlg.GetChosenFile();
-    if(!m_chosenProject.IsEmpty() && SaveProjects())
+    m_chosenSuite = dlg.GetChosenFile();
+    if(!m_chosenSuite.IsEmpty() && SaveTestSuites())
     {
       OnOK();
     }
@@ -295,8 +295,8 @@ StarterDlg::OnBnClickedNew()
 
   if(suite.DoModal() == IDOK)
   {
-    m_chosenProject = suite.GetNewProjectFile();
-    if(!m_chosenProject.IsEmpty() && SaveProjects())
+    m_chosenSuite = suite.GetNewTestsuiteFile();
+    if(!m_chosenSuite.IsEmpty() && SaveTestSuites())
     {
       OnOK();
     }
@@ -304,70 +304,70 @@ StarterDlg::OnBnClickedNew()
 }
 
 void 
-StarterDlg::OnBnClickedProject1()
+StarterDlg::OnBnClickedSuite1()
 {
-  m_chosenProject = m_projects[0];
+  m_chosenSuite = m_suites[0];
   if(!CheckExists(0))
   {
     return;
   }
-  if(SaveProjects())
+  if(SaveTestSuites())
   {
     OnOK();
   }
 }
 
 void 
-StarterDlg::OnBnClickedProject2()
+StarterDlg::OnBnClickedSuite2()
 {
-  m_chosenProject = m_projects[1];
+  m_chosenSuite = m_suites[1];
   if(!CheckExists(1))
   {
     return;
   }
-  if(SaveProjects())
+  if(SaveTestSuites())
   {
     OnOK();
   }
 }
 
 void 
-StarterDlg::OnBnClickedProject3()
+StarterDlg::OnBnClickedSuite3()
 {
-  m_chosenProject = m_projects[2];
+  m_chosenSuite = m_suites[2];
   if(!CheckExists(2))
   {
     return;
   }
-  if(SaveProjects())
+  if(SaveTestSuites())
   {
     OnOK();
   }
 }
 
 void 
-StarterDlg::OnBnClickedProject4()
+StarterDlg::OnBnClickedSuite4()
 {
-  m_chosenProject = m_projects[3];
+  m_chosenSuite = m_suites[3];
   if(!CheckExists(3))
   {
     return;
   }
-  if(SaveProjects())
+  if(SaveTestSuites())
   {
     OnOK();
   }
 }
 
 void 
-StarterDlg::OnBnClickedProject5()
+StarterDlg::OnBnClickedSuite5()
 {
-  m_chosenProject = m_projects[4];
+  m_chosenSuite = m_suites[4];
   if(!CheckExists(4))
   {
     return;
   }
-  if(SaveProjects())
+  if(SaveTestSuites())
   {
     OnOK();
   }
@@ -376,7 +376,7 @@ StarterDlg::OnBnClickedProject5()
 void
 StarterDlg::OnBnClickedCancel()
 {
-  m_chosenProject.Empty();
+  m_chosenSuite.Empty();
   StyleDialog::OnCancel();
 }
 

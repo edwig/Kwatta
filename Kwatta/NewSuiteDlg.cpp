@@ -78,7 +78,7 @@ NewSuiteDlg::OnInitDialog()
   m_editSuiteName.SetEmpty(true,"Choose a new test suite name");
 
   m_explain = "Create a new test suite by creating a new empty directory.\r\n"
-              "The directory will only contain your <projectname>.xtest file.";
+              "The directory will only contain your <testsuite name>.xtest file.";
   UpdateData(FALSE);
   m_editDirectory.SetFocus();
   m_init = true;
@@ -86,7 +86,7 @@ NewSuiteDlg::OnInitDialog()
 }
 
 CString 
-NewSuiteDlg::GetNewProjectFile()
+NewSuiteDlg::GetNewTestsuiteFile()
 {
   return m_directory + "\\" + m_suiteName;
 }
@@ -145,7 +145,7 @@ NewSuiteDlg::CheckSuiteName()
 bool
 NewSuiteDlg::CreateEmptySuite()
 {
-  CString path = GetNewProjectFile();
+  CString path = GetNewTestsuiteFile();
   TestSuite suite(m_directory);
   suite.SetFilename(path);
   return suite.WriteToXML(true);
@@ -216,7 +216,7 @@ NewSuiteDlg::OnBnClickedOK()
       return;
     }
   }
-  StyleMessageBox(this,"You must supply both a directory name and a project name!",KWATTA,MB_OK|MB_ICONERROR);
+  StyleMessageBox(this,"You must supply both a directory name and a testsuite name!",KWATTA,MB_OK|MB_ICONERROR);
 }
 
 void 

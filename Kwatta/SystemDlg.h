@@ -51,20 +51,27 @@ protected:
   int           m_loglevel;
   CString       m_logfile;
   bool          m_hidePassword;
+  CString       m_password;
 
   StyleComboBox m_comboLoglevel;
   StyleEdit     m_editLogfile;
   StyleButton   m_buttonLogfile;
   StyleCheckbox m_checkHidePwd;
+  StyleEdit     m_editPassword;
+  StyleButton   m_buttonShow;
   StyleButton   m_buttonOK;
   StyleButton   m_buttonCancel;
 
+  StyleHyperLink m_help;
+
 	DECLARE_MESSAGE_MAP()
 
+  afx_msg void OnTimer(UINT_PTR nIDEvent);
   afx_msg void OnCbnCloseupLoglevel();
   afx_msg void OnEnKillfocusLogfile();
   afx_msg void OnBnClickedLogfile();
   afx_msg void OnBnClickedHidePassword();
+  afx_msg void OnBnClickedShow();
   afx_msg void OnBnClickedOK();
   afx_msg void OnBnClickedCancel();
 };

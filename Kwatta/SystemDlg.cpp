@@ -46,15 +46,20 @@ void SystemDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX,IDC_LOGFILE, m_editLogfile,  m_logfile);
   DDX_Control(pDX,IDC_BUT_LOG, m_buttonLogfile);
   DDX_Control(pDX,IDC_HIDE_PWD,m_checkHidePwd);
+  DDX_Control(pDX,IDC_HIDDEN,  m_editPassword,m_password);
+  DDX_Control(pDX,IDC_SHOW,    m_buttonShow);
+  DDX_Control(pDX,IDC_HELPLINK,m_help);
   DDX_Control(pDX,IDOK,        m_buttonOK);
   DDX_Control(pDX,IDCANCEL,    m_buttonCancel);
 }
 
 BEGIN_MESSAGE_MAP(SystemDlg, StyleDialog)
+  ON_WM_TIMER()
   ON_CBN_CLOSEUP (IDC_LOGLEVEL, OnCbnCloseupLoglevel)
   ON_EN_KILLFOCUS(IDC_LOGFILE,  OnEnKillfocusLogfile)
   ON_BN_CLICKED  (IDC_BUT_LOG,  OnBnClickedLogfile)
   ON_BN_CLICKED  (IDC_HIDE_PWD, OnBnClickedHidePassword)
+  ON_BN_CLICKED  (IDC_SHOW,     OnBnClickedShow)
   ON_BN_CLICKED  (IDOK,         OnBnClickedOK)
   ON_BN_CLICKED  (IDCANCEL,     OnBnClickedCancel)
 END_MESSAGE_MAP()
@@ -78,12 +83,19 @@ SystemDlg::InitButtons()
   m_buttonOK     .SetStyle("ok");
   m_buttonCancel .SetStyle("can");
 
+  m_editPassword.SetMutable(false);
+  m_editPassword.SetBkColor(ThemeColor::_Color2);
+
   m_comboLoglevel.AddString("No logging");                                          // HLL_NOLOG      0       // No logging is ever done
   m_comboLoglevel.AddString("Error logging only");                                  // HLL_ERRORS     1       // Only errors are logged
   m_comboLoglevel.AddString("Logging of HTTP actions");                             // HLL_LOGGING    2       // 1 + Logging of actions
   m_comboLoglevel.AddString("HTTP actions and SOAP bodies");                        // HLL_LOGBODY    3       // 2 + Logging of actions and soap bodies
   m_comboLoglevel.AddString("HTTP actions, SOAP bodies and tracing");               // HLL_TRACE      4       // 3 + Tracing of settings
   m_comboLoglevel.AddString("HTTP actions, SOAP bodies, tracing and HEX dumping");  // HLL_TRACEDUMP  5       // 4 + Tracing and HEX dumping of objects
+
+  m_help.SetTipText("Use to set the KWATTA_PASSWORD variable with the 'setx /m' command!");
+  m_help.SetURL("https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx");
+  m_help.SetColours(ThemeColor::_Color1,RGB(0,0,255));
 }
 
 void
@@ -128,6 +140,17 @@ SystemDlg::Check()
 
 // SystemDlg message handlers
 
+void
+SystemDlg::OnTimer(UINT_PTR p_id)
+{
+  if(p_id == 1)
+  {
+    KillTimer(1);
+    m_password.Empty();
+    UpdateData(FALSE);
+  }
+}
+
 void 
 SystemDlg::OnCbnCloseupLoglevel()
 {
@@ -168,6 +191,14 @@ SystemDlg::OnBnClickedHidePassword()
 {
   m_hidePassword = m_checkHidePwd.GetCheck() ? 1 : 0;
   m_changed = true;
+}
+
+void
+SystemDlg::OnBnClickedShow()
+{
+  m_password.GetEnvironmentVariable("KWATTA_PASSWORD");
+  UpdateData(FALSE);
+  SetTimer(1,3000,nullptr);
 }
 
 void 

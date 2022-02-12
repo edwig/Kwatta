@@ -212,7 +212,7 @@ BodyDlg::OnCbnSelchangeOperator()
 void 
 BodyDlg::OnBnClickedSearchvar()
 {
-  SearchVarDlg dlg(m_parameters,true,true,true);
+  SearchVarDlg dlg(this,m_parameters,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
     CString var = dlg.GetChosenVariable();

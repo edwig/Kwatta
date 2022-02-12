@@ -607,7 +607,7 @@ KwattaAppDlg::OnBnClickedButSuite()
 void KwattaAppDlg::OnBnClickedButParam()
 {
   LoadParameters();
-  SearchVarDlg dlg(m_parameters,true,false,false);
+  SearchVarDlg dlg(this,m_parameters,true,false,false,false);
   dlg.DoModal();
 
   if(dlg.GetSaved())

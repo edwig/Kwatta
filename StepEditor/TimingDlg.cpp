@@ -174,7 +174,7 @@ TimingDlg::OnEnChangeTimeout()
 void 
 TimingDlg::OnBnClickedBefore()
 {
-  SearchVarDlg dlg(m_parameters,true,true,true);
+  SearchVarDlg dlg(this,m_parameters,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
     CString var = dlg.GetChosenVariable();
@@ -194,7 +194,7 @@ TimingDlg::OnBnClickedBefore()
 void 
 TimingDlg::OnBnClickedExec()
 {
-  SearchVarDlg dlg(m_parameters,true,true,true);
+  SearchVarDlg dlg(this,m_parameters,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
     CString var = dlg.GetChosenVariable();
@@ -214,7 +214,7 @@ TimingDlg::OnBnClickedExec()
 void 
 TimingDlg::OnBnClickedAfter()
 {
-  SearchVarDlg dlg(m_parameters,true,true,true);
+  SearchVarDlg dlg(this,m_parameters,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
     CString var = dlg.GetChosenVariable();

@@ -25,7 +25,15 @@
 // [name] -> return value result(valid within testset)
 // <name> -> Buffer result parameter(valid within testset)
 
-using ParMap = std::map<CString,CString>;
+struct ParamCompare
+{
+  bool operator() (const CString& p_left, const CString& p_right) const
+  {
+    return p_left.CompareNoCase(p_right) < 0;
+  }
+};
+
+using ParMap = std::map<CString,CString,ParamCompare>;
 
 enum class ParType
 {

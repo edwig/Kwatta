@@ -10,8 +10,8 @@
 ; Versionnumber:     1.0.1
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.0.5"
- !define PRODUCT_BUILDNUMBER                  "101"
+ !define PRODUCT_VERSION                      "1.0.6"
+ !define PRODUCT_BUILDNUMBER                  "120"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"
  !define PRODUCT_DIR_REGKEY                   "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"
@@ -87,6 +87,7 @@
  !define MUI_COMPONENTSPAGE_NODESC
  !define MUI_COMPONENTSPAGE_TEXT_COMPLIST "To be installed"
  !define MUI_FINISHPAGE_NOAUTOCLOSE
+ !define MUI_FINISHPAGE_RUN "$INSTDIR\Kwatta.exe"
  !define MUI_UNWELCOMEFINISHPAGE_BITMAP "jungledevil.bmp"
  !define MUI_UNFINISHPAGE_NOAUTOCLOSE
  !define MUI_ABORTWARNING
@@ -95,6 +96,7 @@
  !define MUI_UNABORTWARNING
  !define MUI_UNABORTWARNING_TEXT "Do you want to abort the de-installation of ${PRODUCT_NAME} ?"
  !define MUI_UNABORTWARNING_CANCEL_DEFAULT
+
  
 ;--------------------------------------------------------------------------------------------------------
  ; Language Selection Dialog Settings
@@ -178,8 +180,10 @@ Function .onInit
  SectionSetFlags ${prog_always} $0
 
 ;Check if there is a newer version of the product
- Readregstr $currentVersion "${PRODUCT_UNINST_ROOT_KEY}" "${PRODUCT_UNINST_KEY}" "DisplayVersion"
- IntCmp $currentVersion "${PRODUCT_VERSION}.${PRODUCT_BUILDNUMBER}" versionTheSame SetupVersionNewer CurrentVersionNewer
+ Readregstr $currentVersion "${PRODUCT_UNINST_ROOT_KEY}" "${PRODUCT_UNINST_KEY}" "BuildNumber"
+;MessageBox MB_OK "The current version is $currentVersion"
+;MessageBox MB_OK "The install version is ${PRODUCT_BUILDNUMBER}"
+ IntCmp $currentVersion ${PRODUCT_BUILDNUMBER} versionTheSame SetupVersionNewer CurrentVersionNewer
 
  versionTheSame:
   Messagebox MB_YESNO "This version of ${PRODUCT_NAME} is already installed. Do you want to re-install it? " /SD IDYES IDNO doNotRepair

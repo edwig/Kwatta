@@ -34,6 +34,7 @@
 #include <SearchVarDlg.h>
 #include <AboutDlg.h>
 #include <GetLastErrorAsString.h>
+#include <ExtraMessages.h>
 #include "resource.h"
 
 #ifdef _DEBUG
@@ -113,6 +114,7 @@ KwattaAppDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(KwattaAppDlg, StyleDialog)
   ON_WM_SYSCOMMAND()
 
+  ON_MESSAGE     (WM_READYTEST,       &KwattaAppDlg::OnReadyTest)
   ON_EN_KILLFOCUS(IDC_SUITE,          &KwattaAppDlg::OnEnChangeSuite)
   ON_EN_KILLFOCUS(IDC_DESCRIPTION,    &KwattaAppDlg::OnEnChangeDescription)
   ON_BN_CLICKED  (IDC_BUT_CHOOSE,     &KwattaAppDlg::OnBnClickedButChoose)
@@ -673,7 +675,7 @@ KwattaAppDlg::OnBnClickedButRun()
   {
     if(test.second.m_name.Compare(testname) == 0)
     {
-      int result = theApp.StartTestRunner(test.second);
+      int result = theApp.StartTestRunner(test.second,GetSafeHwnd(),cell.row);
 
       // Save in the testsuite
       test.second.m_lastResult = result ? "OK" : "ERROR";
@@ -711,34 +713,12 @@ KwattaAppDlg::OnBnClickedButEdit()
   }
 
   // Find the test and start it
-  for (auto& test : m_suite->GetAllTests())
+  for(auto& test : m_suite->GetAllTests())
   {
-    if (test.second.m_name.Compare(testname) == 0)
+    if(test.second.m_name.Compare(testname) == 0)
     {
-      int result = theApp.StartTestEditor(test.second);
-
-      // Save in the testsuite
-      test.second.m_lastResult = result ? "OK" : "ERROR";
-
-      // Show on the grid: Name first
-      TestSet set;
-      CString path = theApp.GetBaseDirectory() + test.second.m_directory + "\\" + test.second.m_filename;
-      set.ReadFromXML(path);
-      m_list.GetCell(cell.row,2)->SetText(set.GetName());
-      test.second.m_name = set.GetName();
-
-      // Show status of the test set
-      GV_ITEM item;
-      item.mask = GVIF_TEXT | GVIF_IMAGE;
-      item.row = cell.row;
-      item.col = 3;
-      item.strText = result ? "OK" : "ERROR";
-      item.iImage  = result ? 1 : 0;
-      m_list.SetItem(&item);
-      m_list.Invalidate();
-
-      // Name and status could be altered
-      m_suite->WriteToXML(true);
+      theApp.StartTestEditor(test.second,GetSafeHwnd(),cell.row);
+      // Status will be updated by the WM_READYTEST message
       return;
     }
   }
@@ -947,6 +927,52 @@ KwattaAppDlg::OnBnClickedButMutate()
     }
     break;
   }
+}
+
+LRESULT
+KwattaAppDlg::OnReadyTest(WPARAM wParam,LPARAM lParam)
+{
+  if(!m_suite)
+  {
+    return 0;
+  }
+  int row    = (int)wParam;
+  int result = (int)lParam;
+  CString testname = m_list.GetItemText(row, 2 /*NAME*/);
+
+  // Find the test update the status
+  for(auto& test : m_suite->GetAllTests())
+  {
+    if (test.second.m_name.Compare(testname) == 0)
+    {
+      // Save in the testsuite
+      test.second.m_lastResult = result ? "OK" : "ERROR";
+
+      // Show on the grid: Name first
+      TestSet set;
+      CString path = theApp.GetBaseDirectory() + test.second.m_directory + "\\" + test.second.m_filename;
+      set.ReadFromXML(path);
+      m_list.GetCell(row, 2)->SetText(set.GetName());
+      test.second.m_name = set.GetName();
+
+      // Show status of the test set
+      GV_ITEM item;
+      item.mask    = GVIF_TEXT | GVIF_IMAGE;
+      item.row     = row;
+      item.col     = 3;
+      item.strText = result ? "OK" : "ERROR";
+      item.iImage  = result ? 1 : 0;
+      m_list.SetItem(&item);
+      m_list.Invalidate();
+
+      // Name and status could be altered
+      m_suite->WriteToXML(true);
+
+      // Ready
+      break;
+    }
+  }
+  return 0;
 }
 
 void 

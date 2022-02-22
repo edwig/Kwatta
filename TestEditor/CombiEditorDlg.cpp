@@ -126,7 +126,7 @@ CombiEditorDlg::FillGrid()
   m_images.Create(MAKEINTRESOURCE(IDB_STATUS),16,1,RGB(256,256,256));
   m_grid.SetImageList(&m_images);
 
-  TSValSet* vals = m_testSet.GetValidations(m_stepName);
+  TSValSet* vals = m_testSet.GetValidationsByName(m_stepName);
 
   if(vals)
   {
@@ -162,7 +162,7 @@ CombiEditorDlg::SetTextImage(int p_row,int p_col,CString p_text,int p_image)
 void
 CombiEditorDlg::TryChangeValiGlobalLocal(int p_row)
 {
-  TSValSet& vals = *m_testSet.GetValidations(m_stepName);
+  TSValSet& vals = *m_testSet.GetValidationsByName(m_stepName);
   if(vals.size() < p_row)
   {
     return;
@@ -215,7 +215,7 @@ CombiEditorDlg::OnGridDblClick(NMHDR* pNMHDR, LRESULT* pResult)
   } 
   else if(id.col >= 2)
   {
-    TSValSet& vals = *m_testSet.GetValidations(m_stepName);
+    TSValSet& vals = *m_testSet.GetValidationsByName(m_stepName);
     if (vals.size() < id.row)
     {
       return;
@@ -261,7 +261,7 @@ CombiEditorDlg::OnBnClickedDelValidation()
   if (id.row >= 1)
   {
     CString validation = m_grid.GetItemText(id.row,2 /*VALIDATION*/);
-    TSValSet* vals = m_testSet.GetValidations(m_stepName);
+    TSValSet* vals = m_testSet.GetValidationsByName(m_stepName);
 
     TSValSet::iterator it = vals->begin();
     while(it != vals->end())
@@ -302,7 +302,7 @@ CombiEditorDlg::OnBnClickedMutValidation()
   if(id.row >= 1)
   {
     CString validation = m_grid.GetItemText(id.row,2);
-    TSValSet* vals = m_testSet.GetValidations(m_stepName);
+    TSValSet* vals = m_testSet.GetValidationsByName(m_stepName);
 
     TSValSet::iterator it = vals->begin();
     while (it != vals->end())

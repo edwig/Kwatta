@@ -187,11 +187,24 @@ TestSet::GetRun(CString p_filename)
 }
 
 TSValSet*
-TestSet::GetValidations(CString p_filename)
+TestSet::GetValidationsByName(CString p_name)
 {
   for(auto& trun : m_testruns)
   {
-    if(trun.m_name.CompareNoCase(p_filename) == 0)
+    if(trun.m_name.CompareNoCase(p_name) == 0)
+    {
+      return &trun.m_validations;
+    }
+  }
+  return nullptr;
+}
+
+TSValSet*
+TestSet::GetValidationsByFile(CString p_filename)
+{
+  for(auto& trun : m_testruns)
+  {
+    if(trun.m_filename.CompareNoCase(p_filename) == 0)
     {
       return &trun.m_validations;
     }

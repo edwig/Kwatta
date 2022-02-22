@@ -65,7 +65,8 @@ public:
   TRun&     GetTestRun(int p_run);
   bool      GetTotalResult();
   TRun*     GetRun(CString p_filename);
-  TSValSet* GetValidations(CString p_filename);
+  TSValSet* GetValidationsByName(CString p_name);
+  TSValSet* GetValidationsByFile(CString p_filename);
 
   // SETTERS
   void      SetName(CString p_name)         { m_name           = p_name; }

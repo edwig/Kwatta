@@ -53,16 +53,16 @@ SiteHandlerWebSocket::Handle(HTTPMessage* p_message)
 {
   bool opened = false;
   HTTPServer* server = m_site->GetHTTPServer();
-  CString uri = p_message->GetAbsolutePath();
+  XString uri = p_message->GetAbsolutePath();
 
   // Create socket by absolute path of the incoming URL
   WebSocket* socket = server->CreateWebSocket(uri);
 
   // Also get the parameters (key & value)
-  CrackedURL& url = p_message->GetCrackedURL();
+  const CrackedURL& url = p_message->GetCrackedURL();
   for(unsigned ind = 0; ind < url.GetParameterCount(); ++ind)
   {
-    UriParam* parameter = url.GetParameter(ind);
+    const UriParam* parameter = url.GetParameter(ind);
     socket->AddParameter(parameter->m_key,parameter->m_value);
   }
 

@@ -11,18 +11,15 @@
     <Filter Include="Header files">
       <UniqueIdentifier>{d5680ba7-cb3e-4150-b3b4-b7616600b1b2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Configuration">
+      <UniqueIdentifier>{1f7ee383-9487-43f1-b862-28187f796f34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestStep.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="StreamBuffer.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="Parameters.h">
@@ -50,12 +47,6 @@
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="StartProgram.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="FileDialog.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="MapDialog.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="ExtraMessages.h">
@@ -107,6 +98,15 @@
     <ClInclude Include="GlobalFileDlg.h">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestStep.cpp">
@@ -140,12 +140,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="StartProgram.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FileDialog.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MapDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestStepCL.cpp">

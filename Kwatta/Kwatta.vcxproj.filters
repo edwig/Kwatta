@@ -13,14 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Configuration">
+      <UniqueIdentifier>{c25ac370-6d7c-4a32-a855-604c4f4d30ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -50,6 +47,15 @@
     </ClInclude>
     <ClInclude Include="SystemDlg.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Configuration</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

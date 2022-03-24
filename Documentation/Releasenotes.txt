@@ -1,6 +1,12 @@
 KWATTA RELEASNOTES
 ==================
 
+Version 1.0.8 Release date: 24-03-2022
+--------------------------------------
+1) Updated to Marlin version 8.0.0
+2) Updated to SQLComponents version 2.0.0
+3) Upgraded to BaseLibrary
+
 Version 1.0.5 Release date: 30-01-2022
 --------------------------------------
 1)  Updated the Marlin component to version 7.3.0

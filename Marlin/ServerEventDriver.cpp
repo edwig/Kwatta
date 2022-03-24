@@ -95,32 +95,31 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
   int started = 0;
 
   HTTPServer* server = m_site->GetHTTPServer();
-  CString baseURL = m_site->GetSite();
+  XString baseURL = m_site->GetSite();
   int  portNumber = m_site->GetPort();
   bool siteSecure = m_site->GetPrefixURL()[4] == 's';
 
   // Start socket site
-  CString socketSiteURL = baseURL + "Sockets/";
+  XString socketSiteURL = baseURL + "Sockets/";
   HTTPSite*  socketSite = server->CreateSite(PrefixType::URLPRE_Strong,siteSecure,portNumber,socketSiteURL,true);
   if(socketSite)
   {
-    CString urlPrefix = socketSite->GetPrefixURL();
+    XString urlPrefix = socketSite->GetPrefixURL();
     server->DetailLog(__FUNCTION__,LogType::LOG_INFO,"Registered WebSocket EventDriver for: " + urlPrefix);
 
     SiteHandler* handler = new SiteHandlerEventSocket(this);
     socketSite->SetHandler(HTTPCommand::http_get,handler);
     socketSite->SetHandler(HTTPCommand::http_options,new SiteHandlerOptions());
-    socketSite->SetAllHeaders(true);
 
     if(socketSite->StartSite()) ++started;
   }
 
   // Start SSE site
-  CString eventsSiteURL = baseURL + "Events/";
+  XString eventsSiteURL = baseURL + "Events/";
   HTTPSite*  eventsSite = server->CreateSite(PrefixType::URLPRE_Strong,siteSecure,portNumber,eventsSiteURL,true);
   if(eventsSite)
   {
-    CString urlPrefix = eventsSite->GetPrefixURL();
+    XString urlPrefix = eventsSite->GetPrefixURL();
     server->DetailLog(__FUNCTION__,LogType::LOG_INFO,"Registered SSSE EventDriver for: " + urlPrefix);
 
     SiteHandler* handler = new SiteHandlerEventStream(this);
@@ -129,7 +128,6 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
 
     // Tell site we handle SSE streams
     eventsSite->SetIsEventStream(true);
-    eventsSite->SetAllHeaders(true);
     eventsSite->AddContentType("txt","text/event-stream");
 
     // Server must now do keep-alive jobs for SSE streams
@@ -140,17 +138,16 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
   }
 
   // Start Polling site
-  CString pollingSiteURL = baseURL + "Polling/";
+  XString pollingSiteURL = baseURL + "Polling/";
   HTTPSite*  pollingSite = server->CreateSite(PrefixType::URLPRE_Strong,siteSecure,portNumber,pollingSiteURL,true);
   if(pollingSite)
   {
-    CString urlPrefix = eventsSite->GetPrefixURL();
+    XString urlPrefix = eventsSite->GetPrefixURL();
     server->DetailLog(__FUNCTION__,LogType::LOG_INFO,"Registered Long-Polling for: " + urlPrefix);
 
     SiteHandler* handler = new SiteHandlerPolling(this);
     pollingSite->SetHandler(HTTPCommand::http_post,handler);
     pollingSite->SetHandler(HTTPCommand::http_options,new SiteHandlerOptions());
-    pollingSite->SetAllHeaders(true);
     pollingSite->AddContentType("xml","application/soap+xml");
 
     // And start the site
@@ -167,9 +164,9 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
 }
 
 int
-ServerEventDriver::RegisterChannel(CString p_sessionName
-                                  ,CString p_cookie
-                                  ,CString p_token)
+ServerEventDriver::RegisterChannel(XString p_sessionName
+                                  ,XString p_cookie
+                                  ,XString p_token)
 {
   AutoCritSec lock(&m_lock);
 
@@ -184,7 +181,7 @@ ServerEventDriver::RegisterChannel(CString p_sessionName
   m_channels.insert(std::make_pair(m_nextSession,channel));
 
   // Extra lookups for incoming streams
-  CString cookie = p_cookie + ":" + p_token;
+  XString cookie = p_cookie + ":" + p_token;
   m_names  .insert(std::make_pair(p_sessionName,channel));
   m_cookies.insert(std::make_pair(cookie,channel));
 
@@ -229,7 +226,7 @@ ServerEventDriver::SetChannelPolicy(int              p_channel
 
 // Flush messages as much as possible for a channel
 bool
-ServerEventDriver::FlushChannel(CString p_cookie,CString p_token)
+ServerEventDriver::FlushChannel(XString p_cookie,XString p_token)
 {
   ServerEventChannel* session = FindSession(p_cookie,p_token);
   if(session)
@@ -255,7 +252,7 @@ ServerEventDriver::FlushChannel(int p_channel)
 
 // RemoveChannel (possibly at the end of an user session)
 bool
-ServerEventDriver::UnRegisterChannel(CString p_cookie,CString p_token,bool p_flush /*=true*/)
+ServerEventDriver::UnRegisterChannel(XString p_cookie,XString p_token,bool p_flush /*=true*/)
 {
   ServerEventChannel* session = FindSession(p_cookie,p_token);
   if(session)
@@ -360,7 +357,7 @@ ServerEventDriver::IncomingNewSocket(HTTPMessage* p_message,WebSocket* p_socket)
   {
     if(!RegisterSocketByRouting(p_message,p_socket))
     {
-      CString errortext;
+      XString errortext;
       errortext.Format("No registered session found for incoming socket on [%s]",p_socket->GetURI().GetString());
       ERRORLOG(ERROR_NOT_FOUND,errortext);
       return false;
@@ -377,7 +374,7 @@ ServerEventDriver::IncomingNewStream(HTTPMessage* p_message,EventStream* p_strea
   {
     if(!RegisterStreamByRouting(p_message,p_stream))
     {
-      CString errortext;
+      XString errortext;
       errortext.Format("No registered session found for incoming stream on [%s]",p_stream->m_absPath.GetString());
       ERRORLOG(ERROR_NOT_FOUND,errortext);
       return;
@@ -394,7 +391,7 @@ ServerEventDriver::IncomingLongPoll(SOAPMessage* p_message)
   {
     if(!HandlePollingByRouting(p_message))
     {
-      CString errortext;
+      XString errortext;
       errortext.Format("No registered session found for long-polling message [%s]",p_message->GetAbsolutePath().GetString());
       ERRORLOG(ERROR_NOT_FOUND,errortext);
       return false;
@@ -405,8 +402,8 @@ ServerEventDriver::IncomingLongPoll(SOAPMessage* p_message)
 
 int
 ServerEventDriver::PostEvent(int     p_session
-                            ,CString p_payload
-                            ,CString p_returnToSender /*= ""*/
+                            ,XString p_payload
+                            ,XString p_returnToSender /*= ""*/
                             ,EvtType p_type           /*= EvtType::EV_Message*/)
 {
   int number = 0;
@@ -451,7 +448,7 @@ ServerEventDriver::GetChannelQueueCount(int p_channel)
 // Returns the number of messages in the queue
 // -1 if no proper channel session name given
 int
-ServerEventDriver::GetChannelQueueCount(CString p_session)
+ServerEventDriver::GetChannelQueueCount(XString p_session)
 {
   AutoCritSec lock(&m_lock);
 
@@ -477,7 +474,7 @@ ServerEventDriver::GetChannelClientCount(int p_channel)
 }
 
 int
-ServerEventDriver::GetChannelClientCount(CString p_session)
+ServerEventDriver::GetChannelClientCount(XString p_session)
 {
   AutoCritSec lock(&m_lock);
 
@@ -520,10 +517,10 @@ ServerEventDriver::Reset()
 // Find an event session
 // Slow version on cookie/token combination
 ServerEventChannel*
-ServerEventDriver::FindSession(CString p_cookie,CString p_token)
+ServerEventDriver::FindSession(XString p_cookie,XString p_token)
 {
   AutoCritSec lock(&m_lock);
-  CString cookieToken = p_cookie + ":" + p_token;
+  XString cookieToken = p_cookie + ":" + p_token;
 
   for(auto& session : m_channels)
   {
@@ -559,7 +556,7 @@ ServerEventDriver::RegisterSocketByCookie(HTTPMessage* p_message,WebSocket* p_so
 {
   AutoCritSec lock(&m_lock);
 
-  CString session;
+  XString session;
   Cookies& cookies = p_message->GetCookies();
   for(auto& cookie : cookies.GetCookies())
   {
@@ -578,7 +575,7 @@ ServerEventDriver::RegisterStreamByCookie(HTTPMessage* p_message,EventStream* p_
 {
   AutoCritSec lock(&m_lock);
 
-  CString session;
+  XString session;
   Cookies& cookies = p_message->GetCookies();
   for(auto& cookie : cookies.GetCookies())
   {
@@ -597,7 +594,7 @@ ServerEventDriver::HandlePollingByCookie(SOAPMessage* p_message)
 {
   AutoCritSec lock(&m_lock);
 
-  CString session;
+  XString session;
   Cookies& cookies = p_message->GetCookies();
   for(auto& cookie : cookies.GetCookies())
   {
@@ -617,7 +614,7 @@ ServerEventDriver::RegisterSocketByRouting(HTTPMessage* p_message,WebSocket* p_s
   AutoCritSec lock(&m_lock);
 
   // Finding the session name from the routing
-  CString channel = FindChannel(p_message->GetRouting(),"Sockets");
+  XString channel = FindChannel(p_message->GetRouting(),"Sockets");
 
   // Find channel by session name
   ChanNameMap::iterator it = m_names.find(channel);
@@ -635,7 +632,7 @@ ServerEventDriver::RegisterStreamByRouting(HTTPMessage* p_message,EventStream* p
   AutoCritSec lock(&m_lock);
 
   // Finding the session name from the routing
-  CString channel = FindChannel(p_message->GetRouting(),"Events");
+  XString channel = FindChannel(p_message->GetRouting(),"Events");
 
   // Find channel by session name
   ChanNameMap::iterator it = m_names.find(channel);
@@ -653,7 +650,7 @@ ServerEventDriver::HandlePollingByRouting(SOAPMessage* p_message)
   AutoCritSec lock(&m_lock);
 
   // Finding the channel name from the routing
-  CString channel = FindChannel(p_message->GetRouting(),"Polling");
+  XString channel = FindChannel(p_message->GetRouting(),"Polling");
 
   // Find channel by session name
   ChanNameMap::iterator it = m_names.find(channel);
@@ -667,10 +664,10 @@ ServerEventDriver::HandlePollingByRouting(SOAPMessage* p_message)
 
 // Finding the session name from the routing
 // Applications can do "BaseURL/Events/a/b/c" for session "a/b/c"
-CString
-ServerEventDriver::FindChannel(Routing& p_routing,CString p_base)
+XString
+ServerEventDriver::FindChannel(Routing& p_routing,XString p_base)
 {
-  CString session;
+  XString session;
   bool found = false;
   for(auto& route : p_routing)
   {
@@ -693,7 +690,7 @@ ServerEventDriver::FindChannel(Routing& p_routing,CString p_base)
 // Brute force attack detection
 // Sender must include: <server> <desktop> <user> in some fashion
 bool
-ServerEventDriver::CheckBruteForceAttack(CString p_sender)
+ServerEventDriver::CheckBruteForceAttack(XString p_sender)
 {
   p_sender.MakeLower();
 

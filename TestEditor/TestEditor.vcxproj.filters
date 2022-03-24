@@ -13,18 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Configuration">
+      <UniqueIdentifier>{a042906c-dd27-4674-a4be-344b92739a4b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TestEditorDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -38,6 +35,15 @@
     </ClInclude>
     <ClInclude Include="MutateDlg.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Configuration</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

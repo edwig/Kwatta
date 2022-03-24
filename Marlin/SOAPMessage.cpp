@@ -62,13 +62,10 @@ SOAPMessage::SOAPMessage(HTTPMessage* p_msg)
   m_request       = p_msg->GetRequestHandle();
   m_site          = p_msg->GetHTTPSite();
   m_url           = p_msg->GetURL();
+  m_cracked       = p_msg->GetCrackedURL();
   m_status        = p_msg->GetStatus();
-  m_secure        = p_msg->GetSecure();
   m_user          = p_msg->GetUser();
   m_password      = p_msg->GetPassword();
-  m_server        = p_msg->GetServer();
-  m_port          = p_msg->GetPort();
-  m_absPath       = p_msg->GetAbsolutePath();
   m_contentType   = p_msg->GetContentType();
   m_acceptEncoding= p_msg->GetAcceptEncoding();
   m_sendBOM       = p_msg->GetSendBOM();
@@ -157,13 +154,10 @@ SOAPMessage::SOAPMessage(JSONMessage* p_msg)
   m_request       = p_msg->GetRequestHandle();
   m_site          = p_msg->GetHTTPSite();
   m_url           = p_msg->GetURL();
+  m_cracked       = p_msg->GetCrackedURL();
   m_status        = p_msg->GetStatus();
-  m_secure        = p_msg->GetSecure();
   m_user          = p_msg->GetUser();
   m_password      = p_msg->GetPassword();
-  m_server        = p_msg->GetServer();
-  m_port          = p_msg->GetPort();
-  m_absPath       = p_msg->GetAbsolutePath();
   m_contentType   = p_msg->GetContentType();
   m_sendBOM       = p_msg->GetSendBOM();
   m_incoming      = p_msg->GetIncoming();
@@ -223,40 +217,15 @@ SOAPMessage::SOAPMessage(CString&     p_namespace
   if(!p_url.IsEmpty())
   {
     m_url = p_url;
-    CrackedURL url;
-    if(url.CrackURL(p_url))
-    {
-      m_secure   = url.m_secure;
-      m_server   = url.m_host;
-      m_port     = url.m_port;
-      m_absPath  = url.m_path;
-
-      // Overrides
-      if(m_port == INTERNET_DEFAULT_HTTP_PORT &&
-         p_port != INTERNET_DEFAULT_HTTP_PORT )
-      {
-        m_port = p_port;
-      }
-      if(!p_server.IsEmpty() && p_server != m_server)
-      {
-        m_server = p_server;
-      }
-      if(!p_absPath.IsEmpty() && p_absPath != m_absPath)
-      {
-        m_absPath = p_absPath;
-      }
-      if(p_secure && m_secure == false)
-      {
-        m_secure = true;
-      }
-    }
+    m_cracked.CrackURL(p_url);
   }
   else
   {
-    m_secure   = p_secure;
-    m_server   = p_server;
-    m_port     = p_port;
-    m_absPath  = p_absPath;
+    m_cracked.m_secure = p_secure;
+    m_cracked.m_host   = p_server;
+    m_cracked.m_port   = p_port;
+    m_cracked.m_path   = p_absPath;
+    m_url = m_cracked.URL();
   }
 
   // Create for p_version = SOAP 1.2
@@ -294,15 +263,12 @@ SOAPMessage::SOAPMessage(SOAPMessage* p_orig)
   m_sendUnicode   = p_orig->m_sendUnicode;
   m_sendBOM       = p_orig->m_sendBOM;
   m_url           = p_orig->m_url;
+  m_cracked       = p_orig->m_cracked;
   m_status        = p_orig->m_status;
   m_request       = p_orig->m_request;
-  m_secure        = p_orig->m_secure;
   m_user          = p_orig->m_user;
   m_password      = p_orig->m_password;
-  m_server        = p_orig->m_server;
   m_site          = p_orig->m_site;
-  m_port          = p_orig->m_port;
-  m_absPath       = p_orig->m_absPath;
   m_desktop       = p_orig->m_desktop;
   m_order         = p_orig->m_order;
   m_incoming      = p_orig->m_incoming;
@@ -370,7 +336,7 @@ SOAPMessage::SetSoapActionFromHTTTP(CString p_action)
     // STEP 2: If SOAP 1.2
     if(m_header)
     {
-      // STEP 3: Find WS-Adressing <Header>/<Action>
+      // STEP 3: Find WS-Addressing <Header>/<Action>
       XMLElement* xmlaction = FindElement(m_header,"Action");
       if(xmlaction)
       {
@@ -380,10 +346,10 @@ SOAPMessage::SetSoapActionFromHTTTP(CString p_action)
   }
   // OK: Use this set (action,namesp)
   m_soapAction = action;
-  if(!namesp.IsEmpty())
-  {
-    m_namespace = namesp;
-  }
+//   if(!namesp.IsEmpty())
+//   {
+//     m_namespace = namesp;
+//   }
 }
 
 #pragma endregion XTOR and DTOR of a SOAP message
@@ -411,6 +377,10 @@ SOAPMessage::Reset(ResponseType p_responseType  /* = ResponseType::RESP_ACTION_N
 
   // Reset the HTTP headers
   m_headers.clear();
+
+  // Reset the URL
+  m_url.Empty();
+  m_cracked.Reset();
 
   // If, given: use the our namespace for an answer
   if(!p_namespace.IsEmpty())
@@ -553,12 +523,9 @@ SOAPMessage::operator=(JSONMessage& p_json)
   m_request       = p_json.GetRequestHandle();
   m_site          = p_json.GetHTTPSite();
   m_url           = p_json.GetURL();
-  m_secure        = p_json.GetSecure();
+  m_cracked       = p_json.GetCrackedURL();
   m_user          = p_json.GetUser();
   m_password      = p_json.GetPassword();
-  m_server        = p_json.GetServer();
-  m_port          = p_json.GetPort();
-  m_absPath       = p_json.GetAbsolutePath();
   m_contentType   = p_json.GetContentType();
   m_sendBOM       = p_json.GetSendBOM();
   m_incoming      = p_json.GetIncoming();
@@ -699,52 +666,28 @@ SOAPMessage::SetAcceptEncoding(CString p_encoding)
 
 // Addressing the message's has three levels
 // 1) The complete url containing both server and port number
-// 2) Setting server/port/absolutepath separately
+// 2) Setting server/port/absolute-path separately
 // 3) By remembering the requestID of the caller
 void
 SOAPMessage::SetURL(CString& p_url)
 {
   m_url = p_url;
-
-  CrackedURL url;
-  if(url.CrackURL(p_url))
-  {
-    m_secure   = url.m_secure;
-    m_server   = url.m_host;
-    m_port     = url.m_port;
-    m_absPath  = url.m_path;
-  }
+  m_cracked.CrackURL(p_url);
 }
 
 // URL without user/password
 CString
-SOAPMessage::GetBasicURL() const
+SOAPMessage::GetURL() const
 {
-  CString url;
-  if((m_secure && m_port != INTERNET_DEFAULT_HTTPS_PORT) ||
-    (!m_secure && m_port != INTERNET_DEFAULT_HTTP_PORT))
-  {
-    url.Format("http%s://%s:%d%s"
-              ,m_secure ? "s" : ""
-              ,m_server.GetString()
-              ,m_port
-              ,m_absPath.GetString());
-  }
-  else
-  {
-    url.Format("http%s://%s%s"
-              ,m_secure ? "s" : ""
-              ,m_server.GetString()
-              ,m_absPath.GetString());
-  }
-  return url;
+  return m_url;
 }
 
 // Getting the JSON parameterized URL
+// ONLY WORKS FOR THE FIRST NODE LEVEL !!
 CString
 SOAPMessage::GetJSON_URL()
 {
-  CString url = GetBasicURL();
+  CString url(m_url);
 
   // Make sure path ends in a '/'
   if(url.Right(1) != '/')
@@ -803,7 +746,7 @@ SOAPMessage::GetRoute(int p_index)
 void
 SOAPMessage::ReparseURL()
 {
-  m_url = GetBasicURL();
+  m_url = m_cracked.URL();
 }
 
 void
@@ -1065,19 +1008,22 @@ CString
 SOAPMessage::GetUnAuthorisedURL() const
 {
   CString url;
-  CString port;
+  CString portstr;
+  bool secure = m_cracked.m_secure;
+  int  port   = m_cracked.m_port;
 
-  if((m_secure && m_port!=INTERNET_DEFAULT_HTTPS_PORT)||
-    (!m_secure && m_port!=INTERNET_DEFAULT_HTTP_PORT))
+
+  if((secure && port!=INTERNET_DEFAULT_HTTPS_PORT)||
+    (!secure && port!=INTERNET_DEFAULT_HTTP_PORT))
   {
-    port.Format(":%d",m_port);
+    portstr.Format(":%d",port);
   }
 
   url.Format("http%s://%s%s%s"
-            ,m_secure ? "s" : ""
-            ,m_server.GetString()
-            ,port.GetString()
-            ,m_absPath.GetString());
+            ,secure ? "s" : ""
+            ,m_cracked.m_host.GetString()
+            ,portstr.GetString()
+            ,m_cracked.AbsolutePath().GetString());
   return url;
 }
 
@@ -1430,7 +1376,7 @@ SOAPMessage::AddToHeaderToService()
 {
   if(FindElement(m_header,"a:To") == NULL)
   {
-    XMLElement* param = SetHeaderParameter("a:To",GetBasicURL());
+    XMLElement* param = SetHeaderParameter("a:To",GetURL());
     SetAttribute(param,"s:mustUnderstand",1);
   }
 }
@@ -1582,7 +1528,7 @@ SOAPMessage::ParseAsBody(CString& p_message)
 
 // Parse incoming GET url to SOAP parameters
 void    
-SOAPMessage::Url2SoapParameters(CrackedURL& p_url)
+SOAPMessage::Url2SoapParameters(const CrackedURL& p_url)
 {
   CreateHeaderAndBody();
   CreateParametersObject();
@@ -1595,7 +1541,7 @@ SOAPMessage::Url2SoapParameters(CrackedURL& p_url)
 
   for(unsigned num = 0; num < p_url.GetParameterCount(); ++num)
   {
-    UriParam* param = p_url.GetParameter(num);
+    const UriParam* param = p_url.GetParameter(num);
     SetParameter(param->m_key,param->m_value);
   }
 }
@@ -2052,6 +1998,12 @@ SOAPMessage::HandleSoapFault(XMLElement* p_fault)
 void
 SOAPMessage::SetBodyToFault()
 {
+  if(FindElement(m_body,"Fault"))
+  {
+    // Presume that the Fault is already filled in
+    return;
+  }
+
   // Remove original body sofar
   CleanNode(m_body);
 

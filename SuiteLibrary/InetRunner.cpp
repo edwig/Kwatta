@@ -22,7 +22,7 @@
 #include "InetRunner.h"
 #include "TestMessages.h"
 #include "ExtraMessages.h"
-#include <Analysis.h>
+#include <LogAnalysis.h>
 #include <StdException.h>
 #include <RunRedirect.h>
 #include <HPFCounter.h>
@@ -294,9 +294,6 @@ InetRunner::PerformCommand()
   {
     m_message.AddHeader(header.m_name,header.m_value);
   }
-
-  // We want all return headers
-  m_client->SetReadAllHeaders(true);
 
   // Test environments are normally lax with certificates
   // So be prepared to deal with not completely right ones!

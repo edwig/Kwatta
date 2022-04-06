@@ -212,19 +212,10 @@ BodyDlg::OnCbnSelchangeOperator()
 void 
 BodyDlg::OnBnClickedSearchvar()
 {
-  SearchVarDlg dlg(this,m_parameters,true,true,true);
+  SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString var = dlg.GetChosenVariable();
-    CString variable;
-    switch (dlg.GetResultType())
-    {
-      case ParType::PAR_GLOBAL: variable.Format("$%s$", var); break;
-      case ParType::PAR_RETURN: variable.Format("[%s]", var); break;
-      case ParType::PAR_BUFFER: variable.Format("<%s>", var); break;
-    }
-
-    m_expectedBody += variable;
+    m_expectedBody += dlg.GetVariable();
     UpdateData(FALSE);
 
     OnEnKillfocusBody();

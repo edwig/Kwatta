@@ -226,19 +226,10 @@ StatusDlg::OnEnKillfocusStatus()
 void 
 StatusDlg::OnBnClickedNewvar()
 {
-  SearchVarDlg dlg(this,m_parameters,true,true,false);
+  SearchVarDlg dlg(this,m_parameters,true,true,true,false);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString var = dlg.GetChosenVariable();
-    CString variable;
-    switch (dlg.GetResultType())
-    {
-      case ParType::PAR_GLOBAL: variable.Format("$%s$", var); break;
-      case ParType::PAR_RETURN: variable.Format("[%s]", var); break;
-      case ParType::PAR_BUFFER: variable.Format("<%s>", var); break;
-    }
-
-    m_expectedStatus += variable;
+    m_expectedStatus += dlg.GetVariable();
     UpdateData(FALSE);
 
     OnEnKillfocusStatus();

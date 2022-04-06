@@ -22,6 +22,7 @@
 #include <map>
 
 // $name$ -> Global parameter(valid within testsuite)
+// #name# -> Local parameter(valid within testset)
 // [name] -> return value result(valid within testset)
 // <name> -> Buffer result parameter(valid within testset)
 
@@ -40,6 +41,7 @@ enum class ParType
   PAR_NONE   = 0
  ,PAR_SYSTEM
  ,PAR_GLOBAL
+ ,PAR_LOCAL
  ,PAR_RETURN
  ,PAR_BUFFER
  ,PAR_ENVIRON
@@ -53,32 +55,39 @@ public:
   // Reset all variables
   void     Reset();
 
+  // Force changed
+  void     SetChanged() { m_changed = true;  }
+
   // The general replace function for bound parameters
   int      Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType p_exclude = ParType::PAR_NONE);
 
   // Interface with the file system
-  void     ReadFromXML(CString p_filename,bool p_global = true);  // Throws in case of an error
+  void     ReadFromXML(CString p_filename, bool p_globals = true);  // Throws in case of an error
   bool     WriteToXML(bool p_locals = true,bool p_globals = false);
 
   bool     ExistsAsSystemParameter (CString p_name);
   bool     ExistsAsGlobalParameter (CString p_name);
+  bool     ExistsAsLocalParameter  (CString p_name);
   bool     ExistsAsReturnParameter (CString p_name);
   bool     ExistsAsBufferParameter (CString p_name);
   bool     ExistsAsEnvironParameter(CString p_name);
 
   CString  FindSystemParameter (CString p_name);
   CString  FindGlobalParameter (CString p_name,bool p_forDisplay);
+  CString  FindLocalParameter  (CString p_name);
   CString  FindReturnParameter (CString p_name);
   CString  FindBufferParameter (CString p_name);
   CString  FindEnvironParameter(CString p_name);
 
   bool     AddSystemParameter(CString p_name,CString p_value);
   bool     AddGlobalParameter(CString p_name,CString p_value);
+  bool     AddLocalParameter (CString p_name,CString p_value);
   bool     AddReturnParameter(CString p_name,CString p_value);
   bool     AddBufferParameter(CString p_name,CString p_value);
 
   void     OverwriteSystemParameter(CString p_name,CString p_value);
   void     OverwriteGlobalParameter(CString p_name,CString p_value);
+  void     OverwriteLocalParameter (CString p_name,CString p_value);
   void     OverwriteReturnParameter(CString p_name,CString p_value);
   void     OverwriteBufferParameter(CString p_name,CString p_value);
 
@@ -86,10 +95,12 @@ public:
   bool     RemoveBufferParameter(CString p_name);
   bool     RemoveReturnParameter(CString p_name);
   bool     RemoveGlobalParameter(CString p_name);
+  bool     RemoveLocalParameter (CString p_name);
 
   // Get the maps
   ParMap&  GetSystem()  { return m_system;  }
   ParMap&  GetGlobals() { return m_globals; }
+  ParMap&  GetLocals()  { return m_locals;  }
   ParMap&  GetReturns() { return m_returns; }
   ParMap&  GetBuffers() { return m_buffers; }
 
@@ -106,7 +117,8 @@ private:
   ParMap  m_system;   // System parameters
   ParMap  m_buffers;  // [name]   values
   ParMap  m_returns;  // <name>   values
-  ParMap  m_globals;  // %global% values
+  ParMap  m_globals;  // $global$ values
+  ParMap  m_locals;   // #local#  values
 
   CString m_environmentValue;
 

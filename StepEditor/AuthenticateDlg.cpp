@@ -296,17 +296,10 @@ AuthenticateDlg::AdjustAuthentication()
 void
 AuthenticateDlg::ChooseVariable(StyleEdit& p_edit)
 {
-  SearchVarDlg dlg(this,m_parameters,true,true,true);
+  SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString var = dlg.GetChosenVariable();
-    CString variable;
-    switch (dlg.GetResultType())
-    {
-      case ParType::PAR_GLOBAL: variable.Format("$%s$",var.GetString()); break;
-      case ParType::PAR_RETURN: variable.Format("[%s]",var.GetString()); break;
-      case ParType::PAR_BUFFER: variable.Format("<%s>",var.GetString()); break;
-    }
+    CString variable = dlg.GetVariable();
     p_edit.InsertAtCurPos(variable,0);
     UpdateData();
   }

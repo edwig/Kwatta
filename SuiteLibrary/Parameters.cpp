@@ -39,6 +39,7 @@ Parameters::Reset()
   m_globals.clear();
   m_buffers.clear();
   m_returns.clear();
+  m_locals .clear();
 }
 
 void
@@ -123,6 +124,23 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
     }
   }
 
+  // Read all local variables
+  XMLElement* locals = msg.FindElement(root,"Locals",false);
+  if(locals)
+  {
+    XMLElement* var = msg.GetElementFirstChild(locals);
+    while(var)
+    {
+      CString name  = var->GetName();
+      CString value = var->GetValue();
+      if(AddLocalParameter(name,value) == false)
+      {
+        TRACE("Duplicate local parameter found: %s%s\n",name.GetString(),value.GetString());
+      }
+      var = msg.GetElementSibling(var);
+    }
+  }
+
   // Read all return variables
   XMLElement* returns = msg.FindElement(root, "Returns", false);
   if(returns)
@@ -200,6 +218,17 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
   // Save all locals
   if(p_locals)
   {
+    // Save all local variables
+    XMLElement* locals = msg.AddElement(root,"Locals",XDT_String,"");
+    for(auto& var : m_locals)
+    {
+      if(!var.first.IsEmpty())
+      {
+        msg.AddElement(locals,var.first,XDT_CDATA,var.second);
+        ++count;
+      }
+    }
+
     // Save all return values
     XMLElement* returns = msg.AddElement(root,"Returns",XDT_String,"");
     for(auto& var : m_returns)
@@ -266,6 +295,17 @@ Parameters::ExistsAsGlobalParameter(CString p_name)
 
   ParMap::iterator it = m_globals.find(p_name);
   if(it != m_globals.end())
+  {
+    return true;
+  }
+  return false;
+}
+
+bool
+Parameters::ExistsAsLocalParameter(CString p_name)
+{
+  ParMap::iterator it = m_locals.find(p_name);
+  if(it != m_locals.end())
   {
     return true;
   }
@@ -357,7 +397,18 @@ Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
   return "";
 }
 
-CString  
+CString
+Parameters::FindLocalParameter(CString p_name)
+{
+  ParMap::iterator it = m_locals.find(p_name);
+  if (it != m_locals.end())
+  {
+    return it->second;
+  }
+  return "";
+}
+
+CString
 Parameters::FindSystemParameter(CString p_name)
 {
   ParMap::iterator it = m_system.find(p_name);
@@ -371,12 +422,15 @@ Parameters::FindSystemParameter(CString p_name)
 CString
 Parameters::FindEnvironParameter(CString p_name)
 {
-  m_environmentValue.GetEnvironmentVariable(p_name);
-  if(m_environmentValue.IsEmpty())
+  if(m_environmentValue.GetEnvironmentVariable(p_name))
   {
-    return "";
+    if(m_environmentValue.IsEmpty())
+    {
+      return "";
+    }
+    return m_environmentValue;
   }
-  return m_environmentValue;
+  return "";
 }
 
 bool
@@ -415,6 +469,17 @@ Parameters::AddSystemParameter(CString p_name,CString p_value)
   return false;
 }
 
+bool
+Parameters::AddLocalParameter(CString p_name,CString p_value)
+{
+  if(NameNotYetUsed(p_name))
+  {
+    m_changed = true;
+    m_locals.insert(std::make_pair(p_name, p_value));
+    return true;
+  }
+  return false;
+}
 
 bool
 Parameters::AddGlobalParameter(CString p_name,CString p_value)
@@ -456,6 +521,21 @@ Parameters::OverwriteReturnParameter(CString p_name,CString p_value)
   if(it == m_returns.end())
   {
     m_returns.insert(std::make_pair(p_name,p_value));
+  }
+  else
+  {
+    it->second = p_value;
+  }
+  m_changed = true;
+}
+
+void
+Parameters::OverwriteLocalParameter(CString p_name,CString p_value)
+{
+  ParMap::iterator it = m_locals.find(p_name);
+  if(it == m_locals.end())
+  {
+    m_locals.insert(std::make_pair(p_name,p_value));
   }
   else
   {
@@ -540,6 +620,19 @@ Parameters::RemoveReturnParameter(CString p_name)
 }
 
 bool
+Parameters::RemoveLocalParameter(CString p_name)
+{
+  ParMap::iterator it = m_locals.find(p_name);
+  if(it != m_locals.end())
+  {
+    m_locals.erase(it);
+    m_changed = true;
+    return true;
+  }
+  return false;
+}
+
+bool
 Parameters::RemoveGlobalParameter(CString p_name)
 {
   if(m_password && p_name.CompareNoCase("password") == 0)
@@ -574,6 +667,7 @@ Parameters::Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType 
   notfound += Replace(p_input,'[',']',ParType::PAR_RETURN, p_forDisplay,p_exclude);  // Return variables
   notfound += Replace(p_input,'<','>',ParType::PAR_BUFFER, p_forDisplay,p_exclude);  // Buffer variables
   notfound += Replace(p_input,'%','%',ParType::PAR_ENVIRON,p_forDisplay,p_exclude);  // Environment variables
+  notfound += Replace(p_input,'#','#',ParType::PAR_LOCAL,  p_forDisplay,p_exclude);  // Environment variables
 
   // Set the output
   p_output = p_input;
@@ -611,6 +705,7 @@ Parameters::CheckFilename(CString p_filename)
 }
 
 // Name not yet used in other maps
+// This ensures global uniqueness within a testset
 bool
 Parameters::NameNotYetUsed(CString p_name)
 {
@@ -618,9 +713,14 @@ Parameters::NameNotYetUsed(CString p_name)
   if(m_buffers.find(p_name) != m_buffers.end()) return false;
   if(m_returns.find(p_name) != m_returns.end()) return false;
   if(m_globals.find(p_name) != m_globals.end()) return false;
+  if(m_locals .find(p_name) != m_locals .end()) return false;
+
   return true;
 }
 
+// This is our general workhorse to replace a variable in a string
+// processes all strings and all types of variables
+//
 int
 Parameters::Replace(CString& p_string
                    ,char     p_first
@@ -655,6 +755,9 @@ Parameters::Replace(CString& p_string
         {
           case ParType::PAR_GLOBAL:  exists = ExistsAsGlobalParameter(varName);
                                      value  = FindGlobalParameter(varName,p_forDisplay); 
+                                     break;
+          case ParType::PAR_LOCAL:   exists = ExistsAsLocalParameter(varName);
+                                     value  = FindLocalParameter(varName); 
                                      break;
           case ParType::PAR_RETURN:  exists = ExistsAsReturnParameter(varName);
                                      value  = FindReturnParameter(varName); 

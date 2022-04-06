@@ -92,6 +92,10 @@ public:
   Test*     FindTest(CString p_testname);
   bool      RemoveTest(CString p_testname);
 
+  bool      ChangeTestDirectory(CString p_testname, CString p_directory);
+  bool      ChangeTestFilename (CString p_testname, CString p_filename);
+  bool      ChangeTestTestname (CString p_testname, CString p_name);
+
 private:
   void      CheckFilename(CString p_filename);
   CString   FindElementString (XMLMessage& p_msg,XMLElement* p_start,CString p_name);

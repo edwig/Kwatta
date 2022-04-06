@@ -53,6 +53,7 @@ protected:
   void SetUpDownButtons(int p_row);
   void SetResult(int p_row,bool p_ok);
   void SetActive(int p_row,bool p_active);
+  void RunTestset(CString p_testname,int p_index);
 
   CString       m_testsuite;
   CString       m_description;

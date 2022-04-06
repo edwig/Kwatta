@@ -78,6 +78,7 @@ MutateNamesDlg::OnInitDialog()
 
   m_newDirectory = m_origDirectory;
   m_newFilename  = m_origFilename;
+  SetTestName();
 
   UpdateData(FALSE);
   m_editNewDirectory.SetFocus();
@@ -108,6 +109,16 @@ MutateNamesDlg::CheckFilename()
   }
   m_editNewFilename.SetErrorState(false);
   return true;
+}
+
+void 
+MutateNamesDlg::SetTestName()
+{
+  int pos = m_origFilename.ReverseFind('.');
+  if (pos > 0)
+  {
+    m_testName = m_origFilename.Left(pos);
+  }
 }
 
 // MutateNamesDlg message handlers
@@ -193,6 +204,7 @@ MutateNamesDlg::OnBnClickedDoFilename()
 
       // Record the fact that we did the rename
       m_origFilename = m_newFilename;
+      SetTestName();
       UpdateData(FALSE);
 
       CString msg;

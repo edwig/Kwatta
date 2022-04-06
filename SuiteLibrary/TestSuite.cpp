@@ -237,6 +237,7 @@ TestSuite::RemoveTest(CString p_testname)
     if(it->second.m_name.CompareNoCase(p_testname) == 0)
     {
       m_tests.erase(it);
+      m_changed = true;
       return true;
     }
   }
@@ -257,6 +258,45 @@ void
 TestSuite::SetFilename(CString p_filename)
 {
   m_filename = p_filename;
+}
+
+bool
+TestSuite::ChangeTestDirectory(CString p_testname,CString p_directory)
+{
+  Test* test = FindTest(p_testname);
+  if(test)
+  {
+    test->m_directory = p_directory;
+    m_changed = true;
+    return true;
+  }
+  return false;
+}
+
+bool
+TestSuite::ChangeTestFilename(CString p_testname,CString p_filename)
+{
+  Test* test = FindTest(p_testname);
+  if(test)
+  {
+    test->m_filename = p_filename;
+    m_changed = true;
+    return true;
+  }
+  return false;
+}
+
+bool
+TestSuite::ChangeTestTestname(CString p_testname,CString p_name)
+{
+  Test* test = FindTest(p_testname);
+  if(test)
+  {
+    test->m_name = p_name;
+    m_changed = true;
+    return true;
+  }
+  return false;
 }
 
 //////////////////////////////////////////////////////////////////////////

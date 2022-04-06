@@ -33,6 +33,7 @@ public:
 
   CString GetDirectory() { return m_origDirectory; }
   CString GetFilename()  { return m_origFilename;  }
+  CString GetTestname()  { return m_testName;      }
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -44,11 +45,13 @@ protected:
   virtual BOOL OnInitDialog() override;
           bool CheckDirectory();
           bool CheckFilename();
+          void SetTestName();
 
   CString     m_origDirectory;
   CString     m_newDirectory;
   CString     m_origFilename;
   CString     m_newFilename;
+  CString     m_testName;
 
   StyleEdit   m_editOrigDirectory;
   StyleEdit   m_editNewDirectory;

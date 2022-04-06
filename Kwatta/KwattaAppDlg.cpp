@@ -458,7 +458,7 @@ KwattaAppDlg::RemoveTestsetDirectory(CString p_path)
   operation.wFunc  = FO_DELETE;
   operation.fFlags = FOF_NO_UI;
   operation.pFrom  = (PCZZSTR) buffer;
-  if(SHFileOperation(&operation) != 0)
+  if(SHFileOperation(&operation) != 0 && GetLastError())
   {
     CString reason = GetLastErrorAsString();
     CString warning;
@@ -529,6 +529,31 @@ KwattaAppDlg::LoadParameters()
     CString filename = theApp.GetBaseDirectory() + "Parameters.xpar";
 
     ReadParameters(filename);
+  }
+}
+
+void 
+KwattaAppDlg::RunTestset(CString p_testname,int p_index)
+{
+  // Find the test and start it
+  Test* test = m_suite->FindTest(p_testname);
+  if(test)
+  {
+    int result = theApp.StartTestRunner(*test,GetSafeHwnd(),p_index);
+
+    // Save in the testsuite
+    test->m_lastResult = result ? "OK" : "ERROR";
+    m_suite->WriteToXML(true);
+
+    // Show on the grid
+    GV_ITEM item;
+    item.mask    = GVIF_TEXT | GVIF_IMAGE;
+    item.row     = p_index;
+    item.col     = 3;
+    item.strText = result ? "OK" : "ERROR";
+    item.iImage  = result ? 1 : 0;
+    m_list.SetItem(&item);
+    m_list.Invalidate();
   }
 }
 
@@ -662,43 +687,31 @@ KwattaAppDlg::OnGridDblClick(NMHDR* pNMHDR, LRESULT* pResult)
 void 
 KwattaAppDlg::OnBnClickedButRun()
 {
+  if (!m_suite)
+  {
+    return;
+  }
+
   CCellID cell = m_list.GetFocusCell();
   CString testname = m_list.GetItemText(cell.row,2);
 
+  RunTestset(testname,cell.row);
+}
+
+void 
+KwattaAppDlg::OnBnClickedButAll()
+{
   if(!m_suite)
   {
     return;
   }
 
-  // Find the test and start it
-  for(auto& test : m_suite->GetAllTests())
+  int rows = m_list.GetRowCount();
+  for(int index = 1; index < rows; ++index)
   {
-    if(test.second.m_name.Compare(testname) == 0)
-    {
-      int result = theApp.StartTestRunner(test.second,GetSafeHwnd(),cell.row);
-
-      // Save in the testsuite
-      test.second.m_lastResult = result ? "OK" : "ERROR";
-      m_suite->WriteToXML(true);
-
-      // Show on the grid
-      GV_ITEM item;
-      item.mask = GVIF_TEXT | GVIF_IMAGE;
-      item.row = cell.row;
-      item.col = 3;
-      item.strText = result ? "OK" : "ERROR";
-      item.iImage  = result ? 1 : 0;
-      m_list.SetItem(&item);
-      m_list.Invalidate();
-
-      return;
-    }
+    CString testname = m_list.GetItemText(index,2);
+    RunTestset(testname,index);
   }
-}
-
-void KwattaAppDlg::OnBnClickedButAll()
-{
-  // TODO: Add your control notification handler code here
 }
 
 void 
@@ -904,28 +917,30 @@ KwattaAppDlg::OnBnClickedButMutate()
   }
 
   // Find the test and start it
-  for(auto& test : m_suite->GetAllTests())
+  Test* test = m_suite->FindTest(testname);
+  if(test)
   {
-    if(test.second.m_name.Compare(testname) == 0)
+    CString directory = test->m_directory;
+    CString filename  = test->m_filename;
+
+    MutateNamesDlg dlg(this,directory,filename);
+    dlg.DoModal();
+
+    CString newDirectory = dlg.GetDirectory();
+    CString newFilename  = dlg.GetFilename();
+    CString newTestname  = dlg.GetTestname();
+
+    if(directory.CompareNoCase(newDirectory) || filename.CompareNoCase(newFilename))
     {
-      CString directory = test.second.m_directory;
-      CString filename  = test.second.m_filename;
+      m_suite->ChangeTestDirectory(testname,newDirectory);
+      m_suite->ChangeTestFilename (testname,newFilename);
+      m_suite->ChangeTestTestname (testname,newTestname);
 
-      MutateNamesDlg dlg(this,directory,filename);
-      dlg.DoModal();
+      m_list.GetCell(cell.row,cell.col)->SetText(newTestname);
+      m_list.Invalidate();
 
-      CString newDirectory = dlg.GetDirectory();
-      CString newFilename  = dlg.GetFilename();
-
-      if(directory.CompareNoCase(newDirectory) || filename.CompareNoCase(newFilename))
-      {
-        test.second.m_directory = newDirectory;
-        test.second.m_filename  = newFilename;
-
-        m_suite->WriteToXML();
-      }
+      m_suite->WriteToXML();
     }
-    break;
   }
 }
 

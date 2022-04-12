@@ -78,6 +78,12 @@
     <ClInclude Include="framework.h">
       <Filter>Configuration</Filter>
     </ClInclude>
+    <ClInclude Include="FormDataDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiPartDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StepEditor.cpp">
@@ -129,6 +135,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TimingDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FormDataDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiPartDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

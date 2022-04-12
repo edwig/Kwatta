@@ -36,6 +36,7 @@
 #include "HTTPTime.h"
 #include "HTTPMessage.h"
 #include "ConvertWideString.h"
+#include "WinFile.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -58,7 +59,7 @@ bool
 MultiPart::SetFile(XString p_filename)
 {
   // Initially empty file and all the times (new file!)
-  m_filename.Empty();
+  m_shortFilename.Empty();
   m_creationDate.Empty();
   m_modificationDate.Empty();
   m_readDate.Empty();
@@ -97,17 +98,14 @@ MultiPart::SetFile(XString p_filename)
   {
     return false;
   }
+  m_longFilename = p_filename;
 
   // Record filename and size in this MultiPart
   WinFile filenm(p_filename);
-  m_filename = XString(filenm.GetFilenamePartFilename());
-  m_size     = m_file.GetLength();
-
-
-#pragma message ("ENCODE special chars")
-  // Add % encoding in the name if so necessary
-  //ensure.EncodeSpecialChars(m_filename);
-
+  m_shortFilename = XString(filenm.GetFilenamePartFilename());
+  m_size = m_file.GetLength();
+  filenm.SetFilename(m_shortFilename);
+  m_shortFilename = filenm.GetNamePercentEncoded();
   return true;
 }
 
@@ -155,9 +153,9 @@ MultiPart::CreateHeader(XString p_boundary,bool p_extensions /*=false*/)
   header.AppendFormat("name=\"%s\"",m_name.GetString());
 
   // Filename attributes
-  if(!m_filename.IsEmpty())
+  if(!m_shortFilename.IsEmpty())
   {
-    header.AppendFormat("; filename=\"%s\"",m_filename.GetString());
+    header.AppendFormat("; filename=\"%s\"",m_shortFilename.GetString());
 
     // Eventually do the extensions for filetimes and size
     if(p_extensions)
@@ -201,7 +199,7 @@ MultiPart::WriteFile()
   bool result = false;
 
   // Use our filename!
-  m_file.SetFileName(m_filename);
+  m_file.SetFileName(m_shortFilename);
   // Try to physically write the file
   result = m_file.WriteFile();
   // Forward our times
@@ -231,7 +229,7 @@ MultiPart::TrySettingFiletimes()
   pReadTime     = FileTimeFromString(pReadTime,    m_readDate);
 
   // Open file to set the filetimes in the filesystem
-  HANDLE fileHandle = CreateFile(m_filename
+  HANDLE fileHandle = CreateFile(m_shortFilename
                                 ,FILE_WRITE_ATTRIBUTES
                                 ,FILE_SHARE_READ 
                                 ,NULL
@@ -312,23 +310,34 @@ MultiPartBuffer::GetContentType()
   XString type;
   switch(m_type)
   {
-    case FD_URLENCODED: type = "application/x-www-form-urlencoded"; break;
-    case FD_MULTIPART:  type = "multipart/form-data";               break;
-    case FD_UNKNOWN:    break;
+    case FormDataType::FD_URLENCODED: type = "application/x-www-form-urlencoded"; break;
+    case FormDataType::FD_MULTIPART:  type = "multipart/form-data";               break;
+    case FormDataType::FD_UNKNOWN:    break;
   }
   return type;
 }
+
+XString
+MultiPartBuffer::GetBoundary()
+{
+  if(m_type == FormDataType::FD_MULTIPART)
+  {
+    return m_boundary;
+  }
+  return "";
+}
+
 
 bool
 MultiPartBuffer::SetFormDataType(FormDataType p_type)
 {
   // In case we 'reset'  to URL encoded
   // we cannot allow to any files entered as parts
-  if(p_type == FD_URLENCODED)
+  if(p_type == FormDataType::FD_URLENCODED)
   {
     for(auto& part : m_parts)
     {
-      if(!part->GetFileName().IsEmpty())
+      if(!part->GetShortFileName().IsEmpty())
       {
         return false;
       }
@@ -432,10 +441,43 @@ MultiPartBuffer::GetPart(int p_index)
   return nullptr;
 }
 
+// Delete a designated part
+bool
+MultiPartBuffer::DeletePart(XString p_name)
+{
+  MultiPartMap::iterator it = m_parts.begin();
+  while(it != m_parts.end())
+  {
+    if((*it)->GetName().Compare(p_name) == 0)
+    {
+      m_parts.erase(it);
+      return true;
+    }
+    ++it;
+  }
+  return false;
+}
+
+bool
+MultiPartBuffer::DeletePart(MultiPart* p_part)
+{
+  MultiPartMap::iterator it = m_parts.begin();
+  while(it != m_parts.end())
+  {
+    if (*it == p_part)
+    {
+      m_parts.erase(it);
+      return true;
+    }
+    ++it;
+  }
+  return false;
+}
+
 // Calculate a new part boundary and check that it does NOT 
 // exists in any of the parts of the message
 XString
-MultiPartBuffer::CalculateBoundary()
+MultiPartBuffer::CalculateBoundary(XString p_special /*= "#" */)
 {
   bool exists = false;
   do
@@ -443,7 +485,7 @@ MultiPartBuffer::CalculateBoundary()
     // Create boundary by using a globally unique identifier
     m_boundary = GenerateGUID();
     m_boundary.Replace("-","");
-    m_boundary = XString("#BOUNDARY#") + m_boundary + "#";
+    m_boundary = p_special + XString("BOUNDARY") + p_special + m_boundary + p_special;
 
     // Reset the search of the next boundary
     exists = false;
@@ -466,11 +508,11 @@ MultiPartBuffer::CalculateBoundary()
 XString 
 MultiPartBuffer::CalculateAcceptHeader()
 {
-  if(m_type == FD_URLENCODED)
+  if(m_type == FormDataType::FD_URLENCODED)
   {
     return "text/html, application/xhtml+xml";
   }
-  else if(m_type == FD_MULTIPART)
+  else if(m_type == FormDataType::FD_MULTIPART)
   {
     // De-double all content types of all parts
     std::map<XString,bool> types;
@@ -517,9 +559,9 @@ MultiPartBuffer::ParseBuffer(XString p_contentType,FileBuffer* p_buffer,bool p_c
   FormDataType type = FindBufferType(p_contentType);
   switch(type)
   {
-    case FD_URLENCODED: return ParseBufferUrlEncoded(p_buffer);
-    case FD_MULTIPART:  return ParseBufferFormData(p_contentType,p_buffer,p_conversion);
-    case FD_UNKNOWN:    [[fallthrough]];
+    case FormDataType::FD_URLENCODED: return ParseBufferUrlEncoded(p_buffer);
+    case FormDataType::FD_MULTIPART:  return ParseBufferFormData(p_contentType,p_buffer,p_conversion);
+    case FormDataType::FD_UNKNOWN:    [[fallthrough]];
     default:            return false;
   }
   return false;
@@ -533,8 +575,8 @@ MultiPartBuffer::ParseBufferFormData(XString p_contentType,FileBuffer* p_buffer,
   size_t length = 0;
 
   // Find the boundary between the parts
-  XString boundary = FindBoundaryInContentType(p_contentType);
-  if(boundary.IsEmpty())
+  m_boundary = FindBoundaryInContentType(p_contentType);
+  if(m_boundary.IsEmpty())
   {
     return false;
   }
@@ -550,7 +592,7 @@ MultiPartBuffer::ParseBufferFormData(XString p_contentType,FileBuffer* p_buffer,
   size_t remain  = length;
   while(true)
   {
-    void* partBuffer = FindPartBuffer(finding,remain,boundary);
+    void* partBuffer = FindPartBuffer(finding,remain,m_boundary);
     if(partBuffer == nullptr)
     {
       break;
@@ -722,7 +764,7 @@ MultiPartBuffer::AddRawBufferPart(uchar* p_partialBegin,uchar* p_partialEnd,bool
   }
 
   // Getting the contents
-  if(part->GetFileName().IsEmpty())
+  if(part->GetShortFileName().IsEmpty())
   {
     // PART
     // Buffer is the data component
@@ -846,13 +888,13 @@ MultiPartBuffer::FindBufferType(XString p_contentType)
 {
   if(p_contentType.Find("urlencoded") > 0)
   {
-    return FD_URLENCODED;
+    return FormDataType::FD_URLENCODED;
   }
   if(p_contentType.Find("form-data") > 0)
   {
-    return FD_MULTIPART;
+    return FormDataType::FD_MULTIPART;
   }
-  return FD_UNKNOWN;
+  return FormDataType::FD_UNKNOWN;
 }
 
 // Find the boundary in the content-type header

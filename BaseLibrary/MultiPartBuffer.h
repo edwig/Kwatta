@@ -39,13 +39,12 @@ class HTTPMessage;
 // Implements the "Content-Type: multipart/form-data" type of HTTP messages
 // or the default "Content-Type: application/x-www-form-urlencoded"
 
-typedef enum _fdtype
+enum class FormDataType
 {
   FD_UNKNOWN
  ,FD_URLENCODED
  ,FD_MULTIPART
-}
-FormDataType;
+};
 
 // The MultiPartBuffer consists of various MultiPart's
 // Normally you should only use the MultiPart on incoming messages
@@ -61,7 +60,7 @@ public:
   void    SetData(XString p_data)             { m_data             = p_data;   };
   void    SetContentType(XString p_type)      { m_contentType      = p_type;   };
   void    SetCharset(XString p_charset)       { m_charset          = p_charset;};
-  void    SetFileName(XString p_file)         { m_filename         = p_file;   };
+  void    SetFileName(XString p_file)         { m_shortFilename    = p_file;   };
   void    SetDateCreation(XString p_date)     { m_creationDate     = p_date;   };
   void    SetDateModification(XString p_date) { m_modificationDate = p_date;   };
   void    SetDateRead(XString p_date)         { m_readDate         = p_date;   };
@@ -74,7 +73,8 @@ public:
   XString GetData()             { return m_data;              };
   XString GetContentType()      { return m_contentType;       };
   XString GetCharset()          { return m_charset;           };
-  XString GetFileName()         { return m_filename;          };
+  XString GetShortFileName()    { return m_shortFilename;     };
+  XString GetLongFileName()     { return m_longFilename;      };
   XString GetDateCreation()     { return m_creationDate;      };
   XString GetDateModification() { return m_modificationDate;  };
   XString GetDateRead()         { return m_readDate;          };
@@ -96,7 +96,8 @@ private:
   XString m_charset;
   // Content-disposition: fields
   XString m_name;
-  XString m_filename;
+  XString m_shortFilename;
+  XString m_longFilename;
   XString m_creationDate;
   XString m_modificationDate;
   XString m_readDate;
@@ -127,15 +128,19 @@ public:
   // Creating a MultiPartBuffer
   MultiPart*   AddPart(XString p_name,XString p_contentType,XString p_data,XString p_charset = "",bool p_conversion = false);
   MultiPart*   AddFile(XString p_name,XString p_contentType,XString p_filename);
+  // Delete a designated part
+  bool         DeletePart(XString p_name);
+  bool         DeletePart(MultiPart* p_part);
   // Getting a part of the MultiPartBuffer
   MultiPart*   GetPart(XString p_name);
   MultiPart*   GetPart(int p_index);
   size_t       GetParts();
   FormDataType GetFormDataType();
   XString      GetContentType();
+  XString      GetBoundary();
 
   // Functions for HTTPMessage
-  XString      CalculateBoundary();
+  XString      CalculateBoundary(XString p_special = "#");
   XString      CalculateAcceptHeader();
   // Re-create from an existing (incoming!) buffer
   bool         ParseBuffer(XString p_contentType,FileBuffer* p_buffer,bool p_conversion = false);

@@ -131,7 +131,9 @@
   <ItemGroup>
     <ClInclude Include="AuthenticateDlg.h" />
     <ClInclude Include="EnvironmentDlg.h" />
+    <ClInclude Include="FormDataDlg.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="MultiPartDlg.h" />
     <ClInclude Include="RawRequestDlg.h" />
     <ClInclude Include="RawResponseDlg.h" />
     <ClInclude Include="RespHeadersDlg.h" />
@@ -153,6 +155,8 @@
   <ItemGroup>
     <ClCompile Include="AuthenticateDlg.cpp" />
     <ClCompile Include="EnvironmentDlg.cpp" />
+    <ClCompile Include="FormDataDlg.cpp" />
+    <ClCompile Include="MultiPartDlg.cpp" />
     <ClCompile Include="RawRequestDlg.cpp" />
     <ClCompile Include="RawResponseDlg.cpp" />
     <ClCompile Include="RespHeadersDlg.cpp" />

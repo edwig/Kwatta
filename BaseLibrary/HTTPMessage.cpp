@@ -965,10 +965,10 @@ HTTPMessage::SetMultiPartFormData(MultiPartBuffer* p_buffer)
   FormDataType type = p_buffer->GetFormDataType();
   switch(type)
   {
-    case FD_URLENCODED:  return SetMultiPartURL(p_buffer);
-    case FD_MULTIPART:   return SetMultiPartBuffer(p_buffer);
-    case FD_UNKNOWN:     [[fallthrough]];
-    default:             return false;
+    case FormDataType::FD_URLENCODED:  return SetMultiPartURL(p_buffer);
+    case FormDataType::FD_MULTIPART:   return SetMultiPartBuffer(p_buffer);
+    case FormDataType::FD_UNKNOWN:     [[fallthrough]];
+    default:                           return false;
   }
   return false;
 }
@@ -1030,7 +1030,11 @@ HTTPMessage::SetMultiPartBuffer(MultiPartBuffer* p_buffer)
   bool result = false;
 
   // Create the correct content type
-  XString boundary = p_buffer->CalculateBoundary();
+  XString boundary = p_buffer->GetBoundary();
+  if(boundary.IsEmpty())
+  {
+    boundary = p_buffer->CalculateBoundary();
+  } 
   XString contentType(p_buffer->GetContentType());
   contentType += "; boundary=";
   contentType += boundary;
@@ -1042,7 +1046,7 @@ HTTPMessage::SetMultiPartBuffer(MultiPartBuffer* p_buffer)
   {
     XString header = part->CreateHeader(boundary,p_buffer->GetFileExtensions());
     m_buffer.AddBuffer((uchar*)header.GetString(),(size_t)header.GetLength());
-    if(part->GetFileName().IsEmpty())
+    if(part->GetShortFileName().IsEmpty())
     {
       // Add data
       m_buffer.AddBufferCRLF((uchar*)part->GetData().GetString()
@@ -1055,7 +1059,10 @@ HTTPMessage::SetMultiPartBuffer(MultiPartBuffer* p_buffer)
       size_t size = 0L;
       FileBuffer* partBuffer = part->GetBuffer();
       partBuffer->GetBuffer(buf,size);
-      m_buffer.AddBufferCRLF(buf,size);
+      if(buf && size)
+      {
+        m_buffer.AddBufferCRLF(buf, size);
+      }
     }
     // At least one part added
     result = true;

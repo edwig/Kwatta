@@ -202,9 +202,12 @@ FileBuffer::AddBufferCRLF(uchar* p_buffer,size_t p_length)
   if(part.m_buffer)
   {
     memcpy(part.m_buffer,p_buffer,p_length);
-    *((char*)part.m_buffer + p_length + 0) = '\r';
-    *((char*)part.m_buffer + p_length + 1) = '\n';
-    *((char*)part.m_buffer + p_length + 2) = 0;
+    if(p_buffer[p_length-1] != '\n')
+    {
+      *((char*)part.m_buffer + p_length++) = '\r';
+      *((char*)part.m_buffer + p_length++) = '\n';
+    }
+    *((char*)part.m_buffer + p_length) = 0;
   }
   // Keep the buffer part
   m_parts.push_back(part);

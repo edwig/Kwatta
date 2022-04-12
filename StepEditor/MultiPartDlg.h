@@ -11,8 +11,8 @@
 // 
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: StepEditor
-// This File   : RequestDlg.h
-// What it does: Tab in the test editor for the plain request of an internet HTTP call
+// This File   : MutliPartDlg.h
+// What it does: Editing one of the parts of a multipart/form-data buffer
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
 // 
@@ -20,55 +20,63 @@
 
 #pragma once
 
-class TestStepIn;
-class Parameters;
+class MultiPart;
 
-// PayloadDlg dialog
+// MultiPartDlg dialog
 
-class RequestDlg : public StyleDialog
+class MultiPartDlg : public StyleDialog
 {
-	DECLARE_DYNAMIC(RequestDlg)
+	DECLARE_DYNAMIC(MultiPartDlg)
 
 public:
-	RequestDlg(CWnd* pParent = nullptr);   // standard constructor
-	virtual ~RequestDlg();
-
-  void InitTab(TestStepIN* p_testStep,Parameters* p_parameters);
-  void InitCombo();
-  void InitPayload();
-  void StoreVariables();
-  void EffectiveParameters();
-  void CheckXML();
-  void CheckJSON();
-
+	MultiPartDlg(CWnd* p_parent,MultiPart* p_part);
+	virtual ~MultiPartDlg();
 
 // Dialog Data
-	enum { IDD = IDD_REQUEST };
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_MULTIPART };
+#endif
 
 protected:
-  virtual void DoDataExchange(CDataExchange* pDX) override;
-  virtual BOOL OnInitDialog() override;
-  virtual void SetupDynamicLayout() override;
+	virtual void DoDataExchange(CDataExchange* pDX) override;
+	virtual BOOL OnInitDialog() override;
 
-  void UpdateStepHeader(CString p_contentType);
+	void InitButtons();
+	void InitContent();
+	void UseMultiPart();
+	void SaveMultiPart();
 
-  CString       m_contentType;
-  CString       m_payload;
+	MultiPart*    m_part;
 
-  StyleComboBox m_comboContent;
-  StyleButton   m_buttonCheck;
-  StyleButton   m_buttonParam;
-  StyleButton   m_buttonMulti;
-  StyleEdit     m_editPayload;
+	CString				m_name;
+	CString				m_charset;
+	CString				m_contentType;
+	bool					m_isFile;
+	CString				m_LongFilename;
+	CString				m_shortFilename;
+	CString				m_data;
 
-  TestStepIN*   m_testStep   { nullptr };
-  Parameters*   m_parameters { nullptr };
+	StyleEdit			m_editName;
+	StyleEdit			m_editCharset;
+	StyleComboBox m_comboContent;
+	StyleCheckbox m_checkIsFile;
+	StyleEdit			m_editLongFilename;
+	StyleEdit			m_editShortFilename;
+	StyleButton   m_buttonFile;
+	StyleEdit			m_editData;
+	StyleButton		m_buttonOK;
+	StyleButton		m_buttonCancel;
 
 	DECLARE_MESSAGE_MAP()
 public:
-  afx_msg void OnCbnSelchangeContent();
-  afx_msg void OnBnClickedCheck();
-  afx_msg void OnBnClickedParam();
-  afx_msg void OnBnClickedMulti();
-  afx_msg void OnEnKillfocusPayload();
+	afx_msg void OnEnChangeName();
+	afx_msg void OnEnChangeCharset();
+	afx_msg void OnCbnSelchangeContent();
+	afx_msg void OnBnClickedIsfile();
+	afx_msg void OnEnChangeFullfile();
+	afx_msg void OnBnClickedButtFile();
+	afx_msg void OnEnChangeShortfile();
+	afx_msg void OnEnChangeData();
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedCancel();
 };

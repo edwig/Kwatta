@@ -417,6 +417,12 @@ StepInternetDlg::SetStepResult(StepResultIN* p_result)
   m_page12->SetResult(p_result);
 }
 
+void
+StepInternetDlg::RefreshHeaders()
+{
+  m_page3->InitTab(m_testStep,&m_parameters);
+}
+
 bool
 StepInternetDlg::SaveStep()
 {

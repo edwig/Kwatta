@@ -45,6 +45,7 @@ public:
   void EffectiveParameters();
   void ResetStepResult();
   void SetStepResult(StepResultIN* p_result);
+  void RefreshHeaders();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

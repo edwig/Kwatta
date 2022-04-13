@@ -49,10 +49,11 @@ public:
   virtual void    ResetEffective();
 
   // GETTERS
-  CString         GetVerb()                 { return m_verb;    }
-  CString         GetURL()                  { return m_url;     }
-  CString         GetAnchor()               { return m_anchor;  }
-  CString         GetBody()                 { return m_body;    }
+  CString         GetVerb()                 { return m_verb;       }
+  CString         GetURL()                  { return m_url;        }
+  CString         GetAnchor()               { return m_anchor;     }
+  CString         GetBody()                 { return m_body;       }
+  CString         GetMimeType()             { return m_mimeType;   }
   CString         GetParameter(CString p_parameter);
   CString         GetHeader   (CString p_header);
   UrlParameters&  GetParameters()           { return m_parameters; }
@@ -78,10 +79,11 @@ public:
   CString         GetEffectiveCombinedURL();
   
   // SETTERS
-  void      SetVerb  (CString p_verb)   { m_verb    = p_verb;   }
-  void      SetURL   (CString p_url)    { m_url     = p_url;    }
-  void      SetAnchor(CString p_anchor) { m_anchor  = p_anchor; }
-  void      SetBody  (CString p_body)   { m_body    = p_body;   }
+  void      SetVerb  (CString p_verb)             { m_verb        = p_verb;       }
+  void      SetURL   (CString p_url)              { m_url         = p_url;        }
+  void      SetAnchor(CString p_anchor)           { m_anchor      = p_anchor;     }
+  void      SetBody  (CString p_body)             { m_body        = p_body;       }
+  void      SetMimeType(CString p_type)           { m_mimeType    = p_type;       }
   void      SetParameter(CString p_parameter,CString p_value);
   void      SetHeader   (CString p_parameter,CString p_value);
   void      SetAuthType(CString p_type)           { m_authType    = p_type;       }
@@ -106,6 +108,7 @@ protected:
   UrlParameters m_parameters;
   UrlHeaders    m_headers;
   CString       m_body;
+  CString       m_mimeType;
 
   // Authenticate
   CString       m_authType;

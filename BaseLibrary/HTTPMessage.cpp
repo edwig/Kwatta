@@ -966,7 +966,8 @@ HTTPMessage::SetMultiPartFormData(MultiPartBuffer* p_buffer)
   switch(type)
   {
     case FormDataType::FD_URLENCODED:  return SetMultiPartURL(p_buffer);
-    case FormDataType::FD_MULTIPART:   return SetMultiPartBuffer(p_buffer);
+    case FormDataType::FD_MULTIPART:   [[fallthrough]];
+    case FormDataType::FD_MIXED:       return SetMultiPartBuffer(p_buffer);
     case FormDataType::FD_UNKNOWN:     [[fallthrough]];
     default:                           return false;
   }

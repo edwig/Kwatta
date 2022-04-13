@@ -21,6 +21,9 @@
 #include "stdafx.h"
 #include "StepEditor.h"
 #include "MultiPartDlg.h"
+#include "FormDataDlg.h"
+#include "HTTPMessage.h"
+#include <ConvertWideString.h>
 #include <MultiPartBuffer.h>
 #include <FileDialog.h>
 
@@ -47,6 +50,8 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control (pDX,IDC_CHARSET,	 m_editCharset,m_charset);
   DDX_CBString(pDX,IDC_CONTENT,	 m_comboContent,m_contentType);
   DDX_Control (pDX,IDC_ISFILE,	 m_checkIsFile);
+  DDX_Control (pDX,IDC_MPART,    m_buttonMulti);
+  DDX_Control (pDX,IDC_BOUNDARY, m_editBoundary,m_boundary);
   DDX_Control (pDX,IDC_FULLFILE, m_editLongFilename, m_LongFilename);
   DDX_Control (pDX,IDC_SHORTFILE,m_editShortFilename,m_shortFilename);
   DDX_Control (pDX,IDC_BUTT_FILE,m_buttonFile);
@@ -62,6 +67,10 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
     m_buttonFile       .EnableWindow(m_isFile);
     // Datapart
     m_editData.EnableWindow(!m_isFile);
+
+    bool active = false;
+    if(m_contentType.Find("multipart") >= 0)  active = true;
+    m_buttonMulti.EnableWindow(active);
   }
 }
 
@@ -70,6 +79,7 @@ BEGIN_MESSAGE_MAP(MultiPartDlg, StyleDialog)
   ON_EN_CHANGE    (IDC_CHARSET,		&MultiPartDlg::OnEnChangeCharset)
   ON_CBN_SELCHANGE(IDC_CONTENT,		&MultiPartDlg::OnCbnSelchangeContent)
   ON_BN_CLICKED   (IDC_ISFILE,		&MultiPartDlg::OnBnClickedIsfile)
+  ON_BN_CLICKED   (IDC_MPART,     &MultiPartDlg::OnBnClickedMulti)
   ON_EN_CHANGE    (IDC_FULLFILE,	&MultiPartDlg::OnEnChangeFullfile)
   ON_BN_CLICKED   (IDC_BUTT_FILE, &MultiPartDlg::OnBnClickedButtFile)
   ON_EN_CHANGE    (IDC_SHORTFILE, &MultiPartDlg::OnEnChangeShortfile)
@@ -112,6 +122,8 @@ MultiPartDlg::InitContent()
   m_comboContent.AddString("text/html");
   m_comboContent.AddString("text/xml");
   m_comboContent.AddString("text/javascript");
+  m_comboContent.AddString("multipart/form-data");
+  m_comboContent.AddString("multipart/mixed");
 
   if(m_charset.IsEmpty())
   {
@@ -127,13 +139,21 @@ MultiPartDlg::InitContent()
 void
 MultiPartDlg::UseMultiPart()
 {
-  m_name					=  m_part->GetName();
-  m_contentType		=  m_part->GetContentType();
-  m_charset				=  m_part->GetCharset();
-  m_isFile				= !m_part->GetShortFileName().IsEmpty();
+  m_name          =  m_part->GetName();
+  m_contentType   =  m_part->GetContentType();
+  m_charset       =  m_part->GetCharset();
+  m_boundary      =  m_part->GetBoundary();
+  m_isFile        = !m_part->GetShortFileName().IsEmpty();
   m_shortFilename =  m_part->GetShortFileName();
   m_LongFilename  =  m_part->GetLongFileName();
-  m_data					=  m_part->GetData();
+  m_data          =  m_part->GetData();
+
+  m_boundary = FindFieldInHTTPHeader(m_contentType,"boundary");
+  int pos = m_contentType.Find(';');
+  if (pos > 0)
+  {
+    m_contentType = m_contentType.Left(pos);
+  }
 }
 
 void
@@ -174,12 +194,39 @@ MultiPartDlg::OnCbnSelchangeContent()
   {
     m_comboContent.GetLBText(ind,m_contentType);
   }
+  UpdateData(FALSE);
 }
 
 void 
 MultiPartDlg::OnBnClickedIsfile()
 {
   m_isFile = m_checkIsFile.GetCheck() > 0;
+  UpdateData(FALSE);
+}
+
+void 
+MultiPartDlg::OnBnClickedMulti()
+{
+  UpdateData();
+
+  CString content = m_contentType;
+  content += "; boundary=";
+  content += m_boundary;
+
+  FormDataDlg dlg(this,m_data,content);
+  dlg.DoModal();
+
+  HTTPMessage msg;
+  msg.SetMultiPartFormData(dlg.GetBuffer());
+  m_data = msg.GetBody();
+  m_contentType = msg.GetContentType();
+
+  m_boundary = FindFieldInHTTPHeader(m_contentType,"boundary");
+  int pos = m_contentType.Find(';');
+  if (pos)
+  {
+    m_contentType = m_contentType.Left(pos);
+  }
   UpdateData(FALSE);
 }
 

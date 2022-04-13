@@ -58,10 +58,11 @@ TestStepIN::ReadFromXML(CString p_filename)
   {
     throw StdException("Missing <Definition> in IRUN file: " + p_filename);
   }
-  m_verb   = msg.GetElement(def,"VERB");
-  m_url    = msg.GetElement(def,"URL");
-  m_anchor = msg.GetElement(def,"Anchor");
-  m_body   = msg.GetElement(def,"Body");
+  m_verb       = msg.GetElement(def,"VERB");
+  m_url        = msg.GetElement(def,"URL");
+  m_anchor     = msg.GetElement(def,"Anchor");
+  m_mimeType   = msg.GetElement(def,"MimeType");
+  m_body       = msg.GetElement(def,"Body");
 
   m_useStatus  = msg.GetElementBoolean(def,"UseStatus");
   m_useHeaders = msg.GetElementBoolean(def,"UseHeaders");
@@ -165,7 +166,8 @@ TestStepIN::WriteToXML(CString p_filename)
   msg.AddElement(auth,"ClientScope",XDT_String,m_clientScope);
 
   // And our payload body
-  msg.AddElement(def,"Body",XDT_String|XDT_CDATA,m_body);
+  msg.AddElement(def,"MimeType",XDT_String,m_mimeType);
+  msg.AddElement(def,"Body",   XDT_String|XDT_CDATA,m_body);
 
   // Now save it
   return msg.SaveFile(p_filename);

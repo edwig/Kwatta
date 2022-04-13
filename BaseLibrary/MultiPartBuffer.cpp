@@ -182,7 +182,12 @@ MultiPart::CreateHeader(XString p_boundary,bool p_extensions /*=false*/)
   // Add content type
   header += "\r\nContent-type: ";
   header += m_contentType;
-  if (!m_charset.IsEmpty())
+  if(!m_boundary.IsEmpty())
+  {
+    header += "; boundary=";
+    header += m_boundary;
+  }
+  if(!m_charset.IsEmpty())
   {
     header += "; charset=\"";
     header += m_charset;
@@ -312,6 +317,7 @@ MultiPartBuffer::GetContentType()
   {
     case FormDataType::FD_URLENCODED: type = "application/x-www-form-urlencoded"; break;
     case FormDataType::FD_MULTIPART:  type = "multipart/form-data";               break;
+    case FormDataType::FD_MIXED:      type = "multipart/mixed";                   break;
     case FormDataType::FD_UNKNOWN:    break;
   }
   return type;
@@ -320,13 +326,13 @@ MultiPartBuffer::GetContentType()
 XString
 MultiPartBuffer::GetBoundary()
 {
-  if(m_type == FormDataType::FD_MULTIPART)
+  if(m_type == FormDataType::FD_MULTIPART ||
+     m_type == FormDataType::FD_MIXED     )
   {
     return m_boundary;
   }
   return "";
 }
-
 
 bool
 MultiPartBuffer::SetFormDataType(FormDataType p_type)
@@ -512,7 +518,7 @@ MultiPartBuffer::CalculateAcceptHeader()
   {
     return "text/html, application/xhtml+xml";
   }
-  else if(m_type == FormDataType::FD_MULTIPART)
+  else if(m_type == FormDataType::FD_MULTIPART || m_type == FormDataType::FD_MIXED)
   {
     // De-double all content types of all parts
     std::map<XString,bool> types;
@@ -556,11 +562,12 @@ MultiPartBuffer::ParseBuffer(XString p_contentType,FileBuffer* p_buffer,bool p_c
     return false;
   }
 
-  FormDataType type = FindBufferType(p_contentType);
-  switch(type)
+  m_type = FindBufferType(p_contentType);
+  switch(m_type)
   {
     case FormDataType::FD_URLENCODED: return ParseBufferUrlEncoded(p_buffer);
-    case FormDataType::FD_MULTIPART:  return ParseBufferFormData(p_contentType,p_buffer,p_conversion);
+    case FormDataType::FD_MULTIPART:  [[fallthrough]];
+    case FormDataType::FD_MIXED:      return ParseBufferFormData(p_contentType,p_buffer,p_conversion);
     case FormDataType::FD_UNKNOWN:    [[fallthrough]];
     default:            return false;
   }
@@ -718,7 +725,7 @@ void
 MultiPartBuffer::AddRawBufferPart(uchar* p_partialBegin,uchar* p_partialEnd,bool p_conversion)
 {
   MultiPart* part = new MultiPart();
-  XString charset;
+  XString charset,boundary;
 
   while(true)
   {
@@ -732,9 +739,11 @@ MultiPartBuffer::AddRawBufferPart(uchar* p_partialBegin,uchar* p_partialEnd,bool
     // Finding the result for the header lines of the buffer part
     if(header.Left(12).CompareNoCase("Content-Type") == 0)
     {
-      charset = FindCharsetInContentType(header);
+      charset  = FindFieldInHTTPHeader(value,"charset");
+      boundary = FindFieldInHTTPHeader(value,"boundary");
       part->SetContentType(value);
       part->SetCharset(charset);
+      part->SetBoundary(boundary);
 
       // In case we have no charset in the Content-Type and we already
       // saw a incoming MultiPart with the name "_charset_"
@@ -837,18 +846,18 @@ MultiPartBuffer::GetHeaderFromLine(XString& p_line,XString& p_header,XString& p_
   if(pos > 0)
   {
     p_header = p_line.Left(pos);
-    p_line   = p_line.Mid(pos + 1);
-    p_line.TrimLeft(' ');
-    // Find header value ending (if any)
-    pos = p_line.Find(';');
-    if(pos > 0)
-    {
-      p_value = p_line.Left(pos);
-    }
-    else
-    {
-      p_value = p_line;
-    }
+    p_value  = p_line.Mid(pos + 1);
+    p_value.TrimLeft(' ');
+//     // Find header value ending (if any)
+//     pos = p_line.Find(';');
+//     if(pos > 0)
+//     {
+//       p_value = p_line.Left(pos);
+//     }
+//     else
+//     {
+//       p_value = p_line;
+//     }
   }
   return result;
 }
@@ -882,6 +891,7 @@ MultiPartBuffer::GetAttributeFromLine(XString& p_line,XString p_name)
 
 // Find which type of FormData we are receiving
 // content-type: multipart/form-data; boundary="--#BOUNDARY#12345678901234"
+// content-type: multipart/mixed; boundary="--#BOUNDARY#12345678901234"
 // content-type: application/x-www-form-urlencoded
 FormDataType
 MultiPartBuffer::FindBufferType(XString p_contentType)
@@ -893,6 +903,10 @@ MultiPartBuffer::FindBufferType(XString p_contentType)
   if(p_contentType.Find("form-data") > 0)
   {
     return FormDataType::FD_MULTIPART;
+  }
+  if(p_contentType.Find("mixed") > 0)
+  {
+    return FormDataType::FD_MIXED;
   }
   return FormDataType::FD_UNKNOWN;
 }

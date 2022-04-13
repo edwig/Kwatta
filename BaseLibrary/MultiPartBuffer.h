@@ -44,6 +44,7 @@ enum class FormDataType
   FD_UNKNOWN
  ,FD_URLENCODED
  ,FD_MULTIPART
+ ,FD_MIXED
 };
 
 // The MultiPartBuffer consists of various MultiPart's
@@ -56,30 +57,32 @@ public:
   MultiPart(XString p_name,XString p_contentType);
 
   // SETTERS
-  void    SetName(XString p_name)             { m_name             = p_name;   };
-  void    SetData(XString p_data)             { m_data             = p_data;   };
-  void    SetContentType(XString p_type)      { m_contentType      = p_type;   };
-  void    SetCharset(XString p_charset)       { m_charset          = p_charset;};
-  void    SetFileName(XString p_file)         { m_shortFilename    = p_file;   };
-  void    SetDateCreation(XString p_date)     { m_creationDate     = p_date;   };
-  void    SetDateModification(XString p_date) { m_modificationDate = p_date;   };
-  void    SetDateRead(XString p_date)         { m_readDate         = p_date;   };
-  void    SetSize(size_t p_size)              { m_size             = p_size;   };
+  void    SetName(XString p_name)             { m_name             = p_name;    }
+  void    SetData(XString p_data)             { m_data             = p_data;    }
+  void    SetContentType(XString p_type)      { m_contentType      = p_type;    }
+  void    SetCharset(XString p_charset)       { m_charset          = p_charset; }
+  void    SetBoundary(XString p_boundary)     { m_boundary         = p_boundary;}
+  void    SetFileName(XString p_file)         { m_shortFilename    = p_file;    }
+  void    SetDateCreation(XString p_date)     { m_creationDate     = p_date;    }
+  void    SetDateModification(XString p_date) { m_modificationDate = p_date;    }
+  void    SetDateRead(XString p_date)         { m_readDate         = p_date;    }
+  void    SetSize(size_t p_size)              { m_size             = p_size;    }
   // Setting filename and reading the new access times
   bool    SetFile(XString p_filename);
 
   // GETTERS
-  XString GetName()             { return m_name;              };
-  XString GetData()             { return m_data;              };
-  XString GetContentType()      { return m_contentType;       };
-  XString GetCharset()          { return m_charset;           };
-  XString GetShortFileName()    { return m_shortFilename;     };
-  XString GetLongFileName()     { return m_longFilename;      };
-  XString GetDateCreation()     { return m_creationDate;      };
-  XString GetDateModification() { return m_modificationDate;  };
-  XString GetDateRead()         { return m_readDate;          };
-  size_t  GetSize()             { return m_size;              };
-  FileBuffer* GetBuffer()       { return &m_file;             };
+  XString GetName()             { return m_name;              }
+  XString GetData()             { return m_data;              }
+  XString GetContentType()      { return m_contentType;       }
+  XString GetCharset()          { return m_charset;           }
+  XString GetBoundary()         { return m_boundary;          }
+  XString GetShortFileName()    { return m_shortFilename;     }
+  XString GetLongFileName()     { return m_longFilename;      }
+  XString GetDateCreation()     { return m_creationDate;      }
+  XString GetDateModification() { return m_modificationDate;  }
+  XString GetDateRead()         { return m_readDate;          }
+  size_t  GetSize()             { return m_size;              }
+  FileBuffer* GetBuffer()       { return &m_file;             }
 
   // Functions
   bool    WriteFile();
@@ -94,6 +97,7 @@ private:
   // Content-Type: field
   XString m_contentType;
   XString m_charset;
+  XString m_boundary;
   // Content-disposition: fields
   XString m_name;
   XString m_shortFilename;

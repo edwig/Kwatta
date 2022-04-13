@@ -52,7 +52,7 @@ void
 RequestDlg::DoDataExchange(CDataExchange* pDX)
 {
 	StyleDialog::DoDataExchange(pDX);
-  DDX_CBString(pDX,IDC_CONTENT, m_comboContent,m_contentType);
+  DDX_CBString(pDX,IDC_CONTENT, m_comboMime,m_mimeType);
   DDX_Control (pDX,IDC_CHECK,   m_buttonCheck);
   DDX_Control (pDX,IDC_PARAM,   m_buttonParam);
   DDX_Control (pDX,IDC_MULTI,   m_buttonMulti);
@@ -62,20 +62,20 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
   if(pDX->m_bSaveAndValidate == FALSE)
   {
     bool active = false;
-    if(m_contentType.Find("xml")  >= 0)       active = true;
-    if(m_contentType.Find("json") >= 0)       active = true;
-    if(m_contentType.Find("multipart") >= 0)  active = true;
+    if(m_mimeType.Find("xml")  >= 0)       active = true;
+    if(m_mimeType.Find("json") >= 0)       active = true;
+    if(m_mimeType.Find("multipart") >= 0)  active = true;
 
     m_buttonCheck.EnableWindow(active);
 
     active = false;
-    if(m_contentType.Find("multipart") >= 0)  active = true;
+    if(m_mimeType.Find("multipart") >= 0)  active = true;
     m_buttonMulti.EnableWindow(active);
   }
 }
 
 BEGIN_MESSAGE_MAP(RequestDlg, StyleDialog)
-  ON_CBN_SELCHANGE(IDC_CONTENT, &RequestDlg::OnCbnSelchangeContent)
+  ON_CBN_SELCHANGE(IDC_CONTENT, &RequestDlg::OnCbnSelchangeMime)
   ON_BN_CLICKED   (IDC_CHECK,   &RequestDlg::OnBnClickedCheck)
   ON_BN_CLICKED   (IDC_PARAM,   &RequestDlg::OnBnClickedParam)
   ON_BN_CLICKED   (IDC_MULTI,   &RequestDlg::OnBnClickedMulti)
@@ -117,16 +117,16 @@ RequestDlg::SetupDynamicLayout()
 void
 RequestDlg::InitCombo()
 {
-  m_comboContent.AddString("application/soap+xml");
-  m_comboContent.AddString("application/xml");
-  m_comboContent.AddString("application/json");
-  m_comboContent.AddString("application/octet-stream");
-  m_comboContent.AddString("text/plain");
-  m_comboContent.AddString("text/html");
-  m_comboContent.AddString("text/xml");
-  m_comboContent.AddString("text/javascript");
-  m_comboContent.AddString("multipart/form-data");
-  m_comboContent.AddString("multipart/mixed");
+  m_comboMime.AddString("application/soap+xml");
+  m_comboMime.AddString("application/xml");
+  m_comboMime.AddString("application/json");
+  m_comboMime.AddString("application/octet-stream");
+  m_comboMime.AddString("text/plain");
+  m_comboMime.AddString("text/html");
+  m_comboMime.AddString("text/xml");
+  m_comboMime.AddString("text/javascript");
+  m_comboMime.AddString("multipart/form-data");
+  m_comboMime.AddString("multipart/mixed");
 }
 
 void
@@ -138,19 +138,16 @@ RequestDlg::InitPayload()
 void 
 RequestDlg::InitTab(TestStepIN* p_testStep,Parameters* p_parameters)
 {
-  m_testStep = p_testStep;
+  // Register
+  m_testStep   = p_testStep;
   m_parameters = p_parameters;
-
+  // Setting the tab
   m_payload  = m_testStep->GetBody();
-  m_contentType = m_testStep->GetHeader("Content-Type");
-  if(m_contentType.IsEmpty())
-  {
-    m_contentType = m_testStep->GetHeader("Accept-Type");
-  }
-  int ind = m_comboContent.FindStringExact(0,m_contentType);
+  m_mimeType = m_testStep->GetMimeType();
+  int ind = m_comboMime.FindStringExact(0,m_mimeType);
   if(ind >= 0)
   {
-    m_comboContent.SetCurSel(ind);
+    m_comboMime.SetCurSel(ind);
   }
   UpdateData(FALSE);
 }
@@ -173,7 +170,7 @@ RequestDlg::StoreVariables()
 
   m_payload.Replace("\r","");
   m_testStep->SetBody(m_payload);
-  m_testStep->SetHeader("Content-type",m_contentType);
+  m_testStep->SetMimeType(m_mimeType);
 }
 
 void
@@ -232,7 +229,7 @@ RequestDlg::UpdateStepHeader(CString p_contentType)
 // PayloadDlg message handlers
 
 void 
-RequestDlg::OnCbnSelchangeContent()
+RequestDlg::OnCbnSelchangeMime()
 {
   UpdateData();
   UpdateData(FALSE);
@@ -241,11 +238,11 @@ RequestDlg::OnCbnSelchangeContent()
 void 
 RequestDlg::OnBnClickedCheck()
 {
-  if(m_contentType.Find("xml") >= 0)
+  if(m_mimeType.Find("xml") >= 0)
   {
     CheckXML();
   }
-  if(m_contentType.Find("json") >= 0)
+  if(m_mimeType.Find("json") >= 0)
   {
     CheckJSON();
   }
@@ -270,7 +267,7 @@ RequestDlg::OnBnClickedMulti()
   CString content = m_testStep->GetHeader("Content-Type");
   if(content.IsEmpty())
   {
-    content = m_contentType;
+    content = m_mimeType;
   }
 
   FormDataDlg dlg(this,m_payload,content);
@@ -278,15 +275,15 @@ RequestDlg::OnBnClickedMulti()
 
   HTTPMessage msg;
   msg.SetMultiPartFormData(dlg.GetBuffer());
-  m_payload     = msg.GetBody();
-  m_contentType = msg.GetContentType();
+  m_payload  = msg.GetBody();
+  m_mimeType = msg.GetContentType();
 
-  UpdateStepHeader(m_contentType);
+  UpdateStepHeader(m_mimeType);
 
-  int pos = m_contentType.Find(';');
+  int pos = m_mimeType.Find(';');
   if (pos)
   {
-    m_contentType = m_contentType.Left(pos);
+    m_mimeType = m_mimeType.Left(pos);
   }
   UpdateData(FALSE);
 }

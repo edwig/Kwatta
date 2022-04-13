@@ -28,12 +28,12 @@
 IMPLEMENT_DYNAMIC(FormDataDlg, StyleDialog)
 
 FormDataDlg::FormDataDlg(CWnd* p_parent,CString p_body,CString p_content)
-						:StyleDialog(IDD_FORMDATA,p_parent)
-						,m_orignalBody(p_body)
-						,m_contentType(p_content)
-	          ,m_buffer(FormDataType::FD_MULTIPART)
-						,m_useExtensions(false)
-						,m_useCharset(false)
+            :StyleDialog(IDD_FORMDATA, p_parent)
+            ,m_orignalBody(p_body)
+            ,m_contentType(p_content)
+            ,m_buffer(FormDataType::FD_MULTIPART)
+            ,m_useExtensions(false)
+            ,m_useCharset(false)
 {
 }
 

@@ -52,10 +52,10 @@ protected:
 
   void UpdateStepHeader(CString p_contentType);
 
-  CString       m_contentType;
+  CString       m_mimeType;
   CString       m_payload;
 
-  StyleComboBox m_comboContent;
+  StyleComboBox m_comboMime;
   StyleButton   m_buttonCheck;
   StyleButton   m_buttonParam;
   StyleButton   m_buttonMulti;
@@ -66,7 +66,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-  afx_msg void OnCbnSelchangeContent();
+  afx_msg void OnCbnSelchangeMime();
   afx_msg void OnBnClickedCheck();
   afx_msg void OnBnClickedParam();
   afx_msg void OnBnClickedMulti();

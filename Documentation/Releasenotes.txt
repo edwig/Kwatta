@@ -1,6 +1,12 @@
 KWATTA RELEASNOTES
 ==================
 
+Version 1.0.9 Release data: 14-04-2022
+--------------------------------------
+1) Made it possible to edit a HTTPMessage as a MultiPartBuffer, so we can send
+   multipart/mixed data to an OData $batch processor
+   See the button "MultiPart" in the internet step editor on the first tab (Request).
+
 Version 1.0.8 Release date: 24-03-2022
 --------------------------------------
 1) Updated to Marlin version 8.0.0

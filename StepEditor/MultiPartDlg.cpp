@@ -68,9 +68,13 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
     // Datapart
     m_editData.EnableWindow(!m_isFile);
 
-    bool active = false;
-    if(m_contentType.Find("multipart") >= 0)  active = true;
-    m_buttonMulti.EnableWindow(active);
+    bool multi = false;
+    if(m_contentType.Find("multipart") >= 0)
+    {
+      multi = true;
+    }
+    m_buttonMulti.EnableWindow(multi);
+    m_editData.SetMutable(!multi);
   }
 }
 
@@ -159,9 +163,12 @@ MultiPartDlg::UseMultiPart()
 void
 MultiPartDlg::SaveMultiPart()
 {
+  CString content = m_contentType + "; boundary=" + m_boundary;
+
   m_part->SetName(m_name);
-  m_part->SetContentType(m_contentType);
+  m_part->SetContentType(content);
   m_part->SetCharset(m_charset);
+  m_part->SetBoundary(m_boundary);
   if(m_isFile)
   {
     m_part->SetFileName(m_shortFilename);

@@ -68,9 +68,13 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
 
     m_buttonCheck.EnableWindow(active);
 
-    active = false;
-    if(m_mimeType.Find("multipart") >= 0)  active = true;
-    m_buttonMulti.EnableWindow(active);
+    bool multi = false;
+    if(m_mimeType.Find("multipart") >= 0)
+    {
+      multi = true;
+    }
+    m_buttonMulti.EnableWindow(multi);
+    m_editPayload.SetMutable(false);
   }
 }
 

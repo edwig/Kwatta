@@ -31,8 +31,9 @@
 // Previous implementation: https://tools.ietf.org/html/rfc2388
 //
 #pragma once
-#include "FileBuffer.h"
 #include <vector>
+#include "FileBuffer.h"
+#include "Headers.h"
 
 class HTTPMessage;
 
@@ -89,6 +90,9 @@ public:
   bool    CheckBoundaryExists(XString p_boundary);
   XString CreateHeader(XString p_boundary,bool p_extensions = false);
   void    TrySettingFiletimes();
+  void    AddHeader(XString p_header,XString p_value);
+  XString GetHeader(XString p_header);
+  void    DelHeader(XString p_header);
 
 private:
   XString   FileTimeToString  (PFILETIME p_filetime);
@@ -110,6 +114,8 @@ private:
   // File part
   FileBuffer m_file;        // File contents
   size_t     m_size { 0 };  // Indicative!!
+  // Additional headers
+  HeaderMap  m_headers;
 };
 
 using MultiPartMap = std::vector<MultiPart*>;
@@ -146,6 +152,7 @@ public:
   // Functions for HTTPMessage
   XString      CalculateBoundary(XString p_special = "#");
   XString      CalculateAcceptHeader();
+  bool         SetBoundary(XString p_boundary);
   // Re-create from an existing (incoming!) buffer
   bool         ParseBuffer(XString p_contentType,FileBuffer* p_buffer,bool p_conversion = false);
 

@@ -181,7 +181,7 @@ MultiPart::CreateHeader(XString p_boundary,bool p_extensions /*=false*/)
   }
   // Add content type
   header += "\r\nContent-type: ";
-  header += m_contentType;
+  header += FindMimeTypeInContentType(m_contentType);
   if(!m_boundary.IsEmpty())
   {
     header += "; boundary=";
@@ -275,6 +275,51 @@ MultiPart::FileTimeFromString(PFILETIME p_filetime,XString& p_time)
     }
   }
   return nullptr;
+}
+
+void
+MultiPart::AddHeader(XString p_header,XString p_value)
+{
+  // Case-insensitive search!
+  HeaderMap::iterator it = m_headers.find(p_header);
+  if(it != m_headers.end())
+  {
+    // Check if we set it a duplicate time
+    // If appended, we do not append it a second time
+    if(it->second.Find(p_value) >= 0)
+    {
+      return;
+    }
+    // New value of the header
+    it->second = p_value;
+  }
+  else
+  {
+    // Insert as a new header
+    m_headers.insert(std::make_pair(p_header,p_value));
+  }
+}
+
+XString 
+MultiPart::GetHeader(XString p_header)
+{
+  HeaderMap::iterator it = m_headers.find(p_header);
+  if(it != m_headers.end())
+  {
+    return it->second;
+  }
+  return "";
+}
+
+void
+MultiPart::DelHeader(XString p_header)
+{
+  HeaderMap::iterator it = m_headers.find(p_header);
+  if(it != m_headers.end())
+  {
+    m_headers.erase(it);
+    return;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -493,22 +538,27 @@ MultiPartBuffer::CalculateBoundary(XString p_special /*= "#" */)
     m_boundary.Replace("-","");
     m_boundary = p_special + XString("BOUNDARY") + p_special + m_boundary + p_special;
 
-    // Reset the search of the next boundary
-    exists = false;
-
     // Search all parts for the existence of the boundary
-    for(auto& part : m_parts)
-    {
-      if(part->CheckBoundaryExists(m_boundary))
-      {
-        exists = true;
-        break;
-      }
-    }
+    exists = !SetBoundary(m_boundary);
   }
   while(exists);
 
   return m_boundary;
+}
+
+bool
+MultiPartBuffer::SetBoundary(XString p_boundary)
+{
+  // Search all parts for the existence of the boundary
+  for(auto& part : m_parts)
+  {
+    if(part->CheckBoundaryExists(p_boundary))
+    {
+      return false;
+    }
+  }
+  m_boundary = p_boundary;
+  return true;
 }
 
 XString 
@@ -582,7 +632,7 @@ MultiPartBuffer::ParseBufferFormData(XString p_contentType,FileBuffer* p_buffer,
   size_t length = 0;
 
   // Find the boundary between the parts
-  m_boundary = FindBoundaryInContentType(p_contentType);
+  m_boundary = FindFieldInHTTPHeader(p_contentType,"boundary");
   if(m_boundary.IsEmpty())
   {
     return false;
@@ -761,6 +811,11 @@ MultiPartBuffer::AddRawBufferPart(uchar* p_partialBegin,uchar* p_partialEnd,bool
       part->SetDateCreation    (GetAttributeFromLine(line,"creation-date"));
       part->SetDateModification(GetAttributeFromLine(line,"modification-date"));
       part->SetDateRead        (GetAttributeFromLine(line,"read-date"));
+    }
+    else
+    {
+      // Retain the header. Not directly known in this protocol
+      part->AddHeader(header,value);
     }
   }
 

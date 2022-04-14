@@ -150,7 +150,7 @@ HeaderDlg::SetCombos()
 {
   m_comboOperator.SetCurSel((int)m_headerOperator);
 
-  int ind = m_comboHeaderVariable.FindStringExact(0, m_headerVariable);
+  int ind = m_comboHeaderVariable.FindStringExact(0,m_headerVariable);
   if (ind >= 0)
   {
     m_comboHeaderVariable.SetCurSel(ind);
@@ -168,7 +168,7 @@ HeaderDlg::LoadVariables()
   m_headerVariable  = m_validate->GetHeaderVariable();
 
   m_buttonCheck.SetCheck(m_useHeaderValue);
-  m_comboOperator.SetCurSel((int)m_headerOperator - 1);
+  m_comboOperator.SetCurSel((int)m_headerOperator);
 
   UpdateData(FALSE);
 }
@@ -277,13 +277,14 @@ HeaderDlg::OnCbnSelHeaderVariable()
 void 
 HeaderDlg::OnBnClickedHeaderParm()
 {
-  NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
+  NewVariableDlg dlg(ParType::PAR_RETURN,m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {
     CString newvar = dlg.GetNewName();
     if(!newvar.IsEmpty())
     {
       m_headerVariable = newvar;
+      m_parameters->AddReturnParameter(m_headerVariable,"");
       FillCombos();
       SetCombos();
     }

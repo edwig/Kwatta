@@ -21,7 +21,7 @@
 #include "StdAfx.h"
 #include "StepEditor.h"
 #include "RespHeadersDlg.h"
-#include <StepResultIN.h>
+#include <StepResultNET.h>
 #include "afxdialogex.h"
 
 #ifdef _DEBUG
@@ -96,7 +96,7 @@ RespHeadersDlg::InitTab()
 }
 
 void 
-RespHeadersDlg::SetResult(StepResultIN* p_result)
+RespHeadersDlg::SetResult(StepResultNET* p_result)
 {
   int count = 0;
   UrlHeaders& headers = p_result->GetHeaders();

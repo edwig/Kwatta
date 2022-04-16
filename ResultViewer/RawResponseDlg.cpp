@@ -20,7 +20,7 @@
 
 #include "stdafx.h"
 #include "ResultViewer.h"
-#include "TestStepIN.h"
+#include "TestStepNET.h"
 #include "RawResponseDlg.h"
 #include "ResultInternetDlg.h"
 #include "afxdialogex.h"
@@ -86,7 +86,7 @@ RawResponseDlg::InitPayload()
 }
 
 void 
-RawResponseDlg::LoadVariables(StepResultIN* p_result)
+RawResponseDlg::LoadVariables(StepResultNET* p_result)
 {
   if(p_result)
   {

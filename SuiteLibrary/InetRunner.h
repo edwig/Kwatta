@@ -26,10 +26,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "TestStepIN.h"
+#include "TestStepNET.h"
 #include "Parameters.h"
-#include "ValidateIN.h"
-#include "StepResultIN.h"
+#include "ValidateNET.h"
+#include "StepResultNET.h"
 #include <HTTPMessage.h>
 #include <vector>
 
@@ -60,7 +60,7 @@ public:
   int   PerformTest();
 
   // GETTERS
-  StepResultIN* GetStepResult() { return &m_result; }
+  StepResultNET* GetStepResult() { return &m_result; }
   CString       GetEffectiveStepFilename();
   int           GetMaxRunningTime();
   void          DisconnectClient();
@@ -109,12 +109,12 @@ private:
   int           m_steps       { 0    };
   int           m_stepSize    { 12   };
   int           m_progress    { 0    };
-  TestStepIN    m_testStep;
+  TestStepNET    m_testStep;
   Parameters    m_parameters;
   ValiSteps     m_localValidations;
   ValiSteps     m_globalValidations;
   Validations   m_validations;
-  StepResultIN  m_result;
+  StepResultNET  m_result;
   HTTPMessage   m_message;
   HTTPClient*   m_client      { nullptr };
   OAuth2Cache*  m_oauth       { nullptr };

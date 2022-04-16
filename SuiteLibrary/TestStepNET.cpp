@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "TestStepIN.h"
+#include "TestStepNET.h"
 #include "XMLMessage.h"
 #include "StdException.h"
 #include "ExtraExtensions.h"
@@ -33,7 +33,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-TestStepIN::ReadFromXML(CString p_filename)
+TestStepNET::ReadFromXML(CString p_filename)
 {
   XMLMessage msg;
   TestStep::ReadFromXML(msg, p_filename);
@@ -113,7 +113,7 @@ TestStepIN::ReadFromXML(CString p_filename)
 }
 
 bool
-TestStepIN::WriteToXML(CString p_filename)
+TestStepNET::WriteToXML(CString p_filename)
 {
   XMLMessage msg;
   if (!TestStep::WriteToXML(msg, p_filename))
@@ -175,7 +175,7 @@ TestStepIN::WriteToXML(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-TestStepIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
+TestStepNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
 
@@ -203,7 +203,7 @@ TestStepIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 }
 
 void
-TestStepIN::CheckFilename(CString p_filename)
+TestStepNET::CheckFilename(CString p_filename)
 {
   // Split of only the extension
   char extension[_MAX_EXT];
@@ -217,7 +217,7 @@ TestStepIN::CheckFilename(CString p_filename)
 }
 
 CString
-TestStepIN::GetParameter(CString p_parameter)
+TestStepNET::GetParameter(CString p_parameter)
 {
   for(auto& param : m_parameters)
   {
@@ -230,7 +230,7 @@ TestStepIN::GetParameter(CString p_parameter)
 }
 
 CString
-TestStepIN::GetHeader(CString p_header)
+TestStepNET::GetHeader(CString p_header)
 {
   for(auto& head : m_headers)
   {
@@ -243,7 +243,7 @@ TestStepIN::GetHeader(CString p_header)
 }
 
 void
-TestStepIN::SetParameter(CString p_parameter,CString p_value)
+TestStepNET::SetParameter(CString p_parameter,CString p_value)
 {
   for(auto& param : m_parameters)
   {
@@ -258,7 +258,7 @@ TestStepIN::SetParameter(CString p_parameter,CString p_value)
 }
 
 void
-TestStepIN::DeleteParameter(CString p_parameter)
+TestStepNET::DeleteParameter(CString p_parameter)
 {
   UrlParameters::iterator it = m_parameters.begin();
   while(it != m_parameters.end())
@@ -273,7 +273,7 @@ TestStepIN::DeleteParameter(CString p_parameter)
 }
 
 void
-TestStepIN::SetHeader(CString p_header,CString p_value)
+TestStepNET::SetHeader(CString p_header,CString p_value)
 {
   for(auto& head : m_headers)
   {
@@ -288,7 +288,7 @@ TestStepIN::SetHeader(CString p_header,CString p_value)
 }
 
 CString
-TestStepIN::GetEffectiveCombinedURL()
+TestStepNET::GetEffectiveCombinedURL()
 {
   CString url = CrackedURL::EncodeURLChars(m_effectiveUrl);
 
@@ -323,7 +323,7 @@ TestStepIN::GetEffectiveCombinedURL()
 
 
 CString
-TestStepIN::GetRawRequest()
+TestStepNET::GetRawRequest()
 {
   CString raw(m_verb);
   raw += " ";
@@ -353,7 +353,7 @@ TestStepIN::GetRawRequest()
 
 // Reset effective parameter replacements
 void
-TestStepIN::ResetEffective()
+TestStepNET::ResetEffective()
 {
   m_bearerToken.Empty();
   m_effectiveUrl.Empty();

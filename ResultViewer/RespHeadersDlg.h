@@ -20,7 +20,7 @@
 
 #pragma once
 
-class StepResultIN;
+class StepResultNET;
 
 // RespHeadersDlg dialog
 
@@ -31,7 +31,7 @@ class RespHeadersDlg : public StyleDialog
 public:
 	RespHeadersDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~RespHeadersDlg();
-  void LoadVariables(StepResultIN* p_result);
+  void LoadVariables(StepResultNET* p_result);
 
 // Dialog Data
 	enum { IDD = IDD_RESP_HEADERS };

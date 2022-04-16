@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "TestStepCL.h"
+#include "TestStepCMD.h"
 #include "XMLMessage.h"
 #include "StdException.h"
 #include "ExtraExtensions.h"
@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-TestStepCL::ReadFromXML(CString p_filename)
+TestStepCMD::ReadFromXML(CString p_filename)
 {
   XMLMessage msg;
   TestStep::ReadFromXML(msg,p_filename);
@@ -105,7 +105,7 @@ TestStepCL::ReadFromXML(CString p_filename)
 }
 
 bool
-TestStepCL::WriteToXML(CString p_filename)
+TestStepCMD::WriteToXML(CString p_filename)
 {
   XMLMessage msg;
   if(!TestStep::WriteToXML(msg, p_filename))
@@ -157,7 +157,7 @@ TestStepCL::WriteToXML(CString p_filename)
 
 
 CString
-TestStepCL::GetStandardInput()
+TestStepCMD::GetStandardInput()
 {
   unsigned char* buffer = nullptr;
   unsigned int   length = 0;
@@ -167,14 +167,14 @@ TestStepCL::GetStandardInput()
 }
 
 void
-TestStepCL::SetStandardInput(CString p_input)
+TestStepCMD::SetStandardInput(CString p_input)
 {
   m_standardInput.SetBuffer((unsigned char*)p_input.GetString(), p_input.GetLength());
 }
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-TestStepCL::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
+TestStepCMD::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
   CString input = GetStandardInput();
@@ -188,7 +188,7 @@ TestStepCL::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 }
 
 void
-TestStepCL::CheckFilename(CString p_filename)
+TestStepCMD::CheckFilename(CString p_filename)
 {
   // Split of only the extension
   char extension[_MAX_EXT];
@@ -203,7 +203,7 @@ TestStepCL::CheckFilename(CString p_filename)
 
 // Reset effective parameter replacements
 void
-TestStepCL::ResetEffective()
+TestStepCMD::ResetEffective()
 {
   m_effectiveDirectory.Empty();
   m_effectiveRuntimer.Empty();

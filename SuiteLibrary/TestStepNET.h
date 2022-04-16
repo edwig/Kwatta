@@ -32,11 +32,11 @@ INPair;
 using UrlParameters = std::vector<INPair>;
 using UrlHeaders    = std::vector<INPair>;
 
-class TestStepIN : public TestStep
+class TestStepNET : public TestStep
 {
 public:
-  TestStepIN() = default;
-  virtual ~TestStepIN() = default;
+  TestStepNET() = default;
+  virtual ~TestStepNET() = default;
 
   // Interface with the file system
   virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error

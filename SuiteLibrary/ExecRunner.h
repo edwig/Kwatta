@@ -26,10 +26,10 @@
 //////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "TestStepCL.h"
+#include "TestStepCMD.h"
 #include "Parameters.h"
-#include "ValidateCL.h"
-#include "StepResultCL.h"
+#include "ValidateCMD.h"
+#include "StepResultCMD.h"
 #include <vector>
 
 // 50 milliseconds is the smallest amount of waiting time
@@ -96,12 +96,12 @@ private:
   int           m_steps      {  0 };
   int           m_stepSize   { 12 };
   int           m_progress   {  0 };
-  TestStepCL    m_testStep;
+  TestStepCMD    m_testStep;
   Parameters    m_parameters;
   ValiSteps     m_localValidations;
   ValiSteps     m_globalValidations;
   Validations   m_validations;
-  StepResultCL  m_result;
+  StepResultCMD  m_result;
   HWND          m_callingHWND { NULL    };
   int           m_callingROW  { 0       };
   bool          m_global      { false   };

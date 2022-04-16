@@ -22,7 +22,7 @@
 #include "StepEditor.h"
 #include "StepInternetDlg.h"
 #include "TimingDlg.h"
-#include <TestStepIN.h>
+#include <TestStepNET.h>
 #include <SearchVarDlg.h>
 #include <Parameters.h>
 #include <afxdialogex.h>
@@ -96,7 +96,7 @@ TimingDlg::OnInitDialog()
 }
 
 void
-TimingDlg::InitTab(TestStepIN* p_step,Parameters* p_param)
+TimingDlg::InitTab(TestStepNET* p_step,Parameters* p_param)
 {
   // Remember the step
   m_step = p_step;

@@ -21,11 +21,11 @@
 #pragma once
 #include "Validate.h"
 
-class ValidateIN : public Validate
+class ValidateNET : public Validate
 {
 public:
-  ValidateIN() = default;
-  virtual ~ValidateIN() = default;
+  ValidateNET() = default;
+  virtual ~ValidateNET() = default;
 
   // Interface with the file system
   virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error

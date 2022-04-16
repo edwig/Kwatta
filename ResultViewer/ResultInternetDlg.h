@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "StepResultIN.h"
+#include "StepResultNET.h"
 #include "ValidationsDlg.h"
 #include "RawResponseDlg.h"
 #include "RespHeadersDlg.h"
@@ -56,7 +56,7 @@ protected:
   StyleButton     m_buttonOK;
   StyleTabCtrl    m_tabs;
 
-  StepResultIN    m_stepResult;
+  StepResultNET    m_stepResult;
 	HICON           m_hIcon;
   CBitmapButton   m_picture;
   ValidationsDlg* m_tab1;

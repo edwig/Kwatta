@@ -33,7 +33,7 @@ public:
 	RequestDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~RequestDlg();
 
-  void InitTab(TestStepIN* p_testStep,Parameters* p_parameters);
+  void InitTab(TestStepNET* p_testStep,Parameters* p_parameters);
   void InitCombo();
   void InitPayload();
   void StoreVariables();
@@ -61,7 +61,7 @@ protected:
   StyleButton   m_buttonMulti;
   StyleEdit     m_editPayload;
 
-  TestStepIN*   m_testStep   { nullptr };
+  TestStepNET*   m_testStep   { nullptr };
   Parameters*   m_parameters { nullptr };
 
 	DECLARE_MESSAGE_MAP()

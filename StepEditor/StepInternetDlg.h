@@ -30,8 +30,8 @@ class ResponseDlg;
 class RespHeadersDlg;
 class RawResponseDlg;
 class TimingDlg;
-class TestStepIN;
-class StepResultIN;
+class TestStepNET;
+class StepResultNET;
 
 // StepInternetDlg dialog
 
@@ -44,7 +44,7 @@ public:
 	virtual ~StepInternetDlg();
   void EffectiveParameters();
   void ResetStepResult();
-  void SetStepResult(StepResultIN* p_result);
+  void SetStepResult(StepResultNET* p_result);
   void RefreshHeaders();
 
 // Dialog Data
@@ -88,7 +88,7 @@ protected:
   StyleButton       m_buttonCancel;
   HICON             m_hIcon;
 
-  TestStepIN*       m_testStep { nullptr };
+  TestStepNET*       m_testStep { nullptr };
   Parameters        m_parameters;
   RequestDlg*       m_page1;
   URLParameterDlg*  m_page2;

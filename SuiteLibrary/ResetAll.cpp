@@ -22,8 +22,8 @@
 #include "ResetAll.h"
 #include "TestSet.h"
 #include "TestStep.h"
-#include "TestStepCL.h"
-#include "TestStepIN.h"
+#include "TestStepCMD.h"
+#include "TestStepNET.h"
 #include "TestSuite.h"
 #include "ExtraExtensions.h"
 #include <StdException.h>
@@ -170,12 +170,12 @@ ResetAll::ResetTestStep()
     TestStep* step = ReadTestStep(path);
     if (step->GetType() == StepType::Step_command)
     {
-      TestStepCL* clstep = reinterpret_cast<TestStepCL*>(step);
+      TestStepCMD* clstep = reinterpret_cast<TestStepCMD*>(step);
       clstep->ResetEffective();
     }
     else
     {
-      TestStepIN* instep = reinterpret_cast<TestStepIN*>(step);
+      TestStepNET* instep = reinterpret_cast<TestStepNET*>(step);
       instep->ResetEffective();
     }
     step->WriteToXML(path);

@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "ValidateIN.h"
+#include "ValidateNET.h"
 #include "Parameters.h"
 #include "ExtraExtensions.h"
 #include <JSONMessage.h>
@@ -34,7 +34,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-ValidateIN::ReadFromXML(CString p_filename)
+ValidateNET::ReadFromXML(CString p_filename)
 {
   XMLMessage msg;
   Validate::ReadFromXML(msg,p_filename);
@@ -94,7 +94,7 @@ ValidateIN::ReadFromXML(CString p_filename)
 }
 
 bool
-ValidateIN::WriteToXML(CString p_filename)
+ValidateNET::WriteToXML(CString p_filename)
 {
   XMLMessage msg;
   if(!Validate::WriteToXML(msg,p_filename))
@@ -147,7 +147,7 @@ ValidateIN::WriteToXML(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-ValidateIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
+ValidateNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = 0;
 
@@ -162,7 +162,7 @@ ValidateIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 
 // Check our filenames extension
 void
-ValidateIN::CheckFilename(CString p_filename)
+ValidateNET::CheckFilename(CString p_filename)
 {
   // Split of only the extension
   char extension[_MAX_EXT];
@@ -176,7 +176,7 @@ ValidateIN::CheckFilename(CString p_filename)
 }
 
 bool
-ValidateIN::ValidateStatusValue(Parameters* p_parameters,int p_status)
+ValidateNET::ValidateStatusValue(Parameters* p_parameters,int p_status)
 {
   // If we need not check it, all-OK
   if(!m_checkStatus)
@@ -212,7 +212,7 @@ ValidateIN::ValidateStatusValue(Parameters* p_parameters,int p_status)
 }
 
 bool
-ValidateIN::ValidateHeaderValue(Parameters* p_parameters,CString p_value)
+ValidateNET::ValidateHeaderValue(Parameters* p_parameters,CString p_value)
 {
   // See if we must check the output value
   if(!m_checkHeader)
@@ -243,7 +243,7 @@ ValidateIN::ValidateHeaderValue(Parameters* p_parameters,CString p_value)
 }
 
 bool
-ValidateIN::ValidateBodyValue(Parameters* p_parameters,CString p_body)
+ValidateNET::ValidateBodyValue(Parameters* p_parameters,CString p_body)
 {
   // See if we must check the output value
   if(!m_checkBody)
@@ -274,7 +274,7 @@ ValidateIN::ValidateBodyValue(Parameters* p_parameters,CString p_body)
 }
 
 bool
-ValidateIN::ValidateXMLValue(Parameters* p_parameters,CString p_xml)
+ValidateNET::ValidateXMLValue(Parameters* p_parameters,CString p_xml)
 {
   // See if we must check the output value
   if(!m_checkXML)
@@ -323,7 +323,7 @@ ValidateIN::ValidateXMLValue(Parameters* p_parameters,CString p_xml)
 }
 
 bool
-ValidateIN::ValidateJSONValue(Parameters* p_parameters,CString p_json)
+ValidateNET::ValidateJSONValue(Parameters* p_parameters,CString p_json)
 {
   // See if we must check the output value
   if(!m_checkJSON)

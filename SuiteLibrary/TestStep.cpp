@@ -20,8 +20,8 @@
 
 #include "stdafx.h"
 #include "TestStep.h"
-#include "TestStepCL.h"
-#include "TestStepIN.h"
+#include "TestStepCMD.h"
+#include "TestStepNET.h"
 #include "EnsureFile.h"
 #include "XMLMessage.h"
 #include "StdException.h"
@@ -40,13 +40,13 @@ TestStep* ReadTestStep(CString p_filename)
 
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_CL) == 0)
   {
-    TestStepCL* result = new TestStepCL();
+    TestStepCMD* result = new TestStepCMD();
     result->ReadFromXML(p_filename);
     return result;
   }
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_IN) == 0)
   {
-    TestStepIN* result = new TestStepIN();
+    TestStepNET* result = new TestStepNET();
     result->ReadFromXML(p_filename);
     return result;
   }

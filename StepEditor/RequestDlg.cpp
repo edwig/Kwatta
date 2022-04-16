@@ -20,7 +20,7 @@
 
 #include "stdafx.h"
 #include "StepEditor.h"
-#include "TestStepIN.h"
+#include "TestStepNET.h"
 #include "RequestDlg.h"
 #include "StepInternetDlg.h"
 #include "FormDataDlg.h"
@@ -140,7 +140,7 @@ RequestDlg::InitPayload()
 }
 
 void 
-RequestDlg::InitTab(TestStepIN* p_testStep,Parameters* p_parameters)
+RequestDlg::InitTab(TestStepNET* p_testStep,Parameters* p_parameters)
 {
   // Register
   m_testStep   = p_testStep;

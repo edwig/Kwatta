@@ -22,8 +22,8 @@
 #include "StepEditor.h"
 #include "ResponseDlg.h"
 #include "StepInternetDlg.h"
-#include <TestStepIN.h>
-#include <StepResultIN.h>
+#include <TestStepNET.h>
+#include <StepResultNET.h>
 #include <HTTPError.h>
 #include <JSONMessage.h>
 #include <XMLMessage.h>
@@ -117,7 +117,7 @@ ResponseDlg::InitPayload()
 }
 
 void 
-ResponseDlg::SetResult(StepResultIN* p_result)
+ResponseDlg::SetResult(StepResultNET* p_result)
 {
   m_status = p_result->GetStatus();
   m_statusText = GetHTTPStatusText(m_status);
@@ -139,7 +139,7 @@ ResponseDlg::SetResult(StepResultIN* p_result)
 }
 
 void
-ResponseDlg::FormatPayload(StepResultIN* p_result)
+ResponseDlg::FormatPayload(StepResultNET* p_result)
 {
   CString content = p_result->GetHeader("content-type");
   if (content.Find("xml") >= 0)

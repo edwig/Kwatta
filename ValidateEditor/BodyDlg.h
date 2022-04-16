@@ -20,7 +20,7 @@
 
 #pragma once
 #include "Parameters.h"
-#include "ValidateIN.h"
+#include "ValidateNET.h"
 
 // BodyDlg dialog
 
@@ -31,7 +31,7 @@ class BodyDlg : public StyleDialog
 public:
 	BodyDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~BodyDlg();
-  void     InitTab(ValidateIN* p_validate, Parameters* p_param);
+  void     InitTab(ValidateNET* p_validate, Parameters* p_param);
   void     StoreVariables();
 
 // Dialog Data
@@ -63,7 +63,7 @@ protected:
   StyleComboBox   m_comboBodyVariable;
   StyleButton     m_buttonBodyParm;
 
-  ValidateIN*     m_validate   { nullptr };
+  ValidateNET*     m_validate   { nullptr };
   Parameters*     m_parameters { nullptr };
 public:
   afx_msg void OnBnClickedUseBody();

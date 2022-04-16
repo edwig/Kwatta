@@ -22,7 +22,7 @@
 #include "ResultViewer.h"
 #include "RespHeadersDlg.h"
 #include "afxdialogex.h"
-#include <StepResultIN.h>
+#include <StepResultNET.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -89,7 +89,7 @@ RespHeadersDlg::InitLijst()
 }
 
 void
-RespHeadersDlg::LoadVariables(StepResultIN* p_result)
+RespHeadersDlg::LoadVariables(StepResultNET* p_result)
 {
   int count = 0;
 

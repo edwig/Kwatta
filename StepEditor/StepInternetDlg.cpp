@@ -32,8 +32,8 @@
 #include "TimingDlg.h"
 #include <AboutDlg.h>
 #include <SearchVarDlg.h>
-#include <TestStepIN.h>
-#include <StepResultIN.h>
+#include <TestStepNET.h>
+#include <StepResultNET.h>
 #include <StdException.h>
 #include "afxdialogex.h"
 
@@ -298,7 +298,7 @@ StepInternetDlg::InitStep()
   // Read in the definition file for a test step
   try
   {
-    m_testStep = new TestStepIN();
+    m_testStep = new TestStepNET();
     m_testStep->ReadFromXML(filename);
   }
   catch (StdException& ex)
@@ -409,7 +409,7 @@ StepInternetDlg::ResetStepResult()
 }
 
 void 
-StepInternetDlg::SetStepResult(StepResultIN* p_result)
+StepInternetDlg::SetStepResult(StepResultNET* p_result)
 {
   m_page4 ->SetResult(p_result->GetBearerToken());
   m_page10->SetResult(p_result);

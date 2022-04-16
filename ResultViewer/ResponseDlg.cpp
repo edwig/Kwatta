@@ -21,7 +21,7 @@
 #include "StdAfx.h"
 #include "ResultViewer.h"
 #include "ResponseDlg.h"
-#include <StepResultIN.h>
+#include <StepResultNET.h>
 #include <HTTPError.h>
 #include <JSONMessage.h>
 #include <afxdialogex.h>
@@ -84,7 +84,7 @@ ResponseDlg::SetupDynamicLayout()
 }
 
 void 
-ResponseDlg::LoadVariables(StepResultIN* p_result)
+ResponseDlg::LoadVariables(StepResultNET* p_result)
 {
   m_status     = p_result->GetStatus();
   m_statusText = GetHTTPStatusText(m_status);
@@ -105,7 +105,7 @@ ResponseDlg::LoadVariables(StepResultIN* p_result)
 }
 
 void 
-ResponseDlg::FormatPayload(StepResultIN* p_result)
+ResponseDlg::FormatPayload(StepResultNET* p_result)
 {
   CString content = p_result->GetHeader("content-type");
   if(content.Find("xml") >= 0)

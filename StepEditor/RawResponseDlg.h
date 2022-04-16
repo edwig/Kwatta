@@ -21,7 +21,7 @@
 #pragma once
 
 class TestStepIn;
-class StepResultIN;
+class StepResultNET;
 
 // RawResponseDlg dialog
 
@@ -34,7 +34,7 @@ public:
   virtual ~RawResponseDlg();
 
   void InitTab();
-  void SetResult(StepResultIN* p_result);
+  void SetResult(StepResultNET* p_result);
   void InitPayload();
   void StoreVariables();
 
@@ -48,7 +48,7 @@ protected:
 
   CString     m_payload;
   StyleEdit   m_editPayload;
-  TestStepIN* m_testStep { nullptr };
+  TestStepNET* m_testStep { nullptr };
 
   DECLARE_MESSAGE_MAP()
 public:

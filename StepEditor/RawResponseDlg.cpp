@@ -20,8 +20,8 @@
 
 #include "stdafx.h"
 #include "StepEditor.h"
-#include "TestStepIN.h"
-#include "StepResultIN.h"
+#include "TestStepNET.h"
+#include "StepResultNET.h"
 #include "RawResponseDlg.h"
 #include "StepInternetDlg.h"
 #include "afxdialogex.h"
@@ -95,7 +95,7 @@ RawResponseDlg::InitTab()
 }
 
 void 
-RawResponseDlg::SetResult(StepResultIN* p_result)
+RawResponseDlg::SetResult(StepResultNET* p_result)
 {
   m_payload = p_result->GetRawResponse();
   m_payload.Replace("\n","\r\n");

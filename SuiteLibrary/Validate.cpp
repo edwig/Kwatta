@@ -24,8 +24,8 @@
 #include "StdException.h"
 #include <EnsureFile.h>
 #include "ExtraExtensions.h"
-#include "ValidateCL.h"
-#include "ValidateIN.h"
+#include "ValidateCMD.h"
+#include "ValidateNET.h"
 #include <vector>
 #include <io.h>
 
@@ -42,13 +42,13 @@ Validate* ReadValidate(CString p_filename)
 
   if(extension.CompareNoCase(EXTENSION_VALIDATE_CL) == 0)
   {
-    ValidateCL* validate = new ValidateCL();
+    ValidateCMD* validate = new ValidateCMD();
     validate->ReadFromXML(p_filename);
     return validate;
   }
   if(extension.CompareNoCase(EXTENSION_VALIDATE_IN) == 0)
   {
-    ValidateIN* validate = new ValidateIN();
+    ValidateNET* validate = new ValidateNET();
     validate->ReadFromXML(p_filename);
     return validate;
   }

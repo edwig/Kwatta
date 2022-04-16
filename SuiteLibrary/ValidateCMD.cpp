@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "ValidateCL.h"
+#include "ValidateCMD.h"
 #include "Parameters.h"
 #include "ExtraExtensions.h"
 #include <StdException.h>
@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-ValidateCL::ReadFromXML(CString p_filename)
+ValidateCMD::ReadFromXML(CString p_filename)
 {
   XMLMessage msg;
   Validate::ReadFromXML(msg,p_filename);
@@ -67,7 +67,7 @@ ValidateCL::ReadFromXML(CString p_filename)
 }
 
 bool
-ValidateCL::WriteToXML(CString p_filename)
+ValidateCMD::WriteToXML(CString p_filename)
 {
   XMLMessage msg;
   if(!Validate::WriteToXML(msg,p_filename))
@@ -97,7 +97,7 @@ ValidateCL::WriteToXML(CString p_filename)
 
 // RE-Calculate the effective strings, returning the number of unbound parameters
 int
-ValidateCL::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
+ValidateCMD::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = 0;
 
@@ -110,7 +110,7 @@ ValidateCL::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 
 // Check our filenames extension
 void
-ValidateCL::CheckFilename(CString p_filename)
+ValidateCMD::CheckFilename(CString p_filename)
 {
   // Split of only the extension
   char extension[_MAX_EXT];
@@ -125,7 +125,7 @@ ValidateCL::CheckFilename(CString p_filename)
 
 // Check the return value
 bool
-ValidateCL::ValidateReturnValue(int p_value)
+ValidateCMD::ValidateReturnValue(int p_value)
 {
   // If we need not check it, all-OK
   if(!m_checkReturnValue)
@@ -154,7 +154,7 @@ ValidateCL::ValidateReturnValue(int p_value)
 }
 
 bool
-ValidateCL::ValidateOutputBuffer(CString p_buffer)
+ValidateCMD::ValidateOutputBuffer(CString p_buffer)
 {
   // See if we must check the output value
   if(!m_checkOutput)
@@ -180,7 +180,7 @@ ValidateCL::ValidateOutputBuffer(CString p_buffer)
 }
 
 bool
-ValidateCL::ValidateErrorBuffer(CString p_buffer)
+ValidateCMD::ValidateErrorBuffer(CString p_buffer)
 {
   // See if we must check the error output
   // But if we DO HAVE AN ERROR, always consider it for an error

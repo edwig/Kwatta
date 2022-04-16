@@ -23,8 +23,8 @@
 #include "StdException.h"
 #include "EnsureFile.h"
 #include "ExtraExtensions.h"
-#include "StepResultCL.h"
-#include "StepResultIN.h"
+#include "StepResultCMD.h"
+#include "StepResultNET.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -40,13 +40,13 @@ ReadStepResult(CString p_filename)
 
   if(extension.CompareNoCase(EXTENSION_RESULT_CL) == 0)
   {
-    StepResultCL* result = new StepResultCL();
+    StepResultCMD* result = new StepResultCMD();
     result->ReadFromXML(p_filename);
     return result;
   }
   if(extension.CompareNoCase(EXTENSION_RESULT_IN) == 0)
   {
-    StepResultIN* result = new StepResultIN();
+    StepResultNET* result = new StepResultNET();
     result->ReadFromXML(p_filename);
     return result;
   }

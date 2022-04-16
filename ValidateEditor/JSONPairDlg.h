@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "ValidateIN.h"
+#include "ValidateNET.h"
 #include "Parameters.h"
 
 // JSONPairDlg dialog
@@ -31,7 +31,7 @@ class JSONPairDlg : public StyleDialog
 public:
   JSONPairDlg(CWnd* pParent = nullptr);   // standard constructor
   virtual ~JSONPairDlg();
-  void     InitTab(ValidateIN* p_validate,Parameters* p_parameters);
+  void     InitTab(ValidateNET* p_validate,Parameters* p_parameters);
   void     StoreVariables();
 
 // Dialog Data
@@ -47,7 +47,7 @@ protected:
 
   DECLARE_MESSAGE_MAP()
 
-  ValidateIN* m_validate;
+  ValidateNET* m_validate;
   Parameters* m_parameters;
 
   bool           m_useJSON;

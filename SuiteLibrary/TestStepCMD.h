@@ -21,11 +21,11 @@
 #pragma once
 #include "TestStep.h"
 
-class TestStepCL: public TestStep
+class TestStepCMD: public TestStep
 {
 public:
-  TestStepCL() = default;
-  virtual ~TestStepCL() = default;
+  TestStepCMD() = default;
+  virtual ~TestStepCMD() = default;
 
   // Interface with the file system
   virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error

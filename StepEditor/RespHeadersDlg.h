@@ -20,8 +20,8 @@
 
 #pragma once
 
-class TestStepIN;
-class StepResultIN;
+class TestStepNET;
+class StepResultNET;
 
 // RespHeadersDlg dialog
 
@@ -33,7 +33,7 @@ public:
 	RespHeadersDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~RespHeadersDlg();
   void InitTab();
-  void SetResult(StepResultIN* p_result);
+  void SetResult(StepResultNET* p_result);
 
 // Dialog Data
 	enum { IDD = IDD_RESP_HEADERS };

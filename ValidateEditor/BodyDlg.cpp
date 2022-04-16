@@ -110,7 +110,7 @@ BodyDlg::SetupDynamicLayout()
 }
 
 void
-BodyDlg::InitTab(ValidateIN* p_validate, Parameters* p_param)
+BodyDlg::InitTab(ValidateNET* p_validate, Parameters* p_param)
 {
   m_validate   = p_validate;
   m_parameters = p_param;

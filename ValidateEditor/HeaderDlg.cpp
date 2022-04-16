@@ -111,7 +111,7 @@ HeaderDlg::SetupDynamicLayout()
 }
 
 void
-HeaderDlg::InitTab(ValidateIN* p_validate,Parameters* p_parameters)
+HeaderDlg::InitTab(ValidateNET* p_validate,Parameters* p_parameters)
 {
   m_validate   = p_validate;
   m_parameters = p_parameters;

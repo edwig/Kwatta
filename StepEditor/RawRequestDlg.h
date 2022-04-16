@@ -32,7 +32,7 @@ public:
 	RawRequestDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~RawRequestDlg();
 
-  void InitTab(TestStepIN* p_testStep = nullptr);
+  void InitTab(TestStepNET* p_testStep = nullptr);
   void InitPayload();
   void StoreVariables();
 
@@ -46,7 +46,7 @@ protected:
 
   CString       m_payload;
   StyleEdit     m_editPayload;
-  TestStepIN*   m_testStep { nullptr };
+  TestStepNET*   m_testStep { nullptr };
 
 	DECLARE_MESSAGE_MAP()
 public:

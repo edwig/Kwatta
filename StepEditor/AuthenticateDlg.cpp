@@ -22,8 +22,8 @@
 #include "StepEditor.h"
 #include "AuthenticateDlg.h"
 #include "StepInternetDlg.h"
-#include <TestStepIN.h>
-#include <StepResultIN.h>
+#include <TestStepNET.h>
+#include <StepResultNET.h>
 #include <SearchVarDlg.h>
 #include <afxdialogex.h>
 
@@ -191,7 +191,7 @@ AuthenticateDlg::InitCombos()
 }
 
 void 
-AuthenticateDlg::InitTab(TestStepIN* p_step,Parameters* p_parameters)
+AuthenticateDlg::InitTab(TestStepNET* p_step,Parameters* p_parameters)
 {
   m_testStep   = p_step;
   m_parameters = p_parameters;

@@ -19,8 +19,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-class TestStepIN;
-class StepResultIN;
+class TestStepNET;
+class StepResultNET;
 
 #define AUTH_ANONYMOUS  1
 #define AUTH_BASIC      2
@@ -39,7 +39,7 @@ public:
 	virtual ~AuthenticateDlg();
   virtual BOOL OnInitDialog() override;
 
-  void InitTab(TestStepIN* p_step,Parameters* p_parameters);
+  void InitTab(TestStepNET* p_step,Parameters* p_parameters);
   void SetResult(CString p_token);
   void StoreVariables();
 
@@ -57,7 +57,7 @@ protected:
   void ChooseVariable(StyleEdit& p_edit);
   void AdjustAuthentication();
 
-  TestStepIN* m_testStep   { nullptr };
+  TestStepNET* m_testStep   { nullptr };
   Parameters* m_parameters { nullptr };
   
   StyleComboBox   m_comboType;

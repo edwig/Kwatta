@@ -52,29 +52,29 @@
     <ClInclude Include="ExtraMessages.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="TestStepCL.h">
+    <ClInclude Include="TestStepCMD.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="ExtraExtensions.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="TestStepIN.h">
+    <ClInclude Include="TestStepNET.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="TestMessages.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="StepResultCL.h">
+    <ClInclude Include="StepResultCMD.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="StepResultIN.h">
+    <ClInclude Include="StepResultNET.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="SuiteLibrary.h" />
-    <ClInclude Include="ValidateCL.h">
+    <ClInclude Include="ValidateCMD.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="ValidateIN.h">
+    <ClInclude Include="ValidateNET.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="StyleRichEdit.h">
@@ -142,22 +142,22 @@
     <ClCompile Include="StartProgram.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestStepCL.cpp">
+    <ClCompile Include="TestStepCMD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestStepIN.cpp">
+    <ClCompile Include="TestStepNET.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StepResultCL.cpp">
+    <ClCompile Include="StepResultCMD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StepResultIN.cpp">
+    <ClCompile Include="StepResultNET.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ValidateCL.cpp">
+    <ClCompile Include="ValidateCMD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ValidateIN.cpp">
+    <ClCompile Include="ValidateNET.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AboutDlg.cpp">

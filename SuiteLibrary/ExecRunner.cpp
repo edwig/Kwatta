@@ -364,7 +364,7 @@ ExecRunner::PerformAllValidations()
   int step = 1;
   for(auto& vali : m_validations)
   {
-    ValidateCL* validate = reinterpret_cast<ValidateCL*>(vali);
+    ValidateCMD* validate = reinterpret_cast<ValidateCMD*>(vali);
     PerformStep("Validation: " + validate->GetName());
 
     // Do the validations
@@ -479,14 +479,14 @@ ExecRunner::ReadValidations()
 {
   for(auto& filename : m_localValidations)
   {
-    Validate* validate = new ValidateCL();
+    Validate* validate = new ValidateCMD();
     CString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
     m_validations.push_back(validate);
   }
   for(auto& filename : m_globalValidations)
   {
-    Validate* validate = new ValidateCL();
+    Validate* validate = new ValidateCMD();
     CString file = m_baseDirectory + "Validations\\" + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);

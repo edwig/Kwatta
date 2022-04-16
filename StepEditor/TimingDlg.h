@@ -20,7 +20,7 @@
 
 #pragma once
 
-class TestStepIN;
+class TestStepNET;
 class Parameters;
 
 // ParametersDlg dialog
@@ -32,7 +32,7 @@ class TimingDlg : public StyleDialog
 public:
 	TimingDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~TimingDlg();
-  void     InitTab(TestStepIN* p_step,Parameters* p_param);
+  void     InitTab(TestStepNET* p_step,Parameters* p_param);
   void     StoreVariables();
 
 // Dialog Data
@@ -55,7 +55,7 @@ protected:
   CString m_effectiveExec;
   CString m_effectiveAfter;
 
-  TestStepIN*   m_step       { nullptr };
+  TestStepNET*   m_step       { nullptr };
   Parameters*   m_parameters { nullptr };
 
   StyleCheckbox m_buttonKillOnTimeout;

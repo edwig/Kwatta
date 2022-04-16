@@ -20,7 +20,7 @@
 
 #include "stdafx.h"
 #include "StepEditor.h"
-#include "TestStepIN.h"
+#include "TestStepNET.h"
 #include "RawRequestDlg.h"
 #include "StepInternetDlg.h"
 #include "afxdialogex.h"
@@ -87,7 +87,7 @@ RawRequestDlg::InitPayload()
 }
 
 void 
-RawRequestDlg::InitTab(TestStepIN* p_testStep)
+RawRequestDlg::InitTab(TestStepNET* p_testStep)
 {
   if(p_testStep)
   {

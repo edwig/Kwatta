@@ -20,8 +20,8 @@
 
 #pragma once
 
-class TestStepIN;
-class StepResultIN;
+class TestStepNET;
+class StepResultNET;
 
 // ResponseDlg dialog
 
@@ -34,7 +34,7 @@ public:
 	virtual ~ResponseDlg();
 
   void InitTab();
-  void SetResult(StepResultIN* p_result);
+  void SetResult(StepResultNET* p_result);
 
 // Dialog Data
 	enum { IDD = IDD_RESPONSE };
@@ -44,7 +44,7 @@ protected:
   virtual BOOL OnInitDialog() override;
   virtual void SetupDynamicLayout() override;
           void InitPayload();
-          void FormatPayload(StepResultIN* p_result);
+          void FormatPayload(StepResultNET* p_result);
 
   int         m_status { 0 };
   CString     m_statusText;

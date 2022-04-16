@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
-#include "ValidateIN.h"
+#include "ValidateNET.h"
 #include "Parameters.h"
 #include "StatusDlg.h"
 #include "HeaderDlg.h"
@@ -68,7 +68,7 @@ protected:
   StyleButton  m_buttonOK;
   StyleButton  m_buttonCancel;
 
-  ValidateIN   m_validate;
+  ValidateNET   m_validate;
   Parameters   m_parameters;
 	HICON        m_hIcon;
   StatusDlg*   m_tab1;

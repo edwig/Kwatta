@@ -116,20 +116,20 @@
     <ClInclude Include="StartProgram.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StepResult.h" />
-    <ClInclude Include="StepResultCL.h" />
-    <ClInclude Include="StepResultIN.h" />
+    <ClInclude Include="StepResultCMD.h" />
+    <ClInclude Include="StepResultNET.h" />
     <ClInclude Include="StreamBuffer.h" />
     <ClInclude Include="SuiteLibrary.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestMessages.h" />
     <ClInclude Include="TestSet.h" />
     <ClInclude Include="TestStep.h" />
-    <ClInclude Include="TestStepCL.h" />
-    <ClInclude Include="TestStepIN.h" />
+    <ClInclude Include="TestStepCMD.h" />
+    <ClInclude Include="TestStepNET.h" />
     <ClInclude Include="TestSuite.h" />
     <ClInclude Include="Validate.h" />
-    <ClInclude Include="ValidateCL.h" />
-    <ClInclude Include="ValidateIN.h" />
+    <ClInclude Include="ValidateCMD.h" />
+    <ClInclude Include="ValidateNET.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutDlg.cpp" />
@@ -148,17 +148,17 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="StepResult.cpp" />
-    <ClCompile Include="StepResultCL.cpp" />
-    <ClCompile Include="StepResultIN.cpp" />
+    <ClCompile Include="StepResultCMD.cpp" />
+    <ClCompile Include="StepResultNET.cpp" />
     <ClCompile Include="StreamBuffer.cpp" />
     <ClCompile Include="TestSet.cpp" />
     <ClCompile Include="TestStep.cpp" />
-    <ClCompile Include="TestStepCL.cpp" />
-    <ClCompile Include="TestStepIN.cpp" />
+    <ClCompile Include="TestStepCMD.cpp" />
+    <ClCompile Include="TestStepNET.cpp" />
     <ClCompile Include="TestSuite.cpp" />
     <ClCompile Include="Validate.cpp" />
-    <ClCompile Include="ValidateCL.cpp" />
-    <ClCompile Include="ValidateIN.cpp" />
+    <ClCompile Include="ValidateCMD.cpp" />
+    <ClCompile Include="ValidateNET.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SuiteLibrary.rc" />

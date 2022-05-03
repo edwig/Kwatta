@@ -143,10 +143,12 @@ MutateDlg::OnBnClickedChange()
     {
       if(m_object.CompareNoCase("testset") == 0)
       {
-        oldfile.Replace(EXTENSION_TESTSTEP_CL,EXTENSION_RESULT_CL);
-        oldfile.Replace(EXTENSION_TESTSTEP_IN,EXTENSION_RESULT_IN);
-        newfile.Replace(EXTENSION_TESTSTEP_CL,EXTENSION_RESULT_CL);
-        newfile.Replace(EXTENSION_TESTSTEP_IN,EXTENSION_RESULT_IN);
+        oldfile.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
+        oldfile.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
+        oldfile.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
+        newfile.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
+        newfile.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
+        newfile.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
         std::filesystem::rename(oldfile.GetString(),newfile.GetString(),error);
       }
       // Change

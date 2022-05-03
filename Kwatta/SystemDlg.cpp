@@ -177,7 +177,7 @@ SystemDlg::OnEnKillfocusLogfile()
 void 
 SystemDlg::OnBnClickedLogfile()
 {
-  DocFileDialog dlg(false,"Choose a logfile for HTTP actions","txt","",0,"Logfiles *.txt|*.txt|All files *.*|*.*");
+  DocFileDialog dlg(GetSafeHwnd(),false,"Choose a logfile for HTTP actions","txt","",0,"Logfiles *.txt|*.txt|All files *.*|*.*");
   if(dlg.DoModal())
   {
     m_logfile = dlg.GetChosenFile();

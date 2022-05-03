@@ -30,6 +30,7 @@ enum class StepType
 {
   Step_command
  ,Step_http
+ ,Step_sql
 };
 
 class TestStep;

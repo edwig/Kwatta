@@ -61,6 +61,8 @@ constexpr auto NAMESPACE_SIGNATURE  = "http://www.w3.org/2000/09/xmldsig#";
 constexpr auto NAMESPACE_ENCODING   = "http://www.w3.org/2001/04/xmlenc#";
 constexpr auto NAMESPACE_SECEXT     = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd";
 constexpr auto NAMESPACE_SECUTILITY = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd";
+constexpr auto NAMESPACE_SECURITY   = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0";
+
 // Must have a default namespace
 #ifndef DEFAULT_NAMESPACE 
 #define DEFAULT_NAMESPACE "http://www.marlinserver.org/Services"
@@ -189,7 +191,7 @@ public:
   void            SetPassword(XString& p_password);
   void            SetTokenNonce(XString p_nonce);
   void            SetTokenCreated(XString p_created);
-  bool            SetTokenProfile(XString p_user,XString p_password,XString p_nonce = "", XString p_created = "");
+  bool            SetTokenProfile(XString p_user,XString p_password,XString p_created,XString p_nonce = "");
   // Set security access token
   void            SetAccessToken(HANDLE p_token);
   // Set senders address
@@ -325,11 +327,15 @@ public:
   // Set/Add parameter to the header section (level 1 only)
   XMLElement*     SetHeaderParameter(XString p_paramName, const char* p_value, bool p_first = false);
   // General add a parameter (always adds, so multiple parameters of same name can be added)
-  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,XString p_value,bool p_front = false);
-  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,const char* p_value,bool p_front = false);
-  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,int         p_value,bool p_front = false);
-  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,bool        p_value,bool p_front = false);
-  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,double      p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,XString           p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,const char*       p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,int               p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,unsigned          p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,bool              p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,double            p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,bcd               p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,__int64           p_value,bool p_front = false);
+  XMLElement*     AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,unsigned __int64  p_value,bool p_front = false);
 
   XString         GetParameter       (XString p_name);
   int             GetParameterInteger(XString p_name);
@@ -351,6 +357,8 @@ public:
 
   // Complete the message (members to XML)
   void            CompleteTheMessage();
+  // Clean up the empty elements in the message
+  bool            CleanUp();
 
 protected:
   // Encrypt the whole message: yielding a new message

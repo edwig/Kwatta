@@ -36,7 +36,6 @@
 #include "HTTPTime.h"
 #include "HTTPMessage.h"
 #include "ConvertWideString.h"
-#include "WinFile.h"
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -561,7 +560,7 @@ MultiPartBuffer::SetBoundary(XString p_boundary)
   return true;
 }
 
-XString 
+XString
 MultiPartBuffer::CalculateAcceptHeader()
 {
   if(m_type == FormDataType::FD_URLENCODED)

@@ -46,7 +46,7 @@ TestStepNET::ReadFromXML(CString p_filename)
     CString type = typ->GetValue();
     if (type.Compare("Internet"))
     {
-      throw StdException("IRUN file is not a internet test: " + p_filename);
+      throw StdException("IRUN file is not an internet test: " + p_filename);
     }
   }
   else
@@ -210,7 +210,7 @@ TestStepNET::CheckFilename(CString p_filename)
   _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension, EXTENSION_TESTSTEP_IN, 5))
+  if(_strnicmp(extension, EXTENSION_TESTSTEP_NET, 5))
   {
     throw StdException("A TestStep XML definition file must be saved as a *.XRUN");
   }

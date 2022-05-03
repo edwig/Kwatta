@@ -61,14 +61,15 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>httpapi.lib;secur32.lib;Rpcrt4.lib;winhttp.lib;crypt32.lib;bcrypt.lib;websocket.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>httpapi.lib;secur32.lib;Rpcrt4.lib;winhttp.lib;crypt32.lib;bcrypt.lib;websocket.lib;odbc32.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -97,17 +98,18 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)lib\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>httpapi.lib;secur32.lib;Rpcrt4.lib;winhttp.lib;crypt32.lib;bcrypt.lib;websocket.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <AdditionalDependencies>httpapi.lib;secur32.lib;Rpcrt4.lib;winhttp.lib;crypt32.lib;bcrypt.lib;websocket.lib;odbc32.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -130,14 +132,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AuthenticateDlg.h" />
+    <ClInclude Include="DatabaseDlg.h" />
     <ClInclude Include="EnvironmentDlg.h" />
     <ClInclude Include="FormDataDlg.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MultiPartDlg.h" />
     <ClInclude Include="RawRequestDlg.h" />
     <ClInclude Include="RawResponseDlg.h" />
+    <ClInclude Include="RawSQLDlg.h" />
     <ClInclude Include="RespHeadersDlg.h" />
     <ClInclude Include="ResponseDlg.h" />
+    <ClInclude Include="SQLDlg.h" />
+    <ClInclude Include="SQLOutputDlg.h" />
+    <ClInclude Include="SQLResultDlg.h" />
+    <ClInclude Include="StepDatabaseDlg.h" />
     <ClInclude Include="TimingDlg.h" />
     <ClInclude Include="UrlHeaderDlg.h" />
     <ClInclude Include="URLParameterDlg.h" />
@@ -154,13 +162,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AuthenticateDlg.cpp" />
+    <ClCompile Include="DatabaseDlg.cpp" />
     <ClCompile Include="EnvironmentDlg.cpp" />
     <ClCompile Include="FormDataDlg.cpp" />
     <ClCompile Include="MultiPartDlg.cpp" />
     <ClCompile Include="RawRequestDlg.cpp" />
     <ClCompile Include="RawResponseDlg.cpp" />
+    <ClCompile Include="RawSQLDlg.cpp" />
     <ClCompile Include="RespHeadersDlg.cpp" />
     <ClCompile Include="ResponseDlg.cpp" />
+    <ClCompile Include="SQLDlg.cpp" />
+    <ClCompile Include="SQLOutputDlg.cpp" />
+    <ClCompile Include="SQLResultDlg.cpp" />
+    <ClCompile Include="StepDatabaseDlg.cpp" />
     <ClCompile Include="TimingDlg.cpp" />
     <ClCompile Include="UrlHeaderDlg.cpp" />
     <ClCompile Include="URLParameterDlg.cpp" />

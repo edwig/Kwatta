@@ -339,10 +339,6 @@ SOAPMessage::SetSoapActionFromHTTTP(XString p_action)
   }
   // OK: Use this set (action,namesp)
   m_soapAction = action;
-//   if(!namesp.IsEmpty())
-//   {
-//     m_namespace = namesp;
-//   }
 }
 
 #pragma endregion XTOR and DTOR of a SOAP message
@@ -874,6 +870,30 @@ SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,int
 }
 
 XMLElement*
+SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,unsigned p_value,bool p_front /*=false*/)
+{
+  XString value;
+  value.Format("%u",p_value);
+  return AddElement(p_base,p_name,p_type,value,p_front);
+}
+
+XMLElement* 
+SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,__int64 p_value,bool p_front /*= false*/)
+{
+  XString value;
+  value.Format("%I64d",p_value);
+  return AddElement(p_base,p_name,p_type,value,p_front);
+}
+
+XMLElement* 
+SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,unsigned __int64 p_value,bool p_front /*= false*/)
+{
+  XString value;
+  value.Format("%I64u",p_value);
+  return AddElement(p_base,p_name,p_type,value,p_front);
+}
+
+XMLElement*
 SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,const char* p_value,bool p_front /*=false*/)
 {
   XString value(p_value);
@@ -893,6 +913,13 @@ SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,dou
   XString value;
   value.Format("16.16%g",p_value);
   value = value.TrimRight('0');
+  return AddElement(p_base,p_name,p_type,value,p_front);
+}
+
+XMLElement*
+SOAPMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,bcd p_value,bool p_front /*=false*/)
+{
+  XString value = p_value.AsString(bcd::Format::Bookkeeping,false,0);
   return AddElement(p_base,p_name,p_type,value,p_front);
 }
 
@@ -1185,6 +1212,26 @@ SOAPMessage::SetSoapEnvelope()
     SetElementNamespace(m_root,"wsse",NAMESPACE_SECEXT);
     SetElementNamespace(m_root,"wsu", NAMESPACE_SECUTILITY);
   }
+}
+
+// Clean up the empty elements in the message
+bool
+SOAPMessage::CleanUp()
+{
+  bool result = false;
+
+  if(m_body && m_paramObject)
+  {
+    result = true;
+    for(int num = (int)m_paramObject->GetChildren().size() - 1; num >= 0; --num)
+    {
+      if(!CleanUpElement(m_paramObject->GetChildren()[num],true))
+      {
+        result = false;
+      }
+    }
+  }
+  return result;
 }
 
 #pragma endregion XMLOutput
@@ -1719,6 +1766,13 @@ SOAPMessage::CreateParametersObject(ResponseType p_responseType)
       }
       else
       {
+        // Make sure we have a valid XML name
+        // If not, we provide a generic default name to proceed with fingers crossed
+        if(m_soapAction.IsEmpty() || !XMLElement::IsValidName(m_soapAction))
+        {
+          m_soapAction = "SoapAction";
+        }
+
         // When soapVersion = 1.1 or 1.2
         switch(p_responseType)
         {
@@ -2337,6 +2391,7 @@ SOAPMessage::CheckUsernameToken(XMLElement* p_token)
 {
   XMLElement* usern = FindElement(p_token,"Username",false);
   XMLElement* psswd = FindElement(p_token,"Password",false);
+  XMLElement* creat = FindElement(p_token,"Created", false);
 
   // Nothing to do here
   if(usern == nullptr || psswd == nullptr)
@@ -2348,25 +2403,30 @@ SOAPMessage::CheckUsernameToken(XMLElement* p_token)
   m_user     = usern->GetValue();
   m_password = psswd->GetValue();
 
+  // Optionally a creation time
+  if(creat)
+  {
+    m_tokenCreated = creat->GetValue();
+  }
+
   // Find nonce/created
   XMLAttribute* type = FindAttribute(psswd,"Type");
   if(type && type->m_value.Find("#PasswordDigest") >= 0)
   {
     XMLElement*  nonce = FindElement(p_token,"Nonce",false);
-    XMLElement*  creat = FindElement(p_token,"Created",false);
     // IMPLICIT: Password text = Base64 ( SHA1 ( nonce + created + password ))
     if(nonce && creat)
     {
-      m_tokenNonce   = nonce->GetValue();
-      m_tokenCreated = creat->GetValue();
+      m_tokenNonce = nonce->GetValue();
     }
   }
 }
 
 bool
-SOAPMessage::SetTokenProfile(XString p_user,XString p_password,XString p_nonce /*=""*/, XString p_created /*=""*/)
+SOAPMessage::SetTokenProfile(XString p_user,XString p_password,XString p_created,XString p_nonce /*=""*/)
 {
   XString namesp(NAMESPACE_SECEXT);
+  XString secure(NAMESPACE_SECURITY);
 
   XMLElement* header = FindElement("Header", false);
   if(!header) return false;
@@ -2383,6 +2443,7 @@ SOAPMessage::SetTokenProfile(XString p_user,XString p_password,XString p_nonce /
     token = AddElement(secur,"wsse:UsernameToken",XDT_String,"");
   }
 
+  // Fill in the user
   XMLElement* user = FindElement(token,"Username",false);
   if(!user)
   {
@@ -2390,6 +2451,7 @@ SOAPMessage::SetTokenProfile(XString p_user,XString p_password,XString p_nonce /
   }
   user->SetValue(p_user);
 
+  // Fill in unencrypted(!) password
   XMLElement* passwd = FindElement(token,"Password",false);
   if(!passwd)
   {
@@ -2397,15 +2459,15 @@ SOAPMessage::SetTokenProfile(XString p_user,XString p_password,XString p_nonce /
   }
   passwd->SetValue(p_password);
 
-  if(!p_nonce.IsEmpty() && !p_created.IsEmpty())
+  // If nonce given: create password digest hash
+  if(!p_nonce.IsEmpty())
   {
     Crypto crypt;
     // Password text = Base64(SHA1(nonce + created + password))
     XString combined = p_nonce + p_created + p_password;
-    m_password = crypt.Digest(combined.GetString(),combined.GetLength(),CALG_SHA1);
-    passwd->SetValue(m_password);
-    XString digest = namesp + XString("#PasswordDigest");
-    SetAttribute(passwd,"Type",digest.GetString());
+    XString password = crypt.Digest(combined.GetString(),combined.GetLength(),CALG_SHA1);
+    passwd->SetValue(password);
+    SetAttribute(passwd,"Type",namesp + "#PasswordDigest");
 
     XMLElement* nonce = FindElement(token,"Nonce",false);
     if(!nonce)
@@ -2413,20 +2475,21 @@ SOAPMessage::SetTokenProfile(XString p_user,XString p_password,XString p_nonce /
       nonce = AddElement(token,"wsse:Nonce",XDT_String,"");
     }
     nonce->SetValue(Base64::Encrypt(p_nonce));
-    
-    XMLElement* creat = FindElement(token,"Created",false);
-    if(!creat)
-    {
-      creat = AddElement(token,"wsse:Created",XDT_String,"");
-    }
-    creat->SetValue(p_created);
+    SetAttribute(nonce,"EncodingType",secure + "#Base64Binary");
+  }
+  else
+  {
+    // Mark password as plain text password!
+    SetAttribute(passwd,"Type",namesp + "#PasswordText");
   }
 
-  // Keep all info in members
-  m_user         = p_user;
-  m_password     = p_password;
-  m_tokenNonce   = p_nonce;
-  m_tokenCreated = p_created;
+  // Fill in the creation time (preferable in UTC!!)
+  XMLElement* creat = FindElement(token,"Created",false);
+  if(!creat)
+  {
+    creat = AddElement(token,"wsse:Created",XDT_String,"");
+  }
+  creat->SetValue(p_created);
 
   return true;
 }

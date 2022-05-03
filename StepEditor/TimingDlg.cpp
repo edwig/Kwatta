@@ -21,6 +21,7 @@
 #include "stdafx.h"
 #include "StepEditor.h"
 #include "StepInternetDlg.h"
+#include "StepDatabaseDlg.h"
 #include "TimingDlg.h"
 #include <TestStepNET.h>
 #include <SearchVarDlg.h>
@@ -96,10 +97,10 @@ TimingDlg::OnInitDialog()
 }
 
 void
-TimingDlg::InitTab(TestStepNET* p_step,Parameters* p_param)
+TimingDlg::InitTab(TestStep* p_step,Parameters* p_param)
 {
   // Remember the step
-  m_step = p_step;
+  m_step       = p_step;
   m_parameters = p_param;
 
   // Get all values
@@ -115,10 +116,13 @@ TimingDlg::InitTab(TestStepNET* p_step,Parameters* p_param)
 void
 TimingDlg::StoreVariables()
 {
-  m_step->SetWaitBeforeRun(m_waitBeforeRun);
-  m_step->SetWaitAfterRun(m_waitAfterRun);
-  m_step->SetKillOnTimeout(m_killOnTimeout);
-  m_step->SetMaxExecution(m_maxExecution);
+  if(m_step)
+  {
+    m_step->SetWaitBeforeRun(m_waitBeforeRun);
+    m_step->SetWaitAfterRun(m_waitAfterRun);
+    m_step->SetKillOnTimeout(m_killOnTimeout);
+    m_step->SetMaxExecution(m_maxExecution);
+  }
 }
 
 void
@@ -130,8 +134,19 @@ TimingDlg::Effectuate()
     m_step->SetWaitBeforeRun(m_waitBeforeRun);
     m_step->SetWaitAfterRun (m_waitAfterRun);
 
-    StepInternetDlg* parent = (StepInternetDlg*)GetParent()->GetParent();
-    parent->EffectiveParameters();
+    StepInternetDlg* parent = dynamic_cast<StepInternetDlg*>(GetParent()->GetParent());
+    if(parent)
+    {
+      parent->EffectiveParameters();
+    }
+    else
+    {
+      StepDatabaseDlg* parent = dynamic_cast<StepDatabaseDlg*>(GetParent()->GetParent());
+      if(parent)
+      {
+        parent->EffectiveParameters();
+      }
+    }
 
     m_effectiveExec   = m_step->GetEffectiveMaxExecution();
     m_effectiveBefore = m_step->GetEffectiveWaitBeforeRun();

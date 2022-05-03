@@ -131,7 +131,7 @@ BOOL
 StepInternetDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("StepEditor");
+  SetWindowText("StepEditor HTTP");
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
 

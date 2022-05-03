@@ -64,6 +64,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -101,6 +102,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -137,9 +139,16 @@
     <ClInclude Include="OutputDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="ReturnDlg.h" />
+    <ClInclude Include="SQLColsDlg.h" />
+    <ClInclude Include="SQLDataDlg.h" />
+    <ClInclude Include="SQLNativeDlg.h" />
+    <ClInclude Include="SQLRowsDlg.h" />
+    <ClInclude Include="SQLSQLStateDlg.h" />
+    <ClInclude Include="SQLSucceededDlg.h" />
     <ClInclude Include="StatusDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="ValidateDatabaseDlg.h" />
     <ClInclude Include="ValidateEditor.h" />
     <ClInclude Include="ValidateEditorDlg.h" />
     <ClInclude Include="ValidateInternetDlg.h" />
@@ -152,6 +161,13 @@
     <ClCompile Include="JSONPairDlg.cpp" />
     <ClCompile Include="OutputDlg.cpp" />
     <ClCompile Include="ReturnDlg.cpp" />
+    <ClCompile Include="SQLColsDlg.cpp" />
+    <ClCompile Include="SQLDataDlg.cpp" />
+    <ClCompile Include="SQLNativeDlg.cpp" />
+    <ClCompile Include="SQLRowsDlg.cpp" />
+    <ClCompile Include="SQLSQLState.cpp" />
+    <ClCompile Include="SQLSucceededDlg.cpp" />
+    <ClCompile Include="ValidateDatabaseDlg.cpp" />
     <ClCompile Include="StatusDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -176,6 +192,8 @@
   <ItemGroup>
     <Image Include="res\Earth.ico" />
     <Image Include="res\List.ico" />
+    <Image Include="res\new.ico" />
+    <Image Include="res\remove.ico" />
     <Image Include="res\Return.ico" />
     <Image Include="res\ValidateEditor.ico" />
   </ItemGroup>

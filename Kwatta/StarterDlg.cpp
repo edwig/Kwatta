@@ -272,7 +272,8 @@ StarterDlg::OnSysCommand(UINT nID, LPARAM lParam)
 void 
 StarterDlg::OnBnClickedSearch()
 {
-  DocFileDialog dlg(true
+  DocFileDialog dlg(GetSafeHwnd()
+                   ,true
                    ,"Choose a Kwatta test suite"
                    ,"xtest"
                    ,""

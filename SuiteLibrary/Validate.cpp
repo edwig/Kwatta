@@ -26,6 +26,7 @@
 #include "ExtraExtensions.h"
 #include "ValidateCMD.h"
 #include "ValidateNET.h"
+#include "ValidateSQL.h"
 #include <vector>
 #include <io.h>
 
@@ -40,15 +41,21 @@ Validate* ReadValidate(CString p_filename)
   EnsureFile ensure;
   CString extension = ensure.ExtensionPart(p_filename);
 
-  if(extension.CompareNoCase(EXTENSION_VALIDATE_CL) == 0)
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
   {
     ValidateCMD* validate = new ValidateCMD();
     validate->ReadFromXML(p_filename);
     return validate;
   }
-  if(extension.CompareNoCase(EXTENSION_VALIDATE_IN) == 0)
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_NET) == 0)
   {
     ValidateNET* validate = new ValidateNET();
+    validate->ReadFromXML(p_filename);
+    return validate;
+  }
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_SQL) == 0)
+  {
+    ValidateSQL* validate = new ValidateSQL();
     validate->ReadFromXML(p_filename);
     return validate;
   }

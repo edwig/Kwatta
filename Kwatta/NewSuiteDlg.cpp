@@ -190,7 +190,7 @@ NewSuiteDlg::OnBnClickedChooseDir()
 void 
 NewSuiteDlg::OnBnClickedChooseFile()
 {
-  DocFileDialog dlg(false,"Choose a new test suite filename",EXTENSION_SUITE,"",0,"Kwatta test suite *.xtest|*.xtest");
+  DocFileDialog dlg(GetSafeHwnd(),false,"Choose a new test suite filename",EXTENSION_SUITE,"",0,"Kwatta test suite *.xtest|*.xtest");
   if(dlg.DoModal())
   {
     CString file = dlg.GetChosenFile();

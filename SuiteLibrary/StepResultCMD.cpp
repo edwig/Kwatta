@@ -44,25 +44,6 @@ StepResultCMD::ReadFromXML(CString p_filename)
     m_standardOutput = msg.GetElement(output,"StandardOutput");
     m_standardError  = msg.GetElement(output,"StandardError");
   }
-
-  // Load all validations and results
-  XMLElement* validations = msg.FindElement("Validations");
-  if(validations)
-  {
-    XMLElement* validation = msg.FindElement(validations,"Validation",false);
-    while(validation)
-    {
-      ValStep vali;
-      vali.m_number      = msg.GetElementInteger(validation,"Number");
-      vali.m_validation  = msg.GetElement(validation,"Name");
-      vali.m_filename    = msg.GetElement(validation,"File");
-      vali.m_ok          = msg.GetElement(validation,"Result") == "OK" ? true : false;
-      vali.m_global      = msg.GetElementBoolean(validation,"Global");
-
-      m_validations.push_back(vali);
-      validation = msg.GetElementSibling(validation);
-    }
-  }
 }
 
 bool 
@@ -80,17 +61,6 @@ StepResultCMD::WriteToXML(CString p_filename)
   msg.AddElement(output,"StandardOutput",XDT_CDATA,m_standardOutput);
   msg.AddElement(output,"StandardError", XDT_CDATA,m_standardError);
 
-  // All validation steps and results
-  XMLElement* validations = msg.AddElement(root,"Validations",XDT_String,"");
-  for(auto& val : m_validations)
-  {
-    XMLElement* vali = msg.AddElement(validations,"Validation",XDT_String,"");
-    msg.SetElement(vali,"Number",val.m_number);
-    msg.SetElement(vali,"Name",  val.m_validation);
-    msg.SetElement(vali,"File",  val.m_filename);
-    msg.SetElement(vali,"Result",val.m_ok ? "OK" : "ERROR");
-    msg.SetElement(vali,"Global",val.m_global ? "true" : "false");
-  }
   // Now save it
   return msg.SaveFile(p_filename);
 }
@@ -103,7 +73,7 @@ StepResultCMD::CheckFilename(CString p_filename)
   _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_RESULT_CL,5))
+  if(_strnicmp(extension,EXTENSION_RESULT_CMD,5))
   {
     throw StdException("A StepResult XML definition file must be saved as a *.XRES");
   }

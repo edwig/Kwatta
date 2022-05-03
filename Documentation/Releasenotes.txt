@@ -1,7 +1,13 @@
 KWATTA RELEASNOTES
 ==================
 
-Version 1.0.9 Release data: 14-04-2022
+Version 1.0.10 Release date: 03-05-2022
+---------------------------------------
+1) Added the SQL test type. Add your SQL tests!!
+2) Upgraded to higher version of Marlin (8.0.2)
+3) Added SQLComponents for SQL tests
+
+Version 1.0.9 Release date: 14-04-2022
 --------------------------------------
 1) Made it possible to edit a HTTPMessage as a MultiPartBuffer, so we can send
    multipart/mixed data to an OData $batch processor

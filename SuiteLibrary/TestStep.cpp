@@ -22,6 +22,7 @@
 #include "TestStep.h"
 #include "TestStepCMD.h"
 #include "TestStepNET.h"
+#include "TestStepSQL.h"
 #include "EnsureFile.h"
 #include "XMLMessage.h"
 #include "StdException.h"
@@ -38,15 +39,21 @@ TestStep* ReadTestStep(CString p_filename)
   EnsureFile ensure;
   CString extension = ensure.ExtensionPart(p_filename);
 
-  if(extension.CompareNoCase(EXTENSION_TESTSTEP_CL) == 0)
+  if(extension.CompareNoCase(EXTENSION_TESTSTEP_CMD) == 0)
   {
     TestStepCMD* result = new TestStepCMD();
     result->ReadFromXML(p_filename);
     return result;
   }
-  if(extension.CompareNoCase(EXTENSION_TESTSTEP_IN) == 0)
+  if(extension.CompareNoCase(EXTENSION_TESTSTEP_NET) == 0)
   {
     TestStepNET* result = new TestStepNET();
+    result->ReadFromXML(p_filename);
+    return result;
+  }
+  if(extension.CompareNoCase(EXTENSION_TESTSTEP_SQL) == 0)
+  {
+    TestStepSQL* result = new TestStepSQL();
     result->ReadFromXML(p_filename);
     return result;
   }
@@ -169,4 +176,3 @@ TestStep::FindElementBoolean(XMLMessage& p_msg, XMLElement* p_start, CString p_n
   }
   return false;
 }
-

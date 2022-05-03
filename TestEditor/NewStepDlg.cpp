@@ -84,13 +84,15 @@ NewStepDlg::OnInitDialog()
 	StyleDialog::OnInitDialog();
 	SetWindowText("New test step");
 
-	m_comboType.AddString("Command-line");
+	m_comboType.AddString("Command  (CMD)");
 	m_comboType.AddString("Internet (HTTP)");
+	m_comboType.AddString("Database (SQL)");
 	m_comboType.SetCurSel(0);
   m_stepType = StepType::Step_command;
 
-	m_comboVali.AddString("Command-line");
+	m_comboVali.AddString("Command  (CMD)");
 	m_comboVali.AddString("Internet (HTTP)");
+	m_comboVali.AddString("Database (SQL)");
 	m_comboVali.SetCurSel(0);
 
   m_buttonStepGlobal.SetIconImage(IDI_EARTH);
@@ -109,8 +111,9 @@ NewStepDlg::CheckFilename()
 	{
     switch (m_stepType)
     {
-      case StepType::Step_command: file += EXTENSION_TESTSTEP_CL; break;
-      case StepType::Step_http:    file += EXTENSION_TESTSTEP_IN; break;
+      case StepType::Step_command: file += EXTENSION_TESTSTEP_CMD; break;
+      case StepType::Step_http:    file += EXTENSION_TESTSTEP_NET; break;
+      case StepType::Step_sql:     file += EXTENSION_TESTSTEP_SQL; break;
     }
 	}
 	path += file;
@@ -133,7 +136,12 @@ NewStepDlg::CheckValiFile()
   CString file(m_valiFile);
   if(file.Find('.') < 0)
   {
-    file += m_valiType == StepType::Step_http ? EXTENSION_VALIDATE_IN : EXTENSION_VALIDATE_CL;
+    switch(m_valiType)
+    {
+      case StepType::Step_command: file += EXTENSION_VALIDATE_CMD; break;
+      case StepType::Step_http:    file += EXTENSION_VALIDATE_NET; break;
+      case StepType::Step_sql:     file += EXTENSION_VALIDATE_SQL; break;
+    }
   }
   path += file;
 

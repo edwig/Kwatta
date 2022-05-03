@@ -144,8 +144,8 @@ ResetAll::ResetTestSet()
 
           // Add the result file to the delete list
           CString deleting = m_baseDirectory + m_testDirectory + "\\" + trun.m_filename;
-          deleting.Replace(EXTENSION_TESTSTEP_CL,EXTENSION_RESULT_CL);
-          deleting.Replace(EXTENSION_TESTSTEP_IN,EXTENSION_RESULT_IN);
+          deleting.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
+          deleting.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
           m_toBeDeleted.push_back(deleting);
         }
         testset.WriteToXML();

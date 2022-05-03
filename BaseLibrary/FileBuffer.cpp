@@ -83,7 +83,7 @@ FileBuffer::FileBuffer(FileBuffer& p_orig)
   {
     BufPart dupli;
     dupli.m_length = part.m_length;
-    dupli.m_buffer = new uchar[dupli.m_length];
+    dupli.m_buffer = new uchar[dupli.m_length + 1];
     memcpy(dupli.m_buffer,part.m_buffer,dupli.m_length);
     dupli.m_buffer[part.m_length] = 0;
     m_parts.push_back(dupli);
@@ -507,7 +507,7 @@ FileBuffer::operator=(FileBuffer& p_orig)
     BufPart& part = *it;
     BufPart  dupli;
     dupli.m_length = part.m_length;
-    dupli.m_buffer = new uchar[dupli.m_length];
+    dupli.m_buffer = new uchar[dupli.m_length + 1];
     memcpy(dupli.m_buffer,part.m_buffer,dupli.m_length);
     dupli.m_buffer[part.m_length] = 0;
     m_parts.push_back(dupli);

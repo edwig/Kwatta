@@ -107,6 +107,18 @@
     <ClInclude Include="framework.h">
       <Filter>Configuration</Filter>
     </ClInclude>
+    <ClInclude Include="TestStepSQL.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StepResultSQL.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValidateSQL.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLRunner.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestStep.cpp">
@@ -179,6 +191,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GlobalFileDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestStepSQL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StepResultSQL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidateSQL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLRunner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

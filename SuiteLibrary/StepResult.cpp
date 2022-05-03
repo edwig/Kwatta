@@ -25,6 +25,7 @@
 #include "ExtraExtensions.h"
 #include "StepResultCMD.h"
 #include "StepResultNET.h"
+#include "StepResultSQL.h"
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -38,15 +39,21 @@ ReadStepResult(CString p_filename)
   EnsureFile ensure;
   CString extension = ensure.ExtensionPart(p_filename);
 
-  if(extension.CompareNoCase(EXTENSION_RESULT_CL) == 0)
+  if(extension.CompareNoCase(EXTENSION_RESULT_CMD) == 0)
   {
     StepResultCMD* result = new StepResultCMD();
     result->ReadFromXML(p_filename);
     return result;
   }
-  if(extension.CompareNoCase(EXTENSION_RESULT_IN) == 0)
+  if(extension.CompareNoCase(EXTENSION_RESULT_NET) == 0)
   {
     StepResultNET* result = new StepResultNET();
+    result->ReadFromXML(p_filename);
+    return result;
+  }
+  if(extension.CompareNoCase(EXTENSION_RESULT_SQL) == 0)
+  {
+    StepResultSQL* result = new StepResultSQL();
     result->ReadFromXML(p_filename);
     return result;
   }
@@ -90,6 +97,25 @@ StepResult::ReadFromXML(XMLMessage& p_msg,CString p_filename)
   m_documentation = p_msg.GetElement("Documentation");
   CString timing  = p_msg.GetElement("Timing");
   m_seconds = atof(timing);
+
+  // Load all validations and results
+  XMLElement* validations = p_msg.FindElement("Validations");
+  if(validations)
+  {
+    XMLElement* validation = p_msg.FindElement(validations,"Validation",false);
+    while(validation)
+    {
+      ValStep vali;
+      vali.m_number      = p_msg.GetElementInteger(validation,"Number");
+      vali.m_validation  = p_msg.GetElement(validation,"Name");
+      vali.m_filename    = p_msg.GetElement(validation,"File");
+      vali.m_ok          = p_msg.GetElement(validation,"Result") == "OK" ? true : false;
+      vali.m_global      = p_msg.GetElementBoolean(validation,"Global");
+
+      m_validations.push_back(vali);
+      validation = p_msg.GetElementSibling(validation);
+    }
+  }
 }
 
 bool
@@ -107,6 +133,17 @@ StepResult::WriteToXML(XMLMessage& p_msg,CString p_filename)
   p_msg.AddElement(root,"Documentation",XDT_String | XDT_CDATA,m_documentation);
   p_msg.AddElement(root,"Timing",       XDT_String,            timing);
 
+  // All validation steps and results
+  XMLElement* validations = p_msg.AddElement(root,"Validations",XDT_String,"");
+  for(auto& val : m_validations)
+  {
+    XMLElement* vali = p_msg.AddElement(validations,"Validation",XDT_String,"");
+    p_msg.SetElement(vali,"Number",val.m_number);
+    p_msg.SetElement(vali,"Name",  val.m_validation);
+    p_msg.SetElement(vali,"File",  val.m_filename);
+    p_msg.SetElement(vali,"Result",val.m_ok     ? "OK"   : "ERROR");
+    p_msg.SetElement(vali,"Global",val.m_global ? "true" : "false");
+  }
   return true;
 }
 

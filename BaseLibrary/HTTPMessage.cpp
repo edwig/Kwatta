@@ -269,28 +269,32 @@ HTTPMessage::HTTPMessage(HTTPCommand p_command,SOAPMessage* p_msg)
 HTTPMessage::HTTPMessage(HTTPCommand p_command,JSONMessage* p_msg)
             :m_command(p_command)
 {
-  m_request        = p_msg->GetRequestHandle();
-  m_cookies        = p_msg->GetCookies();
-  m_contentType    = p_msg->GetContentType();
-  m_acceptEncoding = p_msg->GetAcceptEncoding();
-  m_desktop        = p_msg->GetDesktop();
-  m_sendBOM        = p_msg->GetSendBOM();
-  m_site           = p_msg->GetHTTPSite();
-  m_verbTunnel     = p_msg->GetVerbTunneling();
-  m_status         = p_msg->GetStatus();
-  m_user           = p_msg->GetUser();
-  m_password       = p_msg->GetPassword();
-  m_headers        =*p_msg->GetHeaderMap();
-  m_url            = p_msg->GetURL();
-  m_cracked        = p_msg->GetCrackedURL();
+  *this = *p_msg;
+}
+
+HTTPMessage&
+HTTPMessage::operator=(JSONMessage& p_msg)
+{
+  m_request        = p_msg.GetRequestHandle();
+  m_cookies        = p_msg.GetCookies();
+  m_contentType    = p_msg.GetContentType();
+  m_acceptEncoding = p_msg.GetAcceptEncoding();
+  m_desktop        = p_msg.GetDesktop();
+  m_sendBOM        = p_msg.GetSendBOM();
+  m_site           = p_msg.GetHTTPSite();
+  m_verbTunnel     = p_msg.GetVerbTunneling();
+  m_status         = p_msg.GetStatus();
+  m_user           = p_msg.GetUser();
+  m_password       = p_msg.GetPassword();
+  m_headers        =*p_msg.GetHeaderMap();
   memset(&m_systemtime,0,sizeof(SYSTEMTIME));
 
   // Getting the URL of all parts
-  m_url = p_msg->GetURL();
+  m_url = p_msg.GetURL();
   ParseURL(m_url);
 
   // Relay ownership of the token
-  if(DuplicateTokenEx(p_msg->GetAccessToken()
+  if(DuplicateTokenEx(p_msg.GetAccessToken()
                      ,TOKEN_DUPLICATE|TOKEN_IMPERSONATE|TOKEN_ALL_ACCESS|TOKEN_READ|TOKEN_WRITE
                      ,NULL
                      ,SecurityImpersonation
@@ -301,19 +305,19 @@ HTTPMessage::HTTPMessage(HTTPCommand p_command,JSONMessage* p_msg)
   }
 
   // Get sender (if any) from the soap message
-  memcpy(&m_sender,p_msg->GetSender(),sizeof(SOCKADDR_IN6));
+  memcpy(&m_sender,p_msg.GetSender(),sizeof(SOCKADDR_IN6));
 
   // Copy all routing
-  m_routing = p_msg->GetRouting();
+  m_routing = p_msg.GetRouting();
 
   // Setting the payload of the message
-  SetBody(p_msg->GetJsonMessage());
+  SetBody(p_msg.GetJsonMessage());
 
   // Take care of character encoding
   XString charset = FindCharsetInContentType(m_contentType);
-  StringEncoding encoding = p_msg->GetEncoding();
+  StringEncoding encoding = p_msg.GetEncoding();
 
-  if(charset.Left(6).CompareNoCase("utf-16") == 0 || p_msg->GetSendUnicode())
+  if(charset.Left(6).CompareNoCase("utf-16") == 0 || p_msg.GetSendUnicode())
   {
     encoding = StringEncoding::ENC_UTF16;
   }
@@ -335,11 +339,11 @@ HTTPMessage::HTTPMessage(HTTPCommand p_command,JSONMessage* p_msg)
   // Set body and contentLength
   if(acp == 1200)
   {
-    p_msg->SetSendUnicode(true);
-    XString soap = p_msg->GetJsonMessage(StringEncoding::ENC_Plain);
+    p_msg.SetSendUnicode(true);
+    XString soap = p_msg.GetJsonMessage(StringEncoding::ENC_Plain);
     uchar* buffer = nullptr;
     int    length = 0;
-    if(TryCreateWideString(soap,"",p_msg->GetSendBOM(),&buffer,length))
+    if(TryCreateWideString(soap,"",p_msg.GetSendBOM(),&buffer,length))
     {
       SetBody(buffer,length + 2);
       delete [] buffer;
@@ -355,10 +359,12 @@ HTTPMessage::HTTPMessage(HTTPCommand p_command,JSONMessage* p_msg)
   else
   {
     // Simply record as our body
-    SetBody(p_msg->GetJsonMessageWithBOM(encoding));
+    SetBody(p_msg.GetJsonMessageWithBOM(encoding));
   }
   // Make sure we have a server name for host headers
   CheckServer();
+
+  return *this;
 }
 
 // General DTOR
@@ -642,6 +648,16 @@ HTTPMessage::SetCookiePairs(XString p_cookies)
       SetCookie(p_cookies);
       return;
     }
+  }
+}
+
+void 
+HTTPMessage::SetExtension(XString p_ext,bool p_reparse /*= true*/)
+{ 
+  m_cracked.m_extension = p_ext;
+  if(p_reparse)
+  {
+    ReparseURL();
   }
 }
 

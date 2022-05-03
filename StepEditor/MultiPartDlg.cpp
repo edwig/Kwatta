@@ -250,7 +250,7 @@ MultiPartDlg::OnEnChangeFullfile()
 
 void MultiPartDlg::OnBnClickedButtFile()
 {
-  DocFileDialog dlg(true,"Select a file for a MultiPart","",m_LongFilename);
+  DocFileDialog dlg(GetSafeHwnd(),true,"Select a file for a MultiPart","",m_LongFilename);
   if(dlg.DoModal())
   {
     m_LongFilename = dlg.GetChosenFile();

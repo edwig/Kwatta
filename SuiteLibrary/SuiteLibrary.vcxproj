@@ -65,8 +65,9 @@
       <ConformanceMode>false</ConformanceMode>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -86,10 +87,11 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -111,6 +113,8 @@
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="ResetAll.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SQLRunner.h" />
+    <ClInclude Include="StepResultSQL.h" />
     <ClInclude Include="StyleRichEdit.h" />
     <ClInclude Include="SearchVarDlg.h" />
     <ClInclude Include="StartProgram.h" />
@@ -126,10 +130,12 @@
     <ClInclude Include="TestStep.h" />
     <ClInclude Include="TestStepCMD.h" />
     <ClInclude Include="TestStepNET.h" />
+    <ClInclude Include="TestStepSQL.h" />
     <ClInclude Include="TestSuite.h" />
     <ClInclude Include="Validate.h" />
     <ClInclude Include="ValidateCMD.h" />
     <ClInclude Include="ValidateNET.h" />
+    <ClInclude Include="ValidateSQL.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutDlg.cpp" />
@@ -140,6 +146,8 @@
     <ClCompile Include="NewVariableDlg.cpp" />
     <ClCompile Include="Parameters.cpp" />
     <ClCompile Include="ResetAll.cpp" />
+    <ClCompile Include="SQLRunner.cpp" />
+    <ClCompile Include="StepResultSQL.cpp" />
     <ClCompile Include="StyleRichEdit.cpp" />
     <ClCompile Include="SearchVarDlg.cpp" />
     <ClCompile Include="StartProgram.cpp" />
@@ -155,10 +163,12 @@
     <ClCompile Include="TestStep.cpp" />
     <ClCompile Include="TestStepCMD.cpp" />
     <ClCompile Include="TestStepNET.cpp" />
+    <ClCompile Include="TestStepSQL.cpp" />
     <ClCompile Include="TestSuite.cpp" />
     <ClCompile Include="Validate.cpp" />
     <ClCompile Include="ValidateCMD.cpp" />
     <ClCompile Include="ValidateNET.cpp" />
+    <ClCompile Include="ValidateSQL.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SuiteLibrary.rc" />

@@ -60,25 +60,6 @@ StepResultNET::ReadFromXML(CString p_filename)
 
   // Find the body
   m_body = msg.GetElement("ResponseBody");
-
-  // Load all validations and results
-  XMLElement* validations = msg.FindElement("Validations");
-  if(validations)
-  {
-    XMLElement* validation = msg.FindElement(validations,"Validation",false);
-    while(validation)
-    {
-      ValStep vali;
-      vali.m_number      = msg.GetElementInteger(validation,"Number");
-      vali.m_validation  = msg.GetElement(validation,"Name");
-      vali.m_filename    = msg.GetElement(validation,"File");
-      vali.m_ok          = msg.GetElement(validation,"Result") == "OK" ? true : false;
-      vali.m_global      = msg.GetElementBoolean(validation,"Global");
-
-      m_validations.push_back(vali);
-      validation = msg.GetElementSibling(validation);
-    }
-  }
 }
 
 bool
@@ -119,18 +100,6 @@ StepResultNET::WriteToXML(CString p_filename)
   // Save the body
   msg.AddElement(root,"ResponseBody",XDT_CDATA,m_body);
 
-  // All validation steps and results
-  XMLElement* validations = msg.AddElement(root,"Validations",XDT_String,"");
-  for(auto& val : m_validations)
-  {
-    XMLElement* vali = msg.AddElement(validations,"Validation",XDT_String,"");
-    msg.SetElement(vali,"Number",val.m_number);
-    msg.SetElement(vali,"Name",  val.m_validation);
-    msg.SetElement(vali,"File",  val.m_filename);
-    msg.SetElement(vali,"Global",val.m_global ? "true" : "false");
-    msg.SetElement(vali,"Result",val.m_ok ? "OK" : "ERROR");
-  }
-
   // Now save it
   return msg.SaveFile(p_filename);
 }
@@ -143,7 +112,7 @@ StepResultNET::CheckFilename(CString p_filename)
   _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_RESULT_IN,5))
+  if(_strnicmp(extension,EXTENSION_RESULT_NET,5))
   {
     throw StdException("A StepResult XML definition file must be saved as a *.IRES");
   }

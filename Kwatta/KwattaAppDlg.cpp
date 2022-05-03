@@ -594,7 +594,8 @@ KwattaAppDlg::OnEnChangeSuite()
 void 
 KwattaAppDlg::OnBnClickedButChoose()
 {
-  DocFileDialog dlg(true
+  DocFileDialog dlg(GetSafeHwnd()
+                   ,true
                    ,"Choose a Kwatta test suite"
                    ,"xtest"
                    ,m_testsuite

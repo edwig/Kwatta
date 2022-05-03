@@ -117,7 +117,7 @@ ValidateCMD::CheckFilename(CString p_filename)
   _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_VALIDATE_CL,5))
+  if(_strnicmp(extension,EXTENSION_VALIDATE_CMD,5))
   {
     throw StdException("A Validation XML definition file must be saved as a *.XVAL");
   }

@@ -1,0 +1,591 @@
+﻿///////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// 
+// ██╗░░██╗░██╗░░░░░░░██╗░█████╗░████████╗████████╗░█████╗░
+// ██║░██╔╝░██║░░██╗░░██║██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗
+// █████═╝░░╚██╗████╗██╔╝███████║░░░██║░░░░░░██║░░░███████║
+// ██╔═██╗░░░████╔═████║░██╔══██║░░░██║░░░░░░██║░░░██╔══██║
+// ██║░╚██╗░░╚██╔╝░╚██╔╝░██║░░██║░░░██║░░░░░░██║░░░██║░░██║
+// ╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝
+// 
+// 
+// This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
+// This program: TestRunner
+// This File   : SQLRunner.cpp
+// What it does: Running one (1) database SQL test
+// Author      : ir. W.E. Huisman
+// License     : See license.md file in the root directory
+// 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include "SQLRunner.h"
+#include "StdException.h"
+#include "TestMessages.h"
+#include "ExtraMessages.h"
+#include "ExtraExtensions.h"
+#include <HPFCounter.h>
+
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#define new DEBUG_NEW
+#endif
+
+// 50 milliseconds is the smallest amount of waiting time
+#define MINIMUM_INTERVAL_TIME  50 
+
+SQLRunner::SQLRunner(CString    p_baseDirectory
+                    ,CString    p_testDirectory
+                    ,CString    p_testStepFilename
+                    ,CString    p_parametersFilename
+                    ,ValiSteps& p_localValidations
+                    ,ValiSteps& p_globalValidations
+                    ,HWND       p_consoleHWND
+                    ,HWND       p_reportHWND
+                    ,HWND       p_callingHWND
+                    ,int        p_callingROW
+                    ,bool       p_global)
+           :m_baseDirectory(p_baseDirectory)
+           ,m_testDirectory(p_testDirectory)
+           ,m_testStepFilename(p_testStepFilename)
+           ,m_parametersFilename(p_parametersFilename)
+           ,m_localValidations(p_localValidations)
+           ,m_globalValidations(p_globalValidations)
+           ,m_consoleHNWD(p_consoleHWND)
+           ,m_reportHWND(p_reportHWND)
+           ,m_callingHWND(p_callingHWND)
+           ,m_callingROW(p_callingROW)
+           ,m_global(p_global)
+{
+}
+
+SQLRunner::~SQLRunner()
+{
+  // Clean out all validations
+  for(auto& vali : m_validations)
+  {
+    delete vali;
+  }
+  m_validations.clear();
+
+  if(m_database)
+  {
+    delete m_database;
+    m_database = nullptr;
+  }
+  if(m_query)
+  {
+    delete m_query;
+    m_query = nullptr;
+  }
+}
+
+// General start of the test
+// Public part, called by the main TestRunnerApp
+int
+SQLRunner::PerformTest()
+{
+  AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+  // Predefined result will be 0 (failed)
+  int result = 0;
+
+  try
+  {
+    // Init the runner
+    InitRunner();
+    // Reading the test files (1 step)
+    ReadingAllFiles();
+    // Initial parameter processing (1 step)
+    ParameterProcessing();
+    // Perform the test (3 steps)
+    PreCommandWaiting();
+    PerformCommand();
+    PostCommandWaiting();
+    // Perform the validations (x * 1 steps)
+    PerformAllValidations();
+    // Write the results (1 step)
+    SaveTestResults();
+    // Save return parameters (if any)
+    SaveResultParameters();
+    // Return the conclusion (1 step)
+    result = ReadTotalResult();
+    // Tell it to our callers
+    EndTesting(result);
+  }
+  catch(StdException& ex)
+  {
+    // WHOA: Something went wrong
+    StyleMessageBox(NULL,ex.GetErrorMessage(),"Kwatta",MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
+    // Test did went WRONG!!
+    result = 0;
+  }
+  return result;
+}
+
+CString
+SQLRunner::GetEffectiveStepFilename()
+{
+  CString filename(m_baseDirectory);
+  filename += m_global ? CString("Steps\\") : m_testDirectory;
+  filename += m_testStepFilename;
+
+  return filename;
+}
+
+int
+SQLRunner::GetMaxRunningTime()
+{
+  return atoi(m_testStep.GetEffectiveMaxExecution());
+}
+
+void
+SQLRunner::StopTestProgram()
+{
+  if(m_database && m_query)
+  {
+    try
+    {
+      m_query->DoCancelQuery();
+    }
+    catch(StdException& /*ex*/)
+    {
+      // What to do?
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// PRIVATE
+//
+//////////////////////////////////////////////////////////////////////////
+
+void
+SQLRunner::InitRunner()
+{
+  // Reset the dialog
+  SetTest("Initializing");
+  SetStep("");
+  SetProgress(0);
+
+  // Calculate the number of steps
+  // 8 steps are from: 
+  // ---------------------------------
+  // 1   Reading the files
+  // 2   Initial parameter processing
+  // 3   Testing pre command waiting
+  // 4   Testing RUNNING THE SQL STATEMENT
+  // 5   Testing post command waiting
+  // 6   Writing the results file
+  // 7   Writing result parameters
+  // 8   Reaching a conclusion
+
+  // +   1 for every validation step
+  m_steps    = 8 + (int) m_localValidations.size();
+  m_stepSize = 100 / m_steps;
+
+  InitSQLComponents();
+}
+
+void
+SQLRunner::ReadingAllFiles()
+{
+  SetTest("Reading all definition files");
+  PerformStep("XML files...");
+
+  ReadTestStep();
+  ReadParameters();
+  ReadValidations();
+
+  // Now set the name proper to the given test step
+  SetTest(m_testStep.GetName());
+}
+
+void
+SQLRunner::ParameterProcessing()
+{
+  int unbound = 0;
+  PerformStep("Parameter processing...");
+
+  // Effectuate the parameters for the step
+  unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
+
+  // Effectuate the parameters for the validation steps
+  for(auto& validate : m_validations)
+  {
+    unbound += validate->EffectiveReplacements(&m_parameters,false);
+  }
+
+  // Cannot perform a test step if still unbound parameters exists
+  if(unbound)
+  {
+    CString error;
+    error.Format("Cannot perform test. Existing unbound parameters: %d",unbound);
+    throw StdException(error);
+  }
+}
+
+// Waiting before we run a command
+void
+SQLRunner::PreCommandWaiting()
+{
+  CString step("Pre-command waiting.");
+  PerformStep(step);
+
+  int time = atoi(m_testStep.GetEffectiveWaitBeforeRun());
+  if (time > 0)
+  {
+    WaitingForATimeout(step,time);
+  }
+}
+
+void
+SQLRunner::PerformCommand()
+{
+  PerformStep("RUN THE SQL...");
+
+  // Take name and documentation
+  m_result.SetName(m_testStep.GetName());
+  m_result.SetDocumentation(m_testStep.GetDocumentation());
+  m_result.SetSucceeded(false);
+
+  CString     standardout;
+  CString     standarderr;
+  HPFCounter  counter;
+
+  // See if we must set a boobytrap
+  if(m_testStep.GetKillOnTimeout())
+  {
+    int maxtime = atoi(m_testStep.GetEffectiveMaxExecution());
+    if (maxtime > 0)
+    {
+      SetBoobytrap();
+    }
+  }
+
+  try
+  {
+    m_database = new SQLDatabase();
+    if(m_database->Open(m_testStep.GetEffectiveDatasource()
+                       ,m_testStep.GetEffectiveUser()
+                       ,m_testStep.GetEffectivePassword()))
+    {
+      m_query = new SQLQuery(m_database);
+      SQLTransaction trans(m_database,"Test");
+
+      counter.Start();
+      m_query->DoSQLStatement(m_testStep.GetEffectiveSQL());
+      counter.Stop();
+      if(m_query->GetRecord())
+      {
+        // Read the first record of the cursor
+        ReadResultSet();
+      }
+      else
+      {
+        // Non-select statement, record the number of rows affected
+        m_result.SetResultRows(m_query->GetNumberOfRows());
+      }
+      m_result.SetSucceeded(true);
+      trans.Commit();
+    }
+  }
+  catch(StdException& ex)
+  {
+    CString error = ex.GetErrorMessage();
+    if(m_query)
+    {
+      m_result.SetNativeStatus(m_query->GetError() + error);
+    }
+    else if(m_database)
+    {
+      m_result.SetNativeStatus(m_database->GetErrorString() + error);
+    }
+  }
+  m_result.SetSQLState(m_database->GetSQLState());
+
+  // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,FALSE,0);
+
+  // No more killing of the query by the boobytrap
+  SQLQuery* temp = m_query;
+  m_query = nullptr;
+  delete temp;
+
+  // Stop the high-performance timer!
+  counter.Stop();
+  m_result.SetTiming(counter.GetCounter());
+}
+
+void  
+SQLRunner::ReadResultSet()
+{
+  // Record number of cols
+  m_result.SetResultCols(m_query->GetNumberOfColumns());
+
+  // Record the values of the first row;
+  for(int ind = 1;ind <= m_query->GetNumberOfColumns();++ind)
+  {
+    CString name;
+    CString value;
+    m_query->GetColumnName(ind,name);
+    m_query->GetColumn(ind)->GetAsString(value);
+
+    m_result.AddResult(name,value);
+  }
+
+  // Read through all the other rows
+  int rows = 1;
+  while(m_query->GetRecord())
+  {
+    ++rows;
+  }
+  m_result.SetResultRows(rows);
+}
+
+// Waiting for cleanup after a command
+void
+SQLRunner::PostCommandWaiting()
+{
+  CString step("Post-command waiting.");
+  PerformStep(step);
+
+  int time = atoi(m_testStep.GetEffectiveWaitAfterRun());
+  if (time >= 0)
+  {
+    WaitingForATimeout(step,time);
+  }
+}
+
+void
+SQLRunner::PerformAllValidations()
+{
+  int step = 1;
+  for(auto& vali : m_validations)
+  {
+    ValidateSQL* validate = dynamic_cast<ValidateSQL*>(vali);
+    PerformStep("Validation: " + validate->GetName());
+
+    // Do the validations
+    bool result = true;
+    if(validate->ValidateSucceeded   (&m_parameters,m_result.GetSucceeded())    == false) result = false;
+    if(validate->ValidateReturnedCols(&m_parameters,m_result.GetResultCols())   == false) result = false;
+    if(validate->ValidateReturnedRows(&m_parameters,m_result.GetResultRows())   == false) result = false;
+    if(validate->ValidateSQLState    (&m_parameters,m_result.GetSQLState())     == false) result = false;
+    if(validate->ValidateNativeStatus(&m_parameters,m_result.GetNativeStatus()) == false) result = false;
+    if(validate->ValidateFirstData   (&m_parameters,m_result.GetFirstData())    == false) result = false;
+    if(validate->ValidateColumnData  (m_result.GetResultMap())                  == false) result = false;
+    // Add the validation to the result set
+    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
+  }
+}
+
+// Saving the test results to the disk
+void
+SQLRunner::SaveTestResults()
+{
+  PerformStep("Saving the test results");
+
+  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  filename.MakeLower();
+  filename.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
+
+  if(m_result.WriteToXML(filename) == false)
+  {
+    CString error;
+    error.Format("Cannot save results file: %s",filename.GetString());
+    throw StdException(error);
+  }
+
+  // Eventually changed parameters need to be written
+  m_parameters.WriteToXML();
+}
+
+// Save return parameters (if any)
+void
+SQLRunner::SaveResultParameters()
+{
+  PerformStep("Saving result parameters");
+  // Write back local parameters (return + stream)
+  m_parameters.WriteToXML();
+}
+
+// Conclusion of the test
+int
+SQLRunner::ReadTotalResult()
+{
+  PerformStep("Getting total result...");
+  return m_result.GetTotalResult();
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// DETAILS
+
+StepResultSQL* 
+SQLRunner::GetStepResult()
+{
+  return &m_result;
+}
+
+// Perform the next step in the total progress
+void
+SQLRunner::PerformStep(CString p_stepName)
+{
+  SetStep(p_stepName);
+  m_progress += m_stepSize;
+  SetProgress(m_progress);
+}
+
+void
+SQLRunner::ReadTestStep()
+{
+  // Read in the definition file for a test step
+  CString filename = GetEffectiveStepFilename();
+  m_testStep.ReadFromXML(filename);
+}
+
+void
+SQLRunner::ReadParameters()
+{
+  // read the global parameters
+  CString filename = m_baseDirectory + "Parameters.xpar";
+  m_parameters.ReadFromXML(filename);
+
+  // read the definition of the test parameters
+  filename = m_baseDirectory + m_testDirectory + m_parametersFilename;
+  m_parameters.ReadFromXML(filename,false);
+}
+
+// Reads all validations from the command line
+// Could be more than 1 file in all...
+void
+SQLRunner::ReadValidations()
+{
+  for(auto& filename : m_localValidations)
+  {
+    Validate* validate = new ValidateSQL();
+    CString file = m_baseDirectory + m_testDirectory + filename;
+    validate->ReadFromXML(file);
+    m_validations.push_back(validate);
+  }
+  for(auto& filename : m_globalValidations)
+  {
+    Validate* validate = new ValidateSQL();
+    CString file = m_baseDirectory + "Validations\\" + filename;
+    validate->ReadFromXML(file);
+    validate->SetGlobal(true);
+    m_validations.push_back(validate);
+  }
+}
+
+void
+SQLRunner::WaitingForATimeout(CString p_stepname,int p_milliseconds)
+{
+  // Reset the progress step-name and progress-controlbar
+  p_stepname.AppendFormat(" %.3f seconds",((double)p_milliseconds / 1000.0));
+  SetStep(p_stepname);
+  SetProgress(0);
+
+  // Preset the progress
+  int progress = 1;
+  int count    = 100;
+  int interval = p_milliseconds / 100;
+
+  // Progress intervals cannot be to short
+  if(interval < MINIMUM_INTERVAL_TIME)
+  {
+    count    = (p_milliseconds / MINIMUM_INTERVAL_TIME) + 1;
+    interval = p_milliseconds / count;
+    progress = 100 / count;
+  }
+
+  // Perform the waiting
+  for(int index = 0; index < count; ++index)
+  {
+    SetProgress(index * progress);
+    Sleep(interval);
+  }
+
+  // Progress complete
+  SetProgress(100);
+}
+
+/*static*/ unsigned
+__stdcall ExecSQLBoobytrap(void* p_data)
+{
+  SQLRunner* runner = reinterpret_cast<SQLRunner*>(p_data);
+  int maxtime = runner->GetMaxRunningTime();
+  // Wait the maximum time of the test
+  Sleep(maxtime);
+  // End the test program
+  runner->StopTestProgram();
+
+  return 0;
+}
+
+void
+SQLRunner::SetBoobytrap()
+{
+  // Start a new thread
+  unsigned int threadID = 0L;
+  if((m_thread = (HANDLE)_beginthreadex(NULL,0,ExecSQLBoobytrap,this,0,&threadID)) == INVALID_HANDLE_VALUE)
+  {
+    threadID = 0;
+    m_thread = NULL;
+  }
+}
+
+void
+SQLRunner::StopBoobytrap()
+{
+  TerminateThread(m_thread,0xFFFFFFFF);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// TELLING IT THE OUTSIDE WORLD
+//
+//////////////////////////////////////////////////////////////////////////
+
+void
+SQLRunner::SetTest(CString p_test)
+{
+  if(m_reportHWND)
+  {
+    ::SendMessage(m_reportHWND,WM_TEST_TESTNAME,(WPARAM)p_test.GetString(),0);
+  }
+}
+
+void
+SQLRunner::SetStep(CString p_step)
+{
+  if(m_reportHWND)
+  {
+    ::SendMessage(m_reportHWND,WM_TEST_STEPNAME,(WPARAM)p_step.GetString(),0);
+  }
+}
+
+void
+SQLRunner::SetProgress(int p_percent)
+{
+  if(m_reportHWND)
+  {
+    ::SendMessage(m_reportHWND,WM_TEST_PROGRESS,(WPARAM)p_percent,0);
+  }
+}
+
+void
+SQLRunner::EndTesting(int p_result)
+{
+  if(m_reportHWND)
+  {
+    ::SendMessage(m_reportHWND,WM_TEST_ENDING,(WPARAM)p_result,0);
+  }
+  if(m_callingHWND && m_callingROW)
+  {
+    ::PostMessage(m_callingHWND,WM_READYTEST,(WPARAM)m_callingROW,p_result);
+    ::PostMessage(m_callingHWND,WM_READYVALI,(WPARAM)m_callingROW,p_result);
+  }
+}

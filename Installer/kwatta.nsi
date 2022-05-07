@@ -7,11 +7,11 @@
 ; All rights reserved
 ;
 ; Last change:       3-05-2022
-; Versionnumber:     1.0.10
+; Versionnumber:     1.0.11
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.0.10"
- !define PRODUCT_BUILDNUMBER                  "128"
+ !define PRODUCT_VERSION                      "1.0.11"
+ !define PRODUCT_BUILDNUMBER                  "132"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"
  !define PRODUCT_DIR_REGKEY                   "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"

@@ -35,18 +35,20 @@ static char THIS_FILE[] = __FILE__;
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
-SQLRunner::SQLRunner(CString    p_baseDirectory
-                    ,CString    p_testDirectory
-                    ,CString    p_testStepFilename
-                    ,CString    p_parametersFilename
-                    ,ValiSteps& p_localValidations
-                    ,ValiSteps& p_globalValidations
-                    ,HWND       p_consoleHWND
-                    ,HWND       p_reportHWND
-                    ,HWND       p_callingHWND
-                    ,int        p_callingROW
-                    ,bool       p_global)
-           :m_baseDirectory(p_baseDirectory)
+SQLRunner::SQLRunner(SQLDatabase* p_database
+                    ,CString      p_baseDirectory
+                    ,CString      p_testDirectory
+                    ,CString      p_testStepFilename
+                    ,CString      p_parametersFilename
+                    ,ValiSteps&   p_localValidations
+                    ,ValiSteps&   p_globalValidations
+                    ,HWND         p_consoleHWND
+                    ,HWND         p_reportHWND
+                    ,HWND         p_callingHWND
+                    ,int          p_callingROW
+                    ,bool         p_global)
+           :m_database(p_database)
+           ,m_baseDirectory(p_baseDirectory)
            ,m_testDirectory(p_testDirectory)
            ,m_testStepFilename(p_testStepFilename)
            ,m_parametersFilename(p_parametersFilename)
@@ -69,11 +71,6 @@ SQLRunner::~SQLRunner()
   }
   m_validations.clear();
 
-  if(m_database)
-  {
-    delete m_database;
-    m_database = nullptr;
-  }
   if(m_query)
   {
     delete m_query;
@@ -267,10 +264,20 @@ SQLRunner::PerformCommand()
 
   try
   {
-    m_database = new SQLDatabase();
-    if(m_database->Open(m_testStep.GetEffectiveDatasource()
-                       ,m_testStep.GetEffectiveUser()
-                       ,m_testStep.GetEffectivePassword()))
+    if(m_database->IsOpen() == false || 
+       m_database->GetUserName().CompareNoCase(m_testStep.GetEffectiveUser()) ||
+       m_database->GetDatasource().CompareNoCase(m_testStep.GetEffectiveDatasource()))
+    { 
+      if(m_database->IsOpen())
+      {
+        // Opened for a different user or datasource
+        m_database->Close();
+      }
+      m_database->Open(m_testStep.GetEffectiveDatasource()
+                      ,m_testStep.GetEffectiveUser()
+                      ,m_testStep.GetEffectivePassword());
+    }
+    if(m_database->IsOpen())
     {
       m_query = new SQLQuery(m_database);
       SQLTransaction trans(m_database,"Test");

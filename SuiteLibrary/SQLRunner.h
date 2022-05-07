@@ -33,17 +33,18 @@ using ValiSteps = std::vector<CString>;
 class SQLRunner
 {
 public:
-  SQLRunner(CString    p_baseDirectory
-           ,CString    p_testDirectory
-           ,CString    p_testStepFilename
-           ,CString    p_parametersFilename
-           ,ValiSteps& p_localValidations
-           ,ValiSteps& p_globalValidations
-           ,HWND       p_consoleHWND
-           ,HWND       p_reportHWND
-           ,HWND       p_callingHWND
-           ,int        p_callingROW
-           ,bool       p_global);
+  SQLRunner(SQLDatabase*  p_database
+           ,CString       p_baseDirectory
+           ,CString       p_testDirectory
+           ,CString       p_testStepFilename
+           ,CString       p_parametersFilename
+           ,ValiSteps&    p_localValidations
+           ,ValiSteps&    p_globalValidations
+           ,HWND          p_consoleHWND
+           ,HWND          p_reportHWND
+           ,HWND          p_callingHWND
+           ,int           p_callingROW
+           ,bool          p_global);
  ~SQLRunner();
 
   int     PerformTest();

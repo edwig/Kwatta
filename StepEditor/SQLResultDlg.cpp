@@ -119,7 +119,8 @@ SQLResultDlg::SetResult(StepResultSQL* p_result)
     m_list.GetCell(row, 1)->SetText(col.second);
     ++count;
   }
-  if (count)
+  m_list.Invalidate();
+  if(count)
   {
     m_list.SetFocusCell(1, 0);
   }

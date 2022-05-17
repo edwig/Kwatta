@@ -62,7 +62,6 @@ TestStepNET::ReadFromXML(CString p_filename)
   m_url        = msg.GetElement(def,"URL");
   m_anchor     = msg.GetElement(def,"Anchor");
   m_mimeType   = msg.GetElement(def,"MimeType");
-  m_body       = msg.GetElement(def,"Body");
 
   m_useStatus  = msg.GetElementBoolean(def,"UseStatus");
   m_useHeaders = msg.GetElementBoolean(def,"UseHeaders");
@@ -110,6 +109,13 @@ TestStepNET::ReadFromXML(CString p_filename)
     m_clientKey   = msg.GetElement(auth,"ClientKey");
     m_clientScope = msg.GetElement(auth,"ClientScope");
   }
+
+  // Read the body
+  m_body              = msg.GetElement(def, "Body");
+  m_bodyInputIsFile   = msg.GetElementBoolean(def,"BodyInputIsFile");
+  m_bodyOutputIsFile  = msg.GetElementBoolean(def,"BodyOutputIsFile");
+  m_filenameInput     = msg.GetElement(def,"FileInput");
+  m_filenameOutput    = msg.GetElement(def,"FileOutput");
 }
 
 bool
@@ -166,8 +172,12 @@ TestStepNET::WriteToXML(CString p_filename)
   msg.AddElement(auth,"ClientScope",XDT_String,m_clientScope);
 
   // And our payload body
-  msg.AddElement(def,"MimeType",XDT_String,m_mimeType);
-  msg.AddElement(def,"Body",   XDT_String|XDT_CDATA,m_body);
+  msg.AddElement(def,"MimeType",        XDT_String, m_mimeType);
+  msg.AddElement(def,"BodyInputIsFile", XDT_Boolean,m_bodyInputIsFile  ? "true" : "false" );
+  msg.AddElement(def,"BodyOutputIsFile",XDT_Boolean,m_bodyOutputIsFile ? "true" : "false" );
+  msg.AddElement(def,"FileInput",       XDT_String, m_filenameInput);
+  msg.AddElement(def,"FileOutput",      XDT_String, m_filenameOutput);
+  msg.AddElement(def,"Body",            XDT_String|XDT_CDATA,m_body);
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -179,9 +189,11 @@ TestStepNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
 
-  unbound += p_parameters->Replace(m_url,   m_effectiveUrl,   p_forDisplay);
-  unbound += p_parameters->Replace(m_anchor,m_effectiveAnchor,p_forDisplay);
-  unbound += p_parameters->Replace(m_body,  m_effectiveBody,  p_forDisplay,ParType::PAR_BUFFER);
+  unbound += p_parameters->Replace(m_url,           m_effectiveUrl,       p_forDisplay);
+  unbound += p_parameters->Replace(m_anchor,        m_effectiveAnchor,    p_forDisplay);
+  unbound += p_parameters->Replace(m_body,          m_effectiveBody,      p_forDisplay,ParType::PAR_BUFFER);
+  unbound += p_parameters->Replace(m_filenameInput, m_effectiveFileInput, p_forDisplay);
+  unbound += p_parameters->Replace(m_filenameOutput,m_effectiveFileOutput,p_forDisplay);
 
   m_effectiveParameters.clear();
   m_effectiveHeaders.clear();

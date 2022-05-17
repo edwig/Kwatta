@@ -54,14 +54,19 @@ protected:
 
   CString       m_mimeType;
   CString       m_payload;
+  CString       m_inputFile;
+  bool          m_useFile;
 
   StyleComboBox m_comboMime;
   StyleButton   m_buttonCheck;
   StyleButton   m_buttonParam;
   StyleButton   m_buttonMulti;
   StyleEdit     m_editPayload;
+  StyleCheckbox m_checkUseFile;
+  StyleEdit     m_editInputFile;
+  StyleButton   m_buttonChooseFile;
 
-  TestStepNET*   m_testStep   { nullptr };
+  TestStepNET*  m_testStep   { nullptr };
   Parameters*   m_parameters { nullptr };
 
 	DECLARE_MESSAGE_MAP()
@@ -71,4 +76,7 @@ public:
   afx_msg void OnBnClickedParam();
   afx_msg void OnBnClickedMulti();
   afx_msg void OnEnKillfocusPayload();
+  afx_msg void OnBnClickedUseFile();
+  afx_msg void OnEnKillfocusInputFile();
+  afx_msg void OnBnClickedChooseFile();
 };

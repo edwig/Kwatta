@@ -59,5 +59,6 @@ protected:
   UrlHeaders  m_headers;
   CString     m_body;
   CString     m_bearerToken;
+  CString     m_bodyFile;
 };
 

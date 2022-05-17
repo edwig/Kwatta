@@ -122,6 +122,7 @@
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -165,6 +166,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

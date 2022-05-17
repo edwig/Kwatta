@@ -64,6 +64,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -94,6 +95,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

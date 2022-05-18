@@ -24,6 +24,7 @@
 #include "TestStep.h"
 #include "TestStepCMD.h"
 #include "TestStepNET.h"
+#include "TestStepSQL.h"
 #include "TestSuite.h"
 #include "ExtraExtensions.h"
 #include <StdException.h>
@@ -146,6 +147,7 @@ ResetAll::ResetTestSet()
           CString deleting = m_baseDirectory + m_testDirectory + "\\" + trun.m_filename;
           deleting.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
           deleting.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
+          deleting.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
           m_toBeDeleted.push_back(deleting);
         }
         testset.WriteToXML();
@@ -168,14 +170,19 @@ ResetAll::ResetTestStep()
   try
   {
     TestStep* step = ReadTestStep(path);
-    if (step->GetType() == StepType::Step_command)
+    if(step->GetType() == StepType::Step_command)
     {
       TestStepCMD* clstep = reinterpret_cast<TestStepCMD*>(step);
       clstep->ResetEffective();
     }
-    else
+    else if(step->GetType() == StepType::Step_http)
     {
       TestStepNET* instep = reinterpret_cast<TestStepNET*>(step);
+      instep->ResetEffective();
+    }
+    else if(step->GetType() == StepType::Step_sql)
+    {
+      TestStepSQL* instep = reinterpret_cast<TestStepSQL*>(step);
       instep->ResetEffective();
     }
     step->WriteToXML(path);

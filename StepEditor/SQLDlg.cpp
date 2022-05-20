@@ -102,6 +102,13 @@ SQLDlg::InitTab(TestStepSQL* p_testStep,Parameters* p_parameters)
   UpdateData(FALSE);
 }
 
+bool
+SQLDlg::IsFilled()
+{
+  return !m_payload.IsEmpty();
+}
+
+
 void
 SQLDlg::EffectiveParameters()
 {

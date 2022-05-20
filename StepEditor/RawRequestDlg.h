@@ -35,6 +35,7 @@ public:
   void InitTab(TestStepNET* p_testStep = nullptr);
   void InitPayload();
   void StoreVariables();
+  bool IsFilled();
 
 // Dialog Data
 	enum { IDD = IDD_RAW_REQUEST};

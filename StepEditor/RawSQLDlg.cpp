@@ -98,6 +98,12 @@ RawSQLDlg::InitTab(TestStepSQL* p_testStep)
   UpdateData(FALSE);
 }
 
+bool
+RawSQLDlg::IsFilled()
+{
+  return !m_payload.IsEmpty();
+}
+
 void 
 RawSQLDlg::StoreVariables()
 {

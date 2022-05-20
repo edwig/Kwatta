@@ -42,6 +42,7 @@ public:
   void InitTab(TestStepNET* p_step,Parameters* p_parameters);
   void SetResult(CString p_token);
   void StoreVariables();
+  bool IsFilled();
 
 // Dialog Data
 	enum { IDD = IDD_AUTHENTICATE };

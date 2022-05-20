@@ -34,6 +34,7 @@ public:
 	virtual ~TimingDlg();
   void     InitTab(TestStep* p_step,Parameters* p_param);
   void     StoreVariables();
+  bool     IsFilled();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

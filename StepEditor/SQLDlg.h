@@ -38,6 +38,7 @@ public:
   void InitPayload();
   void StoreVariables();
   void EffectiveParameters();
+  bool IsFilled();
 
   // Dialog Data
   enum { IDD = IDD_SQL };

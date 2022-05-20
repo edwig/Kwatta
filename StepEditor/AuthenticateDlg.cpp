@@ -214,6 +214,12 @@ AuthenticateDlg::InitTab(TestStepNET* p_step,Parameters* p_parameters)
   UpdateData(FALSE);
 }
 
+bool
+AuthenticateDlg::IsFilled()
+{
+  return !m_authType.IsEmpty();
+}
+
 void 
 AuthenticateDlg::StoreVariables()
 {

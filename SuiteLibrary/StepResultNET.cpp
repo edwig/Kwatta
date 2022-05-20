@@ -136,7 +136,7 @@ StepResultNET::GetRawResponse()
 {
   // Getting the raw HTTP line
   CString raw;
-  raw.Format("%d %s HTTP/1.1\n",m_status,GetHTTPStatusText(m_status));
+  raw.Format("HTTP/1.1 %d %s\n",m_status,GetHTTPStatusText(m_status));
 
   // Add the headers
   for(auto& header : m_headers)

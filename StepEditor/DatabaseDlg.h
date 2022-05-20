@@ -17,6 +17,7 @@ public:
 	void InitTab(TestStepSQL* p_testStep,Parameters* p_parameters);
   void StoreVariables();
   void EffectiveParameters();
+  bool IsFilled();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME

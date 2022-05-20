@@ -97,6 +97,12 @@ RawRequestDlg::InitTab(TestStepNET* p_testStep)
   UpdateData(FALSE);
 }
 
+bool
+RawRequestDlg::IsFilled()
+{
+  return !m_payload.IsEmpty();
+}
+
 void 
 RawRequestDlg::StoreVariables()
 {

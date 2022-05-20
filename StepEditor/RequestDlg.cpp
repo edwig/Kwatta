@@ -53,14 +53,17 @@ void
 RequestDlg::DoDataExchange(CDataExchange* pDX)
 {
 	StyleDialog::DoDataExchange(pDX);
-  DDX_CBString(pDX,IDC_CONTENT,   m_comboMime,m_mimeType);
-  DDX_Control (pDX,IDC_CHECK,     m_buttonCheck);
-  DDX_Control (pDX,IDC_PARAM,     m_buttonParam);
-  DDX_Control (pDX,IDC_MULTI,     m_buttonMulti);
-  DDX_Control (pDX,IDC_PAYLOAD,   m_editPayload,m_payload);
-  DDX_Control (pDX,IDC_USEFILE,   m_checkUseFile);
-  DDX_Control (pDX,IDC_INPUTFILE, m_editInputFile,m_inputFile);
-  DDX_Control (pDX,IDC_BUT_FILE,  m_buttonChooseFile);
+  DDX_CBString(pDX,IDC_CONTENT,     m_comboMime,m_mimeType);
+  DDX_Control (pDX,IDC_CHECK,       m_buttonCheck);
+  DDX_Control (pDX,IDC_PARAM,       m_buttonParam);
+  DDX_Control (pDX,IDC_MULTI,       m_buttonMulti);
+  DDX_Control (pDX,IDC_PAYLOAD,     m_editPayload,m_payload);
+  DDX_Control (pDX,IDC_USEFILE,     m_checkUseFile);
+  DDX_Control (pDX,IDC_INPUTFILE,   m_editInputFile,m_inputFile);
+  DDX_Control (pDX,IDC_BUT_INFILE,  m_buttonChooseFile);
+  DDX_Control (pDX,IDC_SAVEFILE,    m_checkSaveFile);
+  DDX_Control (pDX,IDC_OUTPUTFILE,  m_editOutputFile,m_outputFile);
+  DDX_Control (pDX,IDC_BUT_OUTFILE, m_buttonSaveFile);
 
   if(pDX->m_bSaveAndValidate == FALSE)
   {
@@ -80,18 +83,23 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
     m_buttonMulti     .EnableWindow(multi);
     m_editInputFile   .EnableWindow(m_useFile);
     m_buttonChooseFile.EnableWindow(m_useFile);
+    m_editOutputFile  .EnableWindow(m_saveFile);
+    m_buttonSaveFile  .EnableWindow(m_saveFile);
   }
 }
 
 BEGIN_MESSAGE_MAP(RequestDlg, StyleDialog)
-  ON_CBN_SELCHANGE(IDC_CONTENT,   &RequestDlg::OnCbnSelchangeMime)
-  ON_BN_CLICKED   (IDC_CHECK,     &RequestDlg::OnBnClickedCheck)
-  ON_BN_CLICKED   (IDC_PARAM,     &RequestDlg::OnBnClickedParam)
-  ON_BN_CLICKED   (IDC_MULTI,     &RequestDlg::OnBnClickedMulti)
-  ON_EN_KILLFOCUS (IDC_PAYLOAD,   &RequestDlg::OnEnKillfocusPayload)
-  ON_BN_CLICKED   (IDC_USEFILE,   &RequestDlg::OnBnClickedUseFile)
-  ON_EN_KILLFOCUS (IDC_INPUTFILE, &RequestDlg::OnEnKillfocusInputFile)
-  ON_BN_CLICKED   (IDC_BUT_FILE,  &RequestDlg::OnBnClickedChooseFile)
+  ON_CBN_SELCHANGE(IDC_CONTENT,     &RequestDlg::OnCbnSelchangeMime)
+  ON_BN_CLICKED   (IDC_CHECK,       &RequestDlg::OnBnClickedCheck)
+  ON_BN_CLICKED   (IDC_PARAM,       &RequestDlg::OnBnClickedParam)
+  ON_BN_CLICKED   (IDC_MULTI,       &RequestDlg::OnBnClickedMulti)
+  ON_EN_KILLFOCUS (IDC_PAYLOAD,     &RequestDlg::OnEnKillfocusPayload)
+  ON_BN_CLICKED   (IDC_USEFILE,     &RequestDlg::OnBnClickedUseFile)
+  ON_EN_KILLFOCUS (IDC_INPUTFILE,   &RequestDlg::OnEnKillfocusInputFile)
+  ON_BN_CLICKED   (IDC_BUT_INFILE,  &RequestDlg::OnBnClickedChooseFile)
+  ON_BN_CLICKED   (IDC_SAVEFILE,    &RequestDlg::OnBnClickedSaveFile)
+  ON_EN_KILLFOCUS (IDC_OUTPUTFILE,  &RequestDlg::OnEnKillfocusOutputFile)
+  ON_BN_CLICKED   (IDC_BUT_OUTFILE, &RequestDlg::OnBnClickedOutputFile)
 END_MESSAGE_MAP()
 
 BOOL
@@ -102,6 +110,7 @@ RequestDlg::OnInitDialog()
   m_buttonCheck.SetIconImage(IDI_CHECK);
   m_buttonParam.SetIconImage(IDI_LIST);
   m_buttonChooseFile.SetStyle("dir");
+  m_buttonSaveFile  .SetStyle("dir");
   EnableToolTips();
   RegisterTooltip(m_buttonCheck,"Check correctness of the XML/JSON structures.");
   RegisterTooltip(m_buttonParam,"Choose global/test parameter.");
@@ -123,12 +132,16 @@ RequestDlg::SetupDynamicLayout()
   manager.AssertValid();
 #endif
 
-  manager.AddItem(IDC_PAYLOAD,   CMFCDynamicLayout::MoveNone(),                         CMFCDynamicLayout::SizeHorizontalAndVertical(100,100));
-  manager.AddItem(IDC_MULTI,     CMFCDynamicLayout::MoveHorizontal(100),                CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_ST_USEFILE,CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_USEFILE,   CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_INPUTFILE, CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
-  manager.AddItem(IDC_BUT_FILE,  CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_PAYLOAD,    CMFCDynamicLayout::MoveNone(),                         CMFCDynamicLayout::SizeHorizontalAndVertical(100,100));
+  manager.AddItem(IDC_MULTI,      CMFCDynamicLayout::MoveHorizontal(100),                CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_ST_USEFILE, CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_USEFILE,    CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_INPUTFILE,  CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_BUT_INFILE, CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_ST_SAVEFILE,CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_SAVEFILE,   CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_OUTPUTFILE, CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_BUT_OUTFILE,CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
 }
 
 void
@@ -163,6 +176,8 @@ RequestDlg::InitTab(TestStepNET* p_testStep,Parameters* p_parameters)
   m_mimeType   = m_testStep->GetMimeType();
   m_inputFile  = m_testStep->GetFilenameInput();
   m_useFile    = m_testStep->GetBodyInputIsFile();
+  m_outputFile = m_testStep->GetFilenameOutput();
+  m_saveFile   = m_testStep->GetBodyOutputIsFile();
 
   int ind = m_comboMime.FindStringExact(0,m_mimeType);
   if(ind >= 0)
@@ -171,6 +186,12 @@ RequestDlg::InitTab(TestStepNET* p_testStep,Parameters* p_parameters)
   }
   m_checkUseFile.SetCheck(m_useFile);
   UpdateData(FALSE);
+}
+
+bool
+RequestDlg::IsFilled()
+{
+  return !m_payload.IsEmpty();
 }
 
 void
@@ -194,6 +215,8 @@ RequestDlg::StoreVariables()
   m_testStep->SetMimeType(m_mimeType);
   m_testStep->SetBodyInputIsFile(m_useFile);
   m_testStep->SetFilenameInput(m_inputFile);
+  m_testStep->SetBodyOutputIsFile(m_saveFile);
+  m_testStep->SetFilenameOutput(m_outputFile);
 }
 
 void
@@ -330,6 +353,7 @@ void
 RequestDlg::OnEnKillfocusInputFile()
 {
   UpdateData();
+  EffectiveParameters();
 }
 
 void 
@@ -355,6 +379,47 @@ RequestDlg::OnBnClickedChooseFile()
     ens.MakeRelativePathname(basedir,file,relative);
     relative.Replace("/","\\");
     m_inputFile = relative;
+    UpdateData(FALSE);
+  }
+}
+
+void 
+RequestDlg::OnBnClickedSaveFile()
+{
+  m_saveFile = m_checkSaveFile.GetCheck() > 0;
+  UpdateData(FALSE);
+}
+
+void 
+RequestDlg::OnEnKillfocusOutputFile()
+{
+  UpdateData();
+  EffectiveParameters();
+}
+
+void 
+RequestDlg::OnBnClickedOutputFile()
+{
+  CString filter;
+  filter  = "All files *.*|*.*";
+  filter += "|PNG Image files *.png|*.png";
+  filter += "|JPG Image files *.jpg|*.jpg";
+  filter += "|GIF Image files *.gif|*.gif";
+  filter += "|PDF portable documents *.pdf|*.pdf";
+  filter += "|DOCX MS-Word documents *.docx|*.docx";
+  filter += "|RTF Richt Text Format *.rtf|*.rtf";
+
+  DocFileDialog doc(GetSafeHwnd(),false,"Choose file to output the body to","",m_outputFile,0,filter);
+  if(doc.DoModal() == IDOK)
+  {
+    CString file = doc.GetChosenFile();
+    EnsureFile ens(file);
+
+    CString relative;
+    CString basedir = theApp.GetBaseDirectory();
+    ens.MakeRelativePathname(basedir,file,relative);
+    relative.Replace("/","\\");
+    m_outputFile = relative;
     UpdateData(FALSE);
   }
 }

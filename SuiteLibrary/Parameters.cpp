@@ -729,6 +729,7 @@ Parameters::Replace(CString& p_string
                    ,bool     p_forDisplay
                    ,ParType  p_exclude /*= PAR_NONE*/)
 {
+  int last = 0;
   int notReplaced = 0;
   CString replaced;
 
@@ -792,12 +793,20 @@ Parameters::Replace(CString& p_string
     }
     else if (ch == '\\')
     {
-      // Pass a meta character
-      replaced += '\\';
+      // Skip passed a meta character
       int meta = p_string.GetAt(ind + 1);
       if(meta)
       {
-        replaced += (char)meta;
+        if(meta == '$' || meta == '%' || meta == '#' || 
+           meta == '[' || meta == ']' || meta == '<' || meta == '>')
+        {
+          replaced += (char)meta;
+        }
+        else
+        {
+          replaced += (char)ch;
+          replaced += (char)meta;
+        }
       }
       ++ind;
     }
@@ -806,6 +815,7 @@ Parameters::Replace(CString& p_string
       // Normal character
       replaced += (unsigned char) ch;
     }
+    last = ch;
   }
 
   // Result

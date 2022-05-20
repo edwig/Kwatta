@@ -189,6 +189,7 @@ StepInternetDlg::OnInitDialog()
   RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
 
   EffectiveParameters();
+  SetFirstTab();
 
   SetCanResize();
   UpdateData(FALSE);
@@ -468,7 +469,22 @@ StepInternetDlg::StoreVariables()
   m_page6->StoreVariables();
 }
 
+void
+StepInternetDlg::SetFirstTab()
+{
+       if(m_page1->IsFilled()) m_tabsRequest.SelectTab(0);
+  else if(m_page2->IsFilled()) m_tabsRequest.SelectTab(1);
+  else if(m_page3->IsFilled()) m_tabsRequest.SelectTab(2);
+  else if(m_page4->IsFilled()) m_tabsRequest.SelectTab(3);
+  else if(m_page5->IsFilled()) m_tabsRequest.SelectTab(4);
+  else if(m_page6->IsFilled()) m_tabsRequest.SelectTab(5);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // StepInternetDlg message handlers
+//
+//////////////////////////////////////////////////////////////////////////
 
 void
 StepInternetDlg::OnAbout()

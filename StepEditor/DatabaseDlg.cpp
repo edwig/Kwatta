@@ -83,6 +83,12 @@ DatabaseDlg::InitTab(TestStepSQL* p_testStep, Parameters* p_parameters)
 	UpdateData(FALSE);
 }
 
+bool
+DatabaseDlg::IsFilled()
+{
+  return !m_datasource.IsEmpty();
+}
+
 void 
 DatabaseDlg::StoreVariables()
 {

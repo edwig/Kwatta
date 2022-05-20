@@ -35,6 +35,7 @@ public:
   void InitTab(TestStepSQL* p_testStep = nullptr);
   void InitPayload();
   void StoreVariables();
+  bool IsFilled();
 
 // Dialog Data
 	enum { IDD = IDD_RAW_SQL};

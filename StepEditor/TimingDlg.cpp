@@ -113,6 +113,12 @@ TimingDlg::InitTab(TestStep* p_step,Parameters* p_param)
   Effectuate();
 }
 
+bool
+TimingDlg::IsFilled()
+{
+  return m_killOnTimeout;
+}
+
 void
 TimingDlg::StoreVariables()
 {

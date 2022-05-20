@@ -36,6 +36,7 @@ public:
   void InitTab(TestStepNET* p_testStep,Parameters* p_parameters);
   void InitCombo();
   void InitPayload();
+  bool IsFilled();
   void StoreVariables();
   void EffectiveParameters();
   void CheckXML();
@@ -55,7 +56,9 @@ protected:
   CString       m_mimeType;
   CString       m_payload;
   CString       m_inputFile;
+  CString       m_outputFile;
   bool          m_useFile;
+  bool          m_saveFile;
 
   StyleComboBox m_comboMime;
   StyleButton   m_buttonCheck;
@@ -65,6 +68,9 @@ protected:
   StyleCheckbox m_checkUseFile;
   StyleEdit     m_editInputFile;
   StyleButton   m_buttonChooseFile;
+  StyleCheckbox m_checkSaveFile;
+  StyleEdit     m_editOutputFile;
+  StyleButton   m_buttonSaveFile;
 
   TestStepNET*  m_testStep   { nullptr };
   Parameters*   m_parameters { nullptr };
@@ -79,4 +85,7 @@ public:
   afx_msg void OnBnClickedUseFile();
   afx_msg void OnEnKillfocusInputFile();
   afx_msg void OnBnClickedChooseFile();
+  afx_msg void OnBnClickedSaveFile();
+  afx_msg void OnEnKillfocusOutputFile();
+  afx_msg void OnBnClickedOutputFile();
 };

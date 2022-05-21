@@ -185,6 +185,7 @@ RequestDlg::InitTab(TestStepNET* p_testStep,Parameters* p_parameters)
     m_comboMime.SetCurSel(ind);
   }
   m_checkUseFile.SetCheck(m_useFile);
+  m_checkSaveFile.SetCheck(m_saveFile);
   UpdateData(FALSE);
 }
 

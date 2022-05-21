@@ -275,6 +275,32 @@ InetRunner::PreCommandWaiting()
 }
 
 void
+InetRunner::PrepareMessage()
+{
+  // VERB URL
+  CString url = m_testStep.GetEffectiveCombinedURL();
+  m_message.SetVerb(m_testStep.GetVerb());
+  m_message.SetURL(url);
+
+  // Adding all headers
+  for(auto& header : m_testStep.GetEffectiveHeaders())
+  {
+    m_message.AddHeader(header.m_name,header.m_value);
+  }
+
+  // Getting the body of the message
+  if(m_testStep.GetBodyInputIsFile())
+  {
+    CString file = m_baseDirectory + m_testStep.GetFilenameInput();
+    m_message.GetFileBuffer()->SetFileName(file);
+  }
+  else
+  {
+    m_message.SetBody(m_testStep.GetEffectiveBody());
+  }
+}
+
+void
 InetRunner::PerformCommand()
 {
   PerformStep("RUN THE COMMAND...");
@@ -284,16 +310,7 @@ InetRunner::PerformCommand()
   m_result.SetDocumentation(m_testStep.GetDocumentation());
 
   // Prepare message
-  m_message.SetVerb(m_testStep.GetVerb());
-  m_message.SetBody(m_testStep.GetEffectiveBody());
-  CString url = m_testStep.GetEffectiveCombinedURL();
-  m_message.SetURL(url);
-
-  // Adding all headers
-  for(auto& header : m_testStep.GetEffectiveHeaders())
-  {
-    m_message.AddHeader(header.m_name,header.m_value);
-  }
+  PrepareMessage();
 
   // Test environments are normally lax with certificates
   // So be prepared to deal with not completely right ones!
@@ -312,15 +329,28 @@ InetRunner::PerformCommand()
     }
   }
 
-  // RUN THE TEST !!
-  // 
   // Start counter and send message
   HPFCounter counter;
+
+  //////////////////////////////////////////////////////////////////////////
+  //
+  // RUN THE TEST !!
+  //
   m_client->Send(&m_message);
+  //
+  //////////////////////////////////////////////////////////////////////////
+
   // Stop the high-performance timer!
   counter.Stop();
   m_result.SetTiming(counter.GetCounter());
-  
+
+  // Get everything from the test
+  ExamineMessage();
+}
+
+void
+InetRunner::ExamineMessage()
+{
   // Getting the OS status for the HTTP call
   CString message;
   int error = m_client->GetError(&message);
@@ -332,15 +362,30 @@ InetRunner::PerformCommand()
   m_result.SetStatus(m_message.GetStatus());
 
   // Keep result headers
-  for(auto& header : *m_message.GetHeaderMap())
+  for (auto& header : *m_message.GetHeaderMap())
   {
     INPair pair;
-    pair.m_name  = header.first;
+    pair.m_name = header.first;
     pair.m_value = header.second;
     m_result.SetHeader(pair);
   }
 
-  // Keep result body
+  // Keep the body of the message
+  if(m_testStep.GetBodyOutputIsFile())
+  {
+    CString file = m_baseDirectory + m_testStep.GetFilenameOutput();
+       m_message.GetFileBuffer()->SetFileName(file);
+    if(m_message.GetFileBuffer()->WriteFile())
+    {
+      m_message.GetFileBuffer()->ResetFilename();
+      m_message.SetBody("<File written: OK>\r\nFile: " + file);
+    }
+    else
+    {
+      m_message.GetFileBuffer()->ResetFilename();
+      m_message.SetBody("<FILE NOT WRITTEN>\r\nFile: " + file);
+    }
+  }
   m_result.SetBody(m_message.GetBody());
 
   // Keep last OAuth2 bearer token

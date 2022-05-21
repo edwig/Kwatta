@@ -94,6 +94,8 @@ private:
   void  ReadValidations();
   void  PerformStep(CString p_stepName);
   void  WaitingForATimeout(CString p_stepname,int p_milliseconds);
+  void  PrepareMessage();
+  void  ExamineMessage();
 
   // Telling it the outside world
   void  SetTest(CString p_test);

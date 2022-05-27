@@ -233,5 +233,8 @@
     <Image Include="res\Earth.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\example.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

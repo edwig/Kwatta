@@ -209,6 +209,7 @@
     <Image Include="res\Check.ico" />
     <Image Include="res\Clear.ico" />
     <Image Include="res\Earth.ico" />
+    <Image Include="res\example.ico" />
     <Image Include="res\icon2.ico" />
     <Image Include="res\List.ico" />
     <Image Include="res\new.ico" />

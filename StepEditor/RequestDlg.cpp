@@ -29,6 +29,8 @@
 #include <XMLMessage.h>
 #include <JSONMessage.h>
 #include <EnsureFile.h>
+#include <ExecuteShell.h>
+#include <WinFile.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -64,6 +66,8 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control (pDX,IDC_SAVEFILE,    m_checkSaveFile);
   DDX_Control (pDX,IDC_OUTPUTFILE,  m_editOutputFile,m_outputFile);
   DDX_Control (pDX,IDC_BUT_OUTFILE, m_buttonSaveFile);
+  DDX_Control(pDX, IDC_SHOW_INFILE, m_buttonShowInfile);
+  DDX_Control(pDX, IDC_SHOW_OUTFILE,m_buttonShowOutfile);
 
   if(pDX->m_bSaveAndValidate == FALSE)
   {
@@ -80,11 +84,13 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
       multi = true;
     }
     m_editPayload.SetMutable(!multi && !m_useFile);
-    m_buttonMulti     .EnableWindow(multi);
-    m_editInputFile   .EnableWindow(m_useFile);
-    m_buttonChooseFile.EnableWindow(m_useFile);
-    m_editOutputFile  .EnableWindow(m_saveFile);
-    m_buttonSaveFile  .EnableWindow(m_saveFile);
+    m_buttonMulti      .EnableWindow(multi);
+    m_editInputFile    .EnableWindow(m_useFile);
+    m_buttonChooseFile .EnableWindow(m_useFile);
+    m_buttonShowInfile .EnableWindow(m_useFile);
+    m_editOutputFile   .EnableWindow(m_saveFile);
+    m_buttonSaveFile   .EnableWindow(m_saveFile);
+    m_buttonShowOutfile.EnableWindow(m_saveFile);
   }
 }
 
@@ -100,6 +106,8 @@ BEGIN_MESSAGE_MAP(RequestDlg, StyleDialog)
   ON_BN_CLICKED   (IDC_SAVEFILE,    &RequestDlg::OnBnClickedSaveFile)
   ON_EN_KILLFOCUS (IDC_OUTPUTFILE,  &RequestDlg::OnEnKillfocusOutputFile)
   ON_BN_CLICKED   (IDC_BUT_OUTFILE, &RequestDlg::OnBnClickedOutputFile)
+  ON_BN_CLICKED   (IDC_SHOW_INFILE, &RequestDlg::OnBnClickedShowInfile)
+  ON_BN_CLICKED   (IDC_SHOW_OUTFILE,&RequestDlg::OnBnClickedShowOutfile)
 END_MESSAGE_MAP()
 
 BOOL
@@ -111,6 +119,8 @@ RequestDlg::OnInitDialog()
   m_buttonParam.SetIconImage(IDI_LIST);
   m_buttonChooseFile.SetStyle("dir");
   m_buttonSaveFile  .SetStyle("dir");
+  m_buttonShowInfile.SetIconImage(IDI_EXAMPLE);
+  m_buttonShowOutfile.SetIconImage(IDI_EXAMPLE);
   EnableToolTips();
   RegisterTooltip(m_buttonCheck,"Check correctness of the XML/JSON structures.");
   RegisterTooltip(m_buttonParam,"Choose global/test parameter.");
@@ -132,16 +142,18 @@ RequestDlg::SetupDynamicLayout()
   manager.AssertValid();
 #endif
 
-  manager.AddItem(IDC_PAYLOAD,    CMFCDynamicLayout::MoveNone(),                         CMFCDynamicLayout::SizeHorizontalAndVertical(100,100));
-  manager.AddItem(IDC_MULTI,      CMFCDynamicLayout::MoveHorizontal(100),                CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_ST_USEFILE, CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_USEFILE,    CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_INPUTFILE,  CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
-  manager.AddItem(IDC_BUT_INFILE, CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_ST_SAVEFILE,CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_SAVEFILE,   CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_OUTPUTFILE, CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
-  manager.AddItem(IDC_BUT_OUTFILE,CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_PAYLOAD,      CMFCDynamicLayout::MoveNone(),                         CMFCDynamicLayout::SizeHorizontalAndVertical(100,100));
+  manager.AddItem(IDC_MULTI,        CMFCDynamicLayout::MoveHorizontal(100),                CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_ST_USEFILE,   CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_USEFILE,      CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_INPUTFILE,    CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_BUT_INFILE,   CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_ST_SAVEFILE,  CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_SAVEFILE,     CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_OUTPUTFILE,   CMFCDynamicLayout::MoveVertical(100),                  CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_BUT_OUTFILE,  CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_SHOW_INFILE,  CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_SHOW_OUTFILE, CMFCDynamicLayout::MoveHorizontalAndVertical(100,100), CMFCDynamicLayout::SizeNone());
 }
 
 void
@@ -422,5 +434,29 @@ RequestDlg::OnBnClickedOutputFile()
     relative.Replace("/","\\");
     m_outputFile = relative;
     UpdateData(FALSE);
+  }
+}
+
+void 
+RequestDlg::OnBnClickedShowInfile()
+{
+  CString error;
+  CString filename = theApp.GetBaseDirectory() + m_inputFile;
+  WinFile file(filename);
+  if(file.Exists())
+  {
+    ExecuteShell("open",filename,"",GetSafeHwnd(),true,&error);
+  }
+}
+
+void 
+RequestDlg::OnBnClickedShowOutfile()
+{
+  CString error;
+  CString filename = theApp.GetBaseDirectory() + m_outputFile;
+  WinFile file(filename);
+  if(file.Exists())
+  {
+    ExecuteShell("open",filename,"",NULL,true,&error);
   }
 }

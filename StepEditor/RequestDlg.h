@@ -71,6 +71,8 @@ protected:
   StyleCheckbox m_checkSaveFile;
   StyleEdit     m_editOutputFile;
   StyleButton   m_buttonSaveFile;
+  StyleButton   m_buttonShowInfile;
+  StyleButton   m_buttonShowOutfile;
 
   TestStepNET*  m_testStep   { nullptr };
   Parameters*   m_parameters { nullptr };
@@ -88,4 +90,6 @@ public:
   afx_msg void OnBnClickedSaveFile();
   afx_msg void OnEnKillfocusOutputFile();
   afx_msg void OnBnClickedOutputFile();
+  afx_msg void OnBnClickedShowInfile();
+  afx_msg void OnBnClickedShowOutfile();
 };

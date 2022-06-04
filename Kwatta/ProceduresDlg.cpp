@@ -1,9 +1,9 @@
 // ProceduresDlg.cpp : implementation file
 //
 #include "StdAfx.h"
-#include "afxdialogex.h"
 #include "ProceduresDlg.h"
 #include <ResetAll.h>
+#include <ExecuteShell.h>
 #include "resource.h"
 
 // ProceduresDlg dialog
@@ -28,13 +28,15 @@ void ProceduresDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX,IDC_GENERATE_REPORT,m_buttonReport);
   DDX_Control(pDX,IDC_RESET_OUTCOME,  m_editResetOutcome,m_resetOutcome);
   DDX_Control(pDX,IDC_REPORT_OUTCOME, m_editReportOutcome,m_reportOutcome);
+  DDX_CBIndex(pDX,IDC_DEPTH,          m_comboDepth,(int&)m_depth);
   DDX_Control(pDX,IDOK,               m_buttonOK);
   DDX_Control(pDX,IDCANCEL,           m_buttonCancel);
 }
 
 BEGIN_MESSAGE_MAP(ProceduresDlg, StyleDialog)
-  ON_BN_CLICKED(IDC_RESET_RESULTS,   OnBnClickedReset)
-  ON_BN_CLICKED(IDC_GENERATE_REPORT, OnBnClickedReport)
+  ON_BN_CLICKED (IDC_RESET_RESULTS,  OnBnClickedReset)
+  ON_BN_CLICKED (IDC_GENERATE_REPORT,OnBnClickedReport)
+  ON_CBN_CLOSEUP(IDC_DEPTH,          OnCbnCloseupDepth)
 END_MESSAGE_MAP()
 
 BOOL
@@ -43,12 +45,25 @@ ProceduresDlg::OnInitDialog()
   StyleDialog::OnInitDialog();
   SetWindowText("Suite procedures");
 
+  InitButtons();
+
+  return FALSE;
+}
+
+void
+ProceduresDlg::InitButtons()
+{
   m_buttonOK.SetStyle("ok");
   m_buttonCancel.SetStyle("can");
   m_editReportOutcome.SetMutable(false);
   m_editResetOutcome.SetMutable(false);
 
-  return FALSE;
+  m_comboDepth.AddString("Only test sets");
+  m_comboDepth.AddString("Include all test steps");
+  m_comboDepth.AddString("Include all validations");
+  m_comboDepth.AddString("Full info including output");
+
+  m_comboDepth.SetCurSel(0);
 }
 
 // ProceduresDlg message handlers
@@ -82,5 +97,20 @@ ProceduresDlg::OnBnClickedReset()
 void 
 ProceduresDlg::OnBnClickedReport()
 {
-  StyleMessageBox(this,"Not implemented yet!",KWATTA,MB_OK);
+  CString reportName("Report.txt");
+
+  TestReport report(m_baseDirectory,reportName,"KWATTA Test Report",m_depth);
+  report.StartReport();
+
+  ExecuteShell("open",m_baseDirectory + reportName,"",nullptr,true);
+}
+
+void 
+ProceduresDlg::OnCbnCloseupDepth()
+{
+  int ind = m_comboDepth.GetCurSel();
+  if (ind >= 0)
+  {
+    m_depth = (ReportDepth)ind;
+  }
 }

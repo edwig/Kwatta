@@ -119,6 +119,9 @@
     <ClInclude Include="SQLRunner.h">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="TestReport.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestStep.cpp">
@@ -203,6 +206,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SQLRunner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TestReport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

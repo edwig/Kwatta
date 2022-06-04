@@ -1,6 +1,5 @@
 #pragma once
-#include "afxdialogex.h"
-
+#include <TestReport.h>
 
 // ProceduresDlg dialog
 
@@ -22,20 +21,24 @@ public:
 protected:
   virtual void DoDataExchange(CDataExchange* pDX) override;
   virtual BOOL OnInitDialog() override;
+          void InitButtons();
 
-  CString     m_baseDirectory;
-  CString     m_resetOutcome;
-  CString     m_reportOutcome;
-  StyleButton m_buttonReset;
-  StyleButton m_buttonReport;
-  StyleEdit   m_editResetOutcome;
-  StyleEdit   m_editReportOutcome;
-  StyleButton m_buttonOK;
-  StyleButton m_buttonCancel;
-  bool        m_purge { false };
+  CString       m_baseDirectory;
+  CString       m_resetOutcome;
+  CString       m_reportOutcome;
+  ReportDepth   m_depth{ ReportDepth::REPORT_TESTS };
+  StyleButton   m_buttonReset;
+  StyleButton   m_buttonReport;
+  StyleEdit     m_editResetOutcome;
+  StyleEdit     m_editReportOutcome;
+  StyleComboBox m_comboDepth;
+  StyleButton   m_buttonOK;
+  StyleButton   m_buttonCancel;
+  bool          m_purge { false };
 
 	DECLARE_MESSAGE_MAP()
 
   afx_msg void OnBnClickedReset();
   afx_msg void OnBnClickedReport();
+  afx_msg void OnCbnCloseupDepth();
 };

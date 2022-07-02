@@ -41,8 +41,8 @@ TestStep* ReadTestStep(CString p_filename);
 class TestStep
 {
 public:
-  TestStep() = default;
-  virtual ~TestStep() = default;
+  TestStep();
+  virtual ~TestStep();
 
   // Interface with the file system
   virtual void  ReadFromXML(CString p_filename) = 0;

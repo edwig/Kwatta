@@ -28,7 +28,7 @@ enum class ReportDepth
  ,REPORT_FULL       // Report all steps + validations + output
 };
 
-#define REPORT_PAGE_LENGTH 100
+#define REPORT_PAGE_LENGTH  66
 #define REPORT_PAGE_WIDTH   80
 
 #define REPORT_MIN_PAGE_LENGTH   40
@@ -37,6 +37,12 @@ enum class ReportDepth
 #define REPORT_MAX_PAGE_WIDTH   200
 
 class TestSuite;
+class TestStepCMD;
+class TestStepNET;
+class TestStepSQL;
+class StepResultCMD;
+class StepResultNET;
+class StepResultSQL;
 
 class TestReport
 {
@@ -60,15 +66,34 @@ private:
   void  PrintHeader();
   void  PrintFooter();
   void  PrintLine(CString p_text,bool p_next = true);
+  void  PrintLine(CString p_part1,const char* p_part2);
   void  PrintAtEnd(CString p_text);
   void  PrintLastLine();
   void  PrintLine();
+  void  Indent();
   // PRINTING THE TESTS
   void  PrintAllTestSuites();
   void  PrintTestSuite(TestSuite* p_suite);
   void  PrintTestSet (CString p_directory,CString p_filename);
   void  PrintTestStep(CString p_directory,CString p_filename);
 
+  void  PrintTestStepCMD(TestStepCMD* p_cmd,CString p_directory,CString p_filename);
+  void  PrintTestStepNET(TestStepNET* p_net,CString p_directory,CString p_filename);
+  void  PrintTestStepSQL(TestStepSQL* p_sql,CString p_directory,CString p_filename);
+
+  void  PrintStepCMDDetails(TestStepCMD* p_cmd);
+  void  PrintStepNETDetails(TestStepNET* p_cmd);
+  void  PrintStepSQLDetails(TestStepSQL* p_cmd);
+
+  void  PrintStepResultCMD(CString p_directory,CString p_filename);
+  void  PrintStepResultNET(CString p_directory,CString p_filename);
+  void  PrintStepResultSQL(CString p_directory,CString p_filename);
+  // Details of a result set
+  void  PrintResultCMD(StepResultCMD* p_cmd);
+  void  PrintResultNET(StepResultNET* p_net);
+  void  PrintResultSQL(StepResultSQL* p_sql);
+
+  // Data
   ReportDepth m_depth;
   CString     m_basepath;
   CString     m_fileName;

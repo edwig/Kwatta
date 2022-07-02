@@ -58,6 +58,10 @@ StepResultCMD::WriteToXML(CString p_filename)
 
   XMLElement* output = msg.AddElement(root,"Output",XDT_String,"");
   msg.SetElement(output,"ReturnValue",m_returnValue);
+
+  m_standardOutput.Remove('\r');
+  m_standardError.Remove('\r');
+
   msg.AddElement(output,"StandardOutput",XDT_CDATA,m_standardOutput);
   msg.AddElement(output,"StandardError", XDT_CDATA,m_standardError);
 

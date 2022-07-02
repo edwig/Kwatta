@@ -44,19 +44,43 @@ Validate* ReadValidate(CString p_filename)
   if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
   {
     ValidateCMD* validate = new ValidateCMD();
-    validate->ReadFromXML(p_filename);
+    try
+    {
+      validate->ReadFromXML(p_filename);
+    }
+    catch (StdException& ex)
+    {
+      delete validate;
+      throw ex;
+    }
     return validate;
   }
   if(extension.CompareNoCase(EXTENSION_VALIDATE_NET) == 0)
   {
     ValidateNET* validate = new ValidateNET();
-    validate->ReadFromXML(p_filename);
+    try
+    {
+      validate->ReadFromXML(p_filename);
+    }
+    catch (StdException& ex)
+    {
+      delete validate;
+      throw ex;
+    }
     return validate;
   }
   if(extension.CompareNoCase(EXTENSION_VALIDATE_SQL) == 0)
   {
     ValidateSQL* validate = new ValidateSQL();
-    validate->ReadFromXML(p_filename);
+    try
+    {
+      validate->ReadFromXML(p_filename);
+    }
+    catch (StdException& ex)
+    {
+      delete validate;
+      throw ex;
+    }
     return validate;
   }
   return nullptr;

@@ -261,6 +261,7 @@ XMLMessage::LoadFile(const XString& p_fileName)
 
     // Buffer unlock
     inhoud.ReleaseBuffer(length);
+    inhoud.Remove('\r');
 
     // Close the file
     if(fclose(file))

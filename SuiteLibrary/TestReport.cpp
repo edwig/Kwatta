@@ -22,8 +22,20 @@
 #include "TestReport.h"
 #include "TestSuite.h"
 #include "TestStep.h"
+#include "TestStepCMD.h"
+#include "TestStepNET.h"
+#include "TestStepSQL.h"
+#include "ExtraExtensions.h"
+#include "StepResult.h"
+#include "StepResultCMD.h"
+#include "StepResultNET.h"
+#include "StepResultSQL.h"
 #include <time.h>
 #include <sys\timeb.h>
+#include <memory>
+
+using std::shared_ptr;
+using std::dynamic_pointer_cast;
 
 TestReport::TestReport(CString      p_basepath
                       ,CString      p_filename
@@ -163,12 +175,19 @@ TestReport::PrintHeader()
   PrintLine();
 }
 
+// --------------------------------------------------
+//                                            Page: n
 void
 TestReport::PrintFooter()
 {
+  while(m_line++ < m_pageSize)
+  {
+    fputc('\n', m_file);
+  }
+
   PrintLine();
   CString number;
-  number.Format("%d",++m_page);
+  number.Format("Page: %d",++m_page);
 
   int numspaces = m_pageWidth - number.GetLength();
   for(int index = 0;index < numspaces;++index)
@@ -177,9 +196,10 @@ TestReport::PrintFooter()
   }
   fprintf(m_file,number);
   fputc('\n',m_file);
+  m_line = 0;
 }
 
-// Print line of spaces across the report
+// Print line of dashes across the report
 void
 TestReport::PrintLine()
 {
@@ -188,6 +208,12 @@ TestReport::PrintLine()
     fputc('-',m_file);
   }
   fputc('\n',m_file);
+}
+
+void
+TestReport::Indent()
+{
+  PrintLine("      ",false);
 }
 
 void
@@ -201,6 +227,17 @@ TestReport::PrintLine(CString p_text,bool p_next /*= true*/)
 {
   CString extra;
   bool next(false);
+
+  // Newlines received?
+  int newline = p_text.Find('\n');
+  if(newline >= 0)
+  {
+    CString before = p_text.Left(newline);
+    CString after  = p_text.Mid(newline + 1);
+    PrintLine(before);
+    PrintLine(after,p_next);
+    return;
+  }
 
   // Are we detecting a line overflow?
   if(m_pos + p_text.GetLength() > m_pageWidth)
@@ -247,6 +284,14 @@ TestReport::PrintAtEnd(CString p_text)
   PrintLine(p_text,true);
 }
 
+void
+TestReport::PrintLine(CString p_part1,const char* p_part2)
+{
+  Indent();
+  PrintLine(p_part1,false);
+  PrintLine(p_part2);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Service Routines
@@ -255,7 +300,7 @@ TestReport::PrintAtEnd(CString p_text)
 void
 TestReport::PrintAllTestSuites()
 {
-  CString pattern(m_basepath + "*.xtest");
+  CString pattern(m_basepath + "*" + EXTENSION_SUITE);
 
   // Read in all known files
   WIN32_FIND_DATA data;
@@ -265,16 +310,9 @@ TestReport::PrintAllTestSuites()
     do
     {
       CString filename = CString(data.cFileName);
-      try
-      {
-        TestSuite suite(m_basepath);
-        suite.ReadFromXML(filename);
-        PrintTestSuite(&suite);
-      }
-      catch (StdException& ex)
-      {
-        PrintLine("ERROR: "+ ex.GetErrorMessage());
-      }
+      TestSuite suite(m_basepath);
+      suite.ReadFromXML(filename);
+      PrintTestSuite(&suite);
     } 
     while(FindNextFile(find,&data) != 0);
     FindClose(find);
@@ -298,7 +336,7 @@ TestReport::PrintTestSuite(TestSuite* p_suite)
     {
       result = "ERROR";
     }
-    PrintLine("SET: ",false);
+    PrintLine("SET : ",false);
     PrintLine(name,false);
     PrintAtEnd(result);
 
@@ -323,17 +361,24 @@ void
 TestReport::PrintTestSet(CString p_directory,CString p_filename)
 {
   TestSet set;
-  set.ReadFromXML(p_directory + p_filename);
+  set.ReadFromXML(m_basepath + p_directory + "\\" + p_filename);
   for(auto& run : set.GetTestRuns())
   {
-    PrintLine("Run: ",false);
-    PrintLine(run.m_name);
+    PrintLine("Run : ",false);
+    PrintLine(run.m_name,false);
     PrintAtEnd(run.m_lastResult);
 
     // See if we must do it with a greater depth
-    if(m_depth > ReportDepth::REPORT_STEPS)
+    if(m_depth >= ReportDepth::REPORT_STEPS)
     {
-      PrintTestStep(p_directory,run.m_filename);
+      try
+      {
+        PrintTestStep(p_directory,run.m_filename);
+      }
+      catch(StdException& ex)
+      {
+        PrintLine("ERROR: " + ex.GetErrorMessage());
+      }
     }
   }
 }
@@ -341,9 +386,414 @@ TestReport::PrintTestSet(CString p_directory,CString p_filename)
 void
 TestReport::PrintTestStep(CString p_directory,CString p_filename)
 {
-  TestStep* step = ReadTestStep(m_basepath + p_directory + p_filename);
+  shared_ptr<TestStep> step = shared_ptr<TestStep>(ReadTestStep(m_basepath + p_directory + "\\" + p_filename));
   if(!step)
   {
     throw StdException("Teststep not found: " + p_directory + p_filename);
   }
+  shared_ptr<TestStepCMD> cmd = dynamic_pointer_cast<TestStepCMD>(step);
+  if(cmd)
+  {
+    PrintTestStepCMD(cmd.get(), p_directory, p_filename);
+  }
+  shared_ptr<TestStepNET> net = dynamic_pointer_cast<TestStepNET>(step);
+  if(net)
+  {
+    PrintTestStepNET(net.get(),p_directory,p_filename);
+  }
+  shared_ptr<TestStepSQL> sql = dynamic_pointer_cast<TestStepSQL>(step);
+  if(sql)
+  {
+    PrintTestStepSQL(sql.get(),p_directory,p_filename);
+  }
+}
+
+void
+TestReport::PrintTestStepCMD(TestStepCMD* p_cmd,CString p_directory,CString p_filename)
+{
+  PrintLine("Step: ",false);
+  PrintLine(p_cmd->GetName(),false);
+
+  if(m_depth == ReportDepth::REPORT_FULL)
+  {
+    // Print details of the step
+    PrintLine("");
+    PrintStepCMDDetails(p_cmd);
+  }
+  if(m_depth >= ReportDepth::REPORT_VALIDATE)
+  {
+    // Print all validations
+  }
+  
+  // Print the result of the CMD step
+  CString filename(p_filename);
+  filename.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
+  PrintStepResultCMD(p_directory,filename);
+}
+
+void  
+TestReport::PrintTestStepNET(TestStepNET* p_net,CString p_directory,CString p_filename)
+{
+  PrintLine("Step: ",false);
+  PrintLine(p_net->GetName(),false);
+
+  if(m_depth == ReportDepth::REPORT_FULL)
+  {
+    // Print details of the step
+    PrintStepNETDetails(p_net);
+  }
+  if(m_depth >= ReportDepth::REPORT_VALIDATE)
+  {
+    // Print all validations
+  }
+  
+  // Print the result of the CMD step
+  CString filename(p_filename);
+  filename.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
+  PrintStepResultNET(p_directory,filename);
+}
+
+void
+TestReport::PrintTestStepSQL(TestStepSQL* p_sql,CString p_directory,CString p_filename)
+{
+  PrintLine("Step: ",false);
+  PrintLine(p_sql->GetName(),false);
+
+  if(m_depth == ReportDepth::REPORT_FULL)
+  {
+    // Print details of the step
+    PrintStepSQLDetails(p_sql);
+  }
+  if(m_depth >= ReportDepth::REPORT_VALIDATE)
+  {
+    // Print all validations
+  }
+  
+  // Print the result of the CMD step
+  CString filename(p_filename);
+  filename.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
+  PrintStepResultSQL(p_directory,filename);
+}
+
+void
+TestReport::PrintStepCMDDetails(TestStepCMD* p_cmd)
+{
+  // Directory path
+  PrintLine("Command   directory path: ",p_cmd->GetDirectoryPath());
+  PrintLine("Effective directory path: ",p_cmd->GetEffectiveDirectory());
+
+  // Executable path
+  PrintLine("Command   executable    : ",p_cmd->GetRuntimer());
+  PrintLine("Effective executable    : ",p_cmd->GetEffectiveRuntimer());
+
+  // Command line
+  PrintLine("Adding    command line  : ",p_cmd->GetCommandLine());
+  PrintLine("Effective command line  : ",p_cmd->GetEffectiveCommandLine());
+
+  // Standard input after starting
+  PrintLine("Extra     standard input: ",p_cmd->GetStandardInput());
+  PrintLine("Effective standard input: ",p_cmd->GetEffectiveInput());
+
+  // Options
+  PrintLine("Starting a window       : ",p_cmd->GetStartWindow()    ? "Yes" : "No");
+  PrintLine("Wait for idle runtimer  : ",p_cmd->GetWaitForIdle()    ? "Yes" : "No");
+  PrintLine("Using the return value  : ",p_cmd->GetUseReturnValue() ? "Yes" : "No");
+  PrintLine("Using the output value  : ",p_cmd->GetUseOutputValue() ? "Yes" : "No");
+  PrintLine("Using the error stream  : ",p_cmd->GetUseErrorValue()  ? "Yes" : "No");
+  // Variables
+  PrintLine("Using return variable   : ",p_cmd->GetReturnVariable());
+  PrintLine("Using output variable   : ",p_cmd->GetOutputVariable());
+  PrintLine("Using error  variable   : ",p_cmd->GetErrorVariable());
+  // Timing
+  PrintLine("Waiting before running  : ",p_cmd->GetWaitBeforeRun());
+  PrintLine("Max execution time      : ",p_cmd->GetMaxExecution());
+  PrintLine("Waiting after  running  : ",p_cmd->GetWaitAfterRun());
+
+  // Standard input
+  ParMap& map = p_cmd->GetEnvironmentVars();
+  if(p_cmd->GetHandleEnvironment() && !map.empty())
+  {
+    Indent();
+    PrintLine("Extra defined environment variables:");
+    for(auto& var : map)
+    {
+      Indent();
+      PrintLine(var.first,false);
+      PrintLine(" : ",false);
+      PrintLine(var.second);
+    }
+  }
+  else
+  {
+    Indent();
+    PrintLine("Using the environment   : No");
+  }
+
+}
+
+void
+TestReport::PrintStepNETDetails(TestStepNET* p_cmd)
+{
+
+}
+
+void
+TestReport::PrintStepSQLDetails(TestStepSQL* p_cmd)
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+// RESULTS
+//
+//////////////////////////////////////////////////////////////////////////
+
+void
+TestReport::PrintStepResultCMD(CString p_directory,CString p_filename)
+{
+  CString filename = m_basepath + p_directory + "\\" + p_filename;
+  shared_ptr<StepResult> result = shared_ptr<StepResult>(ReadStepResult(filename));
+  if(!result)
+  {
+    throw StdException("Step result not found: " + filename);
+  }
+  shared_ptr<StepResultCMD> cmd = dynamic_pointer_cast<StepResultCMD>(result);
+  if(!cmd)
+  {
+    throw StdException("Expected a StepResult for a CMD: " + filename);
+  }
+  // Print the result
+  if(m_depth == ReportDepth::REPORT_FULL)
+  {
+    // Print details of the result
+    PrintResultCMD(cmd.get());
+  }
+  if(m_depth >= ReportDepth::REPORT_VALIDATE)
+  {
+    // Print all validations
+    PrintLine("");
+    Indent();
+    PrintLine("Validations");
+    ValSteps& valis = cmd->GetValidations();
+    for(auto& vali : valis)
+    {
+      CString validation;
+      validation.Format("%d: %s %s",vali.m_number,vali.m_global ? "GLOB" : "LCAL",vali.m_validation.GetString());
+      Indent();
+      PrintLine(validation,false);
+      PrintAtEnd(vali.m_ok ? "OK" : "ERROR");
+    }
+  }
+  if(m_depth > ReportDepth::REPORT_STEPS)
+  {
+    Indent();
+    PrintLine("Total step result:",false);
+  }
+  PrintAtEnd(cmd->GetTotalResult() ? "OK" : "ERROR");
+}
+
+
+void
+TestReport::PrintStepResultNET(CString p_directory, CString p_filename)
+{
+  CString filename = m_basepath + p_directory + "\\" + p_filename;
+  shared_ptr<StepResult> result = shared_ptr<StepResult>(ReadStepResult(filename));
+  if(!result)
+  {
+    throw StdException("Step result not found: " + filename);
+  }
+  shared_ptr<StepResultNET> net = dynamic_pointer_cast<StepResultNET>(result);
+  if(!net)
+  {
+    throw StdException("Expected a StepResult for a NET: " + filename);
+  }
+  // Print the result
+  if(m_depth == ReportDepth::REPORT_FULL)
+  {
+    // Print details of the result
+    PrintResultNET(net.get());
+  }
+  if(m_depth >= ReportDepth::REPORT_VALIDATE)
+  {
+    // Print all validations
+    PrintLine("");
+    Indent();
+    PrintLine("Validations");
+    ValSteps& valis = net->GetValidations();
+    for(auto& vali : valis)
+    {
+      CString validation;
+      validation.Format("%d: %s %s",vali.m_number,vali.m_global ? "GLOB" : "LCAL",vali.m_validation.GetString());
+      Indent();
+      PrintLine(validation,false);
+      PrintAtEnd(vali.m_ok ? "OK" : "ERROR");
+    }
+  }
+  if(m_depth > ReportDepth::REPORT_STEPS)
+  {
+    Indent();
+    PrintLine("Total step result:",false);
+  }
+  PrintAtEnd(net->GetTotalResult() ? "OK" : "ERROR");
+
+}
+
+void
+TestReport::PrintStepResultSQL(CString p_directory, CString p_filename)
+{
+  CString filename = m_basepath + p_directory + "\\" + p_filename;
+  shared_ptr<StepResult> result = shared_ptr<StepResult>(ReadStepResult(filename));
+  if(!result)
+  {
+    throw StdException("Step result not found: " + filename);
+  }
+  shared_ptr<StepResultSQL> sql = dynamic_pointer_cast<StepResultSQL>(result);
+  if(!sql)
+  {
+    throw StdException("Expected a StepResult for a SQL: " + filename);
+  }
+  // Print the result
+  if(m_depth == ReportDepth::REPORT_FULL)
+  {
+    // Print details of the result
+    PrintResultSQL(sql.get());
+  }
+  if(m_depth >= ReportDepth::REPORT_VALIDATE)
+  {
+    // Print all validations
+    PrintLine("");
+    Indent();
+    PrintLine("Validations");
+    ValSteps& valis = sql->GetValidations();
+    for(auto& vali : valis)
+    {
+      CString validation;
+      validation.Format("%d: %s %s",vali.m_number,vali.m_global ? "GLOB" : "LCAL",vali.m_validation.GetString());
+      Indent();
+      PrintLine(validation,false);
+      PrintAtEnd(vali.m_ok ? "OK" : "ERROR");
+    }
+  }
+  if(m_depth > ReportDepth::REPORT_STEPS)
+  {
+    Indent();
+    PrintLine("Total step result:",false);
+  }
+  PrintAtEnd(sql->GetTotalResult() ? "OK" : "ERROR");
+}
+
+// Details of a result set
+void
+TestReport::PrintResultCMD(StepResultCMD* p_cmd)
+{
+  CString text;
+
+  // Timing
+  text.Format("Test run for %.4f seconds",p_cmd->GetTiming());
+  Indent();
+  PrintLine(text);
+  // Return value
+  text.Format("Test command return value: %d",p_cmd->GetReturnValue());
+  Indent();
+  PrintLine(text);
+  // Standard output
+  Indent();
+  PrintLine("Command standard output returned:");
+  Indent();
+  PrintLine(p_cmd->GetStandardOutput());
+  // Standard error
+  if(!p_cmd->GetStandardError().IsEmpty())
+  {
+    Indent();
+    PrintLine("Command standard error returned:");
+    Indent();
+    PrintLine(p_cmd->GetStandardError());
+  }
+}
+
+void
+TestReport::PrintResultNET(StepResultNET* p_net)
+{
+  CString text;
+
+  // Timing
+  text.Format("Test run for %.4f seconds",p_net->GetTiming());
+  Indent();
+  PrintLine(text);
+
+  // HTTP Status
+  text.Format("HTTP return status: %d",p_net->GetStatus());
+  Indent();
+  PrintLine(text);
+
+  // 'invisible' OS error
+  if(p_net->GetOSError())
+  {
+    Indent();
+    PrintLine("OS error status: ",false);
+    PrintLine(p_net->GetOSErrorString());
+  }
+  CString token = p_net->GetBearerToken();
+  if(!token.IsEmpty())
+  {
+    Indent();
+    PrintLine("Authorization bearer token: ",false);
+    PrintLine(token);
+  }
+  Indent();
+  PrintLine("Total HTTP response + body:");
+  PrintLine(p_net->GetRawResponse());
+}
+
+void
+TestReport::PrintResultSQL(StepResultSQL* p_sql)
+{
+  CString text;
+
+  // Timing
+  text.Format("Test run for %.4f seconds",p_sql->GetTiming());
+  Indent();
+  PrintLine(text);
+
+  // Result
+  text.Format("SQL Succeeded: %d Rows: %d Columns: %d"
+              ,p_sql->GetSucceeded()
+              ,p_sql->GetResultRows()
+              ,p_sql->GetResultCols());
+  Indent();
+  PrintLine(text);
+
+  // SQLSTATE
+  CString state = p_sql->GetSQLState();
+  if(!state.IsEmpty())
+  {
+    Indent();
+    PrintLine("SQLSTATE: ");
+    PrintLine(state);
+  }
+
+  // Native error
+  CString error = p_sql->GetNativeStatus();
+  if(!error.IsEmpty())
+  {
+    Indent();
+    PrintLine("Native error: ");
+    PrintLine(error);
+  }
+
+  // Results;
+  Indent();
+  PrintLine("Result data:");
+  Indent();
+  PrintLine("------------------------------ ",false);
+  PrintLine("------------------------------");
+  ResultMap& map = p_sql->GetResultMap();
+  for(auto& row : map)
+  {
+    text.Format("%32.32s %s",row.first.GetString(),row.second.GetString());
+    Indent();
+    PrintLine(text);
+  }
+
 }

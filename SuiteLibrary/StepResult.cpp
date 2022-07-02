@@ -26,12 +26,15 @@
 #include "StepResultCMD.h"
 #include "StepResultNET.h"
 #include "StepResultSQL.h"
+#include <memory>
 
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
+
+using std::shared_ptr;
 
 StepResult*
 ReadStepResult(CString p_filename)
@@ -42,19 +45,43 @@ ReadStepResult(CString p_filename)
   if(extension.CompareNoCase(EXTENSION_RESULT_CMD) == 0)
   {
     StepResultCMD* result = new StepResultCMD();
-    result->ReadFromXML(p_filename);
+    try
+    {
+      result->ReadFromXML(p_filename);
+    }
+    catch(StdException& ex)
+    {
+      delete result;
+      throw ex;
+    }
     return result;
   }
   if(extension.CompareNoCase(EXTENSION_RESULT_NET) == 0)
   {
     StepResultNET* result = new StepResultNET();
-    result->ReadFromXML(p_filename);
+    try
+    {
+      result->ReadFromXML(p_filename);
+    }
+    catch(StdException& ex)
+    {
+      delete result;
+      throw ex;
+    }
     return result;
   }
   if(extension.CompareNoCase(EXTENSION_RESULT_SQL) == 0)
   {
     StepResultSQL* result = new StepResultSQL();
-    result->ReadFromXML(p_filename);
+    try
+    {
+      result->ReadFromXML(p_filename);
+    }
+    catch(StdException& ex)
+    {
+      delete result;
+      throw ex;
+    }
     return result;
   }
   return nullptr;
@@ -127,6 +154,7 @@ StepResult::WriteToXML(XMLMessage& p_msg,CString p_filename)
   CString timing;
   timing.Format("%.6G",m_seconds);
 
+  m_documentation.Remove('\r');
 
   XMLElement* root = p_msg.GetRoot();
   p_msg.AddElement(root,"Name",         XDT_String | XDT_CDATA,m_name);

@@ -34,6 +34,14 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
+TestStep::TestStep()
+{
+}
+
+TestStep::~TestStep()
+{
+}
+
 TestStep* ReadTestStep(CString p_filename)
 {
   EnsureFile ensure;
@@ -42,19 +50,43 @@ TestStep* ReadTestStep(CString p_filename)
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_CMD) == 0)
   {
     TestStepCMD* result = new TestStepCMD();
-    result->ReadFromXML(p_filename);
+    try
+    {
+      result->ReadFromXML(p_filename);
+    }
+    catch(StdException& ex)
+    {
+      delete result;
+      throw ex;
+    }
     return result;
   }
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_NET) == 0)
   {
     TestStepNET* result = new TestStepNET();
-    result->ReadFromXML(p_filename);
+    try
+    {
+      result->ReadFromXML(p_filename);
+    }
+    catch(StdException& ex)
+    {
+      delete result;
+      throw ex;
+    }
     return result;
   }
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_SQL) == 0)
   {
     TestStepSQL* result = new TestStepSQL();
-    result->ReadFromXML(p_filename);
+    try
+    {
+      result->ReadFromXML(p_filename);
+    }
+    catch(StdException& ex)
+    {
+      delete result;
+      throw ex;
+    }
     return result;
   }
   return nullptr;

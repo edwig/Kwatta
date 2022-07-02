@@ -72,6 +72,9 @@ StepResultNET::WriteToXML(CString p_filename)
   }
   XMLElement* root = msg.GetRoot();
 
+  m_osErrorString.Remove('\r');
+  m_body.Remove('\r');
+
   // Status
   CString status;
   CString oserror;

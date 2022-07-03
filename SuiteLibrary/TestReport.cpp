@@ -479,6 +479,7 @@ void
 TestReport::PrintStepCMDDetails(TestStepCMD* p_cmd)
 {
   // Directory path
+  //        "----------------------- :"
   PrintLine("Command   directory path: ",p_cmd->GetDirectoryPath());
   PrintLine("Effective directory path: ",p_cmd->GetEffectiveDirectory());
 
@@ -528,19 +529,87 @@ TestReport::PrintStepCMDDetails(TestStepCMD* p_cmd)
     Indent();
     PrintLine("Using the environment   : No");
   }
-
 }
 
 void
-TestReport::PrintStepNETDetails(TestStepNET* p_cmd)
+TestReport::PrintStepNETDetails(TestStepNET* p_net)
 {
+  // URL
+  //        "----------------------- :"
+  PrintLine("Internet call to URL    : ",p_net->GetEffectiveURL());
+  PrintLine("Internet call + params  : ",p_net->GetEffectiveCombinedURL());
 
+  // URL Parts
+  PrintLine("URL parts : VERB        : ",p_net->GetVerb());
+  PrintLine("URL parts : URI         : ",p_net->GetURL());
+  UrlParameters& params = p_net->GetParameters();
+  if(!params.empty())
+  {
+    for(auto& parm : params)
+    {
+      PrintLine("URL parts : parameter   : ",parm.m_name + "=" + parm.m_value);
+    }
+  }
+  PrintLine("URL parts : Anchor          : ", p_net->GetAnchor());
+
+  UrlHeaders& headers = p_net->GetHeaders();
+  if(!headers.empty())
+  {
+    for(auto& head : headers)
+    {
+      PrintLine("HTTP payload : header   : ",head.m_name + ": " + head.m_value);
+    }
+  }
+  if(p_net->GetBodyInputIsFile())
+  {
+    PrintLine("HTTP payload : body file  : ",p_net->GetFilenameInput());
+    PrintLine("HTTP payload : effective  : ",p_net->GetEffectiveFileInput());
+  }
+  else
+  {
+    PrintLine("HTTP payload : body       : ");
+    PrintLine(p_net->GetBody());
+  }
+  if(p_net->GetBodyOutputIsFile())
+  {
+    PrintLine("HTTP payload : output file: ",p_net->GetFilenameOutput());
+    PrintLine("HTTP payload : effective  : ",p_net->GetEffectiveFileOutput());
+  }
+  // Authentication
+  PrintLine("Authentication type     : ",p_net->GetAuthType());
+  PrintLine("Authentication user     : ",p_net->GetAuthUser());
+  PrintLine("Authentication password : ",p_net->GetAuthPassword());
+  PrintLine("Authentication grant    : ",p_net->GetAuthGrant());
+  PrintLine("OAuth2 token server     : ",p_net->GetAuthTokenServer());
+  PrintLine("OAuth2 client ID        : ",p_net->GetAuthClientID());
+  PrintLine("OAuth2 client key       : ",p_net->GetAuthClientKey());
+  PrintLine("OAuth2 client scope     : ",p_net->GetAuthClientScope());
+  PrintLine("OAuth2 bearer token     : ",p_net->GetAuthBearerToken());
+  // Using parts
+  PrintLine("Using return status     : ",p_net->GetUseStatus()  ? "Yes" : "No");
+  PrintLine("Using response headers  : ",p_net->GetUseHeaders() ? "Yes" : "No");
+  PrintLine("Using response body     : ",p_net->GetUseBody()    ? "Yes" : "No");
+  // Effective
+  Indent();
+  PrintLine("Effective total raw request:");
+  PrintLine(p_net->GetRawRequest());
 }
 
 void
-TestReport::PrintStepSQLDetails(TestStepSQL* p_cmd)
+TestReport::PrintStepSQLDetails(TestStepSQL* p_sql)
 {
-
+  PrintLine("SQL datasource          : ",p_sql->GetDataSource());
+  PrintLine("SQL effective datasource: ",p_sql->GetEffectiveDatasource());
+  PrintLine("SQL username            : ",p_sql->GetUser());
+  PrintLine("SQL effective username  : ",p_sql->GetEffectiveUser());
+  PrintLine("SQL password            : ",p_sql->GetPassword());
+  PrintLine("SQL effective password  : ","***********");
+  Indent();
+  PrintLine("SQL statement:");
+  PrintLine(p_sql->GetSQL());
+  Indent();
+  PrintLine("SQL effective statement:");
+  PrintLine(p_sql->GetEffectiveSQL());
 }
 
 //////////////////////////////////////////////////////////////////////////

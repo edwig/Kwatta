@@ -46,8 +46,9 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
 {
   StyleDialog::DoDataExchange(pDX);
 
-  DDX_Control (pDX,IDC_NAME,		 m_editName,		m_name);
+  DDX_Control (pDX,IDC_NAME,		 m_editName,	 m_name);
   DDX_Control (pDX,IDC_CHARSET,	 m_editCharset,m_charset);
+  DDX_Control (pDX,IDC_ID,       m_editContent,m_contentID);
   DDX_CBString(pDX,IDC_CONTENT,	 m_comboContent,m_contentType);
   DDX_Control (pDX,IDC_ISFILE,	 m_checkIsFile);
   DDX_Control (pDX,IDC_MPART,    m_buttonMulti);
@@ -74,6 +75,7 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
       multi = true;
     }
     m_buttonMulti.EnableWindow(multi);
+    m_editContent.EnableWindow(!multi);
     m_editData.SetMutable(!multi);
   }
 }
@@ -81,6 +83,7 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(MultiPartDlg, StyleDialog)
   ON_EN_CHANGE    (IDC_NAME,			&MultiPartDlg::OnEnChangeName)
   ON_EN_CHANGE    (IDC_CHARSET,		&MultiPartDlg::OnEnChangeCharset)
+  ON_EN_CHANGE    (IDC_ID,        &MultiPartDlg::OnEnChangeContentID)
   ON_CBN_SELCHANGE(IDC_CONTENT,		&MultiPartDlg::OnCbnSelchangeContent)
   ON_BN_CLICKED   (IDC_ISFILE,		&MultiPartDlg::OnBnClickedIsfile)
   ON_BN_CLICKED   (IDC_MPART,     &MultiPartDlg::OnBnClickedMulti)
@@ -151,6 +154,7 @@ MultiPartDlg::UseMultiPart()
   m_shortFilename =  m_part->GetShortFileName();
   m_LongFilename  =  m_part->GetLongFileName();
   m_data          =  m_part->GetData();
+  m_contentID     =  m_part->GetHeader("Content-ID");
 
   m_boundary = FindFieldInHTTPHeader(m_contentType,"boundary");
   int pos = m_contentType.Find(';');
@@ -177,6 +181,10 @@ MultiPartDlg::SaveMultiPart()
   {
     m_part->SetData(m_data);
   }
+  if(!m_contentID.IsEmpty())
+  {
+    m_part->AddHeader("Content-ID",m_contentID);
+  }
 }
 
 // MultiPartDlg message handlers
@@ -189,6 +197,12 @@ MultiPartDlg::OnEnChangeName()
 
 void 
 MultiPartDlg::OnEnChangeCharset()
+{
+  UpdateData();
+}
+
+void 
+MultiPartDlg::OnEnChangeContentID()
 {
   UpdateData();
 }

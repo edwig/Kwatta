@@ -191,6 +191,8 @@ RequestDlg::InitTab(TestStepNET* p_testStep,Parameters* p_parameters)
   m_outputFile = m_testStep->GetFilenameOutput();
   m_saveFile   = m_testStep->GetBodyOutputIsFile();
 
+  m_payload.Replace("\n","\r\n");
+
   int ind = m_comboMime.FindStringExact(0,m_mimeType);
   if(ind >= 0)
   {
@@ -223,8 +225,10 @@ RequestDlg::StoreVariables()
 {
   UpdateData();
 
-  m_payload.Replace("\r","");
-  m_testStep->SetBody(m_payload);
+  CString payload(m_payload);
+  payload.Remove('\r');
+
+  m_testStep->SetBody(payload);
   m_testStep->SetMimeType(m_mimeType);
   m_testStep->SetBodyInputIsFile(m_useFile);
   m_testStep->SetFilenameInput(m_inputFile);

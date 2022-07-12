@@ -50,6 +50,7 @@ protected:
 
   CString       m_name;
   CString       m_charset;
+  CString       m_contentID;
   CString       m_contentType;
   CString       m_boundary;
   bool          m_isFile;
@@ -59,6 +60,7 @@ protected:
 
   StyleEdit     m_editName;
   StyleEdit     m_editCharset;
+  StyleEdit     m_editContent;
   StyleComboBox m_comboContent;
   StyleCheckbox m_checkIsFile;
   StyleButton   m_buttonMulti;
@@ -74,6 +76,7 @@ protected:
 public:
   afx_msg void OnEnChangeName();
   afx_msg void OnEnChangeCharset();
+  afx_msg void OnEnChangeContentID();
   afx_msg void OnCbnSelchangeContent();
   afx_msg void OnBnClickedIsfile();
   afx_msg void OnBnClickedMulti();

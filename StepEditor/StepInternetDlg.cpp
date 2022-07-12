@@ -383,6 +383,11 @@ StepInternetDlg::LoadVariables()
   m_verb    = m_testStep->GetVerb();
   m_url     = m_testStep->GetURL();
 
+  // Default verb
+  if(m_verb.IsEmpty())
+  {
+    m_verb = "GET";
+  }
   int ind = m_comboVerb.FindStringExact(0,m_verb);
   m_comboVerb.SetCurSel(ind);
 }

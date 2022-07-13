@@ -248,7 +248,7 @@ TestReport::PrintLine(CString p_text,bool p_next /*= true*/)
   }
 
   // Print our text
-  fprintf(m_file,p_text);
+  fwrite(p_text.GetString(),p_text.GetLength(),1,m_file);
   m_pos += p_text.GetLength();
 
   // Handle line overflow

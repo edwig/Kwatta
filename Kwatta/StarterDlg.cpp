@@ -28,6 +28,8 @@
 #include <FileDialog.h>
 #include <filesystem>
 
+using namespace ThemeColor;
+
 // StarterDlg dialog
 
 IMPLEMENT_DYNAMIC(StarterDlg, StyleDialog)
@@ -89,7 +91,7 @@ void
 StarterDlg::InitTitle()
 {
   m_title = "Kwatta Test Suite " KWATTA_YEAR;
-  m_editTitle.SetBkColor(ThemeColor::_Color1);
+  m_editTitle.SetBkColor(ThemeColor::GetColor(Colors::AccentColor1));
   m_editTitle.SetTextColor(RGB(255, 255, 255));
   m_editTitle.SetFontSize(240);
   m_editTitle.SetFontStyle(true);

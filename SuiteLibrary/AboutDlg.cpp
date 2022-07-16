@@ -29,6 +29,8 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
+using namespace ThemeColor;
+
 // AboutDlg dialog
 
 IMPLEMENT_DYNAMIC(AboutDlg, StyleDialog)
@@ -95,7 +97,7 @@ AboutDlg::OnInitDialog()
   m_text += version;
 
   // Perform the streaming
-  m_editText.SetBorderColor(ThemeColor::_Color1);
+  m_editText.SetBorderColor(ThemeColor::GetColor(Colors::AccentColor1));
   m_editText.SetTextMode(TM_RICHTEXT);
 
   UpdateData(FALSE);

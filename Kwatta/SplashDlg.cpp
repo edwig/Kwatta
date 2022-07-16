@@ -70,7 +70,6 @@ SplashDlg::OnInitDialog()
   m_editTitle.SetMutable(false);
   m_editTitle.SetFontName("Verdana",420);
   m_editTitle.SetFontStyle(true);
-  m_editTitle.SetMutable(false);
 
   UpdateData(FALSE);
 

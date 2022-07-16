@@ -124,18 +124,23 @@ void StyleHyperLink::PreSubclassWindow()
   SetDefaultCursor();      // Try and load up a "hand" cursor
   SetUnderline();
 
+    // Create the tooltip
+    CRect rect;
+    GetClientRect(rect);
+    m_ToolTip.Create(this);
+  m_ToolTip.AddTool(this, m_strURL, rect, TOOLTIP_ID);
 
   CStatic::PreSubclassWindow();
 }
 
 void
-StyleHyperLink::SetTipText(LPCTSTR tipText)
+StyleHyperLink::SetTipText(LPCTSTR p_tipText)
 {
   if(::IsWindow(GetSafeHwnd()) && ::IsWindow(m_ToolTip.GetSafeHwnd()))
   {
     // Update the tooltip
     PositionWindow();
-    m_ToolTip.UpdateTipText(tipText,this,TOOLTIP_ID);
+    m_ToolTip.UpdateTipText(p_tipText,this,TOOLTIP_ID);
   }
   else
   {
@@ -143,7 +148,7 @@ StyleHyperLink::SetTipText(LPCTSTR tipText)
     CRect rect;
     GetClientRect(rect);
     m_ToolTip.Create(this);
-    m_ToolTip.AddTool(this,tipText,rect,TOOLTIP_ID);
+    m_ToolTip.AddTool(this,p_tipText,rect,TOOLTIP_ID);
   }
 }
 
@@ -253,6 +258,12 @@ BOOL StyleHyperLink::OnEraseBkgnd(CDC* pDC)
 void StyleHyperLink::SetURL(CString strURL)
 {
   m_strURL = strURL;
+
+  if (::IsWindow(GetSafeHwnd())) 
+  {
+    PositionWindow();
+    m_ToolTip.UpdateTipText(strURL, this, TOOLTIP_ID);
+  }
 }
 
 CString StyleHyperLink::GetURL() const
@@ -260,9 +271,8 @@ CString StyleHyperLink::GetURL() const
   return m_strURL;   
 }
 
-void StyleHyperLink::SetColours(COLORREF crLinkColour
-                               ,COLORREF crVisitedColour
-                               ,COLORREF crHoverColour /* = -1 */) 
+void StyleHyperLink::SetColours(COLORREF crLinkColour, COLORREF crVisitedColour,
+                            COLORREF crHoverColour /* = -1 */) 
 { 
   m_crLinkColour    = crLinkColour; 
   m_crVisitedColour = crVisitedColour;

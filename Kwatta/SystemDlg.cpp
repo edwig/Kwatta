@@ -23,6 +23,8 @@
 #include <FileDialog.h>
 #include "resource.h"
 
+using namespace ThemeColor;
+
 // SystemDlg dialog
 
 IMPLEMENT_DYNAMIC(SystemDlg, StyleDialog)
@@ -84,7 +86,7 @@ SystemDlg::InitButtons()
   m_buttonCancel .SetStyle("can");
 
   m_editPassword.SetMutable(false);
-  m_editPassword.SetBkColor(ThemeColor::_Color2);
+  m_editPassword.SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
 
   m_comboLoglevel.AddString("No logging");                                          // HLL_NOLOG      0       // No logging is ever done
   m_comboLoglevel.AddString("Error logging only");                                  // HLL_ERRORS     1       // Only errors are logged
@@ -95,7 +97,7 @@ SystemDlg::InitButtons()
 
   m_help.SetTipText("Use to set the KWATTA_PASSWORD variable with the 'setx /m' command!");
   m_help.SetURL("https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx");
-  m_help.SetColours(ThemeColor::_Color1,RGB(0,0,255));
+  m_help.SetColours(ThemeColor::GetColor(Colors::AccentColor1),RGB(0,0,255));
 }
 
 void

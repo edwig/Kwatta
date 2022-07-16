@@ -43,6 +43,8 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
+using namespace ThemeColor;
+
 IMPLEMENT_DYNAMIC(KwattaAppDlg, StyleDialog)
 
 KwattaAppDlg::KwattaAppDlg(CWnd* p_parent,CString p_suiteFilename)
@@ -108,7 +110,7 @@ KwattaAppDlg::DoDataExchange(CDataExchange* pDX)
 
   }
   m_editTestsuite.SetMutable(m_testsuite.IsEmpty());
-  m_editTestsuite.SetBkColor(m_testsuite.IsEmpty() ? ClrEditBkgnd : ThemeColor::_Color2);
+  m_editTestsuite.SetBkColor(m_testsuite.IsEmpty() ? ClrEditBkgnd : ThemeColor::GetColor(Colors::AccentColor2));
 }
 
 BEGIN_MESSAGE_MAP(KwattaAppDlg, StyleDialog)

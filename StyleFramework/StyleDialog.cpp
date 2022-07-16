@@ -62,15 +62,14 @@ StyleDialog::StyleDialog(UINT  p_IDTemplate
   {
     LoadStyleTheme();
   }
-  // Needed for coloring backgrounds of the controls
-  m_defaultBrush.CreateSolidBrush(UsersBackground);
+  m_defaultBrush.DeleteObject();
+  m_defaultBrush.CreateSolidBrush(ThemeColor::GetColor(Colors::ColorWindowFrame));
 }
 
 BEGIN_MESSAGE_MAP(StyleDialog,CDialog)
   ON_WM_CREATE()
   ON_WM_ERASEBKGND()
   ON_WM_CTLCOLOR()
-  ON_MESSAGE(WM_CTLCOLORSTATIC,OnCtlColorStatic)
   ON_WM_NCMOUSEMOVE()
   ON_WM_NCLBUTTONDOWN()
   ON_WM_NCRBUTTONUP()
@@ -87,6 +86,8 @@ BEGIN_MESSAGE_MAP(StyleDialog,CDialog)
   ON_WM_SETTINGCHANGE()
   ON_REGISTERED_MESSAGE(g_msg_changed,OnStyleChanged)
   ON_NOTIFY_EX(TTN_NEEDTEXT,0,OnToolTipNotify)
+  ON_MESSAGE(WM_CTLCOLORSTATIC,       OnCtlColorStatic)
+  ON_MESSAGE(WM_CTLCOLORLISTBOX,      OnCtlColorListBox)
 END_MESSAGE_MAP()
 
 BOOL
@@ -136,7 +137,7 @@ StyleDialog::InitStatusBar()
   }
   else
   {
-    AfxMessageBox("Error: Cannot create statusbar");
+    AfxMessageBox("Error: Cannot create a dialog statusbar");
   }
 }
 
@@ -506,9 +507,14 @@ StyleDialog::LoadStyleTheme()
   ThemeColor::Themes theme = (ThemeColor::Themes)th;
   ThemeColor::SetTheme(theme);
 
+  // Needed for coloring backgrounds of the controls
+  m_defaultBrush.DeleteObject();
+  m_defaultBrush.CreateSolidBrush(ThemeColor::GetColor(Colors::ColorWindowFrame));
+
   // Now repaint ourselves and all of our children
   if(GetSafeHwnd())
   {
+    Invalidate();
     ReDrawFrame();
     ReDrawDialog();
     RedrawWindow(NULL,NULL,RDW_INVALIDATE|RDW_FRAME|RDW_ALLCHILDREN);
@@ -578,12 +584,18 @@ StyleDialog::OnStyleBlackWhite()
   SetTheme(ThemeColor::Themes::ThemeBlackWhite);
 }
 
+void
+StyleDialog::OnStyleDark()
+{
+  SetTheme(ThemeColor::Themes::ThemeDark);
+}
+
 BOOL 
 StyleDialog::OnEraseBkgnd(CDC* pDC)
 {
   CRect client;
   GetClientRect(client);
-  pDC->FillSolidRect(client,UsersBackground);
+  pDC->FillSolidRect(client,ThemeColor::GetColor(Colors::ColorWindowFrame));
   return TRUE;
 }
 
@@ -591,8 +603,17 @@ LPARAM
 StyleDialog::OnCtlColorStatic(WPARAM wParam,LPARAM /*lParam*/)
 {
   HDC hdc = (HDC)wParam;
-  SetTextColor(hdc,InputTextActive);
-  SetBkColor(hdc,UsersBackground);
+  SetTextColor(hdc,ThemeColor::GetColor(Colors::ColorEditText));
+  SetBkColor  (hdc,ThemeColor::GetColor(Colors::ColorWindowFrame));
+  return (LPARAM)(HBRUSH)m_defaultBrush;
+}
+
+LPARAM
+StyleDialog::OnCtlColorListBox(WPARAM wParam, LPARAM lParam)
+{
+  HDC hdc = (HDC)wParam;
+  SetTextColor(hdc, ThemeColor::GetColor(Colors::ColorEditText));
+  SetBkColor  (hdc, ThemeColor::GetColor(Colors::ColorCtrlBackground));
   return (LPARAM)(HBRUSH)m_defaultBrush;
 }
 
@@ -900,6 +921,10 @@ StyleDialog::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
   switch (nCtlColor)
   {
+    case CTLCOLOR_LISTBOX:// Fall through
+    case CTLCOLOR_EDIT:   pDC->SetTextColor(ThemeColor::GetColor(Colors::ColorEditText));
+                          pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorCtrlBackground));
+                          break;
     case CTLCOLOR_STATIC: if(dynamic_cast<StyleHyperLink*>(pWnd))
                           {
                             return (dynamic_cast<StyleHyperLink*>(pWnd))->CtlColor(pDC,nCtlColor);
@@ -907,23 +932,23 @@ StyleDialog::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
                           if (m_error)
                           {
                             pDC->SetTextColor(ClrWindowMessageTextError);
-                            pDC->SetBkColor  (ClrWindowMessageError);
+                            pDC->SetBkColor(ThemeColor::GetColor(Colors::ColorWindowFrame)); // ClrWindowMessageError);
                           }
                           else
                           {
-                            pDC->SetTextColor(ClrLabelTextNormal);
-                            pDC->SetBkColor  (ClrFrameBkGnd);
+                            pDC->SetTextColor(ThemeColor::GetColor(Colors::ColorLabelText));
+                            pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorWindowFrame));
                           }
                           break;
     case CTLCOLOR_BTN:    if (m_error)
                           {
                             pDC->SetTextColor(ClrWindowMessageTextError);
-                            pDC->SetBkColor  (ClrWindowMessageError);
+                            pDC->SetBkColor(ThemeColor::GetColor(Colors::ColorWindowFrame)); // ClrWindowMessageError);
                           }
                           else
                           {
-                            pDC->SetTextColor(ClrLabelTextNormal);
-                            pDC->SetBkColor  (ClrFrameBkGnd);
+                            pDC->SetTextColor(ThemeColor::GetColor(Colors::ColorLabelText));   //ClrLabelTextNormal);
+                            pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorWindowFrame)); // ClrFrameBkGnd);
                           }
                           break;
   }
@@ -1080,7 +1105,7 @@ StyleDialog::OnNcPaint()
 
       // caption bar
       CRect caption(m_captionRect);
-      dc.FillSolidRect(caption, m_error ? ClrWindowFrameError : ClrWindowHeader);
+      dc.FillSolidRect(caption, m_error ? ClrWindowFrameError : ThemeColor::GetColor(Colors::AccentColor1));
 
       // title
       dc.SetTextColor(m_error ? ClrWindowFrameTextError : ClrWindowHeaderText);
@@ -1125,12 +1150,14 @@ StyleDialog::OnNcPaint()
       dc.SelectObject(orgpen);
 
       CRect r;
+      int back = ThemeColor::GetColor(Colors::ColorWindowFrame);
+
       r.SetRect(window.left + 1, window.top + WINDOWCAPTIONHEIGHT, window.left + SIZEMARGIN, window.bottom - WINDOWSHADOWBORDER-1);
-      dc.FillSolidRect(r, ClrFrameBkGnd);
+      dc.FillSolidRect(r, back);
       r.SetRect(window.left + SIZEMARGIN, window.bottom - WINDOWSHADOWBORDER- SIZEMARGIN, window.right - WINDOWSHADOWBORDER- 1, window.bottom - WINDOWSHADOWBORDER - 1);
-      dc.FillSolidRect(r, ClrFrameBkGnd);
+      dc.FillSolidRect(r, back);
       r.SetRect(window.right - WINDOWSHADOWBORDER-SIZEMARGIN, window.top + WINDOWCAPTIONHEIGHT, window.right - WINDOWSHADOWBORDER- 1, window.bottom - WINDOWSHADOWBORDER-SIZEMARGIN);
-      dc.FillSolidRect(r, ClrFrameBkGnd);
+      dc.FillSolidRect(r, back);
     }
     else
     {

@@ -25,6 +25,8 @@
 #include "ExtraExtensions.h"
 #include <filesystem>
 
+using namespace ThemeColor;
+
 // MutateNamesDlg dialog
 
 IMPLEMENT_DYNAMIC(MutateNamesDlg, StyleDialog)
@@ -72,9 +74,9 @@ MutateNamesDlg::OnInitDialog()
   SetWindowText("Change directory or filename");
 
   m_editOrigDirectory.SetMutable(false);
-  m_editOrigDirectory.SetBkColor(ThemeColor::_Color2);
+  m_editOrigDirectory.SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
   m_editOrigFilename .SetMutable(false);
-  m_editOrigFilename .SetBkColor(ThemeColor::_Color2);
+  m_editOrigFilename .SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
 
   m_newDirectory = m_origDirectory;
   m_newFilename  = m_origFilename;

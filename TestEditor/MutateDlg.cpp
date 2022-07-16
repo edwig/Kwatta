@@ -25,6 +25,8 @@
 #include <EnsureFile.h>
 #include <filesystem>
 
+using namespace ThemeColor;
+
 // MutateDlg dialog
 
 IMPLEMENT_DYNAMIC(MutateDlg, StyleDialog)
@@ -65,7 +67,7 @@ MutateDlg::OnInitDialog()
   SetWindowText("Change filename for: " + m_object);
 
   m_editOrgFilename.SetMutable(false);
-  m_editOrgFilename.SetBkColor(ThemeColor::_Color2);
+  m_editOrgFilename.SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
   m_editNewFilename.SetFocus();
   return FALSE;
 }

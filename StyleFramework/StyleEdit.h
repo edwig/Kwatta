@@ -129,6 +129,9 @@ public:
   void    GetDrawFrameColor(COLORREF& p_color,int& p_bordersize,bool& p_readonly);
 
 protected:
+  // Stop editing in non-mutable controls
+  virtual BOOL    PreTranslateMessage(MSG* pMsg) override;
+
   afx_msg void    OnMove(int x, int y);
   afx_msg void    OnSize(UINT nType, int cx, int cy);
   afx_msg void    OnShowWindow(BOOL bShow, UINT nStatus);
@@ -156,6 +159,7 @@ protected:
   BOOL                  m_focus { FALSE   };
 
 private:
+  void     ResetEditColors();
   void     ResetFont();
   void     CreateBackgroundBrush(DWORD p_color);
   void     CreateBackgroundEmptyBrush(DWORD p_color);
@@ -163,6 +167,7 @@ private:
   void     DrawErrorExclamation();
   void     StyleNcPaint(DWORD p_color,DWORD p_inner);
   void     DrawBox(CRect& rect,DWORD p_color,int p_penstyle = PS_SOLID,DWORD p_background = NO_BACKGROUND_COLOR);
+  void     TrySelectWord();
 
   CString  m_tooltip;     // Tooltip on the contents
   CString  m_emptyText;   // Background text in case the field is empty: hint what to fill in
@@ -192,8 +197,8 @@ private:
   // Colors
   COLORREF m_colorText            { FRAME_DEFAULT_COLOR };
   COLORREF m_colorBackground      { FRAME_DEFAULT_COLOR };
-  COLORREF m_colorTextEmpty       { RGB(0x8F,0x8F,0x8F) };  // Light gray
-  COLORREF m_colorBackgroundEmpty { RGB(0xFF,0xFF,0xFF) };
+  COLORREF m_colorTextEmpty       { RGB(0xAF,0xAF,0xAF) };  // Light gray
+  COLORREF m_colorBackgroundEmpty { FRAME_DEFAULT_COLOR };
   COLORREF m_colorPasswordEye     { FRAME_DEFAULT_COLOR };
   CBrush   m_bkBrush;
   CBrush   m_bkEmptyBrush;

@@ -1,6 +1,12 @@
 KWATTA RELEASNOTES
 ==================
 
+Version 1.0.13 Release date: 16-07-2022
+---------------------------------------
+1) Upgraded to new version of the StyleFramework, fixing many bugs
+   e.g. No erasure in non-mutable fields with DEL/DELETE keys
+2) Support for OData 4.00 batches and Concept-ID of batches
+
 Version 1.0.10 Release date: 03-05-2022
 ---------------------------------------
 1) Added the SQL test type. Add your SQL tests!!

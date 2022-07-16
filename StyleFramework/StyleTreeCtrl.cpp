@@ -28,6 +28,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+using namespace ThemeColor;
+
 StyleTreeCtrl::StyleTreeCtrl()
 {
 }
@@ -88,11 +90,28 @@ StyleTreeCtrl::SetDirectInit(bool p_init)
 void
 StyleTreeCtrl::DrawFrame()
 {
-  COLORREF color = (this == GetFocus()) ? ThemeColor::_Color1 : ThemeColor::_Color2;
+  COLORREF color = (this == GetFocus()) ? ThemeColor::GetColor(Colors::AccentColor1) 
+                                        : ThemeColor::GetColor(Colors::AccentColor2);
   SkinScrollWnd* skin = (SkinScrollWnd*)GetWindowLongPtr(m_hWnd, GWLP_USERDATA);
   if (skin)
   {
     skin->DrawFrame(color);
+  }
+}
+
+void
+StyleTreeCtrl::CheckColors()
+{
+  HWND hwnd = GetSafeHwnd();
+  int textColor = ThemeColor::GetColor(Colors::ColorEditText);
+  int backColor = ThemeColor::GetColor(Colors::ColorCtrlBackground);
+  if(TreeView_GetTextColor(hwnd) != textColor)
+  {
+    TreeView_SetTextColor(hwnd,textColor);
+  }
+  if(TreeView_GetBkColor(hwnd) != backColor)
+  {
+    TreeView_SetBkColor(hwnd,backColor);
   }
 }
 
@@ -102,6 +121,7 @@ StyleTreeCtrl::OnPaint()
   if (!m_inPaint)
   {
     m_inPaint = true;
+    CheckColors();
     CTreeCtrl::OnPaint();
     DrawFrame();
     m_inPaint = false;

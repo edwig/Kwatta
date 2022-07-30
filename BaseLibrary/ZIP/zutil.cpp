@@ -2,7 +2,7 @@
  * Copyright (C) 1995-2005, 2010, 2011, 2012 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
-
+#include "pch.h"
 #include "zutil.h"
 #ifndef Z_SOLO
 #  include "gzguts.h"
@@ -120,8 +120,7 @@ uLong ZEXPORT zlibCompileFlags()
 #  endif
 int ZLIB_INTERNAL z_verbose = verbose;
 
-void ZLIB_INTERNAL z_error (m)
-    char *m;
+void ZLIB_INTERNAL z_error (char* m)
 {
     fprintf(stderr, "%s\n", m);
     exit(1);
@@ -298,18 +297,20 @@ extern voidp  calloc OF((uInt items, uInt size));
 extern void   free   OF((voidpf ptr));
 #endif
 
-voidpf ZLIB_INTERNAL zcalloc (voidpf opaque,unsigned items,unsigned size)
-{
-    if(opaque) { } // Make compiler happy :-(
-    return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
-                              (voidpf)calloc(items, size);
-}
+// ALREADY DEFINIED in UNZIP.CPP
 
-void ZLIB_INTERNAL zcfree (voidpf opaque,voidpf ptr)
-{
-    free(ptr);
-    if (opaque) return; /* make compiler happy */
-}
+// voidpf ZLIB_INTERNAL zcalloc (voidpf opaque,unsigned items,unsigned size)
+// {
+//     if(opaque) { } // Make compiler happy :-(
+//     return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
+//                               (voidpf)calloc(items, size);
+// }
+// 
+// void ZLIB_INTERNAL zcfree (voidpf opaque,voidpf ptr)
+// {
+//     free(ptr);
+//     if (opaque) return; /* make compiler happy */
+// }
 
 #endif /* MY_ZCALLOC */
 

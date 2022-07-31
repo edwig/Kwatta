@@ -294,8 +294,22 @@ AuthenticateDlg::AdjustAuthentication()
     case AUTH_ANONYMOUS:  m_userName.Empty();
                           m_password.Empty();
                           break;
-    case AUTH_BASIC:      break;
+    case AUTH_BASIC:      PresetBasicAuthentication();
+                          break;
     case AUTH_NTLM:       break;
+  }
+}
+
+void 
+AuthenticateDlg::PresetBasicAuthentication()
+{
+  if(m_userName.IsEmpty())
+  {
+    m_userName = "$user$";
+  }
+  if(m_password.IsEmpty())
+  {
+    m_password = "$password$";
   }
 }
 

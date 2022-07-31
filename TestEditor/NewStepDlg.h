@@ -51,6 +51,7 @@ protected:
   CString StripExtension(CString p_filename);
   void    CheckFilename();
   void    CheckValiFile();
+  void    PresetFilenames();
 
   StyleComboBox  m_comboType;
   StyleButton    m_buttonStepGlobal;

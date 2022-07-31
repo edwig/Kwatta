@@ -168,6 +168,31 @@ NewStepDlg::StripExtension(CString p_filename)
   return p_filename;
 }
 
+void
+NewStepDlg::PresetFilenames()
+{
+  if(m_stepName.IsEmpty() && !m_valiName.IsEmpty())
+  {
+    m_stepName = m_valiName;
+  }
+  if(m_stepFile.IsEmpty())
+  {
+    m_stepFile = m_stepName;
+    CheckFilename();
+    UpdateData(FALSE);
+  }
+  if(m_valiName.IsEmpty() && !m_stepName.IsEmpty())
+  {
+    m_valiName = m_stepName;
+  }
+  if(m_valiFile.IsEmpty())
+  {
+		m_valiFile = m_valiName;
+    CheckValiFile();
+    UpdateData(FALSE);
+  }
+}
+
 // NewStepDlg message handlers
 
 void 
@@ -203,12 +228,7 @@ void
 NewStepDlg::OnEnChangeName()
 {
   UpdateData();
-	if(m_stepFile.IsEmpty())
-	{
-		m_stepFile = m_stepName;
-    CheckFilename();
-    UpdateData(FALSE);
-	}
+  PresetFilenames();
 }
 
 void 
@@ -235,12 +255,7 @@ void
 NewStepDlg::OnEnChangeValiName()
 {
   UpdateData();
-  if(m_valiFile.IsEmpty())
-  {
-		m_valiFile = m_valiName;
-    CheckValiFile();
-    UpdateData(FALSE);
-  }
+  PresetFilenames();
 }
 
 void

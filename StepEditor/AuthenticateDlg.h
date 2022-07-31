@@ -57,6 +57,7 @@ protected:
   void EffectiveParameters();
   void ChooseVariable(StyleEdit& p_edit);
   void AdjustAuthentication();
+  void PresetBasicAuthentication();
 
   TestStepNET* m_testStep   { nullptr };
   Parameters* m_parameters { nullptr };

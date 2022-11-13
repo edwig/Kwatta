@@ -19,11 +19,6 @@
 //
 #include "stdafx.h"
 #include <afxole.h>
-#include "StyleMDIFrameWnd.h"
-#include "StyleFonts.h"
-#include "StyleButton.h"
-#include "StyleColors.h"
-#include "StyleMacros.h"
 #include "RegistryManager.h"
 #include "resource.h"
 #include <afxglobalutils.h>
@@ -483,7 +478,6 @@ void StyleMDIFrameWnd::OnSize(UINT nType, int cx, int cy)
     GetWindowRect(m_windowRectLocal);
     m_windowRectLocal.OffsetRect(-m_windowRectLocal.left, -m_windowRectLocal.top);
 
-
     int border = 0;
     if ((GetStyle() & WS_MAXIMIZE) != 0)
     {
@@ -547,11 +541,11 @@ StyleMDIFrameWnd::OnNcCalcSize(BOOL calcValidRects,NCCALCSIZE_PARAMS* p_params)
   p_params->rgrc[2] = p_params->rgrc[0];
 }
 
-// Avoid flicker of the titlebar on activate
+// Avoid flicker of the title bar on activate
 BOOL
 StyleMDIFrameWnd::OnNcActivate(BOOL bActive)
 {
-  if (bActive)
+  if(bActive)
   {
     OnNcPaint();
   }

@@ -88,6 +88,7 @@ protected:
 	afx_msg void    OnTimer(UINT_PTR nIDEvent);
 	afx_msg BOOL    OnEraseBkgnd(CDC* pDC);
   afx_msg void    OnClicked();
+  afx_msg void    OnPaint();
 
   DECLARE_MESSAGE_MAP()
 };

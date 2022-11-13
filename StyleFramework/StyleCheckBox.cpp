@@ -17,9 +17,6 @@
 // For license: See the file "LICENSE.txt" in the root folder
 //
 #include "stdafx.h"
-#include "StyleCheckbox.h"
-#include "StyleColors.h"
-#include "StyleMacros.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -47,6 +44,12 @@ StyleCheckbox::StyleCheckbox(bool p_mutable,bool p_radio,CWnd* p_field)
 StyleCheckbox::~StyleCheckbox()
 {
   DestroyWindow();
+}
+
+void
+StyleCheckbox::PreSubclassWindow()
+{
+  ScaleControl(this);
 }
 
 void
@@ -84,7 +87,7 @@ StyleCheckbox::Draw(CWnd* p_wnd
   COLORREF filling;
   COLORREF textcolor;
 
-  if ((p_style & WS_DISABLED) != 0)
+  if((p_style & WS_DISABLED) != 0)
   {
     filling   = ThemeColor::GetColor(Colors::ColorCtrlBackground);
     textcolor = ThemeColor::GetColor(Colors::ColorEditText);
@@ -92,19 +95,19 @@ StyleCheckbox::Draw(CWnd* p_wnd
   }
   else
   {
-    if ((p_state & BST_PUSHED) != 0)
+    if((p_state & BST_PUSHED) != 0)
     {
       filling   = ThemeColor::GetColor(Colors::ColorCtrlBackground);
       textcolor = ThemeColor::GetColor(Colors::ColorEditText);
       outline   = ThemeColor::GetColor(Colors::AccentColor1);
     }
-    else if ((p_state & BST_FOCUS) != 0)
+    else if((p_state & BST_FOCUS) != 0)
     {
       filling   = ThemeColor::GetColor(Colors::ColorCtrlBackground);
       textcolor = ThemeColor::NoWhite(ThemeColor::GetColor(Colors::AccentColor1));
       outline   = ThemeColor::GetColor(Colors::AccentColor1);
     }
-    else if (p_hover)
+    else if(p_hover)
     {
       filling   = ThemeColor::GetColor(Colors::ColorCtrlBackground);
       textcolor = ThemeColor::NoWhite(ThemeColor::GetColor(Colors::AccentColor1));
@@ -232,7 +235,8 @@ StyleCheckbox::Draw(CWnd* p_wnd
       p_dc->SetBkColor(ThemeColor::GetColor(Colors::ColorWindowFrame));
       p_dc->SelectObject(STYLEFONTS.DialogTextFont);
       p_dc->SetTextColor(textcolor);
-      p_rect.left += WS(28);
+      int margin = (28 * GetSFXSizeFactor()) / 100;
+      p_rect.left += margin;
       p_dc->DrawText(text,&p_rect,DT_VCENTER | DT_SINGLELINE);
     }
   }

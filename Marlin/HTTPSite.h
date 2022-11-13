@@ -41,21 +41,21 @@
 class SessionAddress
 {
 public:
-  XString       m_userSID; // User in the SIDL form
-  ULONG         m_address; // sin6_flowinfo of IP address of caller
-  UINT          m_desktop; // TerminalServices desktop
-  XString       m_absPath; // Absolute path of session
+  XString       m_userSID;        // User in the SIDL form
+  ULONG         m_address { 0 };  // sin6_flowinfo of IP address of caller
+  UINT          m_desktop { 0 };  // TerminalServices desktop
+  XString       m_absPath;        // Absolute path of session
 };
 
 // Reliable messaging server sequence
 class SessionSequence
 {
 public:
-  XString m_clientGUID;       // Client challenging nonce
-  XString m_serverGUID;       // Server challenging nonce
-  int     m_clientMessageID;  // Clients message number
-  int     m_serverMessageID;  // Servers message number
-  bool    m_lastMessage;      // Last message in stream flag
+  XString m_clientGUID;             // Client challenging nonce
+  XString m_serverGUID;             // Server challenging nonce
+  int     m_clientMessageID { 0 };  // Clients message number
+  int     m_serverMessageID { 0 };  // Servers message number
+  bool    m_lastMessage { false };  // Last message in stream flag
 };
 
 // Operator for associative mapping for the internet addresses
@@ -205,6 +205,14 @@ public:
   void            SetCookiesSecure(bool p_secure);
   // OPTIONAL: Set all cookies same-site attribute
   void            SetCookiesSameSite(CookieSameSite p_same);
+  // OPTIONAL: Set all cookies path attribute
+  void            SetCookiesPath(XString p_path);
+  // OPTIONAL: Set all cookies domain attribute
+  void            SetCookiesDomain(XString p_domain);
+  // OPTIONAL: Set all cookies expire attribute
+  void            SetCookiesExpires(int p_minutes);
+  // OPTIONAL: Set all cookies to max-age 
+  void            SetCookiesMaxAge(int p_seconds);
 
   // GETTERS
   XString         GetSite()                         { return m_site;          };
@@ -237,9 +245,17 @@ public:
   bool            GetCookieHasSecure()              { return m_cookieHasSecure;  }
   bool            GetCookieHasHttpOnly()            { return m_cookieHasHttp;    }
   bool            GetCookieHasSameSite()            { return m_cookieHasSame;    }
+  bool            GetCookieHasPath()                { return m_cookieHasPath;    }
+  bool            GetCookieHasDomain()              { return m_cookieHasDomain;  }
+  bool            GetCookieHasExpires()             { return m_cookieHasExpires; }
+  bool            GetCookieHasMaxAge()              { return m_cookieHasMaxAge;  }
   CookieSameSite  GetCookiesSameSite()              { return m_cookieSameSite;   }
   bool            GetCookiesSecure()                { return m_cookieSecure;     }
   bool            GetCookiesHttpOnly()              { return m_cookieHttpOnly;   }
+  XString         GetCookiesPath()                  { return m_cookiePath;       }
+  XString         GetCookiesDomain()                { return m_cookieDomain;     }
+  int             GetCookiesExpires()               { return m_cookieExpires;    }
+  int             GetCookiesMaxAge()                { return m_cookieMaxAge;     }
   int             GetAuthentication()               { return m_authScheme;       }
   XString         GetAuthenticationScheme();
   bool            GetAuthenticationNTLMCache();
@@ -262,7 +278,7 @@ public:
   // Call the correct HTTP handler!
   void HandleHTTPMessage(HTTPMessage* p_message);
   // Call the correct EventStream handler
-  void HandleEventStream(HTTPMessage* p_message,EventStream* p_stream);
+  bool HandleEventStream(HTTPMessage* p_message,EventStream* p_stream);
   // Check WS-ReliableMessaging protocol
   bool HttpReliableCheck(SOAPMessage* p_message);
   // Check WS-Security protocol
@@ -382,9 +398,17 @@ protected:
   bool              m_cookieHasSecure { false };          // Site override for 'secure'   cookies
   bool              m_cookieHasHttp   { false };          // Site override for 'httpOnly' cookies
   bool              m_cookieHasSame   { false };          // Site override for 'SameSite' cookies
+  bool              m_cookieHasPath   { false };          // Site override for 'path'     cookies
+  bool              m_cookieHasDomain { false };          // Site override for 'domain'   cookies
+  bool              m_cookieHasExpires{ false };          // Site override for 'expires'  cookies
+  bool              m_cookieHasMaxAge { false };          // Site override for 'max-age'  cookies
   bool              m_cookieSecure    { false };          // All cookies have the 'secure'   attribute
   bool              m_cookieHttpOnly  { false };          // All cookies have the 'httpOnly' attribute
   CookieSameSite    m_cookieSameSite  { CookieSameSite::NoSameSite }; // Same site setting of cookies
+  XString           m_cookiePath;                         // All cookies have the 'path' attribute
+  XString           m_cookieDomain;                       // All cookies have the 'domain' attribute
+  int               m_cookieExpires   { 0 };              // All cookies expire in x minutes
+  int               m_cookieMaxAge    { 0 };              // All cookies have x seconds validity
   // Auto HTTP headers added to all response traffic
   XFrameOption      m_xFrameOption    { XFrameOption::XFO_NO_OPTION };  // Standard frame options
   XString           m_xFrameAllowed;                      // IFrame allowed from this URI

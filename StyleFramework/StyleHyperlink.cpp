@@ -58,7 +58,8 @@ BEGIN_MESSAGE_MAP(StyleHyperLink, CStatic)
   ON_WM_TIMER()
   ON_CONTROL_REFLECT(STN_CLICKED,OnClicked)
   ON_WM_ERASEBKGND()
-  ON_WM_CTLCOLOR_REFLECT()
+  ON_WM_CTLCOLOR()
+  ON_WM_PAINT()
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -79,9 +80,12 @@ BOOL StyleHyperLink::PreTranslateMessage(MSG* pMsg)
 
 void StyleHyperLink::PreSubclassWindow() 
 {
+  ScaleControl(this);
+  SetFont(&STYLEFONTS.DialogTextFont);
+
   // We want to get mouse clicks via STN_CLICKED
   DWORD dwStyle = GetStyle();
-  ::SetWindowLong(GetSafeHwnd(), GWL_STYLE, dwStyle | SS_NOTIFY);
+  ::SetWindowLong(GetSafeHwnd(),GWL_STYLE,dwStyle | SS_NOTIFY);
     
   // Set the URL as the window text
   if (m_strURL.IsEmpty())
@@ -124,10 +128,10 @@ void StyleHyperLink::PreSubclassWindow()
   SetDefaultCursor();      // Try and load up a "hand" cursor
   SetUnderline();
 
-    // Create the tooltip
-    CRect rect;
-    GetClientRect(rect);
-    m_ToolTip.Create(this);
+  // Create the tooltip
+  CRect rect; 
+  GetClientRect(rect);
+  m_ToolTip.Create(this);
   m_ToolTip.AddTool(this, m_strURL, rect, TOOLTIP_ID);
 
   CStatic::PreSubclassWindow();
@@ -252,6 +256,39 @@ BOOL StyleHyperLink::OnEraseBkgnd(CDC* pDC)
   return TRUE;
 }
 
+void
+StyleHyperLink::OnPaint()
+{
+  // Do the default processing
+  CStatic::Default();
+
+  // Get the DC and the rectangle
+  CDC* pDC = GetDC();
+  CRect rect;
+  GetClientRect(&rect);
+
+  // Get the text1
+  CString text;
+  GetWindowText(text);
+
+  // Set text color
+  CtlColor(pDC,CTLCOLOR_STATIC);
+
+  // Paint the text
+  int fontheight = STANDARDFONTSIZE;
+  CFont* org = pDC->SelectObject(&STYLEFONTS.DialogTextFont);
+
+  // Use left offset
+  // rect.left += m_leftOffset;
+
+  // Print the text
+  pDC->DrawText(text,&rect,DT_LEFT | DT_VCENTER | DT_NOPREFIX | DT_WORDBREAK | DT_EXPANDTABS);
+
+  // Restore originals
+  pDC->SelectObject(org);
+  ReleaseDC(pDC);
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // StyleHyperLink operations
 
@@ -262,7 +299,7 @@ void StyleHyperLink::SetURL(CString strURL)
   if (::IsWindow(GetSafeHwnd())) 
   {
     PositionWindow();
-    m_ToolTip.UpdateTipText(strURL, this, TOOLTIP_ID);
+    m_ToolTip.UpdateTipText(strURL,this,TOOLTIP_ID);
   }
 }
 

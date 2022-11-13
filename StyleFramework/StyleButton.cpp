@@ -17,12 +17,6 @@
 // For license: See the file "LICENSE.txt" in the root folder
 //
 #include "stdafx.h"
-#include "StyleButton.h"
-#include "StyleColors.h"
-#include "StyleMessageBox.h"
-#include "StyleMacros.h"
-#include "StyleFonts.h"
-#include "StyleEdit.h"
 #include "CWSExpander.h"
 
 #ifdef _DEBUG
@@ -169,6 +163,12 @@ StyleButton::StyleButton(CString p_type, bool pInError)
 StyleButton::~StyleButton()
 {
   DestroyWindow();
+}
+
+void 
+StyleButton::PreSubclassWindow()
+{
+  ScaleControl(this);
 }
 
 BOOL
@@ -532,11 +532,11 @@ StyleButton::Draw(CDC*    pDC
     textcolor = ThemeColor::GetColor(Colors::ColorControlTextDisabled);
   }
 
-  if (p_mandatory)
+  if(p_mandatory)
   {
     outline = ThemeColor::NoWhite(ThemeColor::GetColor(Colors::AccentColor1));
   }
-  if (pInError)
+  if(pInError)
   {
     outline = ColorEditFrameError;
   }

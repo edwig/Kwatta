@@ -52,6 +52,8 @@ END_MESSAGE_MAP()
 void
 StyleTreeCtrl::PreSubclassWindow()
 {
+  ScaleControl(this);
+
   if(m_directInit)
   {
     InitSkin();
@@ -118,7 +120,7 @@ StyleTreeCtrl::CheckColors()
 void
 StyleTreeCtrl::OnPaint()
 {
-  if (!m_inPaint)
+  if(!m_inPaint)
   {
     m_inPaint = true;
     CheckColors();

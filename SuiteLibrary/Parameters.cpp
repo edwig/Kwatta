@@ -20,8 +20,9 @@
 
 #include "stdafx.h"
 #include "Parameters.h"
-#include "XMLMessage.h"
-#include "StdException.h"
+#include <XMLMessage.h>
+#include <StdException.h>
+#include <Crypto.h>
 #include <io.h>
 
 #define KWATTA_NOAUTOLINK
@@ -384,8 +385,11 @@ Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
       CString pwd;
       if(pwd.GetEnvironmentVariable(KWATTA_PASSWORD))
       {
+        Crypto crypt;
+        pwd = crypt.Decryption(pwd,KWATTA_ENCRYPT);
         return pwd;
       }
+      else return "";
     }
   }
 

@@ -20,15 +20,6 @@
 // For license: See the file "LICENSE.txt" in the root folder
 //
 #include "stdafx.h"
-#include "StyleDialog.h"
-#include "StyleColors.h"
-#include "GrayWindow.h"
-#include "StyleFonts.h"
-#include "StyleMacros.h"
-#include "SkinScrollWnd.h"
-#include "StyleMessageBox.h"
-#include "StyleComboBox.h"
-#include "StyleHyperlink.h"
 #include "RegistryManager.h"
 
 #ifdef _DEBUG
@@ -85,7 +76,7 @@ BEGIN_MESSAGE_MAP(StyleDialog,CDialog)
   ON_WM_ACTIVATEAPP()
   ON_WM_SETTINGCHANGE()
   ON_REGISTERED_MESSAGE(g_msg_changed,OnStyleChanged)
-  ON_NOTIFY_EX(TTN_NEEDTEXT,0,OnToolTipNotify)
+  ON_NOTIFY_EX(TTN_NEEDTEXT,0,        OnToolTipNotify)
   ON_MESSAGE(WM_CTLCOLORSTATIC,       OnCtlColorStatic)
   ON_MESSAGE(WM_CTLCOLORLISTBOX,      OnCtlColorListBox)
 END_MESSAGE_MAP()
@@ -121,7 +112,14 @@ int
 StyleDialog::OnCreate(LPCREATESTRUCT p_create)
 {
   p_create->dwExStyle |= WS_EX_CONTROLPARENT;
-  return CDialog::OnCreate(p_create);
+  int res = CDialog::OnCreate(p_create);
+
+  CRect rect;
+  GetWindowRect(&rect);
+  SFXResizeByFactor(rect);
+  MoveWindow(&rect);
+
+  return res;
 }
 
 void
@@ -590,7 +588,7 @@ StyleDialog::OnStyleDark()
   SetTheme(ThemeColor::Themes::ThemeDark);
 }
 
-BOOL 
+BOOL
 StyleDialog::OnEraseBkgnd(CDC* pDC)
 {
   CRect client;
@@ -929,7 +927,7 @@ StyleDialog::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
                           {
                             return (dynamic_cast<StyleHyperLink*>(pWnd))->CtlColor(pDC,nCtlColor);
                           }
-                          if (m_error)
+                          if(m_error)
                           {
                             pDC->SetTextColor(ColorWindowMessageTextError);
                             pDC->SetBkColor(ThemeColor::GetColor(Colors::ColorWindowFrame));
@@ -940,7 +938,7 @@ StyleDialog::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
                             pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorWindowFrame));
                           }
                           break;
-    case CTLCOLOR_BTN:    if (m_error)
+    case CTLCOLOR_BTN:    if(m_error)
                           {
                             pDC->SetTextColor(ColorWindowMessageTextError);
                             pDC->SetBkColor(ThemeColor::GetColor(Colors::ColorWindowFrame));

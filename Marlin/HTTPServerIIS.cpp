@@ -46,6 +46,7 @@
 #pragma warning (disable:4091)
 #include <httpserv.h>
 #pragma warning (error:4091)
+#pragma warning (disable:6387)
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -124,7 +125,6 @@ HTTPServerIIS::Initialise()
 void
 HTTPServerIIS::Cleanup()
 {
-  USES_CONVERSION;
   AutoCritSec lock1(&m_sitesLock);
   AutoCritSec lock2(&m_eventLock);
 
@@ -378,7 +378,11 @@ HTTPServerIIS::GetWebConfigIIS()
   return m_webConfigIIS;
 }
 
-EventStream*
+// Get a stream: Valid return status are
+// 0:  -> Not a stream request
+// 1:  -> Valid new stream request
+// -1: -> Stream request, but invalid (e.q. authentication failed)
+int
 HTTPServerIIS::GetHTTPStreamFromRequest(IHttpContext* p_context
                                        ,HTTPSite*     p_site
                                        ,PHTTP_REQUEST p_request)
@@ -391,19 +395,17 @@ HTTPServerIIS::GetHTTPStreamFromRequest(IHttpContext* p_context
   if((p_request->Verb == HttpVerbGET) &&
      (p_site->GetIsEventStream() || acceptTypes.Left(17).CompareNoCase("text/event-stream") == 0))
   {
-    USES_CONVERSION;
-
     // Grab the rest of the needed content out of the request
     PSOCKADDR_IN6 sender   = (PSOCKADDR_IN6)p_request->Address.pRemoteAddress;
-    XString   absolutePath = (XString) CW2A(p_request->CookedUrl.pAbsPath);
+    XString   absolutePath = WStringToString(p_request->CookedUrl.pAbsPath);
 
     if(CheckUnderDDOSAttack(sender,absolutePath))
     {
-      return nullptr;
+      return -1;
     }
 
-    // Grab the raw URL and the dekstop for the stream
-    XString   rawUrl       = (XString) CW2A(p_request->CookedUrl.pFullUrl);
+    // Grab the raw URL and the dsektop for the stream
+    XString   rawUrl       = WStringToString(p_request->CookedUrl.pFullUrl);
     int       remDesktop   = FindRemoteDesktop(p_request->Headers.UnknownHeaderCount
                                               ,p_request->Headers.pUnknownHeaders);
     // Open an event stream
@@ -420,7 +422,7 @@ HTTPServerIIS::GetHTTPStreamFromRequest(IHttpContext* p_context
       IHttpUser* user = p_context->GetUser();
       if(user)
       {
-        stream->m_user = CW2A(user->GetRemoteUserName());
+        stream->m_user = WStringToString(user->GetRemoteUserName());
       }
       stream->m_baseURL = rawUrl;
 
@@ -428,15 +430,20 @@ HTTPServerIIS::GetHTTPStreamFromRequest(IHttpContext* p_context
 
       // To do for this stream, not for a message
       DETAILLOGV("Accepted an event-stream for SSE (Server-Sent-Events) from %s/%s", stream->m_user.GetString(), rawUrl.GetString());
-      p_site->HandleEventStream(message,stream);
-
-      // Return the fact that the request turned into a stream
+      if(p_site->HandleEventStream(message,stream))
+      {
+        // Return the fact that the request turned into a stream
+        delete message;
+        return 1;
+      }
+      RemoveEventStream(stream);
       delete message;
-      return stream;
+      delete stream;
     }
+    return -1;
   }
   // Not a stream request or stream not initiated
-  return nullptr;
+  return 0;
 }
 
 // Building the essential HTTPMessage from the request area
@@ -445,8 +452,6 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
                                         ,HTTPSite*     p_site
                                         ,PHTTP_REQUEST p_request)
 {
-  USES_CONVERSION;
-
   // Grab the senders content
   XString   contentType    = p_request->Headers.KnownHeaders[HttpHeaderContentType    ].pRawValue;
   XString   contentLength  = p_request->Headers.KnownHeaders[HttpHeaderContentLength  ].pRawValue;
@@ -455,7 +460,7 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
   XString   authorize      = p_request->Headers.KnownHeaders[HttpHeaderAuthorization  ].pRawValue;
   XString   modified       = p_request->Headers.KnownHeaders[HttpHeaderIfModifiedSince].pRawValue;
   XString   referrer       = p_request->Headers.KnownHeaders[HttpHeaderReferer        ].pRawValue;
-  XString   rawUrl         = (XString) CW2A(p_request->CookedUrl.pFullUrl);
+  XString   rawUrl         = WStringToString(p_request->CookedUrl.pFullUrl);
   PSOCKADDR sender         = p_request->Address.pRemoteAddress;
   int       remDesktop     = FindRemoteDesktop(p_request->Headers.UnknownHeaderCount
                                               ,p_request->Headers.pUnknownHeaders);
@@ -474,7 +479,7 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
   // See if we must substitute for a sub-site
   if(m_hasSubsites)
   {
-    XString absPath = (XString) CW2A(p_request->CookedUrl.pAbsPath);
+    XString absPath = WStringToString(p_request->CookedUrl.pAbsPath);
     p_site = FindHTTPSite(p_site,absPath);
   }
 
@@ -632,7 +637,7 @@ HTTPServerIIS::ReceiveIncomingRequest(HTTPMessage* p_message)
   while(httpRequest->GetRemainingEntityBytes() > 0)
   {
     DWORD  received  = 0;
-    HRESULT hr = httpRequest->ReadEntityBody(bytebuffer,(DWORD)INIT_HTTP_BUFFERSIZE,FALSE,&received,NULL);
+    HRESULT hr = httpRequest->ReadEntityBody(bytebuffer,(DWORD)INIT_HTTP_BUFFERSIZE,FALSE,&received);
     if(HRESULT_CODE(hr) == ERROR_HANDLE_EOF)
     {
       // Ready reading the message
@@ -986,21 +991,38 @@ HTTPServerIIS::SendResponse(HTTPMessage* p_message)
   bool cookiesHasSecure(false);
   bool cookiesHasHttp(false);
   bool cookiesHasSame(false);
-  bool cookiesSecure(false);
-  bool cookiesHttpOnly(false);
-  CookieSameSite cookiesSameSite(CookieSameSite::NoSameSite);
+  bool cookiesHasPath(false);
+  bool cookiesHasDomain(false);
+  bool cookiesHasExpires(false);
+  bool cookiesHasMaxAge(false);
+
+  bool cookieSecure(false);
+  bool cookieHttpOnly(false);
+  CookieSameSite cookieSameSite(CookieSameSite::NoSameSite);
+  XString    cookiePath;
+  XString    cookieDomain;
+  int        cookieExpires = 0;
+  int        cookieMaxAge  = 0;
 
   // Getting the site settings
   HTTPSite* site = p_message->GetHTTPSite();
   if(site)
   {
-    cookiesHasSecure = site->GetCookieHasSecure();
-    cookiesHasHttp   = site->GetCookieHasHttpOnly();
-    cookiesHasSame   = site->GetCookieHasSameSite();
+    cookiesHasSecure  = site->GetCookieHasSecure();
+    cookiesHasHttp    = site->GetCookieHasHttpOnly();
+    cookiesHasSame    = site->GetCookieHasSameSite();
+    cookiesHasPath    = site->GetCookieHasPath();
+    cookiesHasDomain  = site->GetCookieHasDomain();
+    cookiesHasExpires = site->GetCookieHasExpires();
+    cookiesHasMaxAge  = site->GetCookieHasMaxAge();
 
-    cookiesSecure    = site->GetCookiesSecure();
-    cookiesHttpOnly  = site->GetCookiesHttpOnly();
-    cookiesSameSite  = site->GetCookiesSameSite();
+    cookieSecure      = site->GetCookiesSecure();
+    cookieHttpOnly    = site->GetCookiesHttpOnly();
+    cookieSameSite    = site->GetCookiesSameSite();
+    cookiePath        = site->GetCookiesPath();
+    cookieDomain      = site->GetCookiesDomain();
+    cookieExpires     = site->GetCookiesExpires();
+    cookieMaxAge      = site->GetCookiesMaxAge();
   }
 
   // Add cookies to the unknown response headers
@@ -1020,9 +1042,20 @@ HTTPServerIIS::SendResponse(HTTPMessage* p_message)
   {
     for(auto& cookie : cookies.GetCookies())
     {
-      if(cookiesHasSecure)  cookie.SetSecure  (cookiesSecure);
-      if(cookiesHasHttp)    cookie.SetHttpOnly(cookiesHttpOnly);
-      if(cookiesHasSame)    cookie.SetSameSite(cookiesSameSite);
+      if(cookiesHasSecure)  cookie.SetSecure  (cookieSecure);
+      if(cookiesHasHttp)    cookie.SetHttpOnly(cookieHttpOnly);
+      if(cookiesHasSame)    cookie.SetSameSite(cookieSameSite);
+      if(cookiesHasPath)    cookie.SetPath    (cookiePath);
+      if(cookiesHasDomain)  cookie.SetDomain  (cookieDomain);
+      if(cookiesHasMaxAge)  cookie.SetMaxAge  (cookieMaxAge);
+
+      if(cookieExpires > 0)
+      {
+        SYSTEMTIME current;
+        GetSystemTime(&current);
+        AddSecondsToSystemTime(&current,&current,60 * (double)cookieExpires);
+        cookie.SetExpires(&current);
+      }
 
       ukheaders.insert(std::make_pair("Set-Cookie",cookie.GetSetCookieText()));
     }
@@ -1093,6 +1126,13 @@ HTTPServerIIS::SendResponse(HTTPMessage* p_message)
   {
     SendResponseFileHandle(response,buffer,moredata);
   }
+
+  if(status >= HTTP_STATUS_AMBIGUOUS)
+  {
+    DWORD sent = 0;
+    response->Flush(FALSE,moredata,&sent);
+  }
+
   if(GetLastError())
   {
     // Error handler
@@ -1107,8 +1147,8 @@ HTTPServerIIS::SendResponse(HTTPMessage* p_message)
 
   if(!p_message->GetChunkNumber())
   {
-	// Do **NOT** send an answer twice
-	p_message->SetHasBeenAnswered();
+	  // Do **NOT** send an answer twice
+	  p_message->SetHasBeenAnswered();
   }
 }
 

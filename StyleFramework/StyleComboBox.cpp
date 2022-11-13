@@ -121,6 +121,9 @@ END_MESSAGE_MAP()
 void 
 StyleComboBox::PreSubclassWindow()
 {
+  SetFont(&STYLEFONTS.DialogTextFont);
+  ScaleControl(this);
+
   // Getting the default combobox implementation
   COMBOBOXINFO info;
   memset(&info,0,sizeof(COMBOBOXINFO));
@@ -136,6 +139,22 @@ StyleComboBox::PreSubclassWindow()
   {
     ::DestroyWindow(info.hwndList);
   }
+
+  // Owner draw combo boxes get other dimensions, so correct these
+  if((GetStyle() & CBS_OWNERDRAWFIXED) && GetSFXSizeFactor() != 100)
+  {
+    int height = (20 * GetSFXSizeFactor()) / 100;
+
+    CRect rect;
+    ::GetWindowRect(info.hwndCombo,&rect);
+
+    CWnd* parent = GetParent();
+    if(parent)
+    {
+      parent->ScreenToClient(rect);
+    }
+    ::MoveWindow(info.hwndCombo,rect.left,rect.top,rect.Width(),height,TRUE);
+  }
 }
 
 void
@@ -149,6 +168,7 @@ StyleComboBox::InitSkin()
   // Create our own sub-controls!
   CreateEditControl();
   CreateListControl();
+
 }
 
 void
@@ -198,7 +218,7 @@ StyleComboBox::CreateListControl()
   CRect rect(0,0,0,0);
   DWORD cbstyle = GetStyle();
   DWORD style   = LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_POPUP | LBS_NOTIFY;
-  DWORD styleEx = WS_EX_TOOLWINDOW | WS_EX_TOPMOST;
+  DWORD styleEx = WS_EX_TOOLWINDOW   | WS_EX_TOPMOST;
 
   if(cbstyle & CBS_OWNERDRAWVARIABLE)
   {
@@ -385,7 +405,7 @@ StyleComboBox::HideComboList()
 void 
 StyleComboBox::PostHideComboList() 
 {
-  // Provide your own override if neccessary
+  // Provide your own override if necessary
 }
 
 int
@@ -472,7 +492,6 @@ StyleComboBox::PositionDropList(int p_width,int p_height)
     skin->SetWindowPos(0,rc.left,rc.bottom - 1,p_width,p_height,SWP_NOREDRAW | SWP_NOACTIVATE);
   }
   m_listControl->ModifyStyle(0,WS_VISIBLE);
-  m_listControl->SetFocus();
   skin->SkinSetCapture();
   skin->SkinSetMouseTracking();
   skin->ShowWindow(SW_SHOW);
@@ -676,7 +695,8 @@ StyleComboBox::OnGetItemData(WPARAM wParam, LPARAM lParam)
 LRESULT 
 StyleComboBox::OnGetItemHeight(WPARAM wParam, LPARAM lParam)
 {
-  return GetItemHeight((int)wParam);
+  int height = GetItemHeight((int)wParam);
+  return (height * GetSFXSizeFactor()) / 100;
 }
 
 LRESULT 
@@ -923,7 +943,6 @@ StyleComboBox::OnDropdown()
   ShowComboList();
   PostShowComboList();
   m_buttonDown = true;
-  m_listControl->SetFocus();
 }
 
 void
@@ -1770,7 +1789,7 @@ SCBTextEdit::OnChar(UINT nChar,UINT nRepCnt,UINT nFlags)
   CString text;
   CString after;
 
-  // Send CBN_EDITUPDATE: A textfield is about to be changed
+  // Send CBN_EDITUPDATE: A text field is about to be changed
   m_combo->OnEditUpdate();
 
   // Check auto completion
@@ -2024,6 +2043,12 @@ SCBListBox::SCBListBox()
 SCBListBox::~SCBListBox()
 {
   DestroyWindow();
+}
+
+void
+SCBListBox::PreSubclassWindow()
+{
+  SetFont(&STYLEFONTS.DialogTextFont);
 }
 
 bool

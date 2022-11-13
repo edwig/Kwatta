@@ -49,7 +49,7 @@ StyleListBox::~StyleListBox()
   OnNcDestroy();
 }
 
-BEGIN_MESSAGE_MAP(StyleListBox,CListBox)
+BEGIN_MESSAGE_MAP(StyleListBox, CListBox)
   ON_WM_PAINT()
   ON_WM_SHOWWINDOW()
   ON_WM_DESTROY()
@@ -64,6 +64,8 @@ StyleListBox::PreSubclassWindow()
   int style = GetStyle();
   ASSERT((style & LBS_OWNERDRAWVARIABLE) == 0);
   ASSERT((style & LBS_MULTICOLUMN)       == 0);
+
+  ScaleControl(this);
 
   if(m_directInit)
   {
@@ -81,6 +83,9 @@ StyleListBox::InitSkin(int p_borderSize /*=1*/,int p_clientBias /*=0*/)
   if(m_skin == nullptr)
   {
     SetFont(&STYLEFONTS.DialogTextFont);
+    int height = GetItemHeight(0);
+    SetItemHeight(0,(height * GetSFXSizeFactor()) / 100);
+
     m_skin = SkinWndScroll(this,p_borderSize,p_clientBias);
   }
 }
@@ -182,16 +187,16 @@ StyleListBox::InsertString(int p_index,LPCTSTR p_string,COLORREF p_foreground,CO
   if (result != LB_ERR)
   {
     if (GetStyle() & LBS_OWNERDRAWFIXED)
-  {
+    {
       ListBoxColorLine* line = new ListBoxColorLine();
       line->m_foreground = p_foreground;
       line->m_background = p_background;
       line->m_text       = p_string;
 
       SetItemPointer(result,line);
-  }
-  UpdateWidth(p_string);
-  AdjustScroll();
+    }
+    UpdateWidth(p_string);
+    AdjustScroll();
   }
   return result;
 }
@@ -202,18 +207,18 @@ StyleListBox::AppendString(LPCSTR p_string,COLORREF p_foreground,COLORREF p_back
   bool owner = (GetStyle() & LBS_OWNERDRAWFIXED) > 0;
   int result = CListBox::AddString(owner ? "" : p_string);
   if (result != LB_ERR)
-{
-    if(GetStyle() & LBS_OWNERDRAWFIXED)
   {
+    if(GetStyle() & LBS_OWNERDRAWFIXED)
+    {
       ListBoxColorLine* line = new ListBoxColorLine();
       line->m_foreground = p_foreground;
       line->m_background = p_background;
       line->m_text       = p_string;
 
       SetItemPointer(result,line);
-  }
-  UpdateWidth(p_string);
-  AdjustScroll();
+    }
+    UpdateWidth(p_string);
+    AdjustScroll();
 }
   return result;
 }
@@ -966,7 +971,7 @@ StyleListBox::Internal_PaintItem(CDC* p_cdc,const RECT* rect,INT index,UINT acti
     if (!IsWindowEnabled()) dis.itemState |= ODS_DISABLED;
     dis.itemData      = (ULONG_PTR) GetItemDataPtr(index);
     dis.rcItem        = *rect;
-    TRACE("[%p]: drawitem %d (%s) action=%02x state=%02x rect=%s\n",GetSafeHwnd(),index,item_str, action, dis.itemState, DebugRect(rect));
+    // TRACE("[%p]: drawitem %d (%s) action=%02x state=%02x rect=%s\n",GetSafeHwnd(),index,item_str, action, dis.itemState, DebugRect(rect));
 
     // This is the reason we are here!
     // Standard MS-Windows sends this to the parent of the control so CMenu can have a go at it

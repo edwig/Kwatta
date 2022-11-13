@@ -206,6 +206,7 @@
     <ClInclude Include="StyleProgressCtrl.h" />
     <ClInclude Include="StyleSpinButtonCtrl.h" />
     <ClInclude Include="StyleStatic.h" />
+    <ClInclude Include="StyleStaticToast.h" />
     <ClInclude Include="StyleTexts.h" />
     <ClInclude Include="StyleToast.h" />
     <ClInclude Include="StyleToolbar.h" />
@@ -247,6 +248,7 @@
     <ClCompile Include="StyleDIB.cpp" />
     <ClCompile Include="StyleFormView.cpp" />
     <ClCompile Include="StyleFrameWnd.cpp" />
+    <ClCompile Include="StyleFramework.cpp" />
     <ClCompile Include="StyleGridCtrl.cpp" />
     <ClCompile Include="StyleGroupBox.cpp" />
     <ClCompile Include="StyleHyperlink.cpp" />
@@ -262,6 +264,7 @@
     <ClCompile Include="StyleProgressCtrl.cpp" />
     <ClCompile Include="StyleSpinButtonCtrl.cpp" />
     <ClCompile Include="StyleStatic.cpp" />
+    <ClCompile Include="StyleStaticToast.cpp" />
     <ClCompile Include="StyleTexts.cpp" />
     <ClCompile Include="StyleToast.cpp" />
     <ClCompile Include="StyleToolbar.cpp" />

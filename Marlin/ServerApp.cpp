@@ -73,24 +73,43 @@ __declspec(dllexport)
 HTTPSite* _stdcall FindHTTPSite(ServerApp* p_application,int p_port, PCWSTR p_url)
 {
   HTTPSite* site = nullptr;
-  if (p_application)
+  if(p_application)
   {
-    p_application->StartCounter();
-    site = p_application->GetHTTPServer()->FindHTTPSite(p_port,p_url);
-    p_application->StopCounter();
+    _set_se_translator(SeTranslator);
+    try
+    {
+      p_application->StartCounter();
+      site = p_application->GetHTTPServer()->FindHTTPSite(p_port,p_url);
+      p_application->StopCounter();
+    }
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,__FUNCTION__,"ERROR while finding HTTP Site: " + ex.GetErrorMessage());
+      site = nullptr;
+    }
   }
   return site;
 }
 
 __declspec(dllexport)
-bool _stdcall GetStreamFromRequest(ServerApp* p_application, IHttpContext* p_context, HTTPSite* p_site, PHTTP_REQUEST p_request)
+int _stdcall GetStreamFromRequest(ServerApp* p_application,IHttpContext* p_context,HTTPSite* p_site,PHTTP_REQUEST p_request)
 {
-  bool gotstream = false;
-  if (p_application)
+  int gotstream{0};
+
+  if(p_application)
   {
-    p_application->StartCounter();
-    gotstream = (p_application->GetHTTPServer()->GetHTTPStreamFromRequest(p_context,p_site,p_request) != nullptr);
-    p_application->StopCounter();
+    _set_se_translator(SeTranslator);
+    try
+    {
+      p_application->StartCounter();
+      gotstream = p_application->GetHTTPServer()->GetHTTPStreamFromRequest(p_context,p_site,p_request);
+      p_application->StopCounter();
+    }
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,__FUNCTION__,"ERROR while getting new event stream: " + ex.GetErrorMessage());
+      gotstream = 0;
+    }
   }
   return gotstream;
 }
@@ -104,13 +123,22 @@ HTTPMessage* _stdcall GetHTTPMessageFromRequest(ServerApp*    p_application
   HTTPMessage* msg = nullptr;
   if(p_application)
   {
-    p_application->StartCounter();
-    HTTPServerIIS* server = p_application->GetHTTPServer();
-    if(server)
+    _set_se_translator(SeTranslator);
+    try
     {
-      msg = server->GetHTTPMessageFromRequest(p_context,p_site,p_request);
+      p_application->StartCounter();
+      HTTPServerIIS* server = p_application->GetHTTPServer();
+      if(server)
+      {
+        msg = server->GetHTTPMessageFromRequest(p_context,p_site,p_request);
+      }
+      p_application->StopCounter();
     }
-    p_application->StopCounter();
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,__FUNCTION__,"ERROR while getting a new HTTPMessage: " + ex.GetErrorMessage());
+      msg = nullptr;
+    }
   }
   return msg;
 }
@@ -125,19 +153,27 @@ bool _stdcall HandleHTTPMessage(ServerApp* p_application,HTTPSite* p_site,HTTPMe
     // Install SEH to regular exception translator
     AutoSeTranslator trans(SeTranslator);
 
-    p_application->StartCounter();
-
-    // GO! Let the site handle the message
-    p_message->AddReference();
-    p_site->HandleHTTPMessage(p_message);
-
-    // If handled (Marlin has reset the request handle)
-    if (p_message->GetHasBeenAnswered())
+    try
     {
-      handled = true;
+      p_application->StartCounter();
+
+      // GO! Let the site handle the message
+      p_message->AddReference();
+      p_site->HandleHTTPMessage(p_message);
+
+      // If handled (Marlin has reset the request handle)
+      if (p_message->GetHasBeenAnswered())
+      {
+        handled = true;
+      }
+      p_message->DropReference();
+      p_application->StopCounter();
     }
-    p_message->DropReference();
-    p_application->StopCounter();
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,__FUNCTION__,"ERROR while handeling a HTTPMessage: " + ex.GetErrorMessage());
+      handled = false;
+    }
   }
   return handled;
 }
@@ -374,7 +410,8 @@ ServerApp::MinMarlinVersion(int p_version)
     return 0;
   }
   // We have done our version check
-  return m_versionCheck = true;
+  m_versionCheck = true;
+  return true;
 }
 
 // Default implementation. Use the Marlin error report
@@ -431,14 +468,12 @@ ServerApp::GetSiteConfig(int ind)
 void 
 ServerApp::LoadSites(IHttpApplication* p_app,XString p_physicalPath)
 {
-  USES_CONVERSION;
-
   XString config(p_app->GetAppConfigPath());
   int pos = config.ReverseFind('/');
   XString configSite = config.Mid(pos + 1);
 
   CComBSTR siteCollection = L"system.applicationHost/sites";
-  CComBSTR configPath = A2CW(config);
+  CComBSTR configPath = StringToWString(config).c_str();
 
   // Reading all global modules of the IIS installation
   ReadModules(configPath);
@@ -542,7 +577,6 @@ ServerApp::ReadModules(CComBSTR& /*p_configPath*/)
 void  
 ServerApp::ReadHandlers(CComBSTR& p_configPath,IISSiteConfig& p_config)
 {
-  USES_CONVERSION;
   IAppHostAdminManager* manager = g_iisServer->GetAdminManager();
 
   // Finding all HTTP Handlers in the configuration
@@ -574,7 +608,7 @@ ServerApp::ReadHandlers(CComBSTR& p_configPath,IISSiteConfig& p_config)
 
           if (childElement->GetPropertyByName(CComBSTR(L"modules"), &prop) == S_OK && prop->get_Value(&vvar) == S_OK && vvar.vt == VT_BSTR)
           {
-            modules = W2A(vvar.bstrVal);
+            modules = WStringToString(vvar.bstrVal);
           }
           if (m_modules.find(modules.MakeLower()) == m_modules.end())
           {
@@ -582,15 +616,15 @@ ServerApp::ReadHandlers(CComBSTR& p_configPath,IISSiteConfig& p_config)
           }
           if (childElement->GetPropertyByName(CComBSTR(L"name"), &prop) == S_OK && prop->get_Value(&vvar) == S_OK && vvar.vt == VT_BSTR)
           {
-            name = W2A(vvar.bstrVal);
+            name = WStringToString(vvar.bstrVal);
           }
           if (childElement->GetPropertyByName(CComBSTR(L"path"), &prop) == S_OK && prop->get_Value(&vvar) == S_OK && vvar.vt == VT_BSTR)
           {
-            handler.m_path = W2A(vvar.bstrVal);
+            handler.m_path = WStringToString(vvar.bstrVal);
           }
           if (childElement->GetPropertyByName(CComBSTR(L"verb"), &prop) == S_OK && prop->get_Value(&vvar) == S_OK && vvar.vt == VT_BSTR)
           {
-            handler.m_verb = W2A(vvar.bstrVal);
+            handler.m_verb = WStringToString(vvar.bstrVal);
           }
           if (childElement->GetPropertyByName(CComBSTR(L"resourceType"), &prop) == S_OK && prop->get_Value(&vvar) == S_OK && vvar.vt == VT_I4)
           {
@@ -598,7 +632,7 @@ ServerApp::ReadHandlers(CComBSTR& p_configPath,IISSiteConfig& p_config)
           }
           if (childElement->GetPropertyByName(CComBSTR(L"preCondition"), &prop) == S_OK && prop->get_Value(&vvar) == S_OK && vvar.vt == VT_BSTR)
           {
-            handler.m_precondition = W2A(vvar.bstrVal);
+            handler.m_precondition = WStringToString(vvar.bstrVal);
           }
           // Add handler mapping to site
           p_config.m_handlers.insert(std::make_pair(name,handler));
@@ -721,10 +755,9 @@ ServerApp::ReadBinding(IAppHostElementCollection* p_bindings,int p_item,IISBindi
 XString
 ServerApp::GetProperty(IAppHostElement* p_elem,XString p_property)
 {
-  USES_CONVERSION;
-
   IAppHostProperty* prop = nullptr;
-  if(p_elem->GetPropertyByName(A2W(p_property),&prop) == S_OK)
+  CComBSTR proper = StringToWString(p_property).c_str();
+  if(p_elem->GetPropertyByName(proper,&prop) == S_OK)
   {
     BSTR strValue;
     prop->get_StringValue(&strValue);

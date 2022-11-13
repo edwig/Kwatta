@@ -1,6 +1,15 @@
 KWATTA RELEASNOTES
 ==================
 
+Version 1.1.0 Release date: 12-11-2022
+--------------------------------------
+1) Updated all base libraries (Marlin, SQLComponents, StyleFramework, BaseLibrary)
+   to the latest and greatest versions
+2) Added the possibility to change a global environment variable (KWATTA_PASSWORD)
+   Use the "Suite" parameter dialog in the main program and the button "New"
+3) KWATTA_PASSWORD is now stored in a encrypted manner, so we do not leak it.
+
+
 Version 1.0.14 Release date: 30-07-2022
 ---------------------------------------
 1) Upgraded to version 1.0.4 of baselibrary

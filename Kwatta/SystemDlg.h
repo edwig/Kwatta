@@ -44,6 +44,7 @@ protected:
           void InitParameters();
           void SaveParameters();
           bool Check();
+          void ChangePassword();
 
   Parameters*   m_parameters { nullptr };
   bool          m_changed    { false   };
@@ -59,9 +60,9 @@ protected:
   StyleCheckbox m_checkHidePwd;
   StyleEdit     m_editPassword;
   StyleButton   m_buttonShow;
+  StyleButton   m_buttonNew;
   StyleButton   m_buttonOK;
   StyleButton   m_buttonCancel;
-
   StyleHyperLink m_help;
 
 	DECLARE_MESSAGE_MAP()
@@ -71,7 +72,9 @@ protected:
   afx_msg void OnEnKillfocusLogfile();
   afx_msg void OnBnClickedLogfile();
   afx_msg void OnBnClickedHidePassword();
+  afx_msg void OnEnChangeHidden();
   afx_msg void OnBnClickedShow();
+  afx_msg void OnBnClickedNew();
   afx_msg void OnBnClickedOK();
   afx_msg void OnBnClickedCancel();
 };

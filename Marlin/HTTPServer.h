@@ -117,13 +117,19 @@ enum class SendHeader
 };
 
 // Registration of DDOS attacks on the server
-typedef struct
+class DDOS
 {
+public:
+  DDOS()
+  {
+    m_beginTime = 0;
+    memset(&m_sender,0,sizeof(SOCKADDR_IN6));
+  }
+
   SOCKADDR_IN6  m_sender;
   XString       m_abspath;
   clock_t       m_beginTime;
-}
-DDOS;
+};
 
 // Forward declarations
 class LogAnalysis;
@@ -330,6 +336,9 @@ public:
   bool       AbortEventStream(EventStream* p_stream);
   // Close event streams for an URL and probably a user
   void       CloseEventStreams(int p_port,XString p_url,XString p_user = "");
+  // Delete event stream
+  void       RemoveEventStream(CString p_url);
+  void       RemoveEventStream(EventStream* p_stream);
   // Monitor all server push event streams
   void       EventMonitor();
   // Register a WebServiceServer

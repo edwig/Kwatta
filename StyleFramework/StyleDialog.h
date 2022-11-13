@@ -17,11 +17,6 @@
 // For license: See the file "LICENSE.txt" in the root folder
 //
 #pragma once
-#include "GrayWindow.h"
-#include "StyleFonts.h"
-#include "StyleColors.h"
-#include "StyleMacros.h"
-#include "CWSExpander.h"
 #include <map>
 
 class StyleComboBox;
@@ -88,7 +83,7 @@ protected:
   afx_msg int     OnCreate(LPCREATESTRUCT p_create);
   afx_msg BOOL    OnEraseBkgnd(CDC* pDC);
   afx_msg HBRUSH  OnCtlColor(CDC* pDC,CWnd* pWnd,UINT nCtlColor);
-  afx_msg LPARAM  OnCtlColorStatic(WPARAM wParam,LPARAM lParam);
+  afx_msg LPARAM  OnCtlColorStatic (WPARAM wParam,LPARAM lParam);
   afx_msg LPARAM  OnCtlColorListBox(WPARAM wParam,LPARAM lParam);
   afx_msg void    OnNcMouseMove(UINT nFlags, CPoint point);
   afx_msg void    OnNcLButtonDown(UINT nFlags, CPoint point);

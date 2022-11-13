@@ -21,16 +21,17 @@
 #pragma once
 
 #define KWATTA_VERSION_MAJOR  1
-#define KWATTA_VERSION_MINOR  0
-#define KWATTA_VERSION_SP     14
-#define KWATTA_VERSION_BUILD  140
+#define KWATTA_VERSION_MINOR  1
+#define KWATTA_VERSION_SP     0
+#define KWATTA_VERSION_BUILD  160
 
 #define KWATTA                "Kwatta"
-#define KWATTA_VERSION        "1.0.14"
+#define KWATTA_VERSION        "1.1.0"
 #define KWATTA_YEAR           "2022"
 
 // Used for environment variables
 #define KWATTA_PASSWORD       "KWATTA_PASSWORD"
+#define KWATTA_ENCRYPT        "Kw@77@P@r@m@r1b0$ur1n@m3"
 
 // Used for global objects
 #define GLOBAL_COLOR          RGB(200,191,231)

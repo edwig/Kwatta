@@ -2,6 +2,7 @@
  * Copyright (C) 1995-2008, 2010, 2013 Mark Adler
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
+
 #include "pch.h"
 #include "zutil.h"
 #include "inftrees.h"
@@ -223,7 +224,7 @@ void ZLIB_INTERNAL inflate_fast(z_streamp strm,unsigned start)
                         }
                     }
                     else if (wnext < op) {      /* wrap around window */
-                        from += wsize + wnext - op;
+                        from += (INT64)wsize + (INT64)wnext - (INT64)op;
                         op -= wnext;
                         if (op < len) {         /* some from end of window */
                             len -= op;

@@ -3,15 +3,15 @@
 ; Project:      Kwatta API Testtool
 ; Auteurs:      Edo Huisman
 ;
-; Copyright (c) 2021 ir. W.E. Huisman
+; Copyright (c) 2021-2022 ir. W.E. Huisman
 ; All rights reserved
 ;
-; Last change:       16-07-2022
-; Versionnumber:     1.0.13
+; Last change:       13-11-2022
+; Versionnumber:     1.1.0
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.0.13"
- !define PRODUCT_BUILDNUMBER                  "138"
+ !define PRODUCT_VERSION                      "1.1.0"
+ !define PRODUCT_BUILDNUMBER                  "160"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"
  !define PRODUCT_DIR_REGKEY                   "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"

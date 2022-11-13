@@ -55,10 +55,10 @@ SiteHandlerEventSocket::Handle(HTTPMessage* p_message,WebSocket* p_socket)
 
 // A new SSE stream is incoming. A client has decided to use this method!
 // So go deal with it: destroy WebSocket.
-void
+bool
 SiteHandlerEventStream::HandleStream(HTTPMessage* p_message,EventStream* p_stream)
 {
-  m_driver->IncomingNewStream(p_message,p_stream);
+  return m_driver->IncomingNewStream(p_message,p_stream);
 }
 
 bool
@@ -166,7 +166,8 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
 int
 ServerEventDriver::RegisterChannel(XString p_sessionName
                                   ,XString p_cookie
-                                  ,XString p_token)
+                                  ,XString p_token
+                                  ,XString p_metadata /*=""*/)
 {
   AutoCritSec lock(&m_lock);
 
@@ -184,6 +185,12 @@ ServerEventDriver::RegisterChannel(XString p_sessionName
   XString cookie = p_cookie + ":" + p_token;
   m_names  .insert(std::make_pair(p_sessionName,channel));
   m_cookies.insert(std::make_pair(cookie,channel));
+
+  // Register the first metadata we get!
+  if(m_metadata.IsEmpty())
+  {
+    m_metadata = p_metadata;
+  }
 
   return m_nextSession;
 }
@@ -329,6 +336,11 @@ ServerEventDriver::StartEventDriver()
 bool
 ServerEventDriver::StopEventDriver()
 {
+  if(!m_active)
+  {
+    return true;
+  }
+
   DETAILLOG1("Stopping ServerEventDriver");
 
   // No more new postings from now on
@@ -357,9 +369,10 @@ ServerEventDriver::IncomingNewSocket(HTTPMessage* p_message,WebSocket* p_socket)
   {
     if(!RegisterSocketByRouting(p_message,p_socket))
     {
-      XString errortext;
-      errortext.Format("No registered session found for incoming socket on [%s]",p_socket->GetURI().GetString());
-      ERRORLOG(ERROR_NOT_FOUND,errortext);
+      ERRORLOG(ERROR_NOT_FOUND,"No registered session found for incoming socket on: " + p_socket->GetURI());
+      p_message->Reset();
+      p_message->SetStatus(HTTP_STATUS_FORBIDDEN);
+      m_server->SendResponse(p_message);
       return false;
     }
   }
@@ -367,21 +380,23 @@ ServerEventDriver::IncomingNewSocket(HTTPMessage* p_message,WebSocket* p_socket)
 }
 
 // Incoming new SSE Stream
-void
+bool
 ServerEventDriver::IncomingNewStream(HTTPMessage* p_message,EventStream* p_stream)
 {
   if(!RegisterStreamByCookie(p_message,p_stream))
   {
     if(!RegisterStreamByRouting(p_message,p_stream))
     {
-      XString errortext;
-      errortext.Format("No registered session found for incoming stream on [%s]",p_stream->m_absPath.GetString());
-      ERRORLOG(ERROR_NOT_FOUND,errortext);
-      return;
+      ERRORLOG(ERROR_NOT_FOUND,"No registered session found for incoming stream on: " + p_stream->m_absPath);
+      p_message->Reset();
+      p_message->SetStatus(HTTP_STATUS_FORBIDDEN);
+      m_server->SendResponse(p_message);
+      return false;
     }
   }
   // Possibly sent messages to newfound channel right away
   SetEvent(m_event);
+  return true;
 }
 
 bool
@@ -403,8 +418,9 @@ ServerEventDriver::IncomingLongPoll(SOAPMessage* p_message)
 int
 ServerEventDriver::PostEvent(int     p_session
                             ,XString p_payload
-                            ,XString p_returnToSender /*= ""*/
-                            ,EvtType p_type           /*= EvtType::EV_Message*/)
+                            ,XString p_returnToSender /*= "" */
+                            ,EvtType p_type           /*= EvtType::EV_Message */
+                            ,XString p_typeName       /*= "" */)
 {
   int number = 0;
   if(m_active)
@@ -414,7 +430,7 @@ ServerEventDriver::PostEvent(int     p_session
     ServerEventChannel* session = FindSession(p_session);
     if(session)
     {
-      number = session->PostEvent(p_payload,p_returnToSender,p_type);
+      number = session->PostEvent(p_payload,p_returnToSender,p_type,p_typeName);
       // Kick the worker bee to start sending
       ::SetEvent(m_event);
     }
@@ -560,7 +576,7 @@ ServerEventDriver::RegisterSocketByCookie(HTTPMessage* p_message,WebSocket* p_so
   Cookies& cookies = p_message->GetCookies();
   for(auto& cookie : cookies.GetCookies())
   {
-    session = cookie.GetName() + ":" + cookie.GetValue();
+    session = cookie.GetName() + ":" + cookie.GetValue(m_metadata);
     ChanNameMap::iterator it = m_cookies.find(session);
     if(it != m_cookies.end())
     {
@@ -579,7 +595,7 @@ ServerEventDriver::RegisterStreamByCookie(HTTPMessage* p_message,EventStream* p_
   Cookies& cookies = p_message->GetCookies();
   for(auto& cookie : cookies.GetCookies())
   {
-    session = cookie.GetName() + ":" + cookie.GetValue();
+    session = cookie.GetName() + ":" + cookie.GetValue(m_metadata);
     ChanNameMap::iterator it = m_cookies.find(session);
     if(it != m_cookies.end())
     {
@@ -598,7 +614,7 @@ ServerEventDriver::HandlePollingByCookie(SOAPMessage* p_message)
   Cookies& cookies = p_message->GetCookies();
   for(auto& cookie : cookies.GetCookies())
   {
-    session = cookie.GetName() + ":" + cookie.GetValue();
+    session = cookie.GetName() + ":" + cookie.GetValue(m_metadata);
     ChanNameMap::iterator it = m_cookies.find(session);
     if(it != m_cookies.end())
     {

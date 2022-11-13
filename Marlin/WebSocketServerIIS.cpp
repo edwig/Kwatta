@@ -34,6 +34,7 @@
 #include "AutoCritical.h"
 #include "ConvertWideString.h"
 #include <iiswebsocket.h>
+#include <ServiceReporting.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -137,9 +138,9 @@ WebSocketServerIIS::SocketWriter(HRESULT p_error
   TRACE("WS BLOCK WRITTEN: %d\n",p_bytes);
 
   // Handle any error (if any)
-  if(p_error)
+  if(p_error != (HRESULT)0)
   {
-    DWORD error = (p_error & 0x0F);
+    DWORD error = (p_error & 0x000F);
     ERRORLOG(error,"Websocket failed to write fragment");
     OnError();
     CloseSocket();
@@ -177,9 +178,9 @@ WebSocketServerIIS::WriteFragment(BYTE*  p_buffer
   WSFrame* frame  = new WSFrame();
   frame->m_utf8   = (p_opcode == Opcode::SO_UTF8);
   frame->m_length = p_length;
-  frame->m_data   = (BYTE*)malloc(p_length + WS_OVERHEAD);
+  frame->m_data   = (BYTE*)malloc((size_t)p_length + WS_OVERHEAD);
   frame->m_final  = p_last;
-  memcpy_s(frame->m_data,p_length + WS_OVERHEAD,p_buffer,p_length);
+  memcpy_s(frame->m_data,(size_t)p_length + WS_OVERHEAD,p_buffer,p_length);
 
   // Put it in the writing queue
   // While locking the queue
@@ -254,7 +255,15 @@ ServerReadCompletionIIS(HRESULT p_error,
   WebSocketServerIIS* socket = reinterpret_cast<WebSocketServerIIS*>(p_completionContext);
   if(socket)
   {
-    socket->SocketReader(p_error,p_bytes,p_utf8,p_final,p_close);
+    _set_se_translator(SeTranslator);
+    try
+    {
+      socket->SocketReader(p_error,p_bytes,p_utf8,p_final,p_close);
+    }
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,__FUNCTION__,"Error reading websocket (%lX,%d,%d,%d,%d) %s",p_error,p_bytes,p_utf8,p_final,p_close,ex.GetErrorMessage().GetString());
+    }
   }
 }
 
@@ -290,7 +299,17 @@ WebSocketServerIIS::SocketReader(HRESULT p_error
 
   if(!p_final)
   {
-    m_reading->m_data = (BYTE*)realloc(m_reading->m_data, m_reading->m_length + m_fragmentsize + WS_OVERHEAD);
+    BYTE* data = (BYTE*)realloc(m_reading->m_data,(size_t)m_reading->m_length + (size_t)m_fragmentsize + WS_OVERHEAD);
+    if(data)
+    {
+      m_reading->m_data = data;
+    }
+    else
+    {
+      ERRORLOG(ERROR_NOT_ENOUGH_MEMORY,"Reading socket data!");
+      CloseSocket();
+      return;
+    }
   }
 
   // Setting the type of message
@@ -345,7 +364,16 @@ WebSocketServerIIS::SocketListener()
   {
     m_reading = new WSFrame();
     m_reading->m_length = 0;
-    m_reading->m_data   = (BYTE*)malloc(m_fragmentsize + WS_OVERHEAD);
+    BYTE* data = (BYTE*)malloc((size_t)m_fragmentsize + WS_OVERHEAD);
+    if(data)
+    {
+      m_reading->m_data = data;
+    }
+    else
+    {
+      ERRORLOG(ERROR_NOT_ENOUGH_MEMORY,"Listening on websocket!");
+      return;
+    }
   }
 
   // Issue the Asynchronous read-a-fragment command to the Asynchronous I/O WebSocket
@@ -507,6 +535,10 @@ WebSocketServerIIS::ServerHandshake(HTTPMessage* p_message)
   // Get optional extensions
   m_protocols  = p_message->GetHeader("Sec-WebSocket-Protocol");
   m_extensions = p_message->GetHeader("Sec-WebSocket-Extensions");
+
+  // But do not reflect it back. We do not support extensions (yet)
+  // if we do not remove it, Google-Chrome WebSockets will not work!!
+  p_message->DelHeader("Sec-WebSocket-Extensions");
 
   // Change header fields
   p_message->DelHeader("Sec-WebSocket-Key");

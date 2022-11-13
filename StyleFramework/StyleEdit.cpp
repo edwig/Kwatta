@@ -17,15 +17,6 @@
 // For license: See the file "LICENSE.txt" in the root folder
 //
 #include "stdafx.h"
-#include "StyleEdit.h"
-#include "StyleColors.h"
-#include "StyleFonts.h"
-#include "StyleCalendar.h"
-#include "StyleMessageBox.h"
-#include "StyleComboBox.h"
-#include "SkinScrollWnd.h"
-#include "StyleSpinButtonCtrl.h"
-#include "StyleTexts.h"
 #include <winuser.h>
 
 #ifdef _DEBUG
@@ -90,6 +81,8 @@ StyleEdit::~StyleEdit()
 void
 StyleEdit::PreSubclassWindow()
 {
+  ScaleControl(this);
+
   if(m_directInit)
   {
     InitSkin();
@@ -697,7 +690,7 @@ StyleEdit::GetDrawFrameColor(COLORREF& p_color,int& p_bordersize,bool& p_readonl
   p_bordersize = 1;
   p_readonly   = !IsWindowEnabled() || (GetStyle() & ES_READONLY);
 
-  if (m_error)
+  if(m_error)
   {
     p_color = ColorEditFrameError;
     p_bordersize++;
@@ -1190,7 +1183,7 @@ StyleEdit::CtlColor(CDC* pDC, UINT nCtlColor)
   }
   else
   {
-    if (m_colorBackground != FRAME_DEFAULT_COLOR)
+    if(m_colorBackground != FRAME_DEFAULT_COLOR)
     {
       background = m_colorBackground;
     }

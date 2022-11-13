@@ -126,10 +126,9 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\</AdditionalIncludeDirectories>
-      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Lib>
       <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
@@ -171,7 +170,6 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\</AdditionalIncludeDirectories>
-      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Lib>
       <AdditionalOptions>/ignore:4221 %(AdditionalOptions)</AdditionalOptions>
@@ -226,6 +224,7 @@
     <ClCompile Include="SQLLanguage.cpp" />
     <ClCompile Include="SQLMessage.cpp" />
     <ClCompile Include="SQLMutation.cpp" />
+    <ClCompile Include="SQLPrimaryKey.cpp" />
     <ClCompile Include="SQLQuery.cpp" />
     <ClCompile Include="SQLRecord.cpp" />
     <ClCompile Include="SQLStatement.cpp" />
@@ -296,6 +295,7 @@
     <ClInclude Include="SQLMetaInfo.h" />
     <ClInclude Include="SQLMutation.h" />
     <ClInclude Include="SQLOperator.h" />
+    <ClInclude Include="SQLPrimaryKey.h" />
     <ClInclude Include="SQLQuery.h" />
     <ClInclude Include="SQLRecord.h" />
     <ClInclude Include="SQLStatement.h" />

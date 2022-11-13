@@ -20,8 +20,11 @@
 
 #include "stdafx.h"
 #include "SystemDlg.h"
-#include <FileDialog.h>
 #include "resource.h"
+#include <FileDialog.h>
+#include <ExecuteProcess.h>
+#include <RegistryManager.h>
+#include <Crypto.h>
 
 using namespace ThemeColor;
 
@@ -50,6 +53,7 @@ void SystemDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX,IDC_HIDE_PWD,m_checkHidePwd);
   DDX_Control(pDX,IDC_HIDDEN,  m_editPassword,m_password);
   DDX_Control(pDX,IDC_SHOW,    m_buttonShow);
+  DDX_Control(pDX,IDC_PWD,     m_buttonNew);
   DDX_Control(pDX,IDC_HELPLINK,m_help);
   DDX_Control(pDX,IDOK,        m_buttonOK);
   DDX_Control(pDX,IDCANCEL,    m_buttonCancel);
@@ -61,7 +65,9 @@ BEGIN_MESSAGE_MAP(SystemDlg, StyleDialog)
   ON_EN_KILLFOCUS(IDC_LOGFILE,  OnEnKillfocusLogfile)
   ON_BN_CLICKED  (IDC_BUT_LOG,  OnBnClickedLogfile)
   ON_BN_CLICKED  (IDC_HIDE_PWD, OnBnClickedHidePassword)
+  ON_EN_KILLFOCUS(IDC_HIDDEN,   OnEnChangeHidden)
   ON_BN_CLICKED  (IDC_SHOW,     OnBnClickedShow)
+  ON_BN_CLICKED  (IDC_PWD,      OnBnClickedNew)
   ON_BN_CLICKED  (IDOK,         OnBnClickedOK)
   ON_BN_CLICKED  (IDCANCEL,     OnBnClickedCancel)
 END_MESSAGE_MAP()
@@ -95,9 +101,9 @@ SystemDlg::InitButtons()
   m_comboLoglevel.AddString("HTTP actions, SOAP bodies and tracing");               // HLL_TRACE      4       // 3 + Tracing of settings
   m_comboLoglevel.AddString("HTTP actions, SOAP bodies, tracing and HEX dumping");  // HLL_TRACEDUMP  5       // 4 + Tracing and HEX dumping of objects
 
-  m_help.SetTipText("Use to set the KWATTA_PASSWORD variable with the 'setx /m' command!");
   m_help.SetURL("https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx");
   m_help.SetColours(ThemeColor::GetColor(Colors::AccentColor1),RGB(0,0,255));
+  m_help.SetTipText("Use to set the KWATTA_PASSWORD variable with the 'setx /m' command!");
 }
 
 void
@@ -138,6 +144,36 @@ SystemDlg::Check()
   }
   m_editLogfile.SetErrorState(false);
   return true;
+}
+
+void
+SystemDlg::ChangePassword()
+{
+  bool localChange(false);
+  bool globalChange(false);
+  CString variable(KWATTA_PASSWORD);
+
+  Crypto crypt;
+  CString password = crypt.Encryption(m_password,KWATTA_ENCRYPT);
+
+  // Try to change
+  localChange  = SetEnvironmentVariable      (variable,password);
+  globalChange = SetGlobalEnvironmentVariable(variable,password);
+
+  if(localChange && globalChange)
+  {
+    StyleMessageBox(this,"Password has been changed!",KWATTA,MB_OK|MB_ICONINFORMATION);
+  }
+  else if(localChange)
+  {
+    StyleMessageBox(this,"BEWARE: Password could only be changed for this program!\n"
+                         "Try running this program as local administrator!"
+                        ,KWATTA,MB_OK|MB_ICONERROR);
+  }
+  else
+  {
+    StyleMessageBox(this,"Password could NOT be changed!",KWATTA,MB_OK|MB_ICONERROR);
+  }
 }
 
 // SystemDlg message handlers
@@ -196,11 +232,42 @@ SystemDlg::OnBnClickedHidePassword()
 }
 
 void
+SystemDlg::OnEnChangeHidden()
+{
+  UpdateData();
+  if(m_editPassword.GetMutable())
+  {
+    ChangePassword();
+  }
+  m_editPassword.SetMutable(false);
+  m_editPassword.SetPassword(false);
+  m_password.Empty();
+  UpdateData(FALSE);
+}
+
+void
 SystemDlg::OnBnClickedShow()
 {
-  m_password.GetEnvironmentVariable("KWATTA_PASSWORD");
+  if(!m_password.GetEnvironmentVariable(KWATTA_PASSWORD))
+  {
+    m_password.Empty();
+  }
+  else
+  {
+    Crypto crypt;
+    m_password = crypt.Decryption(m_password,KWATTA_ENCRYPT);
+  }
   UpdateData(FALSE);
   SetTimer(1,3000,nullptr);
+}
+
+void
+SystemDlg::OnBnClickedNew()
+{
+  m_password.Empty();
+  m_editPassword.SetMutable(true);
+  m_editPassword.SetPassword(true);
+  UpdateData(FALSE);
 }
 
 void 

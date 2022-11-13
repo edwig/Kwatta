@@ -21,10 +21,6 @@
 //
 #include "stdafx.h"
 #include "StyleDialogCA.h"
-#include "StyleColors.h"
-#include "GrayWindow.h"
-#include "StyleFonts.h"
-#include "StyleMacros.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -292,7 +288,7 @@ HBRUSH StyleDialogCA::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 {
   switch (nCtlColor)
   {
-    case CTLCOLOR_STATIC: if (m_error)
+    case CTLCOLOR_STATIC: if(m_error)
                           {
                             pDC->SetTextColor(ThemeColor::GetColor(Colors::ColorEditText));
                             pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorWindowFrame));
@@ -303,7 +299,7 @@ HBRUSH StyleDialogCA::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
                             pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorWindowFrame));
                           }
                           return m_defaultBrush;
-    case CTLCOLOR_BTN:    if (m_error)
+    case CTLCOLOR_BTN:    if(m_error)
                           {
                             pDC->SetTextColor(ThemeColor::GetColor(Colors::ColorEditText));
                             pDC->SetBkColor  (ThemeColor::GetColor(Colors::ColorWindowFrame));
@@ -335,8 +331,8 @@ StyleDialogCA::OnSize(UINT nType, int cx, int cy)
   m_clientRect.SetRect(0, 0, cx - WINDOWSHADOWBORDER, cy - WINDOWSHADOWBORDER);
   if (m_caption)
   {
-    m_closeRect.SetRect(cx - WINDOWSHADOWBORDER- WINDOWCAPTIONHEIGHT, 0, cx - WINDOWSHADOWBORDER, WINDOWCAPTIONHEIGHT);
-    m_dragRect.SetRect(0, 0, cx - WINDOWSHADOWBORDER - WINDOWCAPTIONHEIGHT, WINDOWCAPTIONHEIGHT);
+    m_closeRect.SetRect(cx - WINDOWSHADOWBORDER- WINDOWCAPTIONHEIGHT,0,cx - WINDOWSHADOWBORDER,                      WINDOWCAPTIONHEIGHT);
+    m_dragRect .SetRect(0,                                           0,cx - WINDOWSHADOWBORDER - WINDOWCAPTIONHEIGHT,WINDOWCAPTIONHEIGHT);
     m_properClientRect.SetRect(1, WINDOWCAPTIONHEIGHT, cx - WINDOWSHADOWBORDER-1, cy - WINDOWSHADOWBORDER - 1);
   }
   else

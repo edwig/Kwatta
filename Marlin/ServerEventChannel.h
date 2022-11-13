@@ -49,18 +49,18 @@ enum class EventDriverType
 
 typedef struct _regSocket
 {
-  WebSocket* m_socket;
+  WebSocket* m_socket { nullptr };
   XString    m_url;
-  UINT64     m_sender;
-  bool       m_open;
+  UINT64     m_sender { 0       };
+  bool       m_open   { false   };
 }
 EventWebSocket;
 
 typedef struct _regStream
 {
-  EventStream* m_stream;
+  EventStream* m_stream { nullptr };
   XString      m_url;
-  UINT64       m_sender;
+  UINT64       m_sender { 0 };
 }
 EventSSEStream;
 
@@ -84,7 +84,7 @@ public:
   // Process the receiving part of the queue
   int  Receiving();
   // Post a new event, giving a new event numerator
-  int  PostEvent(XString p_payload,XString p_sender,EvtType p_type = EvtType::EV_Message);
+  int  PostEvent(XString p_payload,XString p_sender,EvtType p_type = EvtType::EV_Message,XString p_typeName = "");
   // Flushing a channel directly
   bool FlushChannel();
   // Closing an event channel

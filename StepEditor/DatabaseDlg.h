@@ -6,7 +6,7 @@ class Parameters;
 
 // DatabaseDlg dialog
 
-class DatabaseDlg : public StyleDialog
+class DatabaseDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(DatabaseDlg)
 

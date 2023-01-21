@@ -156,7 +156,7 @@ KwattaAppDlg::OnInitDialog()
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
   ShowSysMenu();
-  AppendSysMenu();
+  SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
 
   // Fill the dialog
   InitButtons();
@@ -212,25 +212,6 @@ KwattaAppDlg::SetupDynamicLayout()
   manager.AddItem(IDC_BUT_MUTATE, CMFCDynamicLayout::MoveVertical(100),  CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDOK,           CMFCDynamicLayout::MoveHorizontalAndVertical(100,100),CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDCANCEL,       CMFCDynamicLayout::MoveHorizontalAndVertical(100,100),CMFCDynamicLayout::SizeNone());
-}
-
-void 
-KwattaAppDlg::AppendSysMenu()
-{
-  // IDM_ABOUTBOX must be in the system command range.
-  ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-  ASSERT (IDM_ABOUTBOX < 0xF000);
-
-  CMenu* pSysMenu = GetSystemMenu(FALSE);
-  if(pSysMenu != nullptr)
-  {
-    CString strAboutMenu("About Kwatta...");
-    if(!strAboutMenu.IsEmpty())
-    {
-      pSysMenu->AppendMenu(MF_SEPARATOR);
-      pSysMenu->AppendMenu(MF_STRING,IDM_ABOUTBOX,strAboutMenu);
-    }
-  }
 }
 
 void

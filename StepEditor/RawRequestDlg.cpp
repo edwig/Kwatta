@@ -33,10 +33,10 @@ static char THIS_FILE[] = __FILE__;
 
 // RawRequestDlg dialog
 
-IMPLEMENT_DYNAMIC(RawRequestDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(RawRequestDlg,StyleTab)
 
 RawRequestDlg::RawRequestDlg(CWnd* pParent /*=nullptr*/)
-              :StyleDialog(IDD_RAW_REQUEST, pParent)
+              :StyleTab(IDD_RAW_REQUEST, pParent)
 {
 }
 
@@ -47,18 +47,18 @@ RawRequestDlg::~RawRequestDlg()
 void 
 RawRequestDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control (pDX,IDC_RAW, m_editPayload,m_payload);
 }
 
-BEGIN_MESSAGE_MAP(RawRequestDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(RawRequestDlg, StyleTab)
   ON_EN_KILLFOCUS (IDC_RAW, &RawRequestDlg::OnEnKillfocusPayload)
 END_MESSAGE_MAP()
 
 BOOL
 RawRequestDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   InitPayload();
 
@@ -69,7 +69,7 @@ RawRequestDlg::OnInitDialog()
 void
 RawRequestDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

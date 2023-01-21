@@ -4,7 +4,7 @@ class StepResultSQL;
 
 // SQLOutputDlg dialog
 
-class SQLOutputDlg : public StyleDialog
+class SQLOutputDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(SQLOutputDlg)
 

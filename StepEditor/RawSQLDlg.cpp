@@ -33,10 +33,10 @@ static char THIS_FILE[] = __FILE__;
 
 // RawSQLDlg dialog
 
-IMPLEMENT_DYNAMIC(RawSQLDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(RawSQLDlg,StyleTab)
 
 RawSQLDlg::RawSQLDlg(CWnd* pParent /*=nullptr*/)
-          :StyleDialog(IDD_RAW_SQL, pParent)
+          :StyleTab(IDD_RAW_SQL, pParent)
 {
 }
 
@@ -47,18 +47,18 @@ RawSQLDlg::~RawSQLDlg()
 void 
 RawSQLDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control (pDX,IDC_RAW, m_editPayload,m_payload);
 }
 
-BEGIN_MESSAGE_MAP(RawSQLDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(RawSQLDlg, StyleTab)
   ON_EN_KILLFOCUS (IDC_RAW, &RawSQLDlg::OnEnKillfocusPayload)
 END_MESSAGE_MAP()
 
 BOOL
 RawSQLDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   InitPayload();
 
@@ -69,7 +69,7 @@ RawSQLDlg::OnInitDialog()
 void
 RawSQLDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

@@ -25,7 +25,7 @@ class Parameters;
 
 // ParametersDlg dialog
 
-class TimingDlg : public StyleDialog
+class TimingDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(TimingDlg)
 

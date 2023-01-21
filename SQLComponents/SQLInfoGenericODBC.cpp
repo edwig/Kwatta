@@ -167,6 +167,13 @@ SQLInfoGenericODBC::GetRDBMSNumericPrecisionScale(SQLULEN& /*p_precision*/, SQLS
   // NO-OP
 }
 
+// Maximum for a VARCHAR to be handled without AT-EXEC data. Assume NVARCHAR is half that size!
+int
+SQLInfoGenericODBC::GetRDBMSMaxVarchar() const
+{
+  return 1000;
+}
+
 // KEYWORDS
 
 // Keyword for the current date and time
@@ -357,7 +364,7 @@ SQLInfoGenericODBC::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoGenericODBC::GetSQLLockTable(XString p_schema, XString p_tablename, bool p_exclusive) const
+SQLInfoGenericODBC::GetSQLLockTable(XString p_schema, XString p_tablename,bool p_exclusive,int /*p_waittime*/) const
 {
   // Standard ISO SQL Syntax
   XString query = "LOCK TABLE " + p_schema + "." + p_tablename + " IN ";
@@ -379,6 +386,14 @@ SQLInfoGenericODBC::GetSQLTopNRows(XString p_sql,int /*p_top*/,int /*p_skip = 0*
 {
   // Does nothing
   return p_sql;
+}
+
+// Query to perform a keep alive ping
+XString
+SQLInfoGenericODBC::GetPing() const
+{
+  // Not implemented yet
+  return "";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -442,6 +457,19 @@ SQLInfoGenericODBC::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_da
                 ,p_year,p_month,p_day // ODBC Ordering !!
                 ,p_hour,p_minute,p_second);
   return string;
+}
+
+// Makes an catalog identifier string (possibly quoted on both sides)
+XString
+SQLInfoGenericODBC::GetSQLDDLIdentifier(XString p_identifier) const
+{
+  return p_identifier;
+}
+
+// Changes to parameters before binding to an ODBC HSTMT handle
+void
+SQLInfoGenericODBC::DoBindParameterFixup(SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -676,7 +704,7 @@ SQLInfoGenericODBC::GetCATALOGIndexAttributes(XString& /*p_schema*/,XString& /*p
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGIndexCreate(MIndicesMap& p_indices) const
+SQLInfoGenericODBC::GetCATALOGIndexCreate(MIndicesMap& p_indices,bool /*p_duplicateNulls /*= false*/) const
 {
   // Get SQL to create an index for a table
   // CREATE [UNIQUE] INDEX [<schema>.]indexname ON [<schema>.]tablename(column [ASC|DESC] [,...]);
@@ -976,6 +1004,71 @@ SQLInfoGenericODBC::GetCATALOGForeignDrop(XString p_schema,XString p_tablename,X
   return sql;
 }
 
+//////////////////////////
+// All default constraints
+XString
+SQLInfoGenericODBC::GetCATALOGDefaultExists(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGDefaultList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGDefaultAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGDefaultCreate(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/,XString /*p_column*/,XString /*p_code*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGDefaultDrop(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/) const
+{
+  return "";
+}
+
+/////////////////////////
+// All check constraints
+
+XString
+SQLInfoGenericODBC::GetCATALOGCheckExists(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGCheckList(XString  /*p_schema*/,XString  /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGCheckAttributes(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGCheckCreate(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/,XString /*p_condition*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGCheckDrop(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
 //////////////////////////////////////////////////////////////////////////
 // ALL TRIGGER FUNCTIONS
 
@@ -1076,7 +1169,7 @@ SQLInfoGenericODBC::GetCATALOGViewText(XString& /*p_schema*/,XString& /*p_viewna
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents) const
+SQLInfoGenericODBC::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents,bool /*p_ifexists = true*/) const
 {
   return "CREATE VIEW " + p_schema + "." + p_viewname + "\n" + p_contents;
 }
@@ -1108,7 +1201,13 @@ SQLInfoGenericODBC::GetCATALOGColumnPrivileges(XString& /*p_schema*/,XString& /*
 }
 
 XString 
-SQLInfoGenericODBC::GetCatalogGrantPrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
+SQLInfoGenericODBC::GetCATALOGSequencePrivilege(XString& /*p_schema*/,XString& /*p_sequence*/) const
+{
+  return "";
+}
+
+XString 
+SQLInfoGenericODBC::GetCATALOGGrantPrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
 {
   XString sql;
   sql.Format("GRANT %s ON %s.%s TO %s",p_privilege.GetString(),p_schema.GetString(),p_objectname.GetString(),p_grantee.GetString());
@@ -1120,11 +1219,40 @@ SQLInfoGenericODBC::GetCatalogGrantPrivilege(XString p_schema,XString p_objectna
 }
 
 XString 
-SQLInfoGenericODBC::GetCatalogRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
+SQLInfoGenericODBC::GetCATALOGRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
 {
   XString sql;
   sql.Format("REVOKE %s ON %s.%s FROM %s",p_privilege.GetString(),p_schema.GetString(),p_objectname.GetString(),p_grantee.GetString());
   return sql;
+}
+
+// All Synonym functions
+XString
+SQLInfoGenericODBC::GetCATALOGSynonymList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGSynonymAttributes(XString& /*p_schema*/,XString& /*p_synonym*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGSynonymCreate(XString& /*p_schema*/,XString& /*p_synonym*/,XString /*p_forObject*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1187,7 +1315,7 @@ SQLInfoGenericODBC::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureDrop(XString p_schema, XString p_procedure) const
+SQLInfoGenericODBC::GetPSMProcedureDrop(XString p_schema, XString p_procedure,bool /* p_function /*=false*/) const
 {
   return "";
 }
@@ -1196,6 +1324,12 @@ XString
 SQLInfoGenericODBC::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
 {
   // ISO SQL does not support procedure errors
+  return "";
+}
+
+XString
+SQLInfoGenericODBC::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/) const
+{
   return "";
 }
 

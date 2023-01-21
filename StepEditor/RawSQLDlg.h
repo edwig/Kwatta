@@ -24,7 +24,7 @@ class TestStepSQL;
 
 // RawSQLDlg dialog
 
-class RawSQLDlg : public StyleDialog
+class RawSQLDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(RawSQLDlg)
 

@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // BodyDlg dialog
 
-IMPLEMENT_DYNAMIC(BodyDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(BodyDlg,StyleTab)
 
 BodyDlg::BodyDlg(CWnd* pParent /*=nullptr*/)
-        :StyleDialog(IDD_BODY, pParent)
+        :StyleTab(IDD_BODY, pParent)
 {
 }
 
@@ -48,7 +48,7 @@ BodyDlg::~BodyDlg()
 void 
 BodyDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_BODY,   m_buttonUseBody);
   DDX_Control(pDX, IDC_OPERATOR,   m_comboOperator);
   DDX_Control(pDX, IDC_SEARCHVAR,  m_buttonSearchvar);
@@ -68,7 +68,7 @@ BodyDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(BodyDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(BodyDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_BODY , &BodyDlg::OnBnClickedUseBody)
   ON_CBN_SELCHANGE(IDC_OPERATOR,  &BodyDlg::OnCbnSelchangeOperator)
   ON_BN_CLICKED   (IDC_SEARCHVAR, &BodyDlg::OnBnClickedSearchvar)
@@ -94,7 +94,7 @@ BodyDlg::OnInitDialog()
 void
 BodyDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

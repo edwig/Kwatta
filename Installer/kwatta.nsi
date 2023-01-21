@@ -6,12 +6,12 @@
 ; Copyright (c) 2021-2022 ir. W.E. Huisman
 ; All rights reserved
 ;
-; Last change:       13-11-2022
-; Versionnumber:     1.1.0
+; Last change:       21-01-2023
+; Versionnumber:     1.1.1
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.1.0"
- !define PRODUCT_BUILDNUMBER                  "160"
+ !define PRODUCT_VERSION                      "1.1.1"
+ !define PRODUCT_BUILDNUMBER                  "207"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"
  !define PRODUCT_DIR_REGKEY                   "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"

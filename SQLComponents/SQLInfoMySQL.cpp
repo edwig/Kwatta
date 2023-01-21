@@ -168,6 +168,14 @@ SQLInfoMySQL::GetRDBMSNumericPrecisionScale(SQLULEN& /*p_precision*/, SQLSMALLIN
   // NO-OP
 }
 
+// Maximum for a VARCHAR to be handled without AT-EXEC data. Assume NVARCHAR is half that size!
+int
+SQLInfoMySQL::GetRDBMSMaxVarchar() const
+{
+  // See: https://dev.mysql.com/doc/refman/8.0/en/char.html#:~:text=Values%20in%20VARCHAR%20columns%20are,and%20the%20character%20set%20used.
+  return 65535;
+}
+
 // KEYWORDS
 
 // Keyword for the current date and time
@@ -358,7 +366,7 @@ SQLInfoMySQL::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoMySQL::GetSQLLockTable(XString /*p_schema*/, XString p_tablename, bool p_exclusive) const
+SQLInfoMySQL::GetSQLLockTable(XString /*p_schema*/,XString p_tablename,bool p_exclusive,int /*p_waittime*/) const
 {
   // Standard ISO SQL Syntax
   XString query = "LOCK TABLE " + p_tablename + " IN ";
@@ -391,6 +399,14 @@ SQLInfoMySQL::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) const
     p_sql += limit;
   }
   return p_sql;
+}
+
+// Query to perform a keep alive ping
+XString
+SQLInfoMySQL::GetPing() const
+{
+  // Getting the time does a ping
+  return "SELECT current_timestamp";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -454,6 +470,19 @@ SQLInfoMySQL::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_day,int 
                 ,p_year,p_month,p_day // ODBC Ordering !!
                 ,p_hour,p_minute,p_second);
   return string;
+}
+
+// Makes an catalog identifier string (possibly quoted on both sides)
+XString
+SQLInfoMySQL::GetSQLDDLIdentifier(XString p_identifier) const
+{
+  return p_identifier;
+}
+
+// Changes to parameters before binding to an ODBC HSTMT handle
+void
+SQLInfoMySQL::DoBindParameterFixup(SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -733,7 +762,7 @@ SQLInfoMySQL::GetCATALOGIndexAttributes(XString& /*p_schema*/,XString& /*p_table
 }
 
 XString
-SQLInfoMySQL::GetCATALOGIndexCreate(MIndicesMap& p_indices) const
+SQLInfoMySQL::GetCATALOGIndexCreate(MIndicesMap& p_indices,bool /*p_duplicateNulls /*= false*/) const
 {
   // Get SQL to create an index for a table
   // CREATE [UNIQUE] INDEX [<schema>.]indexname ON [<schema>.]tablename(column [ASC|DESC] [,...]);
@@ -1005,6 +1034,71 @@ SQLInfoMySQL::GetCATALOGForeignDrop(XString /*p_schema*/,XString p_tablename,XSt
   return sql;
 }
 
+//////////////////////////
+// All default constraints
+XString
+SQLInfoMySQL::GetCATALOGDefaultExists(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGDefaultList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGDefaultAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGDefaultCreate(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/,XString /*p_column*/,XString /*p_code*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGDefaultDrop(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/) const
+{
+  return "";
+}
+
+/////////////////////////
+// All check constraints
+
+XString
+SQLInfoMySQL::GetCATALOGCheckExists(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGCheckList(XString  /*p_schema*/,XString  /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGCheckAttributes(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGCheckCreate(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/,XString /*p_condition*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGCheckDrop(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
 //////////////////////////////////////////////////////////////////////////
 // ALL TRIGGER FUNCTIONS
 
@@ -1166,7 +1260,7 @@ SQLInfoMySQL::GetCATALOGViewText(XString& /*p_schema*/,XString& /*p_viewname*/) 
 }
 
 XString
-SQLInfoMySQL::GetCATALOGViewCreate(XString /*p_schema*/,XString p_viewname,XString p_contents) const
+SQLInfoMySQL::GetCATALOGViewCreate(XString /*p_schema*/,XString p_viewname,XString p_contents,bool /*p_ifexists /*= true*/) const
 {
   return "CREATE VIEW " + p_viewname + "\n" + p_contents;
 }
@@ -1197,8 +1291,14 @@ SQLInfoMySQL::GetCATALOGColumnPrivileges(XString& /*p_schema*/,XString& /*p_tabl
   return "";
 }
 
+XString
+SQLInfoMySQL::GetCATALOGSequencePrivilege(XString& /*p_schema*/,XString& /*p_sequence*/) const
+{
+  return "";
+}
+
 XString 
-SQLInfoMySQL::GetCatalogGrantPrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
+SQLInfoMySQL::GetCATALOGGrantPrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
 {
   XString sql;
   p_grantee.MakeLower();
@@ -1216,7 +1316,7 @@ SQLInfoMySQL::GetCatalogGrantPrivilege(XString /*p_schema*/,XString p_objectname
 }
 
 XString 
-SQLInfoMySQL::GetCatalogRevokePrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee)
+SQLInfoMySQL::GetCATALOGRevokePrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee)
 {
   XString sql;
   p_grantee.MakeLower();
@@ -1227,6 +1327,35 @@ SQLInfoMySQL::GetCatalogRevokePrivilege(XString /*p_schema*/,XString p_objectnam
     sql.Format("REVOKE %s ON %s FROM %s", p_privilege.GetString(), p_objectname.GetString(), p_grantee.GetString());
   }
   return sql;
+}
+
+// All Synonym functions
+XString
+SQLInfoMySQL::GetCATALOGSynonymList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGSynonymAttributes(XString& /*p_schema*/,XString& /*p_synonym*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGSynonymCreate(XString& /*p_schema*/,XString& /*p_synonym*/,XString /*p_forObject*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1354,13 +1483,19 @@ SQLInfoMySQL::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoMySQL::GetPSMProcedureDrop(XString /*p_schema*/, XString p_procedure) const
+SQLInfoMySQL::GetPSMProcedureDrop(XString /*p_schema*/, XString p_procedure,bool /*p_function /*=false*/) const
 {
   return "";
 }
 
 XString
 SQLInfoMySQL::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
+{
+  return "";
+}
+
+XString
+SQLInfoMySQL::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/) const
 {
   return "";
 }

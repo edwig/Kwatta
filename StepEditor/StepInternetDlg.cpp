@@ -52,13 +52,14 @@ StepInternetDlg::StepInternetDlg(CWnd* pParent /*=nullptr*/)
 {
   m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
+  // Request
   m_page1 = new RequestDlg(this);
   m_page2 = new URLParameterDlg(this);
   m_page3 = new UrlHeaderDlg(this);
   m_page4 = new AuthenticateDlg(this);
   m_page5 = new RawRequestDlg(this);
   m_page6 = new TimingDlg(this);
-
+  // Response
   m_page10 = new ResponseDlg(this);
   m_page11 = new RespHeadersDlg(this);
   m_page12 = new RawResponseDlg(this);
@@ -134,64 +135,26 @@ StepInternetDlg::OnInitDialog()
   SetWindowText("StepEditor HTTP");
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
+  SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
 
-  // Add "About..." menu item to system menu.
-
-  // IDM_ABOUTBOX must be in the system command range.
-  ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-  ASSERT (IDM_ABOUTBOX < 0xF000);
-
-  CMenu* pSysMenu = GetSystemMenu(FALSE);
-  if (pSysMenu != nullptr)
-  {
-    BOOL bNameValid;
-    CString strAboutMenu;
-    bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-    ASSERT(bNameValid);
-    if (!strAboutMenu.IsEmpty())
-    {
-      pSysMenu->AppendMenu(MF_SEPARATOR);
-      pSysMenu->AppendMenu(MF_STRING,IDM_ABOUTBOX,strAboutMenu);
-    }
-  }
-
-  // Set the icon for this dialog.  The framework does this automatically
-  //  when the application's main window is not a dialog
-  SetIcon(m_hIcon, TRUE);			// Set big icon
-  SetIcon(m_hIcon, FALSE);		// Set small icon
-
+  // Initializations
   InitTabs();
   InitVerbs();
   InitStep();
   InitGlobalParameters();
   InitParameters();
+  InitButtons();
+  InitGlobals();
+  InitTooltips();
 
   // Fill in the variables: After the loading of the XML files
   LoadVariables();
   LoadVariablesTabs();
-
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
-  m_editBound.SetMutable(false);
-  m_editBound.SetBorderColor(RGB(0, 255, 0));
-  m_buttonUrlParm.SetIconImage(IDI_LIST);
-  m_buttonGO.SetIconImage(IDI_RUN);
-  m_buttonGlobal.SetIconImage(IDI_EARTH);
-
-  if(theApp.GetGlobal())
-  {
-    m_editName.SetBkColor(GLOBAL_COLOR);
-    m_editComment.SetBkColor(GLOBAL_COLOR);
-  }
-
-  EnableToolTips();
-  RegisterTooltip(m_buttonUrlParm,"Choose global/test parameter(s) for the URL");
-  RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
-
   EffectiveParameters();
-  SetFirstTab();
 
   SetCanResize();
+
+  SetFirstTab();
   UpdateData(FALSE);
   return TRUE;
 }
@@ -328,6 +291,37 @@ StepInternetDlg::InitParameters()
     return;
   }
   ReadParameters(filename, false);
+}
+
+void
+StepInternetDlg::InitButtons()
+{
+  m_buttonOK     .SetStyle("ok");
+  m_buttonCancel .SetStyle("can");
+  m_editBound    .SetMutable(false);
+  m_editBound    .SetBorderColor(RGB(0,255,0));
+  m_buttonUrlParm.SetIconImage(IDI_LIST);
+  m_buttonGO     .SetIconImage(IDI_RUN);
+  m_buttonGlobal .SetIconImage(IDI_EARTH);
+}
+
+void
+StepInternetDlg::InitGlobals()
+{
+  if(theApp.GetGlobal())
+  {
+    m_editName   .SetBkColor(GLOBAL_COLOR);
+    m_editComment.SetBkColor(GLOBAL_COLOR);
+  }
+}
+
+void
+StepInternetDlg::InitTooltips()
+{
+  EnableToolTips();
+  RegisterTooltip(m_buttonUrlParm,"Choose global/test parameter(s) for the URL");
+  RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
+  RegisterTooltip(m_buttonGO,     "GO Run the HTTP Internet test step!!");
 }
 
 void

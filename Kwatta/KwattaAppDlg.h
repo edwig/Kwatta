@@ -45,7 +45,6 @@ protected:
   void FillGrid();
   void DoStarter();
   void LoadParameters();
-  void AppendSysMenu();
   void ReadParameters(CString p_file);
   bool CreateEmptyTestSet(CString p_directory,CString p_testname);
   bool RemoveTestsetDirectory(CString p_path);

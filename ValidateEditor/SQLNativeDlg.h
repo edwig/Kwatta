@@ -24,7 +24,7 @@
 
 // SQLNativeDlg dialog
 
-class SQLNativeDlg : public StyleDialog
+class SQLNativeDlg : public StyleTab
 {
   DECLARE_DYNAMIC(SQLNativeDlg)
 

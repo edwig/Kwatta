@@ -35,10 +35,10 @@ static char THIS_FILE[] = __FILE__;
 
 // AuthenticateDlg dialog
 
-IMPLEMENT_DYNAMIC(AuthenticateDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(AuthenticateDlg,StyleTab)
 
 AuthenticateDlg::AuthenticateDlg(CWnd* pParent /*=nullptr*/)
-	              :StyleDialog(IDD_AUTHENTICATE, pParent)
+	              :StyleTab(IDD_AUTHENTICATE, pParent)
 {
 }
 
@@ -48,7 +48,7 @@ AuthenticateDlg::~AuthenticateDlg()
 
 void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
 
   DDX_CBString(pDX,IDC_AUTH_TYPE,   m_comboType,      m_authType);
   DDX_Control (pDX,IDC_USERNAME,    m_editUsername,   m_userName);
@@ -92,7 +92,7 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleTab)
   ON_WM_TIMER()
   ON_CBN_SELCHANGE(IDC_AUTH_TYPE,   &AuthenticateDlg::OnCbnSelchangeAuthType)
   ON_EN_KILLFOCUS (IDC_USERNAME,    &AuthenticateDlg::OnEnChangeUsername)
@@ -116,7 +116,7 @@ END_MESSAGE_MAP()
 BOOL
 AuthenticateDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_editBearerToken.SetMutable(false);
 
@@ -133,7 +133,7 @@ AuthenticateDlg::OnInitDialog()
 void
 AuthenticateDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

@@ -9,10 +9,10 @@
 
 // SQLOutputDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLOutputDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLOutputDlg,StyleTab)
 
 SQLOutputDlg::SQLOutputDlg(CWnd* p_parent)
-	           :StyleDialog(IDD_SQLOUTPUT, p_parent)
+	           :StyleTab(IDD_SQLOUTPUT, p_parent)
 {
 }
 
@@ -22,7 +22,7 @@ SQLOutputDlg::~SQLOutputDlg()
 
 void SQLOutputDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
 
 	DDX_Control(pDX,IDC_SUCCEEDED,m_checkSucceeded);
 	DDX_Control(pDX,IDC_ROWS,     m_editRows,		 m_rows);
@@ -31,13 +31,13 @@ void SQLOutputDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX,IDC_NATIVE,   m_editNative,  m_NativeError);
 }
 
-BEGIN_MESSAGE_MAP(SQLOutputDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLOutputDlg, StyleTab)
 END_MESSAGE_MAP()
 
 BOOL
 SQLOutputDlg::OnInitDialog()
 {
-	StyleDialog::OnInitDialog();
+	StyleTab::OnInitDialog();
 
 	InitTab();
 	SetCanResize();
@@ -48,7 +48,7 @@ SQLOutputDlg::OnInitDialog()
 void
 SQLOutputDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

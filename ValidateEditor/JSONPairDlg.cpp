@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // JSONPairDlg dialog
 
-IMPLEMENT_DYNAMIC(JSONPairDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(JSONPairDlg,StyleTab)
 
 JSONPairDlg::JSONPairDlg(CWnd* pParent /*=nullptr*/)
-            :StyleDialog(IDD_JSON_PAIR, pParent)
+            :StyleTab(IDD_JSON_PAIR, pParent)
 {
 }
 
@@ -48,7 +48,7 @@ JSONPairDlg::~JSONPairDlg()
 void 
 JSONPairDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_JSON, m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR, m_comboOperator);
   DDX_Control(pDX, IDC_JSONPATH, m_editJsonPath,  m_jsonPath);
@@ -70,7 +70,7 @@ JSONPairDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(JSONPairDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(JSONPairDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_JSON,  &JSONPairDlg::OnBnClickedUseJSON)
   ON_CBN_SELCHANGE(IDC_OPERATOR,  &JSONPairDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_JSONPATH,  &JSONPairDlg::OnEnChangeJsonPath)
@@ -85,7 +85,7 @@ END_MESSAGE_MAP()
 BOOL
 JSONPairDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonJsonParm.SetIconImage(IDI_RETURN);
@@ -97,7 +97,7 @@ JSONPairDlg::OnInitDialog()
 void
 JSONPairDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

@@ -1236,7 +1236,7 @@ int SetRegistryProfile(CString p_key,CString p_program,CString p_version)
 //////////////////////////////////////////////////////////////////////////
 
 // Setting a global environment variable (extends SetEnvironmentVariable)
-bool 
+bool
 SetGlobalEnvironmentVariable(CString p_variable,CString p_value)
 {
   bool success(false);

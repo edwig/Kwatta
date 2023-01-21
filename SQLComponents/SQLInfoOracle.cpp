@@ -182,11 +182,47 @@ SQLInfoOracle::GetRDBMSMustCommitDDL() const
 void
 SQLInfoOracle::GetRDBMSNumericPrecisionScale(SQLULEN& p_precision, SQLSMALLINT& p_scale) const
 {
+  // ORACLE SPECIFIC CHECKS
   if(p_precision == NUMERIC_MAX_PRECISION &&
      p_scale     == NUMERIC_MIN_SCALE)
   {
     p_scale = NUMERIC_DEFAULT_SCALE;
   }
+
+
+  // GENERAL CHECKS
+
+  // Max precision for numerics is 38
+  if(p_precision > NUMERIC_MAX_PRECISION)
+  {
+    p_precision = NUMERIC_MAX_PRECISION;
+  }
+
+  // Default scale is also the max for parameters (16)
+  if(p_scale > NUMERIC_DEFAULT_SCALE)
+  {
+    p_scale = NUMERIC_DEFAULT_SCALE;
+  }
+
+  // In case of conversion from other databases
+  if(p_precision == 0 && p_scale == 0)
+  {
+    p_precision = NUMERIC_MAX_PRECISION;
+    p_scale     = NUMERIC_DEFAULT_SCALE;
+  }
+
+  // Scale MUST be smaller than the precision
+  if(p_scale >= p_precision)
+  {
+    p_scale = (SQLSMALLINT) (p_precision - 1);
+  }
+}
+
+// Maximum for a VARCHAR to be handled without AT-EXEC data. Assume NVARCHAR is half that size!
+int
+SQLInfoOracle::GetRDBMSMaxVarchar() const
+{
+  return 4000;
 }
 
 // KEYWORDS
@@ -440,7 +476,7 @@ SQLInfoOracle::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoOracle::GetSQLLockTable(XString p_schema, XString p_tablename, bool p_exclusive) const
+SQLInfoOracle::GetSQLLockTable(XString p_schema,XString p_tablename,bool p_exclusive,int /*p_waittime*/) const
 {
   XString query = "LOCK TABLE " + p_schema + "." + p_tablename + " IN ";
   query += p_exclusive ? "EXCLUSIVE" : "SHARE";
@@ -454,7 +490,7 @@ SQLInfoOracle::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
 {
   XString optim;
   // Optimize the table
-  optim = "call dbms_stats.gather_table_stats('" + p_schema + "','" + p_tablename + "')";
+  optim = "call dbms_stats.gather_table_stats('" + p_schema + "','" + p_tablename + "' CASCADE => TRUE)";
   return optim;
 }
 
@@ -480,6 +516,14 @@ SQLInfoOracle::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) const
     p_sql += limit;
   }
   return p_sql;
+}
+
+// Query to perform a keep alive ping
+XString
+SQLInfoOracle::GetPing() const
+{
+  // Getting the time does a ping
+  return "SELECT current_timestamp FROM DUAL";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -552,6 +596,19 @@ SQLInfoOracle::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_day,int
                 ,p_year,p_month,p_day
                 ,p_hour,p_minute,p_second);
   return string;
+}
+
+// Makes an catalog identifier string (possibly quoted on both sides)
+XString
+SQLInfoOracle::GetSQLDDLIdentifier(XString p_identifier) const
+{
+  return p_identifier;
+}
+
+// Changes to parameters before binding to an ODBC HSTMT handle
+void
+SQLInfoOracle::DoBindParameterFixup(SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1173,7 +1230,7 @@ SQLInfoOracle::GetCATALOGIndexAttributes(XString& p_schema,XString& p_tablename,
 }
 
 XString
-SQLInfoOracle::GetCATALOGIndexCreate(MIndicesMap& p_indices) const
+SQLInfoOracle::GetCATALOGIndexCreate(MIndicesMap& p_indices,bool /*p_duplicateNulls /*= false*/) const
 {
   // Get SQL to create an index for a table
   // CREATE [UNIQUE] INDEX [<schema>.]indexname ON [<schema>.]tablename(column [ASC|DESC] [,...]);
@@ -1573,6 +1630,71 @@ SQLInfoOracle::GetCATALOGForeignDrop(XString p_schema,XString p_tablename,XStrin
   return sql;
 }
 
+//////////////////////////
+// All default constraints
+XString
+SQLInfoOracle::GetCATALOGDefaultExists(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGDefaultList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGDefaultAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGDefaultCreate(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/,XString /*p_column*/,XString /*p_code*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGDefaultDrop(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/) const
+{
+  return "";
+}
+
+/////////////////////////
+// All check constraints
+
+XString
+SQLInfoOracle::GetCATALOGCheckExists(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGCheckList(XString  /*p_schema*/,XString  /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGCheckAttributes(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGCheckCreate(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/,XString /*p_condition*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGCheckDrop(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
 //////////////////////////////////////////////////////////////////////////
 // ALL TRIGGER FUNCTIONS
 
@@ -1838,9 +1960,9 @@ SQLInfoOracle::GetCATALOGViewExists(XString& p_schema,XString& p_viewname) const
 }
 
 XString 
-SQLInfoOracle::GetCATALOGViewList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+SQLInfoOracle::GetCATALOGViewList(XString& p_schema,XString& p_pattern) const
 {
-  return "";
+  return GetCATALOGViewAttributes(p_schema,p_pattern);
 }
 
 XString 
@@ -1904,7 +2026,7 @@ SQLInfoOracle::GetCATALOGViewText(XString& p_schema,XString& p_viewname) const
 }
 
 XString
-SQLInfoOracle::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents) const
+SQLInfoOracle::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents,bool /*p_ifexists = true*/) const
 {
   return "CREATE OR REPLACE VIEW " + p_schema + "." + p_viewname + " AS\n" + p_contents;
 }
@@ -2006,8 +2128,14 @@ SQLInfoOracle::GetCATALOGColumnPrivileges(XString& p_schema,XString& p_tablename
   return sql;
 }
 
+XString
+SQLInfoOracle::GetCATALOGSequencePrivilege(XString& /*p_schema*/,XString& /*p_sequence*/) const
+{
+  return "";
+}
+
 XString 
-SQLInfoOracle::GetCatalogGrantPrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
+SQLInfoOracle::GetCATALOGGrantPrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
 {
   XString sql;
   sql.Format("GRANT %s ON %s.%s TO %s",p_privilege.GetString(),p_schema.GetString(),p_objectname.GetString(),p_grantee.GetString());
@@ -2019,11 +2147,40 @@ SQLInfoOracle::GetCatalogGrantPrivilege(XString p_schema,XString p_objectname,XS
 }
 
 XString 
-SQLInfoOracle::GetCatalogRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
+SQLInfoOracle::GetCATALOGRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
 {
   XString sql;
   sql.Format("REVOKE %s ON %s.%s FROM %s",p_privilege.GetString(),p_schema.GetString(),p_objectname.GetString(),p_grantee.GetString());
   return sql;
+}
+
+// All Synonym functions
+XString
+SQLInfoOracle::GetCATALOGSynonymList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGSynonymAttributes(XString& /*p_schema*/,XString& /*p_synonym*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGSynonymCreate(XString& /*p_schema*/,XString& /*p_synonym*/,XString /*p_forObject*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoOracle::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2161,7 +2318,7 @@ SQLInfoOracle::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoOracle::GetPSMProcedureDrop(XString p_schema, XString p_procedure) const
+SQLInfoOracle::GetPSMProcedureDrop(XString p_schema, XString p_procedure,bool /*p_function /*=false*/) const
 {
   return "";
 }
@@ -2210,6 +2367,12 @@ SQLInfoOracle::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
     }
   }
   return errorText;
+}
+
+XString
+SQLInfoOracle::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/) const
+{
+  return "";
 }
 
 // And it's parameters

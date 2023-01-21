@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLColsDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLColsDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLColsDlg,StyleTab)
 
 SQLColsDlg::SQLColsDlg(CWnd* p_parent)
-           :StyleDialog(IDD_SQL_COLS,p_parent)
+           :StyleTab(IDD_SQL_COLS,p_parent)
 {
 }
 
@@ -48,7 +48,7 @@ SQLColsDlg::~SQLColsDlg()
 void 
 SQLColsDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_RETURN,  m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR,    m_comboOperator);
   DDX_Control(pDX, IDC_RETURN,      m_editCols, m_returnedCols);
@@ -68,7 +68,7 @@ SQLColsDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(SQLColsDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLColsDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_RETURN,  &SQLColsDlg::OnBnClickedUseReturnedCols)
   ON_CBN_SELCHANGE(IDC_OPERATOR,    &SQLColsDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_RETURN,      &SQLColsDlg::OnEnChangeReturnedCols)
@@ -81,7 +81,7 @@ END_MESSAGE_MAP()
 BOOL
 SQLColsDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonParm .SetIconImage(IDI_RETURN);
@@ -93,7 +93,7 @@ SQLColsDlg::OnInitDialog()
 void
 SQLColsDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

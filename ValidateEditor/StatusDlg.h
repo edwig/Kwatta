@@ -24,7 +24,7 @@
 
 // StatusDlg dialog
 
-class StatusDlg : public StyleDialog
+class StatusDlg : public StyleTab
 {
   DECLARE_DYNAMIC(StatusDlg)
 

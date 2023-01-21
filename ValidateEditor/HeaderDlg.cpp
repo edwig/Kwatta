@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // HeaderDlg dialog
 
-IMPLEMENT_DYNAMIC(HeaderDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(HeaderDlg,StyleTab)
 
 HeaderDlg::HeaderDlg(CWnd* pParent /*=nullptr*/)
-          :StyleDialog(IDD_HEADER, pParent)
+          :StyleTab(IDD_HEADER, pParent)
 {
 }
 
@@ -48,7 +48,7 @@ HeaderDlg::~HeaderDlg()
 void 
 HeaderDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_HEADER, m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR,   m_comboOperator);
   DDX_Control(pDX, IDC_NAME,       m_editHeaderName,m_headerName);
@@ -70,7 +70,7 @@ HeaderDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(HeaderDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(HeaderDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_HEADER,  &HeaderDlg::OnBnClickedUseHeader)
   ON_CBN_SELCHANGE(IDC_OPERATOR,    &HeaderDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_NAME,        &HeaderDlg::OnEnChangeHeaderName)
@@ -85,7 +85,7 @@ END_MESSAGE_MAP()
 BOOL
 HeaderDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonHeaderParm.SetIconImage(IDI_RETURN);
@@ -97,7 +97,7 @@ HeaderDlg::OnInitDialog()
 void
 HeaderDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

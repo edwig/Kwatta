@@ -31,10 +31,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLDataDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLDataDlg,StyleDialog)
+IMPLEMENT_DYNAMIC(SQLDataDlg,StyleTab)
 
 SQLDataDlg::SQLDataDlg(CWnd* pParent /*=nullptr*/)
-           :StyleDialog(IDD_SQL_DATA,pParent)
+           :StyleTab(IDD_SQL_DATA,pParent)
 {
 }
 
@@ -44,17 +44,17 @@ SQLDataDlg::~SQLDataDlg()
 
 void SQLDataDlg::DoDataExchange(CDataExchange* pDX)
 {
-  StyleDialog::DoDataExchange(pDX);
+  StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_GRID,m_list);
 }
 
-BEGIN_MESSAGE_MAP(SQLDataDlg,StyleDialog)
+BEGIN_MESSAGE_MAP(SQLDataDlg,StyleTab)
 END_MESSAGE_MAP()
 
 BOOL
 SQLDataDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
   InitLijst();
   SetCanResize();
   return TRUE;
@@ -63,7 +63,7 @@ SQLDataDlg::OnInitDialog()
 void
 SQLDataDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

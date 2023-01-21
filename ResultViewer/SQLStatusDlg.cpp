@@ -32,10 +32,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLStatusDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLStatusDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLStatusDlg,StyleTab)
 
 SQLStatusDlg::SQLStatusDlg(CWnd* pParent /*=nullptr*/)
-             :StyleDialog(IDD_SQL_STATUS, pParent)
+             :StyleTab(IDD_SQL_STATUS, pParent)
 {
 }
 
@@ -45,7 +45,7 @@ SQLStatusDlg::~SQLStatusDlg()
 
 void SQLStatusDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
 
   DDX_Control(pDX, IDC_SUCCEEDED, m_editSucceeded,m_succeeded);
   DDX_Control(pDX, IDC_ROWS,      m_editRows,     m_returnedRows);
@@ -54,13 +54,13 @@ void SQLStatusDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX, IDC_NATIVE,    m_editNative,   m_nativeError);
 }
 
-BEGIN_MESSAGE_MAP(SQLStatusDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLStatusDlg, StyleTab)
 END_MESSAGE_MAP()
 
 BOOL
 SQLStatusDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_editSucceeded.SetMutable(false);
   m_editRows     .SetMutable(false);
@@ -76,7 +76,7 @@ SQLStatusDlg::OnInitDialog()
 void
 SQLStatusDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

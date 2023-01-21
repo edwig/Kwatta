@@ -24,7 +24,7 @@
 
 // HeaderDlg dialog
 
-class HeaderDlg : public StyleDialog
+class HeaderDlg : public StyleTab
 {
   DECLARE_DYNAMIC(HeaderDlg)
 

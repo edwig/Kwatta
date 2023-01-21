@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLNativeDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLNativeDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLNativeDlg,StyleTab)
 
 SQLNativeDlg::SQLNativeDlg(CWnd* p_parent)
-               :StyleDialog(IDD_SQL_NATIVE,p_parent)
+               :StyleTab(IDD_SQL_NATIVE,p_parent)
 {
 }
 
@@ -48,7 +48,7 @@ SQLNativeDlg::~SQLNativeDlg()
 void 
 SQLNativeDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_RETURN,  m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR,    m_comboOperator);
   DDX_Control(pDX, IDC_RETURN,      m_editNative, m_nativeError);
@@ -68,7 +68,7 @@ SQLNativeDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(SQLNativeDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLNativeDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_RETURN,  &SQLNativeDlg::OnBnClickedUseNative)
   ON_CBN_SELCHANGE(IDC_OPERATOR,    &SQLNativeDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_RETURN,      &SQLNativeDlg::OnEnChangeNative)
@@ -81,7 +81,7 @@ END_MESSAGE_MAP()
 BOOL
 SQLNativeDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonParm .SetIconImage(IDI_RETURN);
@@ -93,7 +93,7 @@ SQLNativeDlg::OnInitDialog()
 void
 SQLNativeDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

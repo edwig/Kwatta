@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLSQLStateDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLSQLStateDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLSQLStateDlg,StyleTab)
 
 SQLSQLStateDlg::SQLSQLStateDlg(CWnd* p_parent)
-               :StyleDialog(IDD_SQL_SQLSTATE,p_parent)
+               :StyleTab(IDD_SQL_SQLSTATE,p_parent)
 {
 }
 
@@ -48,7 +48,7 @@ SQLSQLStateDlg::~SQLSQLStateDlg()
 void 
 SQLSQLStateDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_RETURN,  m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR,    m_comboOperator);
   DDX_Control(pDX, IDC_RETURN,      m_editSQLState, m_SQLState);
@@ -68,7 +68,7 @@ SQLSQLStateDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(SQLSQLStateDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLSQLStateDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_RETURN,  &SQLSQLStateDlg::OnBnClickedUseSQLState)
   ON_CBN_SELCHANGE(IDC_OPERATOR,    &SQLSQLStateDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_RETURN,      &SQLSQLStateDlg::OnEnChangeSQLState)
@@ -81,7 +81,7 @@ END_MESSAGE_MAP()
 BOOL
 SQLSQLStateDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonParm .SetIconImage(IDI_RETURN);
@@ -93,7 +93,7 @@ SQLSQLStateDlg::OnInitDialog()
 void
 SQLSQLStateDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

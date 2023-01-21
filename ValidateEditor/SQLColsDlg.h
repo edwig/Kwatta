@@ -24,7 +24,7 @@
 
 // SQLColsDlg dialog
 
-class SQLColsDlg : public StyleDialog
+class SQLColsDlg : public StyleTab
 {
   DECLARE_DYNAMIC(SQLColsDlg)
 

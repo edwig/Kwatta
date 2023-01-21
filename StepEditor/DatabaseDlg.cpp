@@ -10,10 +10,10 @@
 
 // DatabaseDlg dialog
 
-IMPLEMENT_DYNAMIC(DatabaseDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(DatabaseDlg,StyleTab)
 
 DatabaseDlg::DatabaseDlg(CWnd* p_parent)
-	          :StyleDialog(IDD_DATABASE,p_parent)
+	          :StyleTab(IDD_DATABASE,p_parent)
 {
 }
 
@@ -23,7 +23,7 @@ DatabaseDlg::~DatabaseDlg()
 
 void DatabaseDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
 
 	DDX_Control(pDX,IDC_DATASOURCE,			m_editDatasource,   m_datasource);
 	DDX_Control(pDX,IDC_BUT_DATASOURCE,	m_buttonDatasource);
@@ -36,7 +36,7 @@ void DatabaseDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX,IDC_EFF_PASSWORD,   m_editEffPassword,  m_effPassword);
 }
 
-BEGIN_MESSAGE_MAP(DatabaseDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(DatabaseDlg, StyleTab)
 	ON_EN_KILLFOCUS(IDC_DATASOURCE,		  &DatabaseDlg::OnEnChangeDatasource)
 	ON_BN_CLICKED  (IDC_BUT_DATASOURCE, &DatabaseDlg::OnBnClickedButDatasource)
 	ON_EN_KILLFOCUS(IDC_EFF_DATASOURCE, &DatabaseDlg::OnEnChangeEffDatasource)
@@ -51,7 +51,7 @@ END_MESSAGE_MAP()
 BOOL
 DatabaseDlg::OnInitDialog()
 {
-	StyleDialog::OnInitDialog();
+	StyleTab::OnInitDialog();
 	
 	InitButtons();
 

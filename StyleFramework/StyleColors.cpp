@@ -33,7 +33,7 @@ using namespace ThemeColor;
 UINT ThemeColor::g_msg_changed = 0;
 
 // Put default theme to Loyalty
-Themes   ThemeColor::_theme  = ThemeColor::Themes::ThemeSkyblue;
+Themes   ThemeColor::_theme   = ThemeColor::Themes::ThemeSkyblue;
 
 const int ThemeColor::theme_colors[NO_OF_COLORS][NO_OF_THEMES] =
 {

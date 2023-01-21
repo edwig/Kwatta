@@ -39,6 +39,7 @@
 #include "SQLInfoPostgreSQL.h"
 #include "SQLInfoGenericODBC.h"
 #include "SQLTimestamp.h"
+#include "sqlncli.h"
 #include <time.h>
 
 #ifdef _DEBUG
@@ -197,6 +198,15 @@ SQLDatabase::SetUserName(XString p_user)
   }
 }
 
+void
+SQLDatabase::SetPoolIdleMinutes(int p_minutes)
+{
+  if(IDLE_MINUTES_MIN <= p_minutes && p_minutes <= IDLE_MINUTES_MAX)
+  {
+    m_dbpoolIdleMinutes = p_minutes;
+  }
+}
+
 // Last time the database was used by the database pool
 void
 SQLDatabase::SetLastActionTime()
@@ -209,7 +219,7 @@ SQLDatabase::SetLastActionTime()
 bool
 SQLDatabase::PastWaitingTime()
 {
-  return (GetTickCount64() - m_lastAction) > (IDLE_MINUTES * 60 * (size_t)NANOSECONDS_PER_SEC);
+  return (GetTickCount64() - m_lastAction) > (m_dbpoolIdleMinutes * 60 * CLOCKS_PER_SEC);
 }
 
 // Add a general ODBC option for use in the connection string
@@ -796,6 +806,23 @@ SQLDatabase::GetDatabaseTypeName()
   return "";
 }
 
+bool
+SQLDatabase::Ping()
+{
+  if(IsOpen())
+  {
+    // Send a ping query
+    XString ping = GetSQLInfoDB()->GetPing();
+    if(!ping.IsEmpty())
+    {
+      // No transaction here. We could disturb a running one!
+      SQLQuery qry(this);
+      return qry.DoSQLStatementScalar(ping) != nullptr;
+    }
+  }
+  return false;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // Creating the ODBC handles.
@@ -1253,7 +1280,8 @@ SQLDatabase::CommitTransaction(SQLTransaction* p_transaction)
         }
         // Re-engage the autocommit mode. If it goes wrong we
         // will automatically reach the catch block
-        if(m_rdbmsType != RDBMS_ACCESS)
+        if(m_rdbmsType != RDBMS_ACCESS &&
+           m_rdbmsType != RDBMS_SQLSERVER)
         {
           SetConnectAttr(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER);
         }
@@ -1281,7 +1309,7 @@ SQLDatabase::CommitTransaction(SQLTransaction* p_transaction)
       // It's a sub transaction
       // If the database is capable: Do the commit of the sub transaction
       // Otherwise: do nothing and wait for the outer transaction to commit the whole in-one-go
-      XString startSubtrans = m_info->GetSQLCommitSubTransaction(p_transaction->GetSavePoint());
+      XString startSubtrans = GetSQLInfoDB()->GetSQLCommitSubTransaction(p_transaction->GetSavePoint());
       if(!startSubtrans.IsEmpty())
       {
         try
@@ -1354,7 +1382,8 @@ SQLDatabase::RollbackTransaction(SQLTransaction* p_transaction)
           throw StdException(0);
         }
         // Re-engage the autocommit mode, will throw in case of an error
-        if(m_rdbmsType != RDBMS_ACCESS)
+        if(m_rdbmsType != RDBMS_ACCESS &&
+           m_rdbmsType != RDBMS_SQLSERVER)
         {
           SetConnectAttr(SQL_ATTR_AUTOCOMMIT, SQL_AUTOCOMMIT_ON, SQL_IS_UINTEGER);
         }

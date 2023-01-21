@@ -72,7 +72,6 @@ protected:
 
   ValidateSQL       m_validate;
   Parameters        m_parameters;
-	HICON             m_hIcon;
   SQLSucceededDlg*  m_tab1;
   SQLRowsDlg*       m_tab2;
   SQLColsDlg*       m_tab3;

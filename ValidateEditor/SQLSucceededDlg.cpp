@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLSucceededDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLSucceededDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLSucceededDlg,StyleTab)
 
 SQLSucceededDlg::SQLSucceededDlg(CWnd* p_parent)
-                :StyleDialog(IDD_SQL_RETURN,p_parent)
+                :StyleTab(IDD_SQL_RETURN,p_parent)
 {
 }
 
@@ -48,7 +48,7 @@ SQLSucceededDlg::~SQLSucceededDlg()
 void 
 SQLSucceededDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_RETURN,  m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR,    m_comboOperator);
   DDX_Control(pDX, IDC_RETURN,      m_editSucceeded, m_succeeded);
@@ -68,7 +68,7 @@ SQLSucceededDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(SQLSucceededDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLSucceededDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_RETURN,  &SQLSucceededDlg::OnBnClickedUseSucceeded)
   ON_CBN_SELCHANGE(IDC_OPERATOR,    &SQLSucceededDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_RETURN,      &SQLSucceededDlg::OnEnChangeSucceeded)
@@ -81,7 +81,7 @@ END_MESSAGE_MAP()
 BOOL
 SQLSucceededDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonParm .SetIconImage(IDI_RETURN);
@@ -93,7 +93,7 @@ SQLSucceededDlg::OnInitDialog()
 void
 SQLSucceededDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

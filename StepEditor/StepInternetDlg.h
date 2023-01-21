@@ -62,6 +62,9 @@ protected:
   void InitStep();
   void InitGlobalParameters();
   void InitParameters();
+  void InitButtons();
+  void InitGlobals();
+  void InitTooltips();
   void ReadParameters(CString p_file, bool p_global = true);
   bool SaveStep();
   void StoreVariables();
@@ -87,7 +90,6 @@ protected:
   StyleTabCtrl      m_tabsResponse;
   StyleButton       m_buttonOK;
   StyleButton       m_buttonCancel;
-  HICON             m_hIcon;
 
   TestStepNET*       m_testStep { nullptr };
   Parameters        m_parameters;

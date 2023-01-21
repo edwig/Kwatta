@@ -57,3 +57,9 @@ Version 1.0.1 Release date: 02-01-2022
 3)  Bugfix for bcd class (decimal numbers)
 4)  Fix for build depedencies. To build a installer, just build the release mode configuration.
     64Bits NSIS must be present in the "C:\Program Files\NSIS" directory.
+
+Version 1.1.1 Release date: 21-01-2023
+--------------------------------------
+1)  Updated all external libraries (BaseLibrary, Marlin, SQLComponents, StyleFramework)
+2)  Added StyleTab to better use tabs in the StyleTabCtrl, default handling of the ESC key
+3)  Better insertion of new rows, while setting focus to the first edittable cell

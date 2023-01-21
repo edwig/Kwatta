@@ -156,7 +156,8 @@ namespace ThemeColor
   constexpr unsigned NO_OF_COLORS = (int)Colors::ColorMax;
   extern const char* theme_names [NO_OF_THEMES];
   extern const int   theme_colors[NO_OF_COLORS][NO_OF_THEMES];
-  extern Themes   _theme;
+  extern Themes     _theme;
+
   extern Themes   GetTheme();
   extern void     SetTheme(Themes pTheme);
   extern int      GetColor(Colors p_color);
@@ -180,7 +181,7 @@ namespace ThemeColor
 #define ColorWindowFrameTextError   Assistant0
 #define ColorWindowTopBarIconText   Assistant8
 #define ColorEditFrameError         RGB(0xE3, 0x00, 0x45)
-#define ClrWindowMessageError     ClrEditBkgnd
+#define ClrWindowMessageError       ClrEditBkgnd
 #define ColorWindowMessageTextError RGB(0xFF, 0x00, 0x00)
 
 #define ClrEditText               InputTextActive

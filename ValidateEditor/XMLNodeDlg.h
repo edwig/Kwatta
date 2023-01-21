@@ -24,7 +24,7 @@
 
 // XMLNodeDlg dialog
 
-class XMLNodeDlg : public StyleDialog
+class XMLNodeDlg : public StyleTab
 {
   DECLARE_DYNAMIC(XMLNodeDlg)
 

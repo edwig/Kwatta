@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // ResponseDlg dialog
 
-IMPLEMENT_DYNAMIC(ResponseDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(ResponseDlg,StyleTab)
 
 ResponseDlg::ResponseDlg(CWnd* pParent /*=nullptr*/)
-	          :StyleDialog(IDD_RESPONSE, pParent)
+	          :StyleTab(IDD_RESPONSE, pParent)
 {
 }
 
@@ -48,14 +48,14 @@ ResponseDlg::~ResponseDlg()
 void 
 ResponseDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_STATUS,     m_editStatus,     m_status);
   DDX_Control(pDX,IDC_STATUS_TEXT,m_editStatusText, m_statusText);
   DDX_Control(pDX,IDC_TIME,       m_editTime,       m_time);
   DDX_Control(pDX,IDC_PAYLOAD,    m_editPayload,    m_payload);
 }
 
-BEGIN_MESSAGE_MAP(ResponseDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(ResponseDlg, StyleTab)
   ON_EN_CHANGE(IDC_STATUS,      &ResponseDlg::OnEnChangeStatus)
   ON_EN_CHANGE(IDC_STATUS_TEXT, &ResponseDlg::OnEnChangeStatusText)
   ON_EN_CHANGE(IDC_TIME,        &ResponseDlg::OnEnChangeTime)
@@ -65,7 +65,7 @@ END_MESSAGE_MAP()
 BOOL
 ResponseDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   SetCanResize();
   return TRUE;
@@ -74,7 +74,7 @@ ResponseDlg::OnInitDialog()
 void
 ResponseDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

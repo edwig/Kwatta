@@ -24,7 +24,7 @@
 
 // SQLSucceededDlg dialog
 
-class SQLSucceededDlg : public StyleDialog
+class SQLSucceededDlg : public StyleTab
 {
   DECLARE_DYNAMIC(SQLSucceededDlg)
 

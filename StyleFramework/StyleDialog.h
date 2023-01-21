@@ -58,6 +58,8 @@ public:
   void    SetCanResize    (bool p_resize      = true);
   void    SetWindowText(LPCTSTR lpstString);
   BOOL    SetSysMenu(UINT p_menuResource);
+  void    SetAboutBoxAndIcon(int p_command,int p_menutitle);
+
   void    SetTheme(ThemeColor::Themes p_theme);
   void    LoadStyleTheme();
   CWnd*   GetNextDlgTabItem(CWnd* p_control, BOOL p_previous = FALSE) const;
@@ -138,6 +140,7 @@ protected:
   UINT      m_sysmenu     { NULL  };
   // Objects
   CMenu      m_menu;
+  HICON      m_hIcon;
   CStatusBar m_statusBar;
   CBrush     m_defaultBrush;
   ToolTips   m_tooltips;

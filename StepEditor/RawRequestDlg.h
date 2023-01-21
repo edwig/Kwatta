@@ -24,7 +24,7 @@ class TestStepIn;
 
 // RawRequestDlg dialog
 
-class RawRequestDlg : public StyleDialog
+class RawRequestDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(RawRequestDlg)
 

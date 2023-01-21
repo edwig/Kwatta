@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // PayloadDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLDlg,StyleDialog)
+IMPLEMENT_DYNAMIC(SQLDlg,StyleTab)
 
 SQLDlg::SQLDlg(CWnd* p_parent)
-       :StyleDialog(IDD_SQL,p_parent)
+       :StyleTab(IDD_SQL,p_parent)
 {
 }
 
@@ -48,12 +48,12 @@ SQLDlg::~SQLDlg()
 void
 SQLDlg::DoDataExchange(CDataExchange* pDX)
 {
-  StyleDialog::DoDataExchange(pDX);
+  StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_SQL,  m_editPayload,m_payload);
   DDX_Control(pDX,IDC_PARAM,m_buttonParam);
 }
 
-BEGIN_MESSAGE_MAP(SQLDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLDlg, StyleTab)
   ON_EN_CHANGE (IDC_SQL,  &SQLDlg::OnEnKillfocusPayload)
   ON_BN_CLICKED(IDC_PARAM,&SQLDlg::OnBnClickedParam)
 END_MESSAGE_MAP()
@@ -61,7 +61,7 @@ END_MESSAGE_MAP()
 BOOL
 SQLDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonParam.SetIconImage(IDI_LIST);
   EnableToolTips();
@@ -74,7 +74,7 @@ SQLDlg::OnInitDialog()
 void
 SQLDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

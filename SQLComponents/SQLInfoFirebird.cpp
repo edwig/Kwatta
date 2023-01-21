@@ -166,6 +166,14 @@ SQLInfoFirebird::GetRDBMSNumericPrecisionScale(SQLULEN& /*p_precision*/, SQLSMAL
   // NO-OP
 }
 
+// Maximum for a VARCHAR to be handled without AT-EXEC data. Assume NVARCHAR is half that size!
+int
+SQLInfoFirebird::GetRDBMSMaxVarchar() const
+{
+  // See: http://www.firebirdmanual.com/firebird/en/firebird-manual/2/the-firebird-limits/36
+  return 32765;
+}
+
 // KEYWORDS
 
 // Keyword for the current date and time
@@ -463,7 +471,7 @@ SQLInfoFirebird::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoFirebird::GetSQLLockTable(XString p_schema, XString p_tablename, bool /*p_exclusive*/) const
+SQLInfoFirebird::GetSQLLockTable(XString p_schema, XString p_tablename, bool /*p_exclusive*/,int /*p_waittime*/) const
 {
   // Firebird does NOT have a LOCK-TABLE statement
   return "";
@@ -495,6 +503,14 @@ SQLInfoFirebird::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) cons
     p_sql.Replace("SELECT ",selectFirst);
   }
   return p_sql;
+}
+
+// Query to perform a keep alive ping
+XString
+SQLInfoFirebird::GetPing() const
+{
+  // Not implemented yet
+  return "SELECT current_timestamp FROM rdb$database";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -554,6 +570,19 @@ SQLInfoFirebird::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_day,i
                 ,p_day,p_month,p_year       // American order !!
                 ,p_hour,p_minute,p_second); // 24 hour clock
   return retval;
+}
+
+// Makes an catalog identifier string (possibly quoted on both sides)
+XString
+SQLInfoFirebird::GetSQLDDLIdentifier(XString p_identifier) const
+{
+  return p_identifier;
+}
+
+// Changes to parameters before binding to an ODBC HSTMT handle
+void
+SQLInfoFirebird::DoBindParameterFixup(SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+{
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1045,7 +1074,7 @@ SQLInfoFirebird::GetCATALOGIndexAttributes(XString& p_schema,XString& p_tablenam
 }
 
 XString
-SQLInfoFirebird::GetCATALOGIndexCreate(MIndicesMap& p_indices) const
+SQLInfoFirebird::GetCATALOGIndexCreate(MIndicesMap& p_indices,bool /*p_duplicateNulls /*= false*/) const
 {
   XString query;
   for(auto& index : p_indices)
@@ -1385,6 +1414,71 @@ SQLInfoFirebird::GetCATALOGForeignDrop(XString /*p_schema*/,XString p_tablename,
   return sql;
 }
 
+//////////////////////////
+// All default constraints
+XString
+SQLInfoFirebird::GetCATALOGDefaultExists(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGDefaultList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGDefaultAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_column*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGDefaultCreate(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/,XString /*p_column*/,XString /*p_code*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGDefaultDrop(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/) const
+{
+  return "";
+}
+
+/////////////////////////
+// All check constraints
+
+XString
+SQLInfoFirebird::GetCATALOGCheckExists(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGCheckList(XString  /*p_schema*/,XString  /*p_tablename*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGCheckAttributes(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGCheckCreate(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/,XString /*p_condition*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGCheckDrop(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+{
+  return "";
+}
+
 //////////////////////////////////////////////////////////////////////////
 // ALL TRIGGER FUNCTIONS
 
@@ -1715,7 +1809,7 @@ SQLInfoFirebird::GetCATALOGViewAttributes(XString& p_schema,XString& p_viewname)
 }
 
 XString 
-SQLInfoFirebird::GetCATALOGViewCreate(XString /*p_schema*/,XString p_viewname,XString p_contents) const
+SQLInfoFirebird::GetCATALOGViewCreate(XString /*p_schema*/,XString p_viewname,XString p_contents,bool /*p_ifexists /*= true*/) const
 {
   return "RECREATE VIEW " + p_viewname + "\n" + p_contents;
 }
@@ -1755,7 +1849,13 @@ SQLInfoFirebird::GetCATALOGColumnPrivileges(XString& /*p_schema*/,XString& /*p_t
 }
 
 XString
-SQLInfoFirebird::GetCatalogGrantPrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
+SQLInfoFirebird::GetCATALOGSequencePrivilege(XString& /*p_schema*/,XString& /*p_sequence*/) const
+{
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGGrantPrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
 {
   XString sql;
   sql.Format("GRANT %s ON %s TO %s",p_privilege.GetString(),p_objectname.GetString(),p_grantee.GetString());
@@ -1767,11 +1867,40 @@ SQLInfoFirebird::GetCatalogGrantPrivilege(XString /*p_schema*/,XString p_objectn
 }
 
 XString 
-SQLInfoFirebird::GetCatalogRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
+SQLInfoFirebird::GetCATALOGRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
 {
   XString sql;
   sql.Format("REVOKE %s ON %s FROM %s",p_privilege.GetString(),p_objectname.GetString(),p_grantee.GetString());
   return sql;
+}
+
+// All Synonym functions
+XString
+SQLInfoFirebird::GetCATALOGSynonymList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGSynonymAttributes(XString& /*p_schema*/,XString& /*p_synonym*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGSynonymCreate(XString& /*p_schema*/,XString& /*p_synonym*/,XString /*p_forObject*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*/,bool /*p_private = true*/) const
+{
+  // Not implemented yet
+  return "";
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1909,7 +2038,7 @@ SQLInfoFirebird::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoFirebird::GetPSMProcedureDrop(XString p_schema, XString p_procedure) const
+SQLInfoFirebird::GetPSMProcedureDrop(XString p_schema, XString p_procedure,bool /*p_function /*=false*/) const
 {
   XString sql("DROP PROCEDURE " + p_procedure);
   return sql;
@@ -1919,6 +2048,12 @@ XString
 SQLInfoFirebird::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
 {
   // Firebird does not support procedure errors
+  return "";
+}
+
+XString
+SQLInfoFirebird::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/) const
+{
   return "";
 }
 

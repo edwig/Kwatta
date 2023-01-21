@@ -24,7 +24,7 @@ class StepResultNET;
 
 // RawResponseDlg dialog
 
-class RawResponseDlg : public StyleDialog
+class RawResponseDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(RawResponseDlg)
 

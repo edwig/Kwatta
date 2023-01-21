@@ -25,7 +25,7 @@ class StepResultNET;
 
 // RespHeadersDlg dialog
 
-class RespHeadersDlg : public StyleDialog
+class RespHeadersDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(RespHeadersDlg)
 

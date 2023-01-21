@@ -40,10 +40,10 @@ static char THIS_FILE[] = __FILE__;
 
 // PayloadDlg dialog
 
-IMPLEMENT_DYNAMIC(RequestDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(RequestDlg, StyleTab)
 
 RequestDlg::RequestDlg(CWnd* pParent /*=nullptr*/)
-           :StyleDialog(IDD_REQUEST, pParent)
+           :StyleTab(IDD_REQUEST, pParent)
 {
 }
 
@@ -54,7 +54,7 @@ RequestDlg::~RequestDlg()
 void 
 RequestDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_CBString(pDX,IDC_CONTENT,     m_comboMime,m_mimeType);
   DDX_Control (pDX,IDC_CHECK,       m_buttonCheck);
   DDX_Control (pDX,IDC_PARAM,       m_buttonParam);
@@ -94,7 +94,7 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(RequestDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(RequestDlg, StyleTab)
   ON_CBN_SELCHANGE(IDC_CONTENT,     &RequestDlg::OnCbnSelchangeMime)
   ON_BN_CLICKED   (IDC_CHECK,       &RequestDlg::OnBnClickedCheck)
   ON_BN_CLICKED   (IDC_PARAM,       &RequestDlg::OnBnClickedParam)
@@ -113,7 +113,7 @@ END_MESSAGE_MAP()
 BOOL
 RequestDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonCheck.SetIconImage(IDI_CHECK);
   m_buttonParam.SetIconImage(IDI_LIST);
@@ -135,7 +135,7 @@ RequestDlg::OnInitDialog()
 void
 RequestDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

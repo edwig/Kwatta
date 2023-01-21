@@ -24,7 +24,7 @@
 
 // SQLSQLStateDlg dialog
 
-class SQLSQLStateDlg : public StyleDialog
+class SQLSQLStateDlg : public StyleTab
 {
   DECLARE_DYNAMIC(SQLSQLStateDlg)
 

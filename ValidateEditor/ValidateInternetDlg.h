@@ -70,7 +70,6 @@ protected:
 
   ValidateNET   m_validate;
   Parameters   m_parameters;
-	HICON        m_hIcon;
   StatusDlg*   m_tab1;
   HeaderDlg*   m_tab2;
   BodyDlg*     m_tab3;

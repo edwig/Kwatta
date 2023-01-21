@@ -23,7 +23,7 @@
 
 // SQLStatusDlg dialog
 
-class SQLStatusDlg : public StyleDialog
+class SQLStatusDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(SQLStatusDlg)
 

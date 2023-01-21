@@ -27,10 +27,10 @@
 
 // SQLDataDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLDataDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(SQLDataDlg,StyleTab)
 
 SQLDataDlg::SQLDataDlg(CWnd* p_parent)
-	         :StyleDialog(IDD_SQL_DATA,p_parent)
+	         :StyleTab(IDD_SQL_DATA,p_parent)
 {
 }
 
@@ -41,7 +41,7 @@ SQLDataDlg::~SQLDataDlg()
 void 
 SQLDataDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_USE_RETURN, m_checkData);
 	DDX_Control(pDX,IDC_GRID,				m_list);
 	DDX_Control(pDX,IDC_NEW,				m_buttonNew);
@@ -72,7 +72,7 @@ SQLDataDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(SQLDataDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLDataDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_RETURN,		&SQLDataDlg::OnBnClickedUseData)
   ON_NOTIFY(LVN_ITEMCHANGED,IDC_GRID,	&SQLDataDlg::OnLvnItemchangedGrid)
 	ON_BN_CLICKED   (IDC_NEW,						&SQLDataDlg::OnBnClickedNew)
@@ -87,7 +87,7 @@ END_MESSAGE_MAP()
 BOOL
 SQLDataDlg::OnInitDialog()
 {
-	StyleDialog::OnInitDialog();
+	StyleTab::OnInitDialog();
 
 	m_buttonParm.SetIconImage(IDI_LIST);
 	m_buttonNew .SetIconImage(IDI_NEW);
@@ -108,7 +108,7 @@ SQLDataDlg::OnInitDialog()
 void
 SQLDataDlg::SetupDynamicLayout()
 {
-	StyleDialog::SetupDynamicLayout();
+	StyleTab::SetupDynamicLayout();
 
 	CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

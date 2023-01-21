@@ -33,10 +33,10 @@ static char THIS_FILE[] = __FILE__;
 
 // SQLResultDlg dialog
 
-IMPLEMENT_DYNAMIC(SQLResultDlg,StyleDialog)
+IMPLEMENT_DYNAMIC(SQLResultDlg,StyleTab)
 
 SQLResultDlg::SQLResultDlg(CWnd* pParent /*=nullptr*/)
-             :StyleDialog(IDD_SQLRESULT, pParent)
+             :StyleTab(IDD_SQLRESULT, pParent)
 {
 }
 
@@ -46,20 +46,20 @@ SQLResultDlg::~SQLResultDlg()
 
 void SQLResultDlg::DoDataExchange(CDataExchange* pDX)
 {
-  StyleDialog::DoDataExchange(pDX);
+  StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_GRID, m_list);
   DDX_Control(pDX,IDC_SPEED,m_editSpeed,m_speed);
   DDX_Control(pDX,IDC_CLEAR,m_buttonClear);
 }
 
-BEGIN_MESSAGE_MAP(SQLResultDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(SQLResultDlg, StyleTab)
   ON_BN_CLICKED(IDC_CLEAR,OnBnClickedClear)
 END_MESSAGE_MAP()
 
 BOOL
 SQLResultDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   InitLijst();
   m_editSpeed.SetMutable(false);
@@ -72,7 +72,7 @@ SQLResultDlg::OnInitDialog()
 void
 SQLResultDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

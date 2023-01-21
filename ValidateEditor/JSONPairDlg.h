@@ -24,7 +24,7 @@
 
 // JSONPairDlg dialog
 
-class JSONPairDlg : public StyleDialog
+class JSONPairDlg : public StyleTab
 {
   DECLARE_DYNAMIC(JSONPairDlg)
 

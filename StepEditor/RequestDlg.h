@@ -25,7 +25,7 @@ class Parameters;
 
 // PayloadDlg dialog
 
-class RequestDlg : public StyleDialog
+class RequestDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(RequestDlg)
 

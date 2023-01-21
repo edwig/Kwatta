@@ -32,10 +32,10 @@ static char THIS_FILE[] = __FILE__;
 
 // RespHeadersDlg dialog
 
-IMPLEMENT_DYNAMIC(RespHeadersDlg,StyleDialog)
+IMPLEMENT_DYNAMIC(RespHeadersDlg,StyleTab)
 
 RespHeadersDlg::RespHeadersDlg(CWnd* pParent /*=nullptr*/)
-               :StyleDialog(IDD_RESP_HEADERS,pParent)
+               :StyleTab(IDD_RESP_HEADERS,pParent)
 {
 }
 
@@ -45,17 +45,17 @@ RespHeadersDlg::~RespHeadersDlg()
 
 void RespHeadersDlg::DoDataExchange(CDataExchange* pDX)
 {
-  StyleDialog::DoDataExchange(pDX);
+  StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX,IDC_GRID,m_list);
 }
 
-BEGIN_MESSAGE_MAP(RespHeadersDlg,StyleDialog)
+BEGIN_MESSAGE_MAP(RespHeadersDlg,StyleTab)
 END_MESSAGE_MAP()
 
 BOOL
 RespHeadersDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
   InitLijst();
   SetCanResize();
   return TRUE;
@@ -64,7 +64,7 @@ RespHeadersDlg::OnInitDialog()
 void
 RespHeadersDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

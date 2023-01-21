@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // StatusDlg dialog
 
-IMPLEMENT_DYNAMIC(StatusDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(StatusDlg,StyleTab)
 
 StatusDlg::StatusDlg(CWnd* pParent /*=nullptr*/)
-          :StyleDialog(IDD_STATUS, pParent)
+          :StyleTab(IDD_STATUS, pParent)
 {
 }
 
@@ -48,7 +48,7 @@ StatusDlg::~StatusDlg()
 void 
 StatusDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_STATUS, m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR,   m_comboOperator);
   DDX_Control(pDX, IDC_STATUS,     m_editExpected, m_expectedStatus);
@@ -68,7 +68,7 @@ StatusDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(StatusDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(StatusDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_STATUS, &StatusDlg::OnBnClickedUseStatus)
   ON_CBN_SELCHANGE(IDC_OPERATOR,   &StatusDlg::OnCbnSelchangeOperator)
   ON_EN_CHANGE    (IDC_STATUS,     &StatusDlg::OnEnChangeStatus)
@@ -82,7 +82,7 @@ END_MESSAGE_MAP()
 BOOL
 StatusDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonStatusVar.SetIconImage(IDI_RETURN);
@@ -94,7 +94,7 @@ StatusDlg::OnInitDialog()
 void
 StatusDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

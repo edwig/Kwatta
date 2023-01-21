@@ -24,7 +24,7 @@
 
 // BodyDlg dialog
 
-class BodyDlg : public StyleDialog
+class BodyDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(BodyDlg)
 

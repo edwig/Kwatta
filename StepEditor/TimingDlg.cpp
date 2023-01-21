@@ -36,10 +36,10 @@ static char THIS_FILE[] = __FILE__;
 
 // TimingDlg dialog
 
-IMPLEMENT_DYNAMIC(TimingDlg,StyleDialog)
+IMPLEMENT_DYNAMIC(TimingDlg,StyleTab)
 
 TimingDlg::TimingDlg(CWnd* pParent /*=nullptr*/)
-	        :StyleDialog(IDD_TIMING, pParent)
+	        :StyleTab(IDD_TIMING, pParent)
 {
 }
 
@@ -49,7 +49,7 @@ TimingDlg::~TimingDlg()
 
 void TimingDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
 
   DDX_Control(pDX, IDC_KILLONTIMEOUT,m_buttonKillOnTimeout);
   DDX_Control(pDX, IDC_WAITFORRUN,   m_editWaitBeforeRun,m_waitBeforeRun);
@@ -70,7 +70,7 @@ void TimingDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(TimingDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(TimingDlg, StyleTab)
   ON_EN_KILLFOCUS (IDC_WAITFORRUN,    &TimingDlg::OnEnChangeWaitBeforerun)
   ON_EN_KILLFOCUS (IDC_WAITAFTERRUN,  &TimingDlg::OnEnChangeWaitafterrun)
   ON_BN_CLICKED   (IDC_KILLONTIMEOUT, &TimingDlg::OnBnClickedKillontimeout)
@@ -83,7 +83,7 @@ END_MESSAGE_MAP()
 BOOL
 TimingDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
   
   m_buttonBefore.SetIconImage(IDI_LIST);
   m_buttonAfter .SetIconImage(IDI_LIST);

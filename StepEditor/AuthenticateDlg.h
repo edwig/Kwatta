@@ -30,7 +30,7 @@ class StepResultNET;
 
 // AuthenticateDlg dialog
 
-class AuthenticateDlg : public StyleDialog
+class AuthenticateDlg : public StyleTab
 {
 	DECLARE_DYNAMIC(AuthenticateDlg)
 

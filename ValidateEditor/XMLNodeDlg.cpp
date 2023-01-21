@@ -34,10 +34,10 @@ static char THIS_FILE[] = __FILE__;
 
 // XMLNodeDlg dialog
 
-IMPLEMENT_DYNAMIC(XMLNodeDlg, StyleDialog)
+IMPLEMENT_DYNAMIC(XMLNodeDlg,StyleTab)
 
 XMLNodeDlg::XMLNodeDlg(CWnd* pParent /*=nullptr*/)
-           :StyleDialog(IDD_XML_NODE, pParent)
+           :StyleTab(IDD_XML_NODE, pParent)
 {
 }
 
@@ -48,7 +48,7 @@ XMLNodeDlg::~XMLNodeDlg()
 void 
 XMLNodeDlg::DoDataExchange(CDataExchange* pDX)
 {
-	StyleDialog::DoDataExchange(pDX);
+	StyleTab::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_USE_XML,  m_buttonCheck);
   DDX_Control(pDX, IDC_OPERATOR, m_comboOperator);
   DDX_Control(pDX, IDC_XMLPATH,  m_editXmlPath,   m_xmlPath);
@@ -70,7 +70,7 @@ XMLNodeDlg::DoDataExchange(CDataExchange* pDX)
   }
 }
 
-BEGIN_MESSAGE_MAP(XMLNodeDlg, StyleDialog)
+BEGIN_MESSAGE_MAP(XMLNodeDlg, StyleTab)
   ON_BN_CLICKED   (IDC_USE_XML, &XMLNodeDlg::OnBnClickedUseXML)
   ON_CBN_SELCHANGE(IDC_OPERATOR,&XMLNodeDlg::OnCbnSelchangeOperator)
   ON_EN_KILLFOCUS (IDC_XMLPATH, &XMLNodeDlg::OnEnChangeXmlPath)
@@ -85,7 +85,7 @@ END_MESSAGE_MAP()
 BOOL
 XMLNodeDlg::OnInitDialog()
 {
-  StyleDialog::OnInitDialog();
+  StyleTab::OnInitDialog();
 
   m_buttonVariable.SetIconImage(IDI_LIST);
   m_buttonXmlParm .SetIconImage(IDI_RETURN);
@@ -97,7 +97,7 @@ XMLNodeDlg::OnInitDialog()
 void
 XMLNodeDlg::SetupDynamicLayout()
 {
-  StyleDialog::SetupDynamicLayout();
+  StyleTab::SetupDynamicLayout();
 
   CMFCDynamicLayout& manager = *GetDynamicLayout();
 #ifdef _DEBUG

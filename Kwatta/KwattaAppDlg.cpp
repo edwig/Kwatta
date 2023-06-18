@@ -143,6 +143,7 @@ BEGIN_MESSAGE_MAP(KwattaAppDlg, StyleDialog)
   ON_COMMAND(ID_MENU_THEMEMODERATE,   OnStyleModerateGray)
   ON_COMMAND(ID_MENU_THEMEPURE,       OnStylePureGray)
   ON_COMMAND(ID_MENU_THEMEBLACK,      OnStyleBlackWhite)
+  ON_COMMAND(ID_MENU_THEMEDARK,       OnStyleDark)
   ON_COMMAND(ID_MENU_ABOUT,           OnAbout)
   ON_COMMAND(ID_MENU_EXIT,            OnExit)
 

@@ -61,7 +61,7 @@
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ConformanceMode>false</ConformanceMode>
@@ -100,7 +100,7 @@
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ConformanceMode>false</ConformanceMode>

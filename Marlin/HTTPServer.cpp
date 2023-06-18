@@ -90,6 +90,9 @@ constexpr const char* global_client_error =
   "</body>\n"
   "</html>\n";
 
+// Error state is retained in TLS (Thread-Local-Storage) on a per-call basis for the server
+__declspec(thread) ULONG tls_lastError = 0;
+
 // Static globals for the server as a whole
 // Can be set through the Marlin.config reading of the HTTPServer
 // unsigned long g_streaming_limit = STREAMING_LIMIT;
@@ -128,6 +131,7 @@ HTTPServer::HTTPServer(XString p_name)
 
   InitializeCriticalSection(&m_eventLock);
   InitializeCriticalSection(&m_sitesLock);
+  InitializeCriticalSection(&m_socketLock);
 
   // Initially the counter is stopped
   m_counter.Stop();
@@ -159,6 +163,7 @@ HTTPServer::~HTTPServer()
   // Free CS to the OS
   DeleteCriticalSection(&m_eventLock);
   DeleteCriticalSection(&m_sitesLock);
+  DeleteCriticalSection(&m_socketLock);
 
   // Resetting the signal handlers
   ResetProcessAfterSEH();
@@ -282,6 +287,19 @@ HTTPServer::SetQueueLength(ULONG p_length)
   m_queueLength = p_length;
 }
 
+// Setting the error in TLS, so no locking needed.
+void
+HTTPServer::SetError(int p_error)
+{
+  tls_lastError = p_error;
+}
+
+ULONG
+HTTPServer::GetLastError()
+{
+  return tls_lastError;
+}
+
 void
 HTTPServer::SetLogLevel(int p_logLevel)
 {
@@ -353,9 +371,12 @@ HTTPServer::ErrorLog(const char* p_function,DWORD p_code,XString p_text)
 {
   bool result = false;
 
+  // Record error for the current thread
+  SetError(p_code);
+
   if(m_log)
   {
-    p_text.AppendFormat(" Error [%d] %s",p_code,GetLastErrorAsString(p_code).GetString());
+    p_text.AppendFormat(" Error [%08lX] %s",p_code,GetLastErrorAsString(p_code).GetString());
     result = m_log->AnalysisLog(p_function, LogType::LOG_ERROR,false,p_text);
   }
 
@@ -363,8 +384,8 @@ HTTPServer::ErrorLog(const char* p_function,DWORD p_code,XString p_text)
   // nothing logged
   if(!result)
   {
-    // What can we do? As a last result: print to stdout
-    printf(MARLIN_SERVER_VERSION " Error [%d] %s\n",p_code,(LPCTSTR)p_text);
+    // What can we do? As a last result: print to trace output
+    TRACE("Marlin " MARLIN_SERVER_VERSION " Error [%08lX] %s\n",p_code,(LPCTSTR) p_text);
   }
 #endif
 }
@@ -384,8 +405,8 @@ HTTPServer::HTTPError(const char* p_function,int p_status,XString p_text)
   // nothing logged
   if(!result)
   {
-    // What can we do? As a last result: print to stdout
-    printf(MARLIN_SERVER_VERSION " Status [%d] %s\n",p_status,(LPCTSTR)p_text);
+    // What can we do? As a last result: print to trace output
+    TRACE("Marlin " MARLIN_SERVER_VERSION " Status [%d] %s\n",p_status,(LPCTSTR) p_text);
   }
 #endif
 }
@@ -897,7 +918,7 @@ HTTPServer::SendResponse(JSONMessage* p_message)
     HTTPMessage* answer = new HTTPMessage(HTTPCommand::http_response,p_message);
     if(answer->GetContentType().Find("json") < 0)
     {
-      answer->SetContentType("application/text+json");
+      answer->SetContentType("application/json");
     }
     // Send the HTTP Message as response
     SendResponse(answer);
@@ -921,6 +942,7 @@ HTTPServer::RespondWithServerError(HTTPMessage* p_message
   p_message->GetFileBuffer()->Reset();
   p_message->GetFileBuffer()->SetBuffer((uchar*)page.GetString(),page.GetLength());
   p_message->SetStatus(p_error);
+  p_message->SetContentType("text/html");
 
   SendResponse(p_message);
 }
@@ -948,6 +970,7 @@ HTTPServer::RespondWithClientError(HTTPMessage* p_message
   p_message->GetFileBuffer()->Reset();
   p_message->GetFileBuffer()->SetBuffer((uchar*)page.GetString(),page.GetLength());
   p_message->SetStatus(p_error);
+  p_message->SetContentType("text/html");
 
   XString challenge = BuildAuthenticationChallenge(p_authScheme,p_realm);
   if(!challenge.IsEmpty())
@@ -1830,6 +1853,7 @@ HTTPServer::RegisterSocket(WebSocket* p_socket)
   DETAILLOGV("Register websocket [%s] at the server",key.GetString());
   key.MakeLower();
 
+  AutoCritSec lock(&m_socketLock);
   SocketMap::iterator it = m_sockets.find(key);
   if(it != m_sockets.end())
   {
@@ -1848,6 +1872,7 @@ HTTPServer::UnRegisterWebSocket(WebSocket* p_socket)
   DETAILLOGV("Unregistering websocket [%s] from the server",key.GetString());
   key.MakeLower();
 
+  AutoCritSec lock(&m_socketLock);
   SocketMap::iterator it = m_sockets.find(key);
   if(it != m_sockets.end())
   {
@@ -1856,6 +1881,7 @@ HTTPServer::UnRegisterWebSocket(WebSocket* p_socket)
     return true;
   }
   // We don't have it
+  ERRORLOG(ERROR_FILE_NOT_FOUND,"Websocket to unregister NOT FOUND! : " + key);
   return false;
 }
 
@@ -1865,6 +1891,7 @@ HTTPServer::FindWebSocket(XString p_key)
 {
   p_key.MakeLower();
 
+  AutoCritSec lock(&m_socketLock);
   SocketMap::iterator it = m_sockets.find(p_key);
   if(it != m_sockets.end())
   {

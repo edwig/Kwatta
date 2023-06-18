@@ -61,7 +61,7 @@
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ConformanceMode>false</ConformanceMode>
@@ -90,7 +90,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>

@@ -62,7 +62,7 @@ ConsoleDlg::OnInitDialog()
   m_editText.SetBorderColor(RGB(0,0,0));
   m_editText.SetBkColor(RGB(0,0,0));
   m_editText.SetTextColor(RGB(180,180,180));
-  m_editText.SetFontName("Lucida console", 120);
+  m_editText.SetFontName("Lucida console",120);
 
   UpdateData(FALSE);
   return TRUE;

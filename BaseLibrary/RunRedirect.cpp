@@ -52,18 +52,18 @@ RunRedirect::~RunRedirect()
 }
 
 void 
-RunRedirect::RunCommand(LPCSTR p_commandLine)
+RunRedirect::RunCommand(LPCSTR p_commandLine,bool p_show)
 {
   AutoCritSec lock((LPCRITICAL_SECTION)&m_critical);
-  StartChildProcess(p_commandLine,FALSE);
+  m_ready = StartChildProcess(p_commandLine,p_show ? SW_SHOW : SW_HIDE) == FALSE;
 }
 
 void 
-RunRedirect::RunCommand(LPCSTR p_commandLine,LPCSTR p_stdInput)
+RunRedirect::RunCommand(LPCSTR p_commandLine,LPCSTR p_stdInput,bool p_show)
 {
   AutoCritSec lock(&m_critical);
   m_input = p_stdInput;
-  StartChildProcess(p_commandLine,FALSE,TRUE);
+  m_ready = StartChildProcess(p_commandLine,p_show ? SW_SHOW : SW_HIDE,TRUE) == FALSE;
 }
 
 void 
@@ -71,11 +71,7 @@ RunRedirect::RunCommand(LPCSTR p_commandLine,HWND p_console,UINT p_showWindow,BO
 {
   AutoCritSec lock(&m_critical);
   m_console = p_console;
-  if(StartChildProcess(p_commandLine,p_showWindow,p_waitForInputIdle) == FALSE)
-  {
-    // Do not continue waiting on the process
-    m_ready = true;
-  }
+  m_ready   = StartChildProcess(p_commandLine,p_showWindow,p_waitForInputIdle) == FALSE;
 }
 
 void RunRedirect::OnChildStarted(LPCSTR /*lpszCmdLine*/) 
@@ -112,21 +108,45 @@ void RunRedirect::OnChildTerminate()
 {
   AutoCritSec lock(&m_critical);
   m_ready = true;
+
+  // Write an END-OF-TRANSMISSION after the output, so the
+  // Redirect scanner can stop reading
+  if(m_hStdOut != NULL)
+  {
+    char buf[1] =  { EOT };
+    ::WriteFile(m_hStdOut,&buf,1,NULL,NULL);
+  }
+  if(m_hStdErr != NULL)
+  {
+    char buf[1] = { EOT };
+    ::WriteFile(m_hStdErr,&buf,1,NULL,NULL);
+  }
 }
 
 bool RunRedirect::IsReady()
 {
   AutoCritSec lock(&m_critical);
 
-  bool res = m_ready;
-  return res;
+  return m_ready;
 }
 
 bool RunRedirect::IsEOF()
 {
   AutoCritSec lock(&m_critical);
-  bool eof = m_eof_input > 0;
-  return eof;
+  return m_eof_input > 0;
+}
+
+bool RunRedirect::IsErrorEOF()
+{
+  AutoCritSec lock(&m_critical);
+  return m_eof_error > 0;
+}
+
+bool RunRedirect::IsReadyAndEOF()
+{
+  AutoCritSec lock(&m_critical);
+
+  return (m_ready && (m_eof_input > 0) && (m_eof_error > 0));
 }
 
 // Write to the STDIN after starting the program
@@ -140,6 +160,8 @@ RunRedirect::FlushStdIn()
     {
       // Error. Stop as soon as possible
       m_ready = true;
+      m_eof_input = 1;
+      m_eof_error = 1;
     }
     // Ready with the input channel
     CloseChildStdIn();
@@ -148,7 +170,7 @@ RunRedirect::FlushStdIn()
 }
 
 int 
-CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result)
+CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result,bool p_show /*= false*/)
 {
 #ifdef _ATL
    AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -163,8 +185,8 @@ CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result)
   // Create a new command line
   commandLine.Format("\"%s\" %s",p_program,p_commandLine);
 
-  run.RunCommand(commandLine.GetString());
-  while((run.IsEOF() == false) && (run.IsReady() == false))
+  run.RunCommand(commandLine.GetString(),p_show);
+  while(!run.IsReadyAndEOF())
   {
     Sleep(WAITTIME_STATUS);
   }
@@ -175,7 +197,7 @@ CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result)
 }
 
 int
-CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,LPCSTR p_stdInput,XString& p_result,int p_waittime)
+CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,LPCSTR p_stdInput,XString& p_result,int p_waittime,bool p_show /*= false*/)
 {
 #ifdef _ATL
   AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -191,8 +213,8 @@ CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,LPCSTR p_stdInput,X
   commandLine.Format("\"%s\" %s",p_program,p_commandLine);
 
   clock_t start = clock();
-  run.RunCommand(commandLine.GetString(),p_stdInput);
-  while((run.IsEOF() == false) && (run.IsReady() == false))
+  run.RunCommand(commandLine.GetString(),p_stdInput,p_show);
+  while(!run.IsReadyAndEOF())
   {
     Sleep(WAITTIME_STATUS);
 
@@ -208,8 +230,43 @@ CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,LPCSTR p_stdInput,X
   return run.m_exitCode;
 }
 
-int 
-CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result,int p_waittime)
+int
+CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,LPCSTR p_stdInput,XString& p_result,XString& p_errors,int p_waittime,bool p_show /*= false*/)
+{
+#ifdef _ATL
+  AFX_MANAGE_STATE(AfxGetStaticModuleState());
+#endif
+  RunRedirect run;
+
+  XString commandLine;
+
+  // Result is initially empty
+  p_result = "";
+
+  // Create a new command line
+  commandLine.Format("\"%s\" %s",p_program,p_commandLine);
+
+  clock_t start = clock();
+  run.RunCommand(commandLine.GetString(),p_stdInput,p_show);
+  while(!run.IsReadyAndEOF())
+  {
+    Sleep(WAITTIME_STATUS);
+
+    // Check if we are out of waittime
+    clock_t now = clock();
+    if((now - start) > p_waittime)
+    {
+      break;
+    }
+  }
+  run.TerminateChildProcess();
+  p_result = run.m_output;
+  p_errors = run.m_error;
+  return run.m_exitCode;
+}
+
+int
+CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result,int p_waittime,bool p_show /*= false*/)
 {
 #ifdef _ATL
    AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -225,8 +282,8 @@ CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result,i
   commandLine.Format("\"%s\" %s",p_program,p_commandLine);
 
   clock_t start = clock();
-  run.RunCommand(commandLine.GetString());
-  while((run.IsEOF() == false) && (run.IsReady() == false))
+  run.RunCommand(commandLine.GetString(),p_show);
+  while(!run.IsReadyAndEOF())
   {
     Sleep(WAITTIME_STATUS);
 
@@ -243,7 +300,7 @@ CallProgram_For_String(LPCSTR p_program,LPCSTR p_commandLine,XString& p_result,i
 }
 
 int 
-CallProgram(LPCSTR p_program, LPCSTR p_commandLine)
+CallProgram(LPCSTR p_program, LPCSTR p_commandLine,bool p_show /*= false*/)
 {
 #ifdef _ATL
   AFX_MANAGE_STATE(AfxGetStaticModuleState());
@@ -254,8 +311,8 @@ CallProgram(LPCSTR p_program, LPCSTR p_commandLine)
   // Create a new command line
   commandLine.Format("\"%s\" %s",p_program,p_commandLine);
 
-  run.RunCommand(commandLine.GetString());
-  while ((run.IsEOF() == false) && (run.IsReady() == false))
+  run.RunCommand(commandLine.GetString(),p_show);
+  while(!run.IsReadyAndEOF())
   {
     Sleep(WAITTIME_STATUS);
   }
@@ -316,14 +373,14 @@ PosixCallProgram(XString  p_directory
   }
 
   // Wait for the standard output/standard error to drain
-  while((run.IsEOF() == false) && (run.IsReady() == false))
+  while(!run.IsReadyAndEOF())
   {
     Sleep(WAITTIME_STATUS);
   }
   run.TerminateChildProcess();
 
   // Reset console title
-  if (p_console)
+  if(p_console)
   {
     SendMessage(p_console,WM_CONSOLE_TITLE,0,(LPARAM)"");
   }

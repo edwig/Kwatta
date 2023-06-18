@@ -53,6 +53,9 @@ StyleDialog::StyleDialog(UINT  p_IDTemplate
   {
     LoadStyleTheme();
   }
+  // Load the default icon
+  m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+  // Set default background brush
   m_defaultBrush.DeleteObject();
   m_defaultBrush.CreateSolidBrush(ThemeColor::GetColor(Colors::ColorWindowFrame));
 }
@@ -75,6 +78,7 @@ BEGIN_MESSAGE_MAP(StyleDialog,CDialog)
   ON_WM_ACTIVATE()
   ON_WM_ACTIVATEAPP()
   ON_WM_SETTINGCHANGE()
+  ON_WM_QUERYDRAGICON()
   ON_REGISTERED_MESSAGE(g_msg_changed,OnStyleChanged)
   ON_NOTIFY_EX(TTN_NEEDTEXT,0,        OnToolTipNotify)
   ON_MESSAGE(WM_CTLCOLORSTATIC,       OnCtlColorStatic)
@@ -537,6 +541,8 @@ StyleDialog::LoadStyleTheme()
   ThemeColor::Themes theme = (ThemeColor::Themes)th;
   ThemeColor::SetTheme(theme);
 
+  SendMessageToAllChildWindows(g_msg_changed,0,0);
+
   // Needed for coloring backgrounds of the controls
   m_defaultBrush.DeleteObject();
   m_defaultBrush.CreateSolidBrush(ThemeColor::GetColor(Colors::ColorWindowFrame));
@@ -549,6 +555,24 @@ StyleDialog::LoadStyleTheme()
     ReDrawDialog();
     RedrawWindow(NULL,NULL,RDW_INVALIDATE|RDW_FRAME|RDW_ALLCHILDREN);
   }
+}
+
+BOOL CALLBACK EnumChildProc(HWND hwnd,LPARAM lParam)
+{
+  PSMessage psMessage = (PSMessage) lParam;
+  SendMessage(hwnd,psMessage->MessageId,psMessage->wParam,psMessage->lParam);
+  return TRUE;
+}
+
+void 
+StyleDialog::SendMessageToAllChildWindows(UINT MessageId,WPARAM wParam,LPARAM lParam)
+{
+  SMessage sMessage;
+  sMessage.MessageId = MessageId;
+  sMessage.wParam    = wParam;
+  sMessage.lParam    = lParam;
+
+  EnumChildWindows(GetSafeHwnd(),EnumChildProc,(LPARAM) &sMessage);
 }
 
 // After setting of a theme,
@@ -650,10 +674,13 @@ StyleDialog::OnCtlColorListBox(WPARAM wParam, LPARAM lParam)
 void
 StyleDialog::OnActivate(UINT nState,CWnd* pWndOther,BOOL bMinimized)
 {
-  CDialog::OnActivate(nState,pWndOther,bMinimized);
-  if(nState == WA_ACTIVE || nState == WA_CLICKACTIVE)
+  if(m_canActivate)
   {
-    ReDrawFrame();
+    if(nState == WA_ACTIVE || nState == WA_CLICKACTIVE)
+    {
+      CDialog::OnActivate(nState,pWndOther,bMinimized);
+      ReDrawFrame();
+    }
   }
 }
 
@@ -742,6 +769,10 @@ StyleDialog::OnNcLButtonDown(UINT nFlags, CPoint point)
     CDialog::OnNcLButtonDown(nFlags, point);
     return;
   }
+
+  // Remove gripper. We could resize the dialog
+  EraseGripper();
+
   switch (nFlags) 
   {
     case HTCLOSE:
@@ -816,10 +847,11 @@ StyleDialog::OnNcLButtonDown(UINT nFlags, CPoint point)
       SetWindowPos(&CWnd::wndTop,0,0,0,0,SWP_NOSIZE|SWP_NOMOVE|SWP_SHOWWINDOW|SWP_NOSENDCHANGING|SWP_DRAWFRAME);
 
       CPoint lastpoint(point);
+      CPoint moved(point);
       CRect window;
       GetWindowRect(window);
-      point.x -= window.left;
-      point.y -= window.top;
+      moved.x -= window.left;
+      moved.y -= window.top;
 
       while (LBUTTONDOWN)
       {
@@ -827,10 +859,11 @@ StyleDialog::OnNcLButtonDown(UINT nFlags, CPoint point)
         GetCursorPos(&cursor);
         if (cursor != lastpoint)
         {
-          SetWindowPos(NULL, cursor.x - point.x, cursor.y - point.y, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+          SetWindowPos(NULL, cursor.x - moved.x, cursor.y - moved.y, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
           lastpoint = cursor;
         }
       }
+      return;
     }
     break;
 
@@ -883,7 +916,6 @@ StyleDialog::OnNcLButtonDown(UINT nFlags, CPoint point)
           if(window.Width()  >= m_originalSize.Width() &&
              window.Height() >= m_originalSize.Height())
           {
-
             SetWindowPos(nullptr, window.left, window.top, window.Width(), window.Height(), SWP_NOZORDER | SWP_DRAWFRAME);
           }
           lastpoint = cursor;
@@ -1423,9 +1455,28 @@ StyleDialog::Button(CDC* pDC, CRect rect, LRESULT type,StyleDialog::BUTTONSTATE 
 void
 StyleDialog::OnPaint()
 {
+  if(IsIconic())
+  {
+    CPaintDC dc(this); // device context for painting
+
+    SendMessage(WM_ICONERASEBKGND,reinterpret_cast<WPARAM>(dc.GetSafeHdc()),0);
+
+    // Center icon in client rectangle
+    int cxIcon = GetSystemMetrics(SM_CXICON);
+    int cyIcon = GetSystemMetrics(SM_CYICON);
+    CRect rect;
+    GetClientRect(&rect);
+    int x = (rect.Width()  - cxIcon + 1) / 2;
+    int y = (rect.Height() - cyIcon + 1) / 2;
+
+    // Draw the icon
+    dc.DrawIcon(x,y,m_hIcon);
+    return;
+  }
+
   CDialog::OnPaint();
 
-  if(m_canResize && (GetParent() == nullptr))
+  if(m_canResize && (GetParent() == nullptr) && (GetStyle() & WS_MAXIMIZE) == 0)
   {
     CDC* pDC = GetDC();
     CRect rect;
@@ -1435,6 +1486,30 @@ StyleDialog::OnPaint()
     pDC->DrawFrameControl(rect,DFC_SCROLL,DFCS_SCROLLSIZEGRIP);
     ReleaseDC(pDC);
   }
+}
+
+// Remove gripper before resizing the dialog
+void
+StyleDialog::EraseGripper()
+{
+  if(m_canResize && (GetParent() == nullptr) && (GetStyle() & WS_MAXIMIZE) == 0)
+  {
+    CDC* pDC = GetDC();
+    CRect rect;
+    GetClientRect(rect);
+    rect.left = rect.right - ::GetSystemMetrics(SM_CXHSCROLL);
+    rect.top = rect.bottom - ::GetSystemMetrics(SM_CYVSCROLL);
+    pDC->FillRect(rect,&m_defaultBrush);
+    ReleaseDC(pDC);
+  }
+}
+
+// The system calls this function to obtain the cursor to display while the user drags the minimized window.
+// Normally generated by the MFC Wizard
+HCURSOR 
+StyleDialog::OnQueryDragIcon()
+{
+  return static_cast<HCURSOR>(m_hIcon);
 }
 
 // Try overridden OnClosing before canceling the dialog

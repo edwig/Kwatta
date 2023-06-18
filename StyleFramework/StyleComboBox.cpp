@@ -240,7 +240,7 @@ StyleComboBox::CreateListControl()
     style |= LBS_EXTENDEDSEL;
     m_listControl->SetMultiSelect(m_multiselect = true);
   }
-  m_listControl->CreateEx(styleEx,"LISTBOX","",style,rect,GetDesktopWindow(),0);
+  m_listControl->CreateEx(styleEx,"LISTBOX","",style,rect,CWnd::FromHandle(::GetDesktopWindow()),0);
   m_listControl->InitSkin();
   if(m_listControl->GetSkin())
   {
@@ -1047,7 +1047,10 @@ StyleComboBox::OnSetFocus(CWnd* pOldWnd)
   if(!rect.PtInRect(here))
   {
     // We are not on the combobox button
-    m_itemControl->SetFocus();
+    if(m_itemControl)
+    {
+      m_itemControl->SetFocus();
+    }
   }
 }
 

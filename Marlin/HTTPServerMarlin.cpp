@@ -808,7 +808,7 @@ HTTPServerMarlin::FlushSocket(HTTP_OPAQUE_ID p_request,XString p_prefix)
 
   if(result != NO_ERROR)
   {
-    ERRORLOG(GetLastError(),"Flushing HTTP request for WebSocket failed!");
+    ERRORLOG(result,"Flushing HTTP request for WebSocket failed!");
     CancelRequestStream(p_request);
     return false;
   }

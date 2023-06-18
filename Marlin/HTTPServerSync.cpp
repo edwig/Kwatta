@@ -1360,7 +1360,7 @@ HTTPServerSync::SendResponseFileHandle(PHTTP_RESPONSE p_response
   // File to transmit
   if(p_buffer->OpenFile() == false)
   {
-    ERRORLOG(GetLastError(),"OpenFile for SendHttpResponse");
+    ERRORLOG(::GetLastError(),"OpenFile for SendHttpResponse");
     return;
   }
   // Get the filehandle from buffer

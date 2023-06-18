@@ -43,6 +43,7 @@
 #include "HTTPClientTracing.h"
 #include "HTTPError.h"
 #include "OAuth2Cache.h"
+#include "Version.h"
 #include <ZIP\gzip.h>
 #include <winerror.h>
 #include <wincrypt.h>
@@ -121,7 +122,7 @@ HTTPClient::Reset()
   m_proxyPassword.Empty();
   m_enc_password.Empty();
 
-  m_agent           = "HTTPClient/1.0";
+  m_agent           = "HTTPClient/" MARLIN_VERSION_NUMBER;
   m_scheme          = "http";
   m_retries         = 0;
   m_useProxy        = ProxyType::PROXY_IEPROXY;
@@ -1047,7 +1048,7 @@ HTTPClient::AddExtraHeaders()
   }
   if(m_httpCompression)
   {
-    AddHeader("Accept-Encoding","gzip");
+    AddHeader("Accept-Encoding","chunked, gzip");
   }
   if(m_terminalServices)
   {
@@ -1828,6 +1829,7 @@ HTTPClient::ReceivePushEvents()
   {
     DWORD dwSize = 0;
     DWORD dwRead = 0;
+    DWORD status = 0;
 
     if(::WinHttpQueryDataAvailable(m_request,&dwSize))
     {
@@ -1919,8 +1921,33 @@ HTTPClient::ReceivePushEvents()
     }
     else
     {
+      // Already closing status found?
+      if(m_request == NULL)
+      {
+        m_status = HTTP_STATUS_NO_CONTENT;
+      }
+      else if(::WinHttpQueryHeaders(m_request,
+                               WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+                               NULL, // WINHTTP_HEADER_NAME_BY_INDEX,
+                               &status,
+                               &dwSize,
+                               WINHTTP_NO_HEADER_INDEX))
+      {
+        m_status = status;
+      }
+      if(m_status == HTTP_STATUS_NO_CONTENT)
+      {
+        DETAILLOG("Server close event-stream properly with HTTP 204.");
+        if(m_eventSource->GetReadyState() == OPEN)
+        {
+          ServerEvent* event = new ServerEvent("close");
+          m_eventSource->OnClose(event);
+        }
+        return;
+      }
       // Error in polling HTTP Status
       DWORD er = GetLastError();
+      CString message = GetLastErrorAsString(er);
       switch(er)
       {
         case ERROR_WINHTTP_CONNECTION_ERROR:          m_status = HTTP_STATUS_SERVICE_UNAVAIL;   break;
@@ -1942,7 +1969,7 @@ HTTPClient::ReceivePushEvents()
 
       // Make error event and dispatch it
       ServerEvent* event = new ServerEvent("error");
-      event->m_data.Format("OS Error: %lu, HTTP Error: %u",er,m_status);
+      event->m_data.Format("OS Error [%lu:%s] HTTP Status [%u] %s",er,message.GetString(),m_status,GetHTTPStatusText(m_status));
       ERRORLOG(event->m_data);
       m_eventSource->OnError(event);
 
@@ -2375,20 +2402,23 @@ HTTPClient::Send(SOAPMessage* p_msg)
   }
   else
   {
-    XString response;
-    if(m_response)
+    // No specific SOAPAction header
+    p_msg->DelHeader("SOAPAction");
+
+    // In case of an error and NO soap XML with a fault in the error body
+    if(p_msg->GetFaultCode().IsEmpty() && p_msg->GetFaultActor().IsEmpty())
     {
-      response = m_response;
-      response += ". ";
+      XString response;
+      if(m_lastError >= WINHTTP_ERROR_BASE && m_lastError <= WINHTTP_ERROR_LAST)
+      {
+        response.Format("Error number [%d] %s\n",m_lastError,GetHTTPErrorText(m_lastError).GetString());
+      }
+      if(m_response)
+      {
+        response += XString(m_response);
+      }
+      ReCreateAsSOAPFault(p_msg,oldVersion,response);
     }
-    if(m_lastError >= WINHTTP_ERROR_BASE && m_lastError <= WINHTTP_ERROR_LAST)
-    {
-      response.AppendFormat("%s. Error number [%d]",GetHTTPErrorText(m_lastError).GetString(),m_lastError);
-    }
-    // In case of an error
-    p_msg->SetSoapVersion(oldVersion);
-    p_msg->Reset();
-    p_msg->SetFault("Client","Send error","HTTPClient send result",response);
   }
 
   // Freeing Unicode UTF-16 buffer
@@ -3122,9 +3152,10 @@ HTTPClient::Send()
   }
   DETAILLOG("Returned HTTP status: %d:%s",m_status,GetHTTPStatusText(m_status));
 
-  // See if we must do 'gzip' decompression
+  // See if we must do 'gzip' decompression.
+  // Header can contain other information (e.g. "chunked")
   XString compress = ReadHeaderField(WINHTTP_QUERY_CONTENT_ENCODING);
-  if(compress.CompareNoCase("gzip") == 0)
+  if(compress.Find("gzip") >= 0)
   {
     // DECompress in-memory with ZLib from a 'gzip' HTTP buffer 
     size_t before = m_responseLength;
@@ -3727,6 +3758,31 @@ HTTPClient::SetCORSPreFlight(XString p_method,XString p_headers)
   return false;
 }
 
+void
+HTTPClient::ReCreateAsSOAPFault(SOAPMessage* p_msg,SoapVersion p_version,XString p_response)
+{
+  p_msg->SetSoapVersion(p_version);
+  p_msg->Reset();
+
+  XMLElement* fault = p_msg->AddElement(p_msg->GetXMLBodyPart(),"Fault",XDT_String,"");
+  if(p_version == SoapVersion::SOAP_12)
+  {
+    // SOAP 1.2
+    XMLElement* fcode = p_msg->AddElement(fault,"Code",  XDT_String,"");
+                        p_msg->AddElement(fcode,"Value", XDT_String,"Client");
+    XMLElement* reasn = p_msg->AddElement(fault,"Reason",XDT_String,"");
+                        p_msg->AddElement(reasn,"Text",  XDT_String,p_response);
+  }
+  else
+  {
+    // SOAP 1.1 or less
+    p_msg->AddElement(fault,"faultcode",  XDT_String,"Client");
+    p_msg->AddElement(fault,"faultstring",XDT_String,"Send result");
+    p_msg->AddElement(fault,"detail",     XDT_String,p_response);
+  }
+  p_msg->SetFault("Client","Client","Send error",p_response);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // WS-Security answer
@@ -4321,7 +4377,6 @@ HTTPClient::StopClient()
     DETAILLOG("Stopping the EventSource");
     if(m_request)
     {
-      ERRORLOG("Stopping of the HTTP event-source channel");
       OnCloseSeen();
     }
     for (int i = 0; i < 10; ++i)

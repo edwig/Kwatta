@@ -20,13 +20,20 @@
 #include <map>
 
 class StyleComboBox;
+class AutoBlockActivation;
 using ToolTips = std::map<HWND,const char*>;
+
+typedef struct
+{
+  UINT   MessageId;
+  WPARAM wParam;
+  LPARAM lParam;
+} 
+SMessage, *PSMessage;
 
 class StyleDialog : public CDialog
 {
   DECLARE_DYNAMIC(StyleDialog)
-
-  DECLARE_MESSAGE_MAP();
 
 public:
   enum BUTTONSTATE
@@ -69,6 +76,8 @@ public:
   void    RegisterTooltip(StyleComboBox& p_wnd,const char* p_text);
 
 protected:
+  friend  AutoBlockActivation;
+
   virtual BOOL    PreTranslateMessage(MSG* p_msg) override;
   virtual INT_PTR OnToolHitTest(CPoint point,TOOLINFO* pTI) const override;
 
@@ -78,8 +87,12 @@ protected:
   void    DrawButton(CDC* pDC,CRect rect,LRESULT type);
   void    PositionButtons();
   void    Button(CDC* pDC, CRect rect, LRESULT type, BUTTONSTATE state = BS_NORMAL, bool max = true);
+  void    SendMessageToAllChildWindows(UINT MessageId,WPARAM wParam,LPARAM lParam);
   void    PerformMenu();
   void    InitStatusBar();
+  void    EraseGripper();
+
+  DECLARE_MESSAGE_MAP();
 
   // Message handlers
   afx_msg int     OnCreate(LPCREATESTRUCT p_create);
@@ -103,6 +116,7 @@ protected:
   afx_msg LRESULT OnStyleChanged(WPARAM wParam,LPARAM lParam);
   afx_msg void    OnSettingChange(UINT uFlags,LPCTSTR lpszSection);
   afx_msg BOOL    OnToolTipNotify(UINT id,NMHDR* pNMHDR,LRESULT* pResult);
+  afx_msg HCURSOR OnQueryDragIcon();
   afx_msg void    OnPaint();
   afx_msg void    OnOK() override;
 
@@ -136,6 +150,7 @@ protected:
   bool      m_maxButton   { false };
   bool      m_canResize   { false };
   bool      m_hasStatus   { false };
+  bool      m_canActivate { true  };
   LRESULT   m_curhit      { HTNOWHERE };
   UINT      m_sysmenu     { NULL  };
   // Objects
@@ -144,4 +159,20 @@ protected:
   CStatusBar m_statusBar;
   CBrush     m_defaultBrush;
   ToolTips   m_tooltips;
+};
+
+class AutoBlockActivation
+{
+public:
+  AutoBlockActivation(StyleDialog* p_dialog) : m_dialog(p_dialog) 
+  {
+    m_dialog->m_canActivate = false;
+  }
+ ~AutoBlockActivation()
+  {
+    m_dialog->m_canActivate = true;
+  }
+
+private:
+  StyleDialog* m_dialog;
 };

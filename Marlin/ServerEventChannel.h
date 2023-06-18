@@ -83,6 +83,8 @@ public:
   int  SendChannel();
   // Process the receiving part of the queue
   int  Receiving();
+  // Sanity check on channel
+  void CheckChannel();
   // Post a new event, giving a new event numerator
   int  PostEvent(XString p_payload,XString p_sender,EvtType p_type = EvtType::EV_Message,XString p_typeName = "");
   // Flushing a channel directly

@@ -21,12 +21,12 @@
 #pragma once
 
 #define KWATTA_VERSION_MAJOR  1
-#define KWATTA_VERSION_MINOR  1
-#define KWATTA_VERSION_SP     1
-#define KWATTA_VERSION_BUILD  207
+#define KWATTA_VERSION_MINOR  2
+#define KWATTA_VERSION_SP     0
+#define KWATTA_VERSION_BUILD  211
 
 #define KWATTA                "Kwatta"
-#define KWATTA_VERSION        "1.1.1"
+#define KWATTA_VERSION        "1.2.0"
 #define KWATTA_YEAR           "2023"
 
 // Used for environment variables

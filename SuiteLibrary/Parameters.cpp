@@ -798,11 +798,10 @@ Parameters::Replace(CString& p_string
     else if (ch == '\\')
     {
       // Skip passed a meta character
-      int meta = p_string.GetAt(ind + 1);
+      int meta = p_string.GetAt(++ind);
       if(meta)
       {
-        if(meta == '$' || meta == '%' || meta == '#' || 
-           meta == '[' || meta == ']' || meta == '<' || meta == '>')
+        if(meta == p_first || meta == p_last)
         {
           replaced += (char)meta;
         }
@@ -812,7 +811,6 @@ Parameters::Replace(CString& p_string
           replaced += (char)meta;
         }
       }
-      ++ind;
     }
     else
     {

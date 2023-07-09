@@ -177,14 +177,30 @@ StyleListBox::OnShowWindow(BOOL bShow, UINT nStatus)
 int 
 StyleListBox::AddString(LPCTSTR p_string)
 {
-  return AppendString(p_string);
+  // Add string anyhow, so we can honour the LBS_SORT settings
+  int result = CListBox::AddString(p_string);
+  if(result != LB_ERR)
+  {
+    if(GetStyle() & LBS_OWNERDRAWFIXED)
+    {
+      ListBoxColorLine* line = new ListBoxColorLine();
+      line->m_foreground = FRAME_DEFAULT_COLOR;
+      line->m_background = FRAME_DEFAULT_COLOR;
+      line->m_text       = p_string;
+
+      SetItemPointer(result,line);
+    }
+    UpdateWidth(p_string);
+    AdjustScroll();
+  }
+  return result;
 }
 
 int 
 StyleListBox::InsertString(int p_index,LPCTSTR p_string,COLORREF p_foreground,COLORREF p_background)
 {
-  bool owner = (GetStyle() & LBS_OWNERDRAWFIXED) > 0;
-  int result = CListBox::InsertString(p_index,owner ? "" : p_string);
+  // Add string anyhow, so we can honour the LBS_SORT settings
+  int result = CListBox::InsertString(p_index,p_string);
   if (result != LB_ERR)
   {
     if (GetStyle() & LBS_OWNERDRAWFIXED)
@@ -205,8 +221,8 @@ StyleListBox::InsertString(int p_index,LPCTSTR p_string,COLORREF p_foreground,CO
 int 
 StyleListBox::AppendString(LPCSTR p_string,COLORREF p_foreground,COLORREF p_background)
 {
-  bool owner = (GetStyle() & LBS_OWNERDRAWFIXED) > 0;
-  int result = CListBox::AddString(owner ? "" : p_string);
+  // Add string anyhow, so we can honour the LBS_SORT settings
+  int result = CListBox::InsertString(-1,p_string);
   if (result != LB_ERR)
   {
     if(GetStyle() & LBS_OWNERDRAWFIXED)
@@ -1016,4 +1032,66 @@ StyleListBox::Internal_PaintItem(CDC* p_cdc,const RECT* rect,INT index,UINT acti
   // So we send it directly to ourselves!!!!!!
   // 
   SendMessage(WM_DRAWITEM,(WPARAM)dis.CtlID,(LPARAM)&dis);
+}
+
+void
+StyleListBox::SetFontSize(int p_size)
+{
+  m_fontSize = p_size;
+  ResetFont();
+}
+
+void
+StyleListBox::SetFontStyle(bool p_bold,bool p_italic,bool p_underLine)
+{
+  m_bold      = p_bold;
+  m_italic    = p_italic;
+  m_underLine = p_underLine;
+  ResetFont();
+}
+
+void
+StyleListBox::SetFontName(CString p_fontName,int p_fontSize,BYTE p_language)
+{
+  m_fontName = p_fontName;
+  m_fontSize = p_fontSize;
+  m_language = p_language;
+  ResetFont();
+}
+
+void
+StyleListBox::ResetFont()
+{
+  LOGFONT  lgFont;
+
+  lgFont.lfCharSet        = m_language;
+  lgFont.lfClipPrecision  = 0;
+  lgFont.lfEscapement     = 0;
+  strcpy_s(lgFont.lfFaceName,LF_FACESIZE,m_fontName);
+  lgFont.lfHeight         = m_fontSize;
+  lgFont.lfItalic         = m_italic;
+  lgFont.lfOrientation    = 0;
+  lgFont.lfOutPrecision   = 0;
+  lgFont.lfPitchAndFamily = 2;
+  lgFont.lfQuality        = 0;
+  lgFont.lfStrikeOut      = 0;
+  lgFont.lfUnderline      = m_underLine;
+  lgFont.lfWidth          = 0;
+  lgFont.lfWeight         = m_bold ? FW_BOLD : FW_MEDIUM;
+
+  // Create new font or remove old object from it
+  if(m_font)
+  {
+    if(m_font->m_hObject)
+    {
+      m_font->DeleteObject();
+    }
+  }
+  else
+  {
+    m_font = new CFont();
+  }
+  // Create new font and set it to this control
+  m_font->CreatePointFontIndirect(&lgFont);
+  SetFont(m_font);
 }

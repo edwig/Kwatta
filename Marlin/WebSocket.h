@@ -140,7 +140,7 @@ using WSFrameStack  = std::deque<WSFrame*>;
 using SocketParams  = std::map<XString,XString>;
 
 // Prototype for WebSocket callback handler
-typedef void(*LPFN_SOCKETHANDLER)(WebSocket* p_socket,WSFrame* p_event);
+typedef void(*LPFN_SOCKETHANDLER)(WebSocket* p_socket,const WSFrame* p_event);
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -151,7 +151,7 @@ typedef void(*LPFN_SOCKETHANDLER)(WebSocket* p_socket,WSFrame* p_event);
 class WebSocket
 {
 public:
-  WebSocket(XString p_uri);
+  explicit WebSocket(XString p_uri);
   virtual ~WebSocket();
 
   // FUNCTIONS
@@ -249,10 +249,10 @@ public:
   XString GetParameter(XString p_name);
 
   // LOGGING
-  void    DetailLog (const char* p_function,LogType p_type,const char* p_text);
-  void    DetailLogS(const char* p_function,LogType p_type,const char* p_text,const char* p_extra);
-  void    DetailLogV(const char* p_function,LogType p_type,const char* p_text,...);
-  void    ErrorLog  (const char* p_function,DWORD p_code,XString p_text);
+  void    DetailLog (LPCTSTR p_function,LogType p_type,LPCTSTR p_text);
+  void    DetailLogS(LPCTSTR p_function,LogType p_type,LPCTSTR p_text,LPCTSTR p_extra);
+  void    DetailLogV(LPCTSTR p_function,LogType p_type,LPCTSTR p_text,...);
+  void    ErrorLog  (LPCTSTR p_function,DWORD p_code,XString p_text);
 
   // Perform the server handshake
   virtual bool ServerHandshake(HTTPMessage* p_message);

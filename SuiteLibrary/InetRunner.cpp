@@ -203,6 +203,35 @@ InetRunner::ParameterProcessing()
     error.Format("Cannot perform test. Existing unbound parameters: %d",unbound);
     throw StdException(error);
   }
+
+  // Setting the timeouts
+  int timeoutResolve = m_testStep.GetTimeoutResolve();
+  if(timeoutResolve < MIN_TIMEOUT_RESOLVE)
+  {
+    timeoutResolve = MIN_TIMEOUT_RESOLVE;
+  }
+  m_client->SetTimeoutResolve(timeoutResolve);
+
+  int timeooutConnect = m_testStep.GetTimeoutConnect();
+  if(timeooutConnect < MIN_TIMEOUT_CONNECT)
+  {
+    timeooutConnect = MIN_TIMEOUT_CONNECT;
+  }
+  m_client->SetTimeoutConnect(timeooutConnect);
+
+  int timeoutSend = m_testStep.GetTimeoutSend();
+  if(timeoutSend < MIN_TIMEOUT_SEND)
+  {
+    timeoutSend = MIN_TIMEOUT_SEND;
+  }
+  m_client->SetTimeoutSend(timeoutSend);
+
+  int timeoutReceive = m_testStep.GetTimeoutReceive();
+  if(timeoutReceive < MIN_TIMEOUT_RECEIVE)
+  {
+    timeoutReceive = MIN_TIMEOUT_RECEIVE;
+  }
+  m_client->SetTimeoutReceive(timeoutReceive);
 }
 
 void
@@ -218,7 +247,7 @@ InetRunner::StartingLogfile()
       if(m_client->GetLogging() == nullptr)
       {
         // Create logfile. Defaults are OK for this application
-        LogAnalysis* log = new LogAnalysis("Kwatta Testrunner");
+        LogAnalysis* log = LogAnalysis::CreateLogfile("Kwatta Testrunner");
         log->SetLogLevel(loglevel);
         log->SetLogFilename(logfile);
 

@@ -21,6 +21,7 @@
 #include "StyleComboBox.h"
 #include "StyleUtilities.h"
 #include <algorithm>
+#include <atlconv.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -142,20 +143,23 @@ StyleComboBox::PreSubclassWindow()
   }
 
   // Owner draw combo boxes get other dimensions, so correct these
-  if((GetStyle() & CBS_OWNERDRAWFIXED) && GetSFXSizeFactor() != 100)
+  // Comboboxes are slightly lower than edit boxes, but when we draw them
+  // as CEdit with a StyleFrame, the tend to be too low!
+  CRect rect;
+  ::GetWindowRect(info.hwndCombo,&rect);
+  CWnd* parent = GetParent();
+  if(parent)
   {
-    int height = (20 * GetSFXSizeFactor()) / 100;
-
-    CRect rect;
-    ::GetWindowRect(info.hwndCombo,&rect);
-
-    CWnd* parent = GetParent();
-    if(parent)
-    {
-      parent->ScreenToClient(rect);
-    }
-    ::MoveWindow(info.hwndCombo,rect.left,rect.top,rect.Width(),height,TRUE);
+    parent->ScreenToClient(rect);
   }
+  int height = (rect.Height() * 13) / 11;
+
+  // When size factors are set, apply these as well.
+  if(GetSFXSizeFactor() != 100)
+  {
+    height = (height * GetSFXSizeFactor()) / 100;
+  }
+  ::MoveWindow(info.hwndCombo,rect.left,rect.top,rect.Width(),height,TRUE);
 }
 
 void
@@ -200,7 +204,7 @@ StyleComboBox::CreateEditControl()
   // Create the edit control
   m_itemControl = new SCBTextEdit();
   m_itemControl->SetDirectInit(false);
-  m_itemControl->CreateEx(styleEx,"EDIT","",style,rect,this,0);
+  m_itemControl->CreateEx(styleEx,_T("EDIT"),_T(""),style,rect,this,0);
   m_itemControl->ModifyStyle(0,WS_BORDER);
   m_itemControl->SetBorderSize(3);
   m_itemControl->SetComboBox(this);
@@ -239,7 +243,7 @@ StyleComboBox::CreateListControl()
     style |= LBS_EXTENDEDSEL;
     m_listControl->SetMultiSelect(m_multiselect = true);
   }
-  m_listControl->CreateEx(styleEx,"LISTBOX","",style,rect,CWnd::FromHandle(::GetDesktopWindow()),0);
+  m_listControl->CreateEx(styleEx,_T("LISTBOX"),_T(""),style,rect,CWnd::FromHandle(::GetDesktopWindow()),0);
   m_listControl->InitSkin();
   if(m_listControl->GetSkin())
   {
@@ -369,7 +373,7 @@ StyleComboBox::SetCheck(int p_index,bool p_check)
 }
 
 void  
-StyleComboBox::InsertAtCurPos(const char* p_text,int p_offset)
+StyleComboBox::InsertAtCurPos(LPCTSTR p_text,int p_offset)
 {
   m_itemControl->InsertAtCurPos(p_text,p_offset);
 }
@@ -399,6 +403,7 @@ void
 StyleComboBox::PostShowComboList()
 {
   // Provide your own override if neccessary
+  m_listControl->SetFocus();
 }
 
 void StyleComboBox::PreHideComboList() 
@@ -564,7 +569,7 @@ StyleComboBox::SetEditSelection()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITUPDATE),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITUPDATE),(LPARAM)m_hWnd);
   }
 
   // HERE COMES THE UPDATE
@@ -573,7 +578,7 @@ StyleComboBox::SetEditSelection()
   // Tell it to the owner
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITCHANGE),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITCHANGE),(LPARAM)m_hWnd);
   }
 }
 
@@ -627,7 +632,7 @@ StyleComboBox::OnGetCount(WPARAM wParam,LPARAM lParam)
 LRESULT 
 StyleComboBox::OnGetCueBanner(WPARAM wParam,LPARAM lParam)
 {
-  return GetCueBanner((LPSTR)wParam,(int)lParam);
+  return GetCueBanner((LPTSTR)wParam,(int)lParam);
 }
 
 LRESULT 
@@ -873,7 +878,7 @@ StyleComboBox::OnGetText(WPARAM wParam,LPARAM lParam)
 {
   CString text;
   m_itemControl->GetWindowText(text);
-  lstrcpyn((LPSTR)lParam,text,(INT)wParam);
+  lstrcpyn((LPTSTR)lParam,text,(INT)wParam);
   return text.GetLength();
 }
 
@@ -899,7 +904,7 @@ StyleComboBox::OnChar(UINT nChar,UINT nRepCnt,UINT nFlags)
 
   if((nChar == VK_TAB) && m_itemControl)
   {
-    m_itemControl->PostMessage(WM_CHAR,VK_TAB,nFlags);
+    m_itemControl->SendMessage(WM_CHAR,VK_TAB,nFlags);
     return;
   }
 }
@@ -928,7 +933,7 @@ StyleComboBox::OnCloseup(bool p_force /*= false*/)
     if(owner)
     {
       // Take actions for closeup in the owner dialog
-      ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_CLOSEUP),(LPARAM)m_hWnd);
+      ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_CLOSEUP),(LPARAM)m_hWnd);
     }
     Invalidate();
     m_itemControl->Invalidate();
@@ -950,7 +955,7 @@ StyleComboBox::OnDropdown()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_DROPDOWN),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_DROPDOWN),(LPARAM)m_hWnd);
   }
 
   // Show the list
@@ -974,7 +979,7 @@ StyleComboBox::OnSelEndOK(bool p_force /* = false*/)
     CWnd* owner = GetOwner();
     if(owner)
     {
-      ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SELENDOK),(LPARAM)m_hWnd);
+      ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SELENDOK),(LPARAM)m_hWnd);
     }
   }
 }
@@ -993,7 +998,7 @@ StyleComboBox::OnSelEndCancel()
     CWnd* owner = GetOwner();
     if(owner)
     {
-      ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SELENDCANCEL),(LPARAM)m_hWnd);
+      ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SELENDCANCEL),(LPARAM)m_hWnd);
     }
   }
 }
@@ -1031,26 +1036,31 @@ void
 StyleComboBox::OnSetFocus(CWnd* pOldWnd)
 {
   m_focus = true;
-  if(m_itemControl && pOldWnd != m_itemControl)
+  if((m_itemControl && pOldWnd != m_itemControl) &&
+     (m_listControl && pOldWnd != m_listControl) &&
+     GetSafeHwnd())
   {
     CWnd* owner = GetOwner();
     if(owner)
-    {
-      ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SETFOCUS),(LPARAM)m_hWnd);
+      {
+      ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SETFOCUS),(LPARAM)m_hWnd);
     }
   }
-  CRect rect;
-  GetClientRect(rect);
-  rect.left = rect.right - rect.Height();
-  CPoint here = GetCaretPos();
-  if(!rect.PtInRect(here))
-  {
-    // We are not on the combobox button
-    if(m_itemControl)
-    {
-      m_itemControl->SetFocus();
-    }
-  }
+//   CRect rect;
+//   GetClientRect(rect);
+//   rect.left = rect.right - rect.Height();
+//   CPoint here = GetCaretPos();
+//   if(!rect.PtInRect(here))
+//   {
+//     if(!m_listControl->IsWindowVisible())
+//     {
+//       // We are not on the combobox button and listcontrol is visible
+//       if(m_itemControl)
+//       {
+//         m_itemControl->SetFocus();
+//       }
+//     }
+//   }
 }
 
 void
@@ -1059,7 +1069,7 @@ StyleComboBox::OnKillFocus()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_KILLFOCUS),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_KILLFOCUS),(LPARAM)m_hWnd);
   }
   m_focus = false;
 }
@@ -1071,7 +1081,7 @@ StyleComboBox::OnLbnSelChange()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SELCHANGE),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_SELCHANGE),(LPARAM)m_hWnd);
   }
 }
 
@@ -1081,7 +1091,7 @@ StyleComboBox::OnEditChange()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITCHANGE),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITCHANGE),(LPARAM)m_hWnd);
   }
 }
 
@@ -1096,7 +1106,7 @@ StyleComboBox::OnEditUpdate()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITUPDATE),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_EDITUPDATE),(LPARAM)m_hWnd);
   }
 }
 
@@ -1107,7 +1117,7 @@ StyleComboBox::OnLbnDblClk()
   CWnd* owner = GetOwner();
   if(owner)
   {
-    ::PostMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_DBLCLK),(LPARAM)m_hWnd);
+    ::SendMessage(owner->GetSafeHwnd(),WM_COMMAND,MAKELONG(GetDlgCtrlID(),CBN_DBLCLK),(LPARAM)m_hWnd);
   }
 }
 
@@ -1216,7 +1226,7 @@ StyleComboBox::FindString(int nStartAfter,LPCTSTR lpszString) const
   {
     nStartAfter = -1;
   }
-  int len = (int) strlen(lpszString);
+  int len = (int) _tcslen(lpszString);
   CString text;
   for(int ind = 0;ind < m_listControl->GetCount();++ind)
   {
@@ -1274,12 +1284,12 @@ StyleComboBox::GetCount() const
 }
 
 BOOL 
-StyleComboBox::GetCueBanner(LPSTR  lpszText,int cchText) const
+StyleComboBox::GetCueBanner(LPTSTR lpszText,int cchText) const
 {
   CString text = m_itemControl->GetEmptyText();
   if(text.GetLength() <= cchText)
   {
-    strcpy_s(lpszText,cchText,text.GetString());
+    _tcscpy_s(lpszText,cchText,text.GetString());
     return TRUE;
   }
   return FALSE;
@@ -1456,7 +1466,7 @@ StyleComboBox::SelectString(int nStartAfter, LPCTSTR lpszString)
 }
 
 BOOL
-StyleComboBox::SetCueBanner(LPCSTR lpszText,BOOL /* fDrawIfFocused = FALSE*/)
+StyleComboBox::SetCueBanner(LPCTSTR lpszText,BOOL /* fDrawIfFocused = FALSE*/)
 {
   CString text(lpszText);
   m_itemControl->SetEmpty(true,text);
@@ -1654,7 +1664,7 @@ StyleComboBox::OnGetText(int nMaxChars,LPTSTR lpszText)
   {
     length = nMaxChars;
   }
-  strcpy_s(lpszText,nMaxChars,text.GetString());
+  _tcscpy_s(lpszText,nMaxChars,text.GetString());
   return length;
 }
 
@@ -2061,6 +2071,7 @@ SCBTextEdit::OnLButtonDown(UINT nFlags, CPoint point)
 void 
 SCBTextEdit::OnSetFocus(CWnd* p_prev)
 {
+  m_combo->OnSetFocus(p_prev);
   CEdit::OnSetFocus(p_prev);
   CheckAutoCompletion();
   DrawFrame();
@@ -2148,25 +2159,18 @@ SCBTextEdit::PreTranslateMessage(MSG* p_msg)
 void
 SCBTextEdit::OnPaste()
 {
-  if(OpenClipboard())
-  {
-    HANDLE glob = GetClipboardData(CF_TEXT);
-    if(glob)
-    {
-      LPSTR text = (LPSTR)GlobalLock(glob);
-      CEdit::SetWindowText(text);
-      GlobalUnlock(glob);
+  CString text = StyleGetStringFromClipboard(GetSafeHwnd());
 
-      int index = m_combo->FindStringExact(-1,text);
-      if(index >= 0)
-      {
-        m_combo->SetCurSel(index);
-        m_combo->OnSelEndOK(true);
-        m_combo->OnCloseup(true);
-      }
-      else m_combo->SetCurSel(-1);
+  if(!text.IsEmpty())
+  {
+    int index = m_combo->FindStringExact(-1,text);
+    if(index >= 0)
+    {
+      m_combo->SetCurSel(index);
+      m_combo->OnSelEndOK(true);
+      m_combo->OnCloseup(true);
     }
-    CloseClipboard();
+    else m_combo->SetCurSel(-1);
   }
 }
 
@@ -2452,6 +2456,7 @@ SCBListBox::HandleDoubleClick(CPoint point)
 void 
 SCBListBox::OnSetFocus(CWnd* pOldWnd)
 {
+  m_combo->OnSetFocus(pOldWnd);
   if(pOldWnd != this && pOldWnd != m_combo &&
      pOldWnd != m_combo->GetEditControl())
   {
@@ -2637,39 +2642,49 @@ SCBListBox::PreTranslateMessage(MSG* pMsg)
     if(nchar == VK_UP    || nchar == VK_DOWN ||
        nchar == VK_PRIOR || nchar == VK_NEXT)
     {
+      int index = GetCaretIndex();
+      int page  = m_combo->GetMinVisible();
+      m_searchText.Empty();
+
+      switch(nchar)
+      {
+        case VK_UP:    --index;       break;
+        case VK_DOWN:  ++index;       break;
+        case VK_PRIOR: index -= page; break;
+        case VK_NEXT:  index += page; break;
+      }
+      if(index >= GetCount()) index = GetCount() - 1;
+      if(index < 0)           index = 0;
+
       if(m_multiSelect)
       {
-        int index = GetCaretIndex();
-        int page  = m_combo->GetMinVisible();
-
-        switch(nchar)
-        {
-          case VK_UP:    --index;       break;
-          case VK_DOWN:  ++index;       break;
-          case VK_PRIOR: index -= page; break;
-          case VK_NEXT:  index += page; break;
-        }
-        if(index >= GetCount()) index = GetCount() - 1;
-        if(index < 0)           index = 0;
-
         ShowMultiSelection();
         SetCaretIndex(index);
-        return TRUE;
       }
+      else
+      {
+        SetCurSel(index);
+        SetCaretIndex(index);
+        Invalidate();
+      }
+      return TRUE;
     }
     if(nchar == VK_ESCAPE || nchar == VK_BACK)
     {
+      m_searchText.Empty();
       m_combo->OnCloseup();
       DrawFrame();
       return TRUE;
     }
     if(nchar == VK_RETURN)
     {
+      m_searchText.Empty();
       SelectCurrentSelection();
       return TRUE;
     }
     if(nchar == VK_SPACE || nchar == VK_TAB)
     {
+      m_searchText.Empty();
       if(m_multiSelect)
       {
         int  index = GetCaretIndex();
@@ -2704,6 +2719,7 @@ SCBListBox::PreTranslateMessage(MSG* pMsg)
       }
       m_combo->SelectString(0, m_searchText);
       m_keyboardTime = GetTickCount();
+      Invalidate();
       return true;
     }
   }

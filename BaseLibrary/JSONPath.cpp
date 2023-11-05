@@ -118,7 +118,7 @@ JSONPath::Evaluate() noexcept
   if(m_message == nullptr || m_path.IsEmpty() || m_path.GetAt(0) != '$')
   {
     m_status = JPStatus::JP_INVALID;
-    m_errorInfo = "No message, path or the path does not start with a '$'";
+    m_errorInfo = _T("No message, path or the path does not start with a '$'");
     return false;
   }
 
@@ -126,7 +126,7 @@ JSONPath::Evaluate() noexcept
   XString parsing(m_path);
   m_searching = &m_message->GetValue();
   // Check for 'whole-document'
-  if(parsing == "$")
+  if(parsing == _T("$"))
   {
     m_results.push_back(m_searching);
     m_status = JPStatus::JP_Match_wholedoc;
@@ -217,7 +217,7 @@ JSONPath::GetFirstResultForceToString(bool p_whitespace /*=false*/) const
   }
   if(value)
   {
-    return value->GetAsJsonString(p_whitespace,StringEncoding::ENC_Plain,0);
+    return value->GetAsJsonString(p_whitespace,Encoding::Default,0);
   }
   return XString();
 }
@@ -257,9 +257,9 @@ JSONPath::PresetStatus()
 }
 
 bool
-JSONPath::FindDelimiterType(XString& p_parsing)
+JSONPath::FindDelimiterType(const XString& p_parsing)
 {
-  char ch = p_parsing.GetAt(0);
+  TCHAR ch = p_parsing.GetAt(0);
   if(ch == '.' || ch == '[')
   {
     m_delimiter = ch;
@@ -278,8 +278,8 @@ JSONPath::FindDelimiterType(XString& p_parsing)
 bool
 JSONPath::GetNextToken(XString& p_parsing,XString& p_token,bool& p_isIndex,bool& p_isFilter)
 {
-  char firstChar  = p_parsing.GetAt(0);
-  char secondChar = p_parsing.GetAt(1);
+  TCHAR firstChar  = p_parsing.GetAt(0);
+  TCHAR secondChar = p_parsing.GetAt(1);
 
   // Reset
   p_token.Empty();
@@ -300,7 +300,7 @@ JSONPath::GetNextToken(XString& p_parsing,XString& p_token,bool& p_isIndex,bool&
   if(firstChar == '.' && secondChar == '*')
   {
     m_rootWord += m_rootWord + firstChar + secondChar;
-    p_token = "*";
+    p_token = _T("*");
     p_parsing = p_parsing.Mid(2);
     return true;
   }
@@ -426,23 +426,23 @@ JSONPath::ProcessSlice(XString p_token)
   int firstColon = p_token.Find(':');
   if(firstColon > 0)
   {
-    starting = atoi(p_token) - m_origin;
+    starting = _ttoi(p_token) - m_origin;
     p_token = p_token.Mid(firstColon + 1);
   }
   int secondColon = p_token.Find(':');
   if(secondColon > 0)
   {
-    ending = atoi(p_token) - m_origin;
-    step = atoi(p_token.Mid(secondColon + 1));
+    ending = _ttoi(p_token) - m_origin;
+    step   = _ttoi(p_token.Mid(secondColon + 1));
   }
   else if(secondColon == 0)
   {
     // Ending is still at array end.
-    step = atoi(p_token.Mid(1)) - m_origin;
+    step = _ttoi(p_token.Mid(1)) - m_origin;
   }
   else // secondColon < 0
   {
-    ending = atoi(p_token) - m_origin;
+    ending = _ttoi(p_token) - m_origin;
   }
 
   // Check array bounds and step direction
@@ -450,7 +450,7 @@ JSONPath::ProcessSlice(XString p_token)
   {
     // Invalid index subscription
     m_status = JPStatus::JP_INVALID;
-    m_errorInfo = "Slice indexing is invalid step = 0 or start and ending are switched.";
+    m_errorInfo = _T("Slice indexing is invalid step = 0 or start and ending are switched.");
     return;
   }
 
@@ -473,7 +473,7 @@ JSONPath::ProcessSlice(XString p_token)
     {
       // Invalid index subscription
       m_status = JPStatus::JP_INVALID;
-      m_errorInfo.Format("Invalid index subscription for array: %d",(int)index);
+      m_errorInfo.Format(_T("Invalid index subscription for array: %d"),(int)index);
       return;
     }
   }
@@ -487,7 +487,7 @@ JSONPath::ProcessUnion(XString p_token)
 {
   while(!p_token.IsEmpty())
   {
-    size_t index = atoi(p_token) - m_origin;
+    size_t index = _ttoi(p_token) - m_origin;
     int pos = p_token.Find(',');
     if(pos > 0)
     {
@@ -500,7 +500,7 @@ JSONPath::ProcessUnion(XString p_token)
       p_token.Empty();
     }
 
-    if(0 <= index && index < m_searching->GetArray().size())
+    if(index < m_searching->GetArray().size())
     {
       m_results.push_back(&m_searching->GetArray()[index]);
     }
@@ -508,7 +508,7 @@ JSONPath::ProcessUnion(XString p_token)
     {
       // Invalid index subscription
       m_status = JPStatus::JP_INVALID;
-      m_errorInfo.Format("Invalid index subscription in union operator: %d",(int) index);
+      m_errorInfo.Format(_T("Invalid index subscription in union operator: %d"),(int) index);
       return;
     }
   }
@@ -519,7 +519,7 @@ void
 JSONPath::ProcessFilter(XString p_token)
 {  
   // Remove all spaces if not within single quotes
-  XString token{ "" };
+  XString token;
   int opening = -1;
   for(int i = 0; i < p_token.GetLength(); i++)
   {
@@ -568,7 +568,7 @@ JSONPath::GetCurrentCharacter(XString p_token,int& p_pos)
 }
 
 int 
-JSONPath::GetNextCharacter(XString p_token,int& p_pos)
+JSONPath::GetNextCharacter(XString p_token,const int& p_pos)
 {
   int ch = -1;
   if(p_pos + 1 <= p_token.GetLength())
@@ -579,12 +579,12 @@ JSONPath::GetNextCharacter(XString p_token,int& p_pos)
 }
 
 int 
-JSONPath::GetEndOfPart(XString p_token,int& p_pos)
+JSONPath::GetEndOfPart(XString p_token,const int& p_pos)
 {
   // End can either be ')', '&&', '||', ' ' or end of string
   int parenthesisPos = p_token.Find(')',p_pos);
-  int andPos   = p_token.Find("&&",p_pos);
-  int orPos    = p_token.Find("||",p_pos);
+  int andPos   = p_token.Find(_T("&&"),p_pos);
+  int orPos    = p_token.Find(_T("||"),p_pos);
 
   int tempPos = p_token.GetLength();
   if(parenthesisPos > 0 &&
@@ -618,14 +618,13 @@ JSONPath::GetEndOfPart(XString p_token,int& p_pos)
 void
 JSONPath::EvaluateFilter(Relation relation)
 {
-  bool contains{false};
-
   if(m_results.empty())
   {
     if(m_searching->GetDataType() == JsonType::JDT_array)
     {
-      for(int index = 0; index < m_searching->GetArray().size(); index++)
+      for(int index = 0; index < (int)m_searching->GetArray().size(); index++)
       {
+        bool contains(false);
         for(JSONpair pair : m_searching->GetArray().at(index).GetObject())
         {
           if(pair.m_name.Compare(relation.leftSide) == 0)
@@ -638,7 +637,7 @@ JSONPath::EvaluateFilter(Relation relation)
           }
           else if(relation.leftSide.IsEmpty() && !relation.rightSide.IsEmpty())
           {
-            if(relation.clause.CompareNoCase("!") == 0 || relation.clause.CompareNoCase("~") == 0)
+            if(relation.clause.Compare(_T("!")) == 0 || relation.clause.Compare(_T("~")) == 0)
             {
               if(pair.m_name.Compare(relation.rightSide) == 0)
               {
@@ -647,13 +646,13 @@ JSONPath::EvaluateFilter(Relation relation)
             }
           }
         }
-        // If contains is false here, the current rightside is not in the object
-        if(!contains && relation.clause.CompareNoCase("!") == 0)
+        // If contains is false here, the current right side is not in the object
+        if(!contains && relation.clause.Compare(_T("!")) == 0)
         {
           m_results.push_back(&m_searching->GetArray().at(index));
           m_status = JPStatus::JP_Match_array;
         }
-        else if(contains && relation.clause.CompareNoCase("~") == 0)
+        else if(contains && relation.clause.Compare(_T("~")) == 0)
         {
           m_results.push_back(&m_searching->GetArray().at(index));
           m_status = JPStatus::JP_Match_array;
@@ -684,7 +683,7 @@ JSONPath::ParseLevel(XString& p_parsing)
     if(!FindDelimiterType(p_parsing))
     {
       m_status = JPStatus::JP_INVALID;
-      m_errorInfo = "Missing delimiter after the '$'. Must be '.' or '['";
+      m_errorInfo = _T("Missing delimiter after the '$'. Must be '.' or '['");
       return false;
     }
   }
@@ -702,7 +701,7 @@ JSONPath::ParseLevel(XString& p_parsing)
     }
 
     // Check for wildcard '*' (all)
-    if(token == "*")
+    if(token == _T("*"))
     {
       ProcessWildcard();
       return false;
@@ -725,7 +724,7 @@ JSONPath::ParseLevel(XString& p_parsing)
             found = FindMatchingBracket(token,i);
             if(found < 0)
             {
-              m_errorInfo = "Could not parse index filter in JsonPath: " + m_path;
+              m_errorInfo = _T("Could not parse index filter in JsonPath: ") + m_path;
               return false;
             }
           }
@@ -748,20 +747,20 @@ JSONPath::ParseLevel(XString& p_parsing)
         }
 
         // Search on through this array
-        size_t index = atoi(token) - m_origin;
+        int index = _ttoi(token) - m_origin;
         if(index < 0)
         {
           // Negative index, take it from the end
-          index = m_searching->GetArray().size() + index;
+          index = (int)(m_searching->GetArray().size()) + index;
         }
-        if(0 <= index && index < m_searching->GetArray().size())
+        if(0 <= index && index < (int)m_searching->GetArray().size())
         {
           m_searching = &m_searching->GetArray()[index];
           PresetStatus();
           return true;
         }
         // ERROR Index-out-of-bounds
-        m_errorInfo.Format("Array index out of bounds: %d",(int)index);
+        m_errorInfo.Format(_T("Array index out of bounds: %d"),(int)index);
       }
     }
     else if(isFilter)
@@ -776,7 +775,7 @@ JSONPath::ParseLevel(XString& p_parsing)
         ProcessFilter(token);
         if(m_bracketStack.size() > 0)
         {
-          m_errorInfo.Format("Missing ')' in filter: " + token);
+          m_errorInfo.Format(_T("Missing ')' in filter: ") + token);
         }
         return false;
       }
@@ -792,7 +791,7 @@ JSONPath::ParseLevel(XString& p_parsing)
         return true;
       }
       // ERROR object-name-not-found
-      m_errorInfo.Format("Object pair name [%s] not found",token.GetString());
+      m_errorInfo.Format(_T("Object pair name [%s] not found"),token.GetString());
     }
   }
   // No next token found. Incomplete path expression
@@ -812,12 +811,12 @@ JSONPath::HandleLogicalNot(XString p_token,int& p_pos)
     // Looks like !@.isbn
     XString rightSide = p_token.Mid(p_pos,tempPos - p_pos);
     p_pos = tempPos - 1;
-    rightSide.Replace("!@.","");
+    rightSide.Replace(_T("!@."),_T(""));
     rightSide = rightSide.Trim();
 
     Relation relation;
-    relation.clause = "!";
-    relation.leftSide = "";
+    relation.clause = _T("!");
+    relation.leftSide.Empty();
     relation.rightSide = rightSide;
 
     // Now evaluate
@@ -844,12 +843,12 @@ JSONPath::HandleLogicalNot(XString p_token,int& p_pos)
     if(!containsOperator)
     {
       p_pos = tempPos - 1;
-      rightSide.Replace("@.","");
+      rightSide.Replace(_T("@."),_T(""));
       rightSide = rightSide.Trim();
 
       Relation relation;
-      relation.clause    = "~";
-      relation.leftSide  = "";
+      relation.clause    = _T("~");
+      relation.leftSide  = _T("");
       relation.rightSide = rightSide;
 
       // Now evaluate
@@ -873,16 +872,16 @@ JSONPath::HandleRelationOperators(XString p_token,int& p_pos)
 
     // Determine left side
     XString leftSide = p_token.Mid(0,p_pos);
-    leftSide.Replace(op,"");
+    leftSide.Replace(op,_T(""));
     leftSide = leftSide.Trim();
-    leftSide.Replace("@.","");
+    leftSide.Replace(_T("@."),_T(""));
 
     // Determine right side
     XString rightSide = p_token.Mid(p_pos,tempPos - p_pos).Trim();
     p_pos = tempPos - 1;
 
-    rightSide.Replace("@.","");
-    rightSide.Replace("'","");
+    rightSide.Replace(_T("@."),_T(""));
+    rightSide.Replace(_T("'"), _T(""));
 
     Relation relation;
     relation.clause    = op;
@@ -898,7 +897,7 @@ void
 JSONPath::HandleLogicalAnd(XString p_token,int& p_pos)
 {
   HandleLogicalOr(p_token,p_pos);
-  // logical and afhandelen
+  // Processing logical AND
   if(GetCurrentCharacter(p_token,p_pos) == '&')
   {
     if(GetNextCharacter(p_token,p_pos) == '&')
@@ -907,15 +906,15 @@ JSONPath::HandleLogicalAnd(XString p_token,int& p_pos)
       XString rightSide;
       rightSide = p_token.Mid(p_pos,p_token.GetLength()).Trim();
 
-      // Deel na "&&" apart evalueren
-      JSONPath path(m_message,"$" + m_rootWord + "[?(" + rightSide + ")]");
+      // Evaluate the part after "&&" separately
+      JSONPath path(m_message,CString(_T("$")) + m_rootWord + _T("[?(") + rightSide + _T(")]"));
       JPResults newResults;
 
       bool exist = false;
-      // We voegen het resultaat uit path.m_results alleen toe als het al in this.m_results aanwezig is
+      // We add the result from path.m_results only if it was present
       if(path.GetNumberOfMatches() == 1)
       {
-        for(JSONvalue* val : m_results)
+        for(const JSONvalue* val : m_results)
         {
           if(val == path.GetFirstResult())
           {
@@ -933,7 +932,7 @@ JSONPath::HandleLogicalAnd(XString p_token,int& p_pos)
         for(int index = 0; index < (int)path.GetNumberOfMatches(); ++index)
         {
           exist = false;
-          for(JSONvalue* val : m_results)
+          for(const JSONvalue* val : m_results)
           {
             if(val == path.GetResult(index))
             {
@@ -957,7 +956,7 @@ void
 JSONPath::HandleLogicalOr(XString p_token,int& p_pos)
 {
   HandleBrackets(p_token,p_pos);
-  // logical or afhandelen
+  // Handle the logical "or"
   if(GetCurrentCharacter(p_token,p_pos) == '|')
   {
     if(GetNextCharacter(p_token,p_pos) == '|')
@@ -966,14 +965,14 @@ JSONPath::HandleLogicalOr(XString p_token,int& p_pos)
       XString rightSide;
       rightSide = p_token.Mid(p_pos,p_token.GetLength()).Trim();
 
-      // Deel na "||" apart evalueren
-      JSONPath path(m_message,"$" + m_rootWord + "[?(" + rightSide + ")]");
+      // Evaluate the part after the "||"
+      JSONPath path(m_message,_T("$") + m_rootWord + _T("[?(") + rightSide + _T(")]"));
 
-      // Resultaat uit path.m_results alleen toevoegen indien nog niet aanwezig
+      // Result from path.m_reuslts only to be appended if not already present
       bool exist = false;
       if(path.GetNumberOfMatches() == 1)
       {
-        for(JSONvalue* val : m_results)
+        for(const JSONvalue* val : m_results)
         {
           if(val == path.GetFirstResult())
           {
@@ -991,7 +990,7 @@ JSONPath::HandleLogicalOr(XString p_token,int& p_pos)
         for(int index = 0; index < (int)path.GetNumberOfMatches(); ++index)
         {
           exist = false;
-          for(JSONvalue* val : m_results)
+          for(const JSONvalue* val : m_results)
           {
             if(val == path.GetResult(index))
             {
@@ -1015,7 +1014,7 @@ JSONPath::HandleBrackets(XString p_token,int& p_pos)
 {
   if(GetCurrentCharacter(p_token,p_pos) == '(')
   {
-    m_bracketStack.push((char)GetCurrentCharacter(p_token,p_pos));
+    m_bracketStack.push((TCHAR)GetCurrentCharacter(p_token,p_pos));
     if(GetNextCharacter(p_token,p_pos) != '(')
     {
       int closingBracket = FindMatchingBracket(p_token,p_pos);
@@ -1036,7 +1035,7 @@ JSONPath::HandleBrackets(XString p_token,int& p_pos)
   }
     else
     {
-      m_errorInfo.Format("Unexpected token ')'");
+      m_errorInfo = _T("Unexpected token ')'");
     }
   }
 }
@@ -1057,9 +1056,9 @@ JSONPath::WithinQuotes(XString p_token,int p_pos,int p_charPos)
 int
 JSONPath::FindMatchingBracket(const CString& p_string, int p_bracketPos)
 {
-  char bracket = p_string[p_bracketPos];
-  char match   = char(0);
-  bool reverse = false;
+  TCHAR bracket = p_string[p_bracketPos];
+  TCHAR match   = 0;
+  bool  reverse = false;
 
   switch (bracket)
   {
@@ -1087,7 +1086,7 @@ JSONPath::FindMatchingBracket(const CString& p_string, int p_bracketPos)
   {
     for (int pos = p_bracketPos - 1, nest = 1; pos >= 0; --pos)
     {
-      char c = p_string[pos];
+      TCHAR c = p_string[pos];
       if (c == bracket)
       {
         ++nest;
@@ -1105,9 +1104,9 @@ JSONPath::FindMatchingBracket(const CString& p_string, int p_bracketPos)
   {
     for (int pos = p_bracketPos + 1, nest = 1, len = p_string.GetLength(); pos < len; ++pos)
     {
-      char c = p_string[pos];
+      TCHAR c = p_string[pos];
 
-      // skip finding matching bracket if encased in single qoutes
+      // skip finding matching bracket if encased in single quotes
       if(c == '\'')
       {
         pos = p_string.Find('\'',pos + 1);
@@ -1137,87 +1136,87 @@ JSONPath::DetermineRelationalOperator(XString p_token,int& p_pos)
     case '=': if(GetNextCharacter(p_token,p_pos) == '=')
               {
                 p_pos++;
-                return "==";
+                return _T("==");
               }
-              return "";
+              return _T("");
     case '!': if(GetNextCharacter(p_token,p_pos) == '=')
               {
                 p_pos++;
-                return "!=";
+                return _T("!=");
               }
-              return "";
+              return _T("");
     case '<': if(GetNextCharacter(p_token,p_pos) == '=')
               {
                 p_pos++;
-                return "<=";
+                return _T("<=");
               }
-              return "<";
+              return _T("<");
     case '>': if(GetNextCharacter(p_token,p_pos) == '=')
               {
                 p_pos++;
-                return ">=";
+                return _T(">=");
               }
-              return ">";
-    default:  return "";
+              return _T(">");
+    default:  return _T("");
   }
 }
 
 bool 
-JSONPath::EvaluateFilterClause(Relation p_filter,JSONvalue p_value)
+JSONPath::EvaluateFilterClause(Relation p_filter,const JSONvalue& p_value)
 {
   JsonType type = p_value.GetDataType();
-  if(p_filter.clause.Compare("==") == 0)
+  if(p_filter.clause.Compare(_T("==")) == 0)
   {
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    == p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() == atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() == atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() == _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() == _ttof(p_filter.rightSide);
     }
   }
-  else if(p_filter.clause.Compare("!=") == 0)
+  else if(p_filter.clause.Compare(_T("!=")) == 0)
   {
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    != p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() != atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() != atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() != _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() != _ttof(p_filter.rightSide);
     }
   }
-  else if(p_filter.clause.Compare("<") == 0)
+  else if(p_filter.clause.Compare(_T("<")) == 0)
   {
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    < p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() < atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() < atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() < _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() < _ttof(p_filter.rightSide);
     }
   }
-  else if(p_filter.clause.Compare("<=") == 0)
+  else if(p_filter.clause.Compare(_T("<=")) == 0)
   {
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    <= p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() <= atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() <= atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() <= _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() <= _ttof(p_filter.rightSide);
     }
   }
-  else if(p_filter.clause.Compare(">") == 0)
+  else if(p_filter.clause.Compare(_T(">")) == 0)
   {
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    > p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() > atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() > atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() > _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() > _ttof(p_filter.rightSide);
     }
   }
-  else if(p_filter.clause.Compare(">=") == 0)
+  else if(p_filter.clause.Compare(_T(">=")) == 0)
   {
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    >= p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() >= atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() >= atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() >= _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() >= _ttof(p_filter.rightSide);
     }
   }
   else if(p_filter.clause.IsEmpty() && p_filter.leftSide.IsEmpty() && !p_filter.rightSide.IsEmpty())
@@ -1225,8 +1224,8 @@ JSONPath::EvaluateFilterClause(Relation p_filter,JSONvalue p_value)
     switch(type)
     {
       case JsonType::JDT_string:     return p_value.GetString()    >= p_filter.rightSide;
-      case JsonType::JDT_number_int: return p_value.GetNumberInt() >= atoi(p_filter.rightSide);
-      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() >= atof(p_filter.rightSide);
+      case JsonType::JDT_number_int: return p_value.GetNumberInt() >= _ttoi(p_filter.rightSide);
+      case JsonType::JDT_number_bcd: return p_value.GetNumberBcd() >= _ttof(p_filter.rightSide);
     }
   }
   return false;

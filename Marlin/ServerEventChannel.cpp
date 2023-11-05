@@ -42,15 +42,15 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 // Logging via the server
-#define DETAILLOG1(text)        m_server->DetailLog (__FUNCTION__,LogType::LOG_INFO,text)
-#define DETAILLOGS(text,extra)  m_server->DetailLogS(__FUNCTION__,LogType::LOG_INFO,text,extra)
-#define DETAILLOGV(text,...)    m_server->DetailLogV(__FUNCTION__,LogType::LOG_INFO,text,__VA_ARGS__)
-#define WARNINGLOG(text,...)    m_server->DetailLogV(__FUNCTION__,LogType::LOG_WARN,text,__VA_ARGS__)
-#define ERRORLOG(code,text)     m_server->ErrorLog  (__FUNCTION__,code,text)
+#define DETAILLOG1(text)        m_server->DetailLog (_T(__FUNCTION__),LogType::LOG_INFO,text)
+#define DETAILLOGS(text,extra)  m_server->DetailLogS(_T(__FUNCTION__),LogType::LOG_INFO,text,extra)
+#define DETAILLOGV(text,...)    m_server->DetailLogV(_T(__FUNCTION__),LogType::LOG_INFO,text,__VA_ARGS__)
+#define WARNINGLOG(text,...)    m_server->DetailLogV(_T(__FUNCTION__),LogType::LOG_WARN,text,__VA_ARGS__)
+#define ERRORLOG(code,text)     m_server->ErrorLog  (_T(__FUNCTION__),code,text)
 
 // Socket message handlers
 
-void EventChannelOnOpen(WebSocket* p_socket,WSFrame* p_event)
+void EventChannelOnOpen(WebSocket* p_socket,const WSFrame* p_event)
 {
   ServerEventChannel* channel = reinterpret_cast<ServerEventChannel*>(p_socket->GetApplication());
   if(channel)
@@ -65,7 +65,7 @@ void EventChannelOnOpen(WebSocket* p_socket,WSFrame* p_event)
   }
 }
 
-void EventChannelOnMessage(WebSocket* p_socket,WSFrame* p_event)
+void EventChannelOnMessage(WebSocket* p_socket,const WSFrame* p_event)
 {
   ServerEventChannel* channel = reinterpret_cast<ServerEventChannel*>(p_socket->GetApplication());
   if(channel)
@@ -79,7 +79,7 @@ void EventChannelOnMessage(WebSocket* p_socket,WSFrame* p_event)
   }
 }
 
-void EventChannelOnBinary(WebSocket* p_socket,WSFrame* p_event)
+void EventChannelOnBinary(WebSocket* p_socket,const WSFrame* p_event)
 {
   ServerEventChannel* channel = reinterpret_cast<ServerEventChannel*>(p_socket->GetApplication());
   if(channel)
@@ -88,7 +88,7 @@ void EventChannelOnBinary(WebSocket* p_socket,WSFrame* p_event)
   }
 }
 
-void EventChannelOnError(WebSocket* p_socket,WSFrame* p_event)
+void EventChannelOnError(WebSocket* p_socket,const WSFrame* p_event)
 {
   ServerEventChannel* channel = reinterpret_cast<ServerEventChannel*>(p_socket->GetApplication());
   if(channel && p_event)
@@ -102,7 +102,7 @@ void EventChannelOnError(WebSocket* p_socket,WSFrame* p_event)
   }
 }
 
-void EventChannelOnClose(WebSocket* p_socket,WSFrame* p_event)
+void EventChannelOnClose(WebSocket* p_socket,const WSFrame* p_event)
 {
   ServerEventChannel* channel = reinterpret_cast<ServerEventChannel*>(p_socket->GetApplication());
   if(channel)
@@ -221,7 +221,7 @@ ServerEventChannel::RemoveEvents(int p_number)
 XString 
 ServerEventChannel::GetCookieToken()
 {
-  return m_cookie + ":" + m_token;
+  return m_cookie + _T(":") + m_token;
 }
 
 int
@@ -258,8 +258,8 @@ ServerEventChannel::RegisterNewSocket(HTTPMessage* p_message,WebSocket* p_socket
   // Getting the senders URL + Citrix desktop
   XString url;
   XString sender  = SocketToServer(p_message->GetSender());
-  XString desktop = p_message->GetHeader("desktop").Trim();
-  url.Format("http://%s:c%s", sender.GetString(),desktop.GetString());
+  XString desktop = p_message->GetHeader(_T("desktop")).Trim();
+  url.Format(_T("http://%s:c%s"), sender.GetString(),desktop.GetString());
   url.MakeLower();
 
   // Check for a brute-force attack. If so, already logged to the server
@@ -283,7 +283,7 @@ ServerEventChannel::RegisterNewSocket(HTTPMessage* p_message,WebSocket* p_socket
     if(!found)
     {
       // Security breach!
-      WARNINGLOG("Tried to start WebSocket without proper authentication: %s",m_name.GetString());
+      WARNINGLOG(_T("Tried to start WebSocket without proper authentication: %s"),m_name.GetString());
       return false;
     }
   }
@@ -324,7 +324,7 @@ ServerEventChannel::RegisterNewSocket(HTTPMessage* p_message,WebSocket* p_socket
 }
 
 void
-ServerEventChannel::OnOpenSocket(WebSocket* p_socket)
+ServerEventChannel::OnOpenSocket(const WebSocket* p_socket)
 {
   AutoCritSec lock(&m_lock);
 
@@ -340,7 +340,7 @@ ServerEventChannel::OnOpenSocket(WebSocket* p_socket)
 }
 
 void
-ServerEventChannel::OnCloseSocket(WebSocket* p_socket)
+ServerEventChannel::OnCloseSocket(const WebSocket* p_socket)
 {
   // NO LOCK HERE ON m_sockets
   // Just register the new state
@@ -374,7 +374,7 @@ ServerEventChannel::RegisterNewStream(HTTPMessage* p_message,EventStream* p_stre
     if(!found)
     {
       // Security breach!
-      WARNINGLOG("Tried to start SSE stream without proper authentication: %s",m_name.GetString());
+      WARNINGLOG(_T("Tried to start SSE stream without proper authentication: %s"),m_name.GetString());
       return false;
     }
   }
@@ -382,7 +382,7 @@ ServerEventChannel::RegisterNewStream(HTTPMessage* p_message,EventStream* p_stre
   // Getting the senders URL + Citrix desktop
   XString url;
   XString sender = SocketToServer(p_message->GetSender());
-  url.Format("http://%s:c%d",sender.GetString(),p_stream->m_desktop);
+  url.Format(_T("http://%s:c%d"),sender.GetString(),p_stream->m_desktop);
   url.MakeLower();
 
   // Check for a brute-force attack. If so, already logged to the server
@@ -413,7 +413,7 @@ ServerEventChannel::RegisterNewStream(HTTPMessage* p_message,EventStream* p_stre
   m_current = EventDriverType::EDT_ServerEvents;
 
   // SSE Channels have no client messages, so we generate one ourselves
-  OnOpen("Started: " + url);
+  OnOpen(_T("Started: ") + url);
   return true;
 }
 
@@ -423,7 +423,7 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
   if(p_check)
   {
     bool found = false;
-    Cookies& cookies = p_message->GetCookies();
+    Cookies& cookies = const_cast<Cookies&>(p_message->GetCookies());
     for(auto& cookie : cookies.GetCookies())
     {
       if(m_cookie.CompareNoCase(cookie.GetName())  == 0 &&
@@ -435,14 +435,14 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
     if(!found)
     {
       // Security breach!
-      WARNINGLOG("Tried to answer Long-Polling, but no proper authentication: %s",m_name.GetString());
+      WARNINGLOG(_T("Tried to answer Long-Polling, but no proper authentication: %s"),m_name.GetString());
       return false;
     }
   }
-  bool    close   = p_message->GetParameterBoolean("CloseChannel");
-  int     acknl   = p_message->GetParameterInteger("Acknowledged");
-  XString message = p_message->GetParameter("Message");
-  XString type    = p_message->GetParameter("Type");
+  bool    close   = p_message->GetParameterBoolean(_T("CloseChannel"));
+  int     acknl   = p_message->GetParameterInteger(_T("Acknowledged"));
+  XString message = p_message->GetParameter(_T("Message"));
+  XString type    = p_message->GetParameter(_T("Type"));
 
   // Reset to response
   p_message->Reset(ResponseType::RESP_ACTION_RESP);
@@ -454,7 +454,7 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
     {
       case EvtType::EV_Open:    OnOpen   (message); break;
       case EvtType::EV_Message: OnMessage(message); break;
-      case EvtType::EV_Binary:  OnBinary ((void*)message.GetString(),message.GetLength()); break;
+      case EvtType::EV_Binary:  OnBinary (reinterpret_cast<void*>(const_cast<TCHAR*>(message.GetString())),message.GetLength()); break;
       case EvtType::EV_Error:   OnError  (message); break;
       case EvtType::EV_Close:   OnClose  (message); break;
     }
@@ -469,7 +469,7 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
   // On the closing: acknowledge that we are closing
   if(close)
   {
-    p_message->SetParameter("ChannelClosed",true);
+    p_message->SetParameter(_T("ChannelClosed"),true);
     if(m_current == EventDriverType::EDT_LongPolling)
     {
       m_current = EventDriverType::EDT_NotConnected;
@@ -485,19 +485,19 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
   // Make sure channel is now open on the server side and 'in-use'
   if(!m_openSeen)
   {
-    OnOpen("");
+    OnOpen(_T(""));
   }
   // Return 'empty' or the oldest event
   if(m_outQueue.empty())
   {
-    p_message->SetParameter("Empty",true);
+    p_message->SetParameter(_T("Empty"),true);
   }
   else
   {
     LTEvent* event = m_outQueue.front();
-    p_message->SetParameter("Number", event->m_number);
-    p_message->SetParameter("Message",event->m_payload);
-    p_message->SetParameter("Type",   LTEvent::EventTypeToString(event->m_type));
+    p_message->SetParameter(_T("Number"), event->m_number);
+    p_message->SetParameter(_T("Message"),event->m_payload);
+    p_message->SetParameter(_T("Type"),   LTEvent::EventTypeToString(event->m_type));
     event->m_sent++;
   }
 
@@ -531,7 +531,6 @@ ServerEventChannel::SendQueueToSocket()
 {
   int sent     = 0;
   int lastSent = 0;
-  bool allok   = true;
   
   // No sockets connected. Nothing to send
   if(m_sockets.empty())
@@ -541,7 +540,7 @@ ServerEventChannel::SendQueueToSocket()
 
   for(auto& ltevent : m_outQueue)
   {
-    allok = true;
+    bool allok = true;
     AllSockets::iterator it = m_sockets.begin();
     while(it != m_sockets.end())
     {
@@ -554,14 +553,14 @@ ServerEventChannel::SendQueueToSocket()
 
           AutoCritSec lock(&m_lock);
           it = m_sockets.erase(it);
-          OnClose("");
+          OnClose(_T(""));
           continue;
         }
 
         // Make sure channel is now open on the server side and 'in-use'
         if(!m_openSeen)
         {
-          OnOpen("");
+          OnOpen(_T(""));
         }
         if(!it->m_socket->WriteString(ltevent->m_payload))
         {
@@ -570,7 +569,7 @@ ServerEventChannel::SendQueueToSocket()
 
           AutoCritSec lock(&m_lock);
           it = m_sockets.erase(it);
-          OnClose("");
+          OnClose(_T(""));
           continue;
         }
       }
@@ -598,7 +597,6 @@ ServerEventChannel::SendQueueToStream()
 {
   int sent     = 0;
   int lastSent = 0;
-  bool allok   = true;
 
   // No streams. nothing to send
   if(m_streams.empty())
@@ -608,7 +606,7 @@ ServerEventChannel::SendQueueToStream()
 
   for(auto& ltevent : m_outQueue)
   {
-    allok = true;
+    bool allok = true;
     AllStreams::iterator it = m_streams.begin();
     while (it != m_streams.end())
     {
@@ -619,7 +617,8 @@ ServerEventChannel::SendQueueToStream()
         event->m_id = ltevent->m_number;
         if (ltevent->m_type == EvtType::EV_Binary)
         {
-          event->m_data  = Base64::Encrypt(ltevent->m_payload);
+          Base64 base;
+          event->m_data  = base.Encrypt(ltevent->m_payload);
         }
         else
         {
@@ -634,14 +633,14 @@ ServerEventChannel::SendQueueToStream()
         // Make sure channel is now open on the server side and 'in-use'
         if(!m_openSeen)
         {
-          OnOpen("");
+          OnOpen(_T(""));
         }
         if(!m_server->SendEvent(it->m_stream,event))
         {
           allok = false;
           CloseStream(it->m_stream);
           it = m_streams.erase(it);
-          OnClose("");
+          OnClose(_T(""));
           continue;
         }
       }
@@ -665,14 +664,14 @@ ServerEventChannel::SendQueueToStream()
 int
 ServerEventChannel::LogLongPolling()
 {
-  DETAILLOGV("Monitor calls channel [%s] Long-polling is active. %d events in the queue.",m_name.GetString(),(int)m_outQueue.size());
+  DETAILLOGV(_T("Monitor calls channel [%s] Long-polling is active. %d events in the queue."),m_name.GetString(),(int)m_outQueue.size());
   return 0;
 }
 
 int
 ServerEventChannel::LogNotConnected()
 {
-  DETAILLOGV("Monitor calls channel [%s] No connection (yet) and no long-polling active. %d events in the queue.",m_name.GetString(),(int)m_outQueue.size());
+  DETAILLOGV(_T("Monitor calls channel [%s] No connection (yet) and no long-polling active. %d events in the queue."),m_name.GetString(),(int)m_outQueue.size());
   return 0;
 }
 
@@ -703,7 +702,7 @@ ServerEventChannel::CloseChannel()
       try
       {
         LTEvent* event   = new LTEvent(EvtType::EV_Close);
-        event->m_payload = "Channel closed";
+        event->m_payload = _T("Channel closed");
         event->m_number  = ++m_maxNumber;
         event->m_sent    = m_appData;
 
@@ -718,27 +717,27 @@ ServerEventChannel::CloseChannel()
 
   // Closing open channels to the client
   m_current = EventDriverType::EDT_NotConnected;
-  for(auto& sock : m_sockets)
+  for(const auto& sock : m_sockets)
   {
     CloseSocket(sock.m_socket);
   }
   m_sockets.clear();
 
-  for(auto& stream : m_streams)
+  for(const auto& stream : m_streams)
   {
     CloseStream(stream.m_stream);
   }
   m_streams.clear();
 
   // Clean out the out queue
-  for(auto& ltevent : m_outQueue)
+  for(const auto& ltevent : m_outQueue)
   {
     delete ltevent;
   }
   m_outQueue.clear();
 
   // Clean out the input queue
-  for(auto& ltevent : m_inQueue)
+  for(const auto& ltevent : m_inQueue)
   {
     delete ltevent;
   }
@@ -748,17 +747,17 @@ ServerEventChannel::CloseChannel()
 void 
 ServerEventChannel::CloseSocket(WebSocket* p_socket)
 {
-  DETAILLOGV("Closing WebSocket for event channel [%s] Queue size: %d",m_name.GetString(),(int)m_outQueue.size());
-    p_socket->SendCloseSocket(WS_CLOSE_NORMAL,"ServerEventDriver is closing channel");
+  DETAILLOGV(_T("Closing WebSocket for event channel [%s] Queue size: %d"),m_name.GetString(),(int)m_outQueue.size());
+  p_socket->SendCloseSocket(WS_CLOSE_NORMAL,_T("ServerEventDriver is closing channel"));
   Sleep(200); // Wait for close to be sent before deleting the socket
   p_socket->CloseSocket();
   m_server->UnRegisterWebSocket(p_socket);
 }
 
 void 
-ServerEventChannel::CloseStream(EventStream* p_stream)
+ServerEventChannel::CloseStream(const EventStream* p_stream)
 {
-  DETAILLOGV("Closing EventStream for event channel [%s] Queue size: %d",m_name.GetString(),(int)m_outQueue.size());
+  DETAILLOGV(_T("Closing EventStream for event channel [%s] Queue size: %d"),m_name.GetString(),(int)m_outQueue.size());
   m_server->CloseEventStream(p_stream);
 }
 
@@ -860,14 +859,14 @@ ServerEventChannel::OnBinary(void* p_data,DWORD p_length)
   if(m_openSeen == false)
   {
     m_openSeen = true;
-    OnOpen("OpenChannel");
+    OnOpen(_T("OpenChannel"));
   }
   LTEvent* event = new LTEvent;
   event->m_type    = EvtType::EV_Binary;
   event->m_number  = p_length;
   event->m_sent    = m_appData;
-  char* buffer = event->m_payload.GetBufferSetLength(p_length);
-  strcpy_s(buffer,p_length,(char*)p_data);
+  TCHAR* buffer = event->m_payload.GetBufferSetLength(p_length);
+  _tcscpy_s(buffer,p_length,reinterpret_cast<TCHAR*>(p_data));
   event->m_payload.ReleaseBufferSetLength(p_length);
 
   m_inQueue.push_back(event);
@@ -932,7 +931,7 @@ ServerEventChannel::CheckChannel()
 
       AutoCritSec lock(&m_lock);
       it = m_sockets.erase(it);
-      OnClose("");
+      OnClose(_T(""));
       continue;
     }
     // Next socket

@@ -20,6 +20,7 @@
 
 #pragma once
 #include "TestStep.h"
+#include <HTTPClient.h>
 #include <vector>
 
 typedef struct _pair
@@ -83,6 +84,10 @@ public:
   CString         GetEffectiveFileOutput()  { return m_effectiveFileOutput; }
   UrlParameters&  GetEffectiveParameters()  { return m_effectiveParameters; }
   UrlHeaders&     GetEffectiveHeaders()     { return m_effectiveHeaders;    }
+  int             GetTimeoutResolve()       { return m_timeoutResolve;      };
+  int             GetTimeoutConnect()       { return m_timeoutConnect;      };
+  int             GetTimeoutSend()          { return m_timeoutSend;         };
+  int             GetTimeoutReceive()       { return m_timeoutReceive;      };
   CString         GetEffectiveCombinedURL();
   
   // SETTERS
@@ -109,6 +114,10 @@ public:
   void      SetUseStatus(bool p_use)              { m_useStatus         = p_use;        }
   void      SetUseHeaders(bool p_use)             { m_useHeaders        = p_use;        }
   void      SetUseBody(bool p_use)                { m_useBody           = p_use;        }
+  void      SetTimeoutResolve(int p_timeout)      { m_timeoutResolve    = p_timeout;  };
+  void      SetTimeoutConnect(int p_timeout)      { m_timeoutConnect    = p_timeout;  };
+  void      SetTimeoutSend   (int p_timeout)      { m_timeoutSend       = p_timeout;  };
+  void      SetTimeoutReceive(int p_timeout)      { m_timeoutReceive    = p_timeout;  };
 
   void      DeleteParameter(CString p_parameter);
 
@@ -124,6 +133,12 @@ protected:
   bool          m_bodyOutputIsFile;
   CString       m_filenameInput;
   CString       m_filenameOutput;
+
+  // Call timeouts
+  unsigned      m_timeoutResolve  { DEF_TIMEOUT_RESOLVE };        // Timeout resolving URL
+  unsigned      m_timeoutConnect  { DEF_TIMEOUT_CONNECT };        // Timeout in connecting to URL
+  unsigned      m_timeoutSend     { DEF_TIMEOUT_SEND    };        // Timeout in sending 
+  unsigned      m_timeoutReceive  { DEF_TIMEOUT_RECEIVE };        // Timeout in receiving
 
   // Authenticate
   CString       m_authType;

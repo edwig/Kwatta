@@ -21,7 +21,6 @@
 #include "StdAfx.h"
 #include "KwattaAppDlg.h"
 #include "KwattaApp.h"
-#include "EnsureFile.h"
 #include "StdException.h"
 #include "afxdialogex.h"
 #include "GridCellCheck.h"
@@ -281,8 +280,8 @@ KwattaAppDlg::ReadSuite()
   }
   try
   {
-    EnsureFile ensure;
-    CString base = ensure.DirectoryPart(m_testsuite);
+    WinFile file(m_testsuite);
+    CString base = file.GetFilenamePartDirectory();
     Reset();
     m_suite = new TestSuite(base);
 

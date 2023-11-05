@@ -23,7 +23,6 @@
 #include "TestStepCMD.h"
 #include "TestStepNET.h"
 #include "TestStepSQL.h"
-#include "EnsureFile.h"
 #include "XMLMessage.h"
 #include "StdException.h"
 #include "ExtraExtensions.h"
@@ -44,8 +43,8 @@ TestStep::~TestStep()
 
 TestStep* ReadTestStep(CString p_filename)
 {
-  EnsureFile ensure;
-  CString extension = ensure.ExtensionPart(p_filename);
+  WinFile file(p_filename);
+  CString extension = file.GetFilenamePartExtension();
 
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_CMD) == 0)
   {

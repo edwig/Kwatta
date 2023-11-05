@@ -148,12 +148,14 @@ ResponseDlg::FormatPayload(StepResultNET* p_result)
     xml.ParseMessage(m_payload);
     xml.SetCondensed(false);
     m_payload = xml.Print();
+    m_payload.Replace("\t","  ");
   }
   if (content.Find("json") >= 0)
   {
     JSONMessage json(m_payload);
     json.SetWhitespace(true);
     m_payload = json.GetJsonMessage();
+    m_payload.Replace("\t","  ");
   }
 }
 

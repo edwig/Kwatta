@@ -122,13 +122,33 @@ class DDOS
 public:
   DDOS()
   {
-    m_beginTime = 0;
     memset(&m_sender,0,sizeof(SOCKADDR_IN6));
   }
 
   SOCKADDR_IN6  m_sender;
   XString       m_abspath;
-  clock_t       m_beginTime;
+  clock_t       m_beginTime { 0 };
+};
+
+class UKHeader
+{
+public:
+  UKHeader(XString p_name,XString p_value)
+    :m_name(p_name)
+    ,m_value(p_value)
+    ,m_nameStr(nullptr)
+    ,m_valueStr(nullptr)
+  {
+  }
+ ~UKHeader()
+  {
+    if(m_nameStr)  delete[] m_nameStr;
+    if(m_valueStr) delete[] m_valueStr;
+  }
+  XString m_name;
+  XString m_value;
+  LPCSTR  m_nameStr;
+  LPCSTR  m_valueStr;
 };
 
 // Forward declarations
@@ -146,7 +166,7 @@ using SiteMap     = std::map<XString,HTTPSite*>;
 using EventMap    = std::multimap<XString,EventStream*>;
 using ServiceMap  = std::map<XString,WebServiceServer*>;
 using URLGroupMap = std::vector<HTTPURLGroup*>;
-using UKHeaders   = std::multimap<XString,XString>;
+using UKHeaders   = std::vector<UKHeader>;
 using SocketMap   = std::map<XString,WebSocket*>;;
 using RequestMap  = std::deque<HTTPRequest*>;
 using DDOSMap     = std::vector<DDOS>;
@@ -186,7 +206,7 @@ public:
   // Delete a site from the remembered set of sites
   virtual bool       DeleteSite(int p_port,XString p_baseURL,bool p_force = false) = 0;
   // Receive (the rest of the) incoming HTTP request
-  virtual bool       ReceiveIncomingRequest(HTTPMessage* p_message) = 0;
+  virtual bool       ReceiveIncomingRequest(HTTPMessage* p_message,bool p_utf16) = 0;
   // Create a new WebSocket in the subclass of our server
   virtual WebSocket* CreateWebSocket(XString p_uri) = 0;
   // Receive the WebSocket stream and pass on the the WebSocket
@@ -207,9 +227,9 @@ public:
   // MANDATORY: Set the ErrorReport object
   void       SetErrorReport(ErrorReport* p_report);
   // OPTIONAL: Set the client error page (range 400-417)
-  void       SetClientErrorPage(XString& p_errorPage);
+  void       SetClientErrorPage(const XString& p_errorPage);
   // OPTIONAL: Set the server error page (range 500-505)
-  void       SetServerErrorPage(XString& p_errorPage);
+  void       SetServerErrorPage(const XString& p_errorPage);
   // OPTIONAL: Set a logging object (lest we create our own!)
   void       SetLogging(LogAnalysis* p_log);
   // OPTIONAL: Set another name
@@ -240,8 +260,6 @@ public:
   XString     GetWebroot();
   // Get host name of the server's machine
   XString     GetHostname();
-  // Last error encountered
-  ULONG       GetLastError();
   // Is the server still running
   bool        GetIsRunning();
   // Get High Performance counter
@@ -266,7 +284,7 @@ public:
   ErrorReport* GetErrorReport();
   // Get the fact that we do detailed logging
   int         GetLogLevel();
-  // DEPRECATED old method of gettin the logging
+  // DEPRECATED old method of getting the logging
   bool        GetDetailedLogging();
   // Has sub-sites registered
   bool        GetHasSubsites();
@@ -284,29 +302,29 @@ public:
   // FUNCTIONS
 
   // Detailed and error logging to the log file
-  void       DetailLog (const char* p_function,LogType p_type,const char* p_text);
-  void       DetailLogS(const char* p_function,LogType p_type,const char* p_text,const char* p_extra);
-  void       DetailLogV(const char* p_function,LogType p_type,const char* p_text,...);
-  void       ErrorLog  (const char* p_function,DWORD p_code,XString p_text);
-  void       HTTPError (const char* p_function,int p_status,XString p_text);
+  void       DetailLog (LPCTSTR p_function,LogType p_type,LPCTSTR p_text);
+  void       DetailLogS(LPCTSTR p_function,LogType p_type,LPCTSTR p_text,LPCTSTR p_extra);
+  void       DetailLogV(LPCTSTR p_function,LogType p_type,LPCTSTR p_text,...);
+  void       ErrorLog  (LPCTSTR p_function,DWORD p_code,XString p_text);
+  void       HTTPError (LPCTSTR p_function,int p_status,XString p_text);
   // Log SSL Info of the connection
   void       LogSSLConnection(PHTTP_SSL_PROTOCOL_INFO p_sslInfo);
 
   // Find HTTPSite for an URL
-  HTTPSite*  FindHTTPSite(int p_port,PCWSTR   p_url);
-  HTTPSite*  FindHTTPSite(int p_port,XString& p_url);
-  HTTPSite*  FindHTTPSite(HTTPSite* p_default,XString& p_url);
+  HTTPSite*  FindHTTPSite(int p_port,PCWSTR p_url);
+  HTTPSite*  FindHTTPSite(int p_port,const XString& p_url);
+  HTTPSite*  FindHTTPSite(HTTPSite* p_default,const XString& p_url);
 
   // Logging and tracing: The response
-  void      LogTraceResponse(PHTTP_RESPONSE p_response,FileBuffer* p_buffer);
-  void      LogTraceResponse(PHTTP_RESPONSE p_response,unsigned char* p_buffer,unsigned p_length);
+  void      LogTraceResponse(PHTTP_RESPONSE p_response,FileBuffer* p_buffer,bool p_utf16);
+  void      LogTraceResponse(PHTTP_RESPONSE p_response,unsigned char* p_buffer,unsigned p_length,bool p_utf16);
   // Logging and tracing: The request
-  void      LogTraceRequest(PHTTP_REQUEST p_request,FileBuffer* p_buffer);
-  void      LogTraceRequestBody(FileBuffer* p_buffer);
+  void      LogTraceRequest(PHTTP_REQUEST p_request,FileBuffer* p_buffer,bool p_utf16);
+  void      LogTraceRequestBody(FileBuffer* p_buffer,bool p_utf16);
 
   // Outstanding asynchronous I/O requests
   void         RegisterHTTPRequest(HTTPRequest* p_request);
-  void       UnRegisterHTTPRequest(HTTPRequest* p_request);
+  void       UnRegisterHTTPRequest(const HTTPRequest* p_request);
 
   // Check authentication of a HTTP request
   bool       CheckAuthentication(PHTTP_REQUEST  p_request
@@ -319,22 +337,22 @@ public:
   void       SendResponse(SOAPMessage* p_message);
   void       SendResponse(JSONMessage* p_message);
   // Return the number of push-event-streams for this URL, and probably for a user
-  int        HasEventStreams(int p_port,XString p_url,XString p_user = "");
+  int        HasEventStreams(int p_port,XString p_url,XString p_user = _T(""));
   // Return the fact that we have an event stream
-  bool       HasEventStream(EventStream* p_stream);
+  bool       HasEventStream(const EventStream* p_stream);
   // Send to a server push event stream / deleting p_event
-  bool       SendEvent(int p_port,XString p_site,ServerEvent* p_event,XString p_user = "");
+  bool       SendEvent(int p_port,XString p_site,ServerEvent* p_event,XString p_user = _T(""));
   // Send to a server push event stream on EventStream basis
   bool       SendEvent(EventStream* p_stream,ServerEvent* p_event,bool p_continue = true);
   // Close an event stream for one stream only
-  bool       CloseEventStream(EventStream* p_stream);
+  bool       CloseEventStream(const EventStream* p_stream);
   // Close and abort an event stream for whatever reason
   bool       AbortEventStream(EventStream* p_stream);
   // Close event streams for an URL and probably a user
-  void       CloseEventStreams(int p_port,XString p_url,XString p_user = "");
+  void       CloseEventStreams(int p_port,XString p_url,XString p_user = _T(""));
   // Delete event stream
   void       RemoveEventStream(CString p_url);
-  void       RemoveEventStream(EventStream* p_stream);
+  void       RemoveEventStream(const EventStream* p_stream);
   // Monitor all server push event streams
   void       EventMonitor();
   // Register a WebServiceServer
@@ -350,7 +368,7 @@ public:
   // Authentication failed for this reason
   XString    AuthenticationStatus(SECURITY_STATUS p_secStatus);
   // Find routing information within the site
-  void       CalculateRouting(HTTPSite* p_site,HTTPMessage* p_message);
+  void       CalculateRouting(const HTTPSite* p_site,HTTPMessage* p_message);
   // Finding a previous registered service endpoint
   WebServiceServer* FindService(XString p_serviceName);
   // Finding a previous registered WebSocket
@@ -373,8 +391,8 @@ public:
   void       RespondWithClientError(HTTPMessage*    p_message
                                    ,int             p_error
                                    ,XString         p_reason
-                                   ,XString         p_authScheme = ""
-                                   ,XString         p_realm      = "");
+                                   ,XString         p_authScheme = _T("")
+                                   ,XString         p_realm      = _T(""));
   // Response in case of succesful sending of 2FA code
   void       RespondWith2FASuccess (HTTPMessage*    p_message
                                    ,XString         p_body);
@@ -387,7 +405,7 @@ public:
                                     ,int             p_desktop
                                     ,HTTPSite*       p_site
                                     ,XString         p_url
-                                    ,XString&        p_pad
+                                    ,const XString&  p_pad
                                     ,HTTP_OPAQUE_ID  p_requestID
                                     ,HANDLE          p_token);
   // DDOS Attack mechanism
@@ -411,7 +429,7 @@ protected:
   virtual void  InitThreadPool();
 
   // Register a URL to listen on
-  bool      RegisterSite(HTTPSite* p_site,XString p_urlPrefix);
+  bool      RegisterSite(const HTTPSite* p_site,const XString& p_urlPrefix);
   // General checks before starting
   bool      GeneralChecks();
   // Checks if all sites are started
@@ -419,25 +437,23 @@ protected:
   // Make a "port:url" registration name
   XString   MakeSiteRegistrationName(int p_port,XString p_url);
     // Form event to a stream string
-  XString   EventToString(ServerEvent* p_event);
+  void      EventToStringBuffer(ServerEvent* p_event,BYTE** p_buffer,int& p_length);
   // Try to start the even heartbeat monitor
   void      TryStartEventHeartbeat();
   // Check all event streams for the heartbeat monitor
   UINT      CheckEventStreams();
-  // Set the error status
-  void      SetError(int p_error);
   // For the handling of the event streams: implement this function
   virtual bool SendResponseEventBuffer(HTTP_OPAQUE_ID     p_response
                                       ,CRITICAL_SECTION*  p_lock
-                                      ,const char*        p_buffer
+                                      ,BYTE**             p_buffer
                                       ,size_t             p_totalLength
                                       ,bool               p_continue = true) = 0;
   // Logging and tracing: The response
   void      TraceResponse(PHTTP_RESPONSE p_response);
-  void      TraceKnownResponseHeader(unsigned p_number,const char* p_value);
+  void      TraceKnownResponseHeader(unsigned p_number,LPCTSTR p_value);
   // Logging and tracing: The request
   void      TraceRequest(PHTTP_REQUEST p_request);
-  void      TraceKnownRequestHeader(unsigned p_number,const char* p_value);
+  void      TraceKnownRequestHeader(unsigned p_number,LPCTSTR p_value);
 
   // Protected data
   XString                 m_name;                   // How the outside world refers to me
@@ -455,7 +471,7 @@ protected:
   HTTP_CACHE_POLICY_TYPE  m_policy   { HttpCachePolicyNocache };        // Cache policy
   ULONG                   m_secondsToLive  { 0 };   // Seconds to live in the cache
   ThreadPool              m_pool;                   // Our threadpool for the server
-  MarlinConfig*              m_marlinConfig;           // Web.config or Marlin.Config in our current directory
+  MarlinConfig*           m_marlinConfig;           // Web.config or Marlin.Config in our current directory
   LogAnalysis*            m_log      { nullptr };   // Logging object
   bool                    m_logOwner { false   };   // Server owns the log
   int                     m_logLevel { HLL_NOLOG }; // Detailed logging of the server
@@ -510,13 +526,13 @@ HTTPServer::GetHostname()
 }
 
 inline void
-HTTPServer::SetClientErrorPage(XString& p_errorPage)
+HTTPServer::SetClientErrorPage(const XString& p_errorPage)
 {
   m_clientErrorPage = p_errorPage;
 }
 
 inline void
-HTTPServer::SetServerErrorPage(XString& p_errorPage)
+HTTPServer::SetServerErrorPage(const XString& p_errorPage)
 {
   m_serverErrorPage = p_errorPage;
 }

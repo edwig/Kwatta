@@ -245,7 +245,7 @@ StyleTabCtrl::OnPaint()
     for (int ind = 0;ind < count; ++ind)
     {
       // Getting the icon image an the tab text
-      char buffer[MAX_PATH + 1];
+      TCHAR buffer[MAX_PATH + 1];
       TCITEM item;
       item.mask       = TCIF_TEXT | TCIF_IMAGE;
       item.pszText    = buffer;
@@ -421,7 +421,6 @@ void
 StyleTabCtrl::PaintError(CDC* pDC, CRect rect)
 {
   HGDIOBJ  oldfont  = pDC->SelectObject(STYLEFONTS.ErrorTextFont);
-
   COLORREF oldcolor = pDC->SetTextColor(ColorWindowFrameError);
   int      oldmode  = pDC->SetBkMode(TRANSPARENT);
 

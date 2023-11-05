@@ -28,6 +28,7 @@
 //
 #include "ExcelFormat.h"
 #include <comutil.h>
+#include <tchar.h>
 
 #ifdef _MSC_VER
 #include <malloc.h>	// for alloca()
@@ -4081,13 +4082,19 @@ ULONG Worksheet::CellTable::RowBlock::CellBlock::MulRK::RecordSize()
   return recordSize_ = dataSize + 4*(dataSize/8224 + 1);
 }
 
-Worksheet::CellTable::RowBlock::CellBlock::Number::Number() : Record(),
-  rowIndex_(0), colIndex_(0), XFRecordIndex_(0), value_(0)
+Worksheet::CellTable::RowBlock::CellBlock::Number::Number() 
+          :Record()
+          ,rowIndex_(0)
+          ,colIndex_(0)
+          ,XFRecordIndex_(0)
+          ,value_(0)
 {
-  code_ = CODE::NUMBER;
-  dataSize_ = 14; recordSize_ = 18;
-  intdouble_ = {0};
+  code_       = CODE::NUMBER;
+  dataSize_   = 14; 
+  recordSize_ = 18;
+  intdouble_  = { 0 };
 }
+
 ULONG Worksheet::CellTable::RowBlock::CellBlock::Number::Read(const char* data)
 {
   Record::Read(data);
@@ -5267,6 +5274,13 @@ BasicExcel::BasicExcel(const char* filename,bool readonly/*=false*/)
   Load(filename,readonly);
 }
 
+BasicExcel::BasicExcel(const wchar_t* filename,bool readonly/*=false*/)
+{
+  error_ = NULL;
+  loaded_ = false;
+  Load(filename,readonly);
+}
+
 BasicExcel::~BasicExcel()
 {
   Close();
@@ -5433,6 +5447,15 @@ bool BasicExcel::SaveAs(const wchar_t* filename)
 
 // Total number of Excel worksheets in current Excel workbook.
 int BasicExcel::GetTotalWorkSheets(const char* p_file)
+{
+  if(loaded_ == false)
+  {
+    Load(p_file,true);
+  }
+  return (int) worksheets_.size();
+}
+
+int BasicExcel::GetTotalWorkSheets(const wchar_t* p_file)
 {
   if(loaded_ == false)
   {
@@ -6576,15 +6599,15 @@ bool BasicExcelWorksheet::EraseCell(int row, int col)
 // You must supply a row/column to specify the cell
 // and a buffer+length for a formula/number type of cell (multi-threading-safe)
 // RESULT: is a pointer to the buffer OR a pointer to the string buffer
-char*
-BasicExcelWorksheet::CellValue(int row,int col,char* p_buffer,int p_length)
+TCHAR*
+BasicExcelWorksheet::CellValue(int row,int col,TCHAR* p_buffer,int p_length)
 {
   // Check on minimum requirements
   if(p_buffer == NULL || p_length < 10)
   {
     return NULL;
   }
-  char* pointer = p_buffer;
+  TCHAR* pointer = p_buffer;
 
   BasicExcelCell* cell = Cell(row,col);
   if(cell)
@@ -6594,52 +6617,72 @@ BasicExcelWorksheet::CellValue(int row,int col,char* p_buffer,int p_length)
       default:                        // Fall through
       case BasicExcelCell::UNDEFINED: *p_buffer = 0;
                                       break;
-      case BasicExcelCell::INT:       sprintf_s(p_buffer,p_length,"%d",cell->GetInteger());
+      case BasicExcelCell::INT:       _stprintf_s(p_buffer,p_length,_T("%d"),cell->GetInteger());
                                       break;
       case BasicExcelCell::DOUBLE:    {
-                                        sprintf_s(p_buffer,p_length,"%f",cell->GetDouble());
-                                        //Kijk of het een datum formaat is, zo ja dan omzetten naar een string datum
+                                        _stprintf_s(p_buffer,p_length,_T("%f"),cell->GetDouble());
+                                        // See if it is a date format, and if so, convert to a date in a string
                                         ExcelFormat::XLSFormatManager fmt_mgr(*excel_);
                                         ExcelFormat::CellFormat fmt(fmt_mgr, cell);
                                         std::wstring format = fmt_mgr.get_format_string(fmt);
                                         if(format.compare(L"M/D/YY")==0 ||
-                                          format.compare(L"[$-F800]dddd\\,\\ mmmm\\ dd\\,\\ yyyy")==0 ||
-                                          format.compare(L"yyyy/mm/dd;@")==0 ||
-                                          format.compare(L"d/m;@")==0 ||
-                                          format.compare(L"d/mm/yy;@")==0 ||
-                                          format.compare(L"dd/mm/yy;@")==0 ||
-                                          format.compare(L"[$-413]d/mmm;@")==0 ||
-                                          format.compare(L"[$-413]dd/mmm/yy;@")==0 ||
-                                          format.compare(L"[$-413]mmm/yy;@")==0 ||
-                                          format.compare(L"[$-413]mmmm/yy;@")==0 ||
-                                          format.compare(L"[$-413]d\\ mmmm\\ yyyy;@")==0 ||
-                                          format.compare(L"[$-413]d/mmm/yyyy;@")==0 ||
-                                          format.compare(L"[$-413]d/mmm/yy;@")==0 ||
-                                          format.compare(L"[$-413]mmmmm;@")==0 ||
-                                          format.compare(L"[$-413]mmmmm/yy;@")==0 ||
-                                          format.compare(L"m/d/yyyy;@")==0 
-                                          )
+                                           format.compare(L"[$-F800]dddd\\,\\ mmmm\\ dd\\,\\ yyyy")==0 ||
+                                           format.compare(L"yyyy/mm/dd;@")==0 ||
+                                           format.compare(L"d/m;@")==0 ||
+                                           format.compare(L"d/mm/yy;@")==0 ||
+                                           format.compare(L"dd/mm/yy;@")==0 ||
+                                           format.compare(L"[$-413]d/mmm;@")==0 ||
+                                           format.compare(L"[$-413]dd/mmm/yy;@")==0 ||
+                                           format.compare(L"[$-413]mmm/yy;@")==0 ||
+                                           format.compare(L"[$-413]mmmm/yy;@")==0 ||
+                                           format.compare(L"[$-413]d\\ mmmm\\ yyyy;@")==0 ||
+                                           format.compare(L"[$-413]d/mmm/yyyy;@")==0 ||
+                                           format.compare(L"[$-413]d/mmm/yy;@")==0 ||
+                                           format.compare(L"[$-413]mmmmm;@")==0 ||
+                                           format.compare(L"[$-413]mmmmm/yy;@")==0 ||
+                                           format.compare(L"m/d/yyyy;@")==0 
+                                           )
                                         {
                                           BSTR bstr = NULL;
                                           VarBstrFromDate(cell->GetDouble(), LANG_USER_DEFAULT, VAR_FOURDIGITYEARS, &bstr); 
-                                          pointer = (char*)_com_util::ConvertBSTRToString(bstr);
+#ifdef UNICODE
+                                          int len = (int)wcslen(bstr);
+                                          wcsncpy_s(p_buffer,p_length,bstr,len);
+#else
+                                          char* pnt = (char*)_com_util::ConvertBSTRToString(bstr);
+                                          strncpy_s(p_buffer,p_length,pnt,strlen(pnt));
+#endif
                                           break;
                                         }
                                       	TrimDoubleString(p_buffer);
                                       	break;
                                       }
-      case BasicExcelCell::STRING:    pointer = (char*)cell->GetString();
+      case BasicExcelCell::STRING:    
+#ifdef UNICODE
+                                      {
+                                        const char* pnt = cell->GetString();
+                                        const std::wstring value = ::widen_string(pnt);
+                                        wcsncpy_s(p_buffer,p_length,value.c_str(),value.size());
+                                      }
+#else
+                                      pointer = (char*)cell->GetString();
+#endif
                                       break;
-      case BasicExcelCell::WSTRING:   {
+      case BasicExcelCell::WSTRING:   
+#ifdef UNICODE
+                                      pointer = const_cast<wchar_t*>(cell->GetWString());
+#else
+                                      {
                                         const std::wstring wstr(cell->GetWString());
                                         std::string str = ::narrow_string(wstr);
-                                        pointer = (char*)str.c_str();
+                                        strncpy_s(p_buffer,p_length,str.c_str(),str.size());
                                       }
+#endif
                                       break;
       case BasicExcelCell::FORMULA:   {
                                         double result = 0.0;
                                         cell->Get(result);
-                                        sprintf_s(p_buffer,p_length,"%f",result);
+                                        _stprintf_s(p_buffer,p_length,_T("%f"),result);
                                         TrimDoubleString(p_buffer);
                                       }
     }
@@ -6650,7 +6693,7 @@ BasicExcelWorksheet::CellValue(int row,int col,char* p_buffer,int p_length)
 // [EH]
 // Trim value of a double
 void
-BasicExcelWorksheet::TrimDoubleString(char* p_number)
+BasicExcelWorksheet::TrimDoubleString(TCHAR* p_number)
 {
   // Nothing to do
   if(p_number == NULL || *p_number == 0)
@@ -6658,13 +6701,13 @@ BasicExcelWorksheet::TrimDoubleString(char* p_number)
     return;
   }
   // Point to end of string
-  char* pointer = p_number + strlen(p_number) - 1;
+  TCHAR* pointer = p_number + _tcslen(p_number) - 1;
 
   // Iterate backwards on the number
   // stripping trailing '0' and a trailing '.' sign
   while(pointer != p_number)
   {
-    // stopping criterium
+    // stopping criterion
     if(*pointer == '.')
     {
       *pointer = 0;
@@ -7078,7 +7121,7 @@ const char*
 BasicExcelCell::GetString() const
 {
   if(type_ == STRING) 
-    {
+  {
     return &str_[0];
   } 
   else if (type_ == FORMULA) 

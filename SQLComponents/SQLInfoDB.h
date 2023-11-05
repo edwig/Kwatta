@@ -67,6 +67,9 @@ public:
 
   // Meta info about meta types: META_CATALOGS/META_SCHEMAS/META_TABLES
   virtual bool    MakeInfoMetaTypes       (MMetaMap&      p_objects,   XString& p_errors,int p_type) override;
+  virtual bool    MakeInfoDefaultCharset  (XString&       p_default);
+  virtual bool    MakeInfoDefaultCharsetNC(XString&       p_default);
+  virtual bool    MakeInfoDefaultCollation(XString&       p_default);
   // Tables
   virtual bool    MakeInfoTableObject     (MTableMap&     p_tables,    XString& p_errors,XString p_schema,XString p_tablename);  // Not known which type!
   virtual bool    MakeInfoTableTable      (MTableMap&     p_tables,    XString& p_errors,XString p_schema,XString p_tablename);  // TABLE   only
@@ -74,14 +77,14 @@ public:
   virtual bool    MakeInfoTableSynonyms   (MTableMap&     p_tables,    XString& p_errors,XString p_schema,XString p_tablename);  // SYNONYM only
   virtual bool    MakeInfoTableCatalog    (MTableMap&     p_tables,    XString& p_errors,XString p_schema,XString p_tablename);  // CATALOG only
   // Attributes of a table
-  virtual bool    MakeInfoTableColumns    (MColumnMap&    p_columns,   XString& p_errors,XString p_schema,XString p_tablename,XString p_columnname = "") override;
+  virtual bool    MakeInfoTableColumns    (MColumnMap&    p_columns,   XString& p_errors,XString p_schema,XString p_tablename,XString p_columnname = _T("")) override;
   virtual bool    MakeInfoTablePrimary    (MPrimaryMap&   p_primary,   XString& p_errors,XString p_schema,XString p_tablename)                          override;
   virtual bool    MakeInfoTableForeign    (MForeignMap&   p_foreigns,  XString& p_errors,XString p_schema,XString p_tablename,bool p_referenced   = false) override;
   virtual bool    MakeInfoTableStatistics (MIndicesMap&   p_indices,   XString& p_errors,XString p_schema,XString p_tablename,MPrimaryMap* p_keymap,bool p_all = true) override;
-  virtual bool    MakeInfoTableTriggers   (MTriggerMap&   p_triggers,  XString& p_errors,XString p_schema,XString p_tablename,XString p_trigger   = "");
+  virtual bool    MakeInfoTableTriggers   (MTriggerMap&   p_triggers,  XString& p_errors,XString p_schema,XString p_tablename,XString p_trigger   = _T(""));
   virtual bool    MakeInfoTableSequences  (MSequenceMap&  p_sequences, XString& p_errors,XString p_schema,XString p_tablename);
-  virtual bool    MakeInfoTablePrivileges (MPrivilegeMap& p_privileges,XString& p_errors,XString p_schema,XString p_tablename);
-  virtual bool    MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges,XString& p_errors,XString p_schema,XString p_tablename,XString p_columnname = "");
+  virtual bool    MakeInfoTablePrivileges (MPrivilegeMap& p_privileges,XString& p_errors,XString p_schema,XString p_tablename) override;
+  virtual bool    MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges,XString& p_errors,XString p_schema,XString p_tablename,XString p_columnname = _T("")) override;
   virtual bool    MakeInfoViewDefinition  (XString&       p_defintion, XString& p_errors,XString p_schema,XString p_viewname);
 
   // Procedures
@@ -91,6 +94,9 @@ public:
   virtual XString MakeInfoPSMSourcecode(XString p_schema, XString p_procedure);
 
   // PURE VIRTUAL INTERFACE
+
+  // RDBMS Uses INDENTITY or SEQUENCE interface
+  virtual void    SetUseSequences(bool p_sequences) = 0;
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -190,7 +196,7 @@ public:
 
   // Get select part to add new record identity to a table
   // Can be special column like 'OID' or a sequence select
-  virtual XString GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix = "_seq") const = 0;
+  virtual XString GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix = _T("_seq")) const = 0;
 
   // Gets the UPPER function
   virtual XString GetKEYWORDUpper(XString& p_expression) const = 0;
@@ -279,6 +285,7 @@ public:
   // CATALOG
   // o GetCATALOG<Object[s]><Function>
   //   Objects
+  //   - Catalog
   //   - Table
   //   - Column
   //   - Index
@@ -302,6 +309,9 @@ public:
 
   // Meta info about meta types
   virtual XString GetCATALOGMetaTypes(int p_type) const = 0;
+  virtual XString GetCATALOGDefaultCharset() const = 0;
+  virtual XString GetCATALOGDefaultCharsetNCV() const = 0;
+  virtual XString GetCATALOGDefaultCollation() const = 0;
   // All table functions
   virtual XString GetCATALOGTableExists       (XString& p_schema,XString& p_tablename) const = 0;
   virtual XString GetCATALOGTablesList        (XString& p_schema,XString& p_pattern)   const = 0;
@@ -430,8 +440,8 @@ public:
 
   // All Language elements
   virtual XString GetPSMDeclaration(bool p_first,XString p_variable,int p_datatype,int p_precision = 0,int p_scale = 0,
-                                    XString p_default = "",XString p_domain = "",XString p_asColumn = "") const = 0;
-  virtual XString GetPSMAssignment (XString p_variable,XString p_statement = "") const = 0;
+                                    XString p_default = _T(""),XString p_domain = _T(""),XString p_asColumn = _T("")) const = 0;
+  virtual XString GetPSMAssignment (XString p_variable,XString p_statement = _T("")) const = 0;
   virtual XString GetPSMIF         (XString p_condition) const = 0;
   virtual XString GetPSMIFElse     () const = 0;
   virtual XString GetPSMIFEnd      () const = 0;
@@ -440,7 +450,7 @@ public:
   virtual XString GetPSMLOOP       () const = 0;
   virtual XString GetPSMLOOPEnd    () const = 0;
   virtual XString GetPSMBREAK      () const = 0;
-  virtual XString GetPSMRETURN     (XString p_statement = "") const = 0;
+  virtual XString GetPSMRETURN     (XString p_statement = _T("")) const = 0;
   virtual XString GetPSMExecute    (XString p_procedure,MParameterMap& p_parameters) const = 0;
 
   // The CURSOR
@@ -493,7 +503,11 @@ private:
 
   // All default granted users for GRANT statements
   XString m_grantedUsers;
-  // Prefer ODBC metaqueries above hand crafted ones
+  // Catalog default charset/collation
+  XString m_defaultCharset;
+  XString m_defaultCharsetNCV;
+  XString m_defaultCollation;
+  // Prefer ODBC meta-queries above hand crafted ones
   bool    m_preferODBC { true };
 };
 

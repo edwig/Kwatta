@@ -86,7 +86,7 @@ public:
   // Sanity check on channel
   void CheckChannel();
   // Post a new event, giving a new event numerator
-  int  PostEvent(XString p_payload,XString p_sender,EvtType p_type = EvtType::EV_Message,XString p_typeName = "");
+  int  PostEvent(XString p_payload,XString p_sender,EvtType p_type = EvtType::EV_Message,XString p_typeName = _T(""));
   // Flushing a channel directly
   bool FlushChannel();
   // Closing an event channel
@@ -117,12 +117,12 @@ public:
   void    OnError  (XString p_message);
   void    OnClose  (XString p_message);
   void    OnBinary (void* p_data,DWORD p_length);
-  void    OnOpenSocket (WebSocket* p_socket);
-  void    OnCloseSocket(WebSocket* p_socket);
+  void    OnOpenSocket (const WebSocket* p_socket);
+  void    OnCloseSocket(const WebSocket* p_socket);
 
 private:
   void CloseSocket(WebSocket* p_socket);
-  void CloseStream(EventStream* p_stream);
+  void CloseStream(const EventStream* p_stream);
   int  SendQueueToSocket();
   int  SendQueueToStream();
   int  LogLongPolling();

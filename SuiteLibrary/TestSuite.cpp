@@ -20,7 +20,6 @@
 
 #include "stdafx.h"
 #include "TestSuite.h"
-#include "EnsureFile.h"
 #include "StdException.h"
 
 #ifdef _DEBUG
@@ -41,8 +40,8 @@ TestSuite::ReadFromXML(CString p_filename)
   CheckFilename(p_filename);
 
   // Getting our correct relative pathname
-  EnsureFile ensure;
-  m_filename = m_baseDirectory + ensure.FilenamePart(p_filename);
+  WinFile file(p_filename);
+  m_filename = m_baseDirectory + file.GetFilenamePartFilename();
 
   XMLMessage msg;
 
@@ -309,8 +308,8 @@ void
 TestSuite::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  EnsureFile ensure;
-  CString extension = ensure.ExtensionPart(p_filename);
+  WinFile file(p_filename);
+  CString extension = file.GetFilenamePartExtension();
   if(extension.CompareNoCase(".xtest") != 0)
   {
     throw StdException("A test suite XML definition file must be saved as a *.XTEST");

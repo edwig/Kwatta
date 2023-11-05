@@ -65,7 +65,7 @@ enum class XsdError
  ,XSDE_element_not_qualified
 };
 
-#define XSDSCHEMA "http://www.w3.org/2001/XMLSchema"
+#define XSDSCHEMA _T("http://www.w3.org/2001/XMLSchema")
 
 using ElementMap  = std::vector<XMLElement*>;
 using RestrictMap = std::vector<XMLRestriction*>;
@@ -73,7 +73,7 @@ using RestrictMap = std::vector<XMLRestriction*>;
 class XSDComplexType: public XMLElement
 {
 public:
-  XSDComplexType(XString p_name);
+  explicit XSDComplexType(XString p_name);
  ~XSDComplexType();
 
   XString    m_name;

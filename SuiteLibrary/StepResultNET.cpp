@@ -43,10 +43,10 @@ StepResultNET::ReadFromXML(CString p_filename)
   m_bearerToken   = msg.GetElement("BearerToken");
 
   // Find all headers
-  XMLElement* headers = msg.FindElement("ResponseHeaders");
-  if(headers)
+  XMLElement* allheaders = msg.FindElement("ResponseHeaders");
+  if(allheaders)
   {
-    XMLElement* header = msg.FindElement(headers,"Header");
+    XMLElement* header = msg.FindElement(allheaders,"Header");
     while(header)
     {
       INPair head;
@@ -86,10 +86,10 @@ StepResultNET::WriteToXML(CString p_filename)
   msg.AddElement(root,"BearerToken",  XDT_String,m_bearerToken);
 
   // Headers
-  XMLElement* headers = msg.AddElement(root,"ResponseHeaders",XDT_String,"");
+  XMLElement* allheaders = msg.AddElement(root,"ResponseHeaders",XDT_String,"");
   for(auto& head : m_headers)
   {
-    XMLElement* header = msg.AddElement(headers,"Header",XDT_String,"");
+    XMLElement* header = msg.AddElement(allheaders,"Header",XDT_String,"");
     msg.AddElement(header,"Name", XDT_String,            head.m_name);
     msg.AddElement(header,"Value",XDT_String | XDT_CDATA,head.m_value);
   }

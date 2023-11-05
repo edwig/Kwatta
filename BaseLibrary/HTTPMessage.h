@@ -31,6 +31,7 @@
 #include "CrackURL.h"
 #include "Cookie.h"
 #include "Routing.h"
+#include "ConvertWideString.h"
 #include <http.h>
 #include <winhttp.h>
 #include <map>
@@ -86,11 +87,11 @@ enum class HTTPCommand
 };
 
 // All HTTP header commands
-extern const char* headers[];
+extern LPCTSTR headers[];
 
 // Incoming and responding header names
-extern const char* header_fields[];
-extern const char* header_response[];
+extern LPCTSTR header_fields[];
+extern LPCTSTR header_response[];
 
 using ushort    = unsigned short;
 
@@ -108,17 +109,17 @@ public:
   // General XTOR
   HTTPMessage();
   // XTOR for HTTP command (get,post etc)
-  HTTPMessage(HTTPCommand p_command,int p_code = HTTP_STATUS_OK);
+  explicit HTTPMessage(HTTPCommand p_command,int p_code = HTTP_STATUS_OK);
   // XTOR for HTTP command from a HTTPServer
-  HTTPMessage(HTTPCommand p_command,HTTPSite* p_site);
+  explicit HTTPMessage(HTTPCommand p_command,HTTPSite* p_site);
   // XTOR for HTTP command and a URL
-  HTTPMessage(HTTPCommand p_command,XString p_url);
+  explicit HTTPMessage(HTTPCommand p_command,XString p_url);
   // XTOR from another HTTPMessage
-  HTTPMessage(HTTPMessage* p_msg,bool p_deep = false);
+  explicit HTTPMessage(HTTPMessage* p_msg,bool p_deep = false);
   // XTOR from a SOAPMessage
-  HTTPMessage(HTTPCommand p_command,SOAPMessage* p_msg);
+  explicit HTTPMessage(HTTPCommand p_command,const SOAPMessage* p_msg);
   // XTOR from a JSONMessage
-  HTTPMessage(HTTPCommand p_command,JSONMessage* p_msg);
+  explicit HTTPMessage(HTTPCommand p_command,const JSONMessage* p_msg);
   // DTOR
  ~HTTPMessage();
 
@@ -126,10 +127,10 @@ public:
   void Reset();
 
   // SETTERS
-  void SetBody(XString     p_body,XString p_encoding = "");
-  void SetBody(const char* p_body,XString p_encoding = "");
+  void SetBody(XString p_body,XString p_charset = _T(""));
+  void SetBody(LPCTSTR p_body,XString p_charset = _T(""));
   void SetBody(void* p_body,unsigned p_length);
-  void SetURL(XString& p_url);
+  void SetURL(const XString& p_url);
   bool SetVerb(XString p_verb);
   void SetAcceptEncoding(XString p_encoding);
   void SetCommand(HTTPCommand p_command)        { m_command            = p_command;   }
@@ -138,9 +139,9 @@ public:
   void SetUser(XString p_user)                  { m_user               = p_user;      }
   void SetPassword(XString p_password)          { m_password           = p_password;  }
   void SetSecure(bool p_secure)                 { m_cracked.m_secure   = p_secure;    ReparseURL();  }
-  void SetServer(XString& p_server)             { m_cracked.m_host     = p_server;    ReparseURL();  }
+  void SetServer(const XString& p_server)       { m_cracked.m_host     = p_server;    ReparseURL();  }
   void SetPort(unsigned p_port)                 { m_cracked.m_port     = p_port;      ReparseURL();  }
-  void SetAbsolutePath(XString& p_path)         { m_cracked.SetPath(p_path);          ReparseURL();  }
+  void SetAbsolutePath(const XString& p_path)   { m_cracked.SetPath(p_path);          ReparseURL();  }
   void SetRequestHandle(HTTP_OPAQUE_ID p_req)   { m_request            = p_req;       }
   void SetAccessToken(HANDLE p_token)           { m_token              = p_token;     }
   void SetRemoteDesktop(UINT p_desktop)         { m_desktop            = p_desktop;   }
@@ -153,17 +154,19 @@ public:
   void SetSystemTime(SYSTEMTIME p_time)         { m_systemtime         = p_time;      }
   void SetHasBeenAnswered()                     { m_request            = NULL;        }
   void SetChunkNumber(int p_chunk)              { m_chunkNumber        = p_chunk;     }
+  void SetXMLHttpRequest(boolean p_value)       { m_XMLHttpRequest     = p_value;     }
+  void SetSendUnicode(bool p_unicode)           { m_sendUnicode        = p_unicode;   }
   void SetExtension(XString p_ext,bool p_reparse = true);
   void SetReadBuffer(bool p_read,size_t p_length = 0);
   void SetSender  (PSOCKADDR_IN6 p_address);
   void SetReceiver(PSOCKADDR_IN6 p_address);
-  void SetFile(XString& p_fileName);
+  void SetFile(const XString& p_fileName);
   void SetAuthorization(XString& p_authorization);
   void SetAllHeaders    (PHTTP_REQUEST_HEADERS p_headers);
   void SetUnknownHeaders(PHTTP_REQUEST_HEADERS p_headers);
   void SetCookie(Cookie& p_cookie);
   void SetCookie(XString p_fromHttp);
-  void SetCookie(XString p_name,XString p_value,XString p_metadata = "",bool p_secure = false,bool p_httpOnly = false);
+  void SetCookie(XString p_name,XString p_value,XString p_metadata = _T(""),bool p_secure = false,bool p_httpOnly = false);
   void SetCookie(XString        p_name
                 ,XString        p_value
                 ,XString        p_metadata
@@ -175,7 +178,7 @@ public:
                 ,int            p_maxAge   = 0
                 ,SYSTEMTIME*    p_expires  = nullptr);
   void SetCookiePairs(XString p_cookies);     // From "Cookie:" only
-  void SetCookies(Cookies& p_cookies);
+  void SetCookies(const Cookies& p_cookies);
   bool SetHTTPSite(HTTPSite* p_site);
 
   // GETTERS
@@ -212,14 +215,17 @@ public:
   Cookies&            GetCookies()              { return m_cookies;                   }
   Routing&            GetRouting()              { return m_routing;                   }
   unsigned            GetChunkNumber()          { return m_chunkNumber;               }
+  boolean             GetXMLHttpRequest()       { return m_XMLHttpRequest;            }
+  bool                GetSendUnicode()          { return m_sendUnicode;               }
+
   XString             GetBody();
   size_t              GetBodyLength();
   XString             GetVerb();
   XString             GetHeader(XString p_name);
   void                GetRawBody(uchar** p_body,size_t& p_length);
   Cookie*             GetCookie(unsigned p_ind);
-  XString             GetCookieValue(unsigned p_ind = 0,XString p_metadata = "");
-  XString             GetCookieValue(XString p_name,    XString p_metadata = "");
+  XString             GetCookieValue(unsigned p_ind = 0,XString p_metadata = _T(""));
+  XString             GetCookieValue(XString p_name,    XString p_metadata = _T(""));
   XString             GetRoute(int p_index);
   bool                GetHasBeenAnswered();
 
@@ -228,7 +234,7 @@ public:
   // Reset all cookies
   void    ResetCookies();
   // Add a body from a text field
-  void    AddBody(const char* p_body);
+  void    AddBody(XString p_body,XString p_charset = _T("utf-8"));
   // Add a body from a binary BLOB
   void    AddBody(void* p_body,unsigned p_length);
   // Add a header-name / header-value pair
@@ -254,9 +260,11 @@ public:
   void    DropReference();
 
   // Operators
-  HTTPMessage& operator=(JSONMessage& p_message);
+  HTTPMessage& operator=(const JSONMessage& p_message);
 
 private:
+  // TO BE CALLED FROM THE XTOR!!
+  void    ConstructBodyFromString(XString p_string,XString p_charset,bool p_withBom);
   // Parse raw URL to cracked URL data
   bool    ParseURL(XString p_url);
   // Check for minimal sending requirements
@@ -282,6 +290,7 @@ private:
   bool                m_verbTunnel    { false   };                    // HTTP-VERB Tunneling used
   bool                m_sendBOM       { false   };                    // BOM discovered in content block
   bool                m_readBuffer    { false   };                    // HTTP content still to be read
+  bool                m_sendUnicode   { false   };                    // Send in UTF-16 LE format
   size_t              m_contentLength { 0       };                    // Total content to read for the message
   unsigned            m_chunkNumber   { 0       };                    // Chunk number in case of transfer-encoding: chunked
   FileBuffer          m_buffer;                                       // Body or file buffer
@@ -298,12 +307,13 @@ private:
   bool                m_ifmodified    { false   };                    // Use "if-modified-since"
   SYSTEMTIME          m_systemtime;                                   // System time for m_modified
   long                m_references    { 1       };                    // Referencing system
+  boolean             m_XMLHttpRequest{ false   };                    // Ajax Request (Triggers CORS!)
 };
 
 inline void 
 HTTPMessage::SetBody(void* p_body,unsigned p_length)
 {
-  m_buffer.SetBuffer((uchar*)p_body,p_length);
+  m_buffer.SetBuffer(reinterpret_cast<uchar*>(p_body),p_length);
 }
 
 inline size_t
@@ -313,15 +323,33 @@ HTTPMessage::GetBodyLength()
 }
 
 inline void
-HTTPMessage::AddBody(const char* p_buffer)
+HTTPMessage::AddBody(XString p_buffer,XString p_charset /*=_T("utf-8")*/)
 {
-  m_buffer.AddBuffer((uchar*)p_buffer,strlen(p_buffer));
+#ifdef UNICODE
+  if(p_charset.Compare(_T("utf-16")) == 0)
+  {
+    m_buffer.AddBuffer((uchar*)p_buffer.GetString(),p_buffer.GetLength() * sizeof(TCHAR));
+  }
+  else
+  {
+    BYTE* buffer = nullptr;
+    int   length = 0;
+    if(TryCreateNarrowString(p_buffer,p_charset,false,&buffer,length))
+    {
+      m_buffer.AddBuffer(buffer,length);
+    }
+    delete[] buffer;
+  }
+#else
+  XString buffer = EncodeStringForTheWire(p_buffer,p_charset);
+  m_buffer.AddBuffer((uchar*)buffer.GetString(),buffer.GetLength());
+#endif
 }
 
 inline void 
 HTTPMessage::AddBody(void* p_body,unsigned p_length)
 {
-  m_buffer.AddBuffer((uchar*)p_body,p_length);
+  m_buffer.AddBuffer(reinterpret_cast<uchar*>(p_body),p_length);
 }
 
 inline void 
@@ -331,7 +359,7 @@ HTTPMessage::SetCookie(Cookie& p_cookie)
 }
 
 inline void 
-HTTPMessage::SetCookies(Cookies& p_cookies)
+HTTPMessage::SetCookies(const Cookies& p_cookies)
 {
   m_cookies = p_cookies;
 }

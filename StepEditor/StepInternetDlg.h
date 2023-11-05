@@ -71,6 +71,7 @@ protected:
   void LoadVariables();
   void LoadVariablesTabs();
   void SetFirstTab();
+  void Redraw();
 
   CString           m_name;
   CString           m_comment;
@@ -88,10 +89,11 @@ protected:
   StyleButton       m_buttonUrlParm;
   StyleTabCtrl      m_tabsRequest;
   StyleTabCtrl      m_tabsResponse;
+  StyleButton       m_buttonErrors;
   StyleButton       m_buttonOK;
   StyleButton       m_buttonCancel;
 
-  TestStepNET*       m_testStep { nullptr };
+  TestStepNET*      m_testStep { nullptr };
   Parameters        m_parameters;
   RequestDlg*       m_page1;
   URLParameterDlg*  m_page2;
@@ -117,6 +119,7 @@ public:
   afx_msg void OnBnClickedGO();
   afx_msg void OnBnClickedOk();
   afx_msg void OnBnClickedUrlParm();
+  afx_msg void OnBnClickedErrors();
   afx_msg void OnAbout();
   afx_msg void OnExit();
 };

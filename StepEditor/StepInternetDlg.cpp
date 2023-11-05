@@ -98,6 +98,7 @@ StepInternetDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control (pDX,IDC_URL_PARM, m_buttonUrlParm);
   DDX_Control (pDX,IDC_TAB_REQ,  m_tabsRequest);
   DDX_Control (pDX,IDC_TAB_RES,  m_tabsResponse);
+  DDX_Control (pDX,IDC_ERRORS,   m_buttonErrors);
   DDX_Control (pDX,IDC_GO,       m_buttonGO);
   DDX_Control (pDX,IDOK,         m_buttonOK);
   DDX_Control (pDX,IDCANCEL,     m_buttonCancel);
@@ -105,6 +106,7 @@ StepInternetDlg::DoDataExchange(CDataExchange* pDX)
   if(pDX->m_bSaveAndValidate == FALSE)
   {
     m_buttonGlobal.EnableWindow(!theApp.GetGlobal());
+    m_buttonErrors.EnableWindow(m_unbound);
   }
 }
 
@@ -115,6 +117,7 @@ BEGIN_MESSAGE_MAP(StepInternetDlg, StyleDialog)
   ON_CBN_SELCHANGE(IDC_VERB,    &StepInternetDlg::OnCbnSelchangeVerb)
   ON_EN_KILLFOCUS (IDC_URL,     &StepInternetDlg::OnEnChangeUrl)
   ON_BN_CLICKED   (IDC_URL_PARM,&StepInternetDlg::OnBnClickedUrlParm)
+  ON_BN_CLICKED   (IDC_ERRORS,  &StepInternetDlg::OnBnClickedErrors)
   ON_BN_CLICKED   (IDC_GO,      &StepInternetDlg::OnBnClickedGO)
   ON_BN_CLICKED   (IDOK,        &StepInternetDlg::OnBnClickedOk)
 
@@ -304,6 +307,9 @@ StepInternetDlg::InitButtons()
   m_buttonUrlParm.SetIconImage(IDI_LIST);
   m_buttonGO     .SetIconImage(IDI_RUN);
   m_buttonGlobal .SetIconImage(IDI_EARTH);
+  // Colors
+  m_buttonGO.SetBkColor(RGB(0,255,0));
+  m_buttonGO.SetTextColor(RGB(1,1,1));
 }
 
 void
@@ -541,13 +547,29 @@ StepInternetDlg::OnBnClickedUrlParm()
 }
 
 void
+StepInternetDlg::OnBnClickedErrors()
+{
+  CString errors = m_parameters.GetUnboundErrors();
+  if(!errors.IsEmpty())
+  {
+    StyleMessageBox(this,errors,APPLICATION_NAME,MB_OK|MB_ICONERROR);
+  }
+}
+
+void
 StepInternetDlg::OnBnClickedGO()
 {
   CWaitCursor sigh;
+  m_buttonGO.SetBkColor(RGB(255,0,0));
+  m_buttonGO.Invalidate();
+  Redraw();
   if(SaveStep())
   {
     theApp.StartTheInetRunner(this);
   }
+  m_buttonGO.SetBkColor(RGB(0,255,0));
+  m_buttonGO.Invalidate();
+  Redraw();
 }
 
 void 
@@ -567,5 +589,25 @@ StepInternetDlg::OnExit()
   if(SaveStep())
   {
     StyleDialog::OnOK();
+  }
+}
+
+void
+StepInternetDlg::Redraw()
+{
+  // Handle all paint messages for a short period of time
+  MSG msg;
+  UINT ticks = GetTickCount();
+  while(GetTickCount() - ticks < 500 && PeekMessage(&msg,NULL,WM_MOVE,WM_USER,PM_REMOVE))
+  {
+    try
+    {
+      ::TranslateMessage(&msg);
+      ::DispatchMessage(&msg);
+    }
+    catch(...)
+    {
+      // How now, brown cow?
+    }
   }
 }

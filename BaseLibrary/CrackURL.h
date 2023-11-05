@@ -51,7 +51,7 @@ class CrackedURL
 {
 public:
   CrackedURL();
-  CrackedURL(XString p_url);
+  explicit CrackedURL(XString p_url);
  ~CrackedURL();
 
   void      SetPath(XString p_path);
@@ -111,7 +111,10 @@ public:
 private:
   static LPCTSTR m_unsafeString;
   static LPCTSTR m_reservedString;
-  static unsigned char GetHexcodedChar(XString& p_string,int& p_index,bool& p_queryValue);
+  static uchar   GetHexcodedChar(XString& p_string
+                                ,int&     p_index
+                                ,bool&    p_percent
+                                ,bool&    p_queryValue);
 };
 
 inline bool

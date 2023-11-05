@@ -678,6 +678,18 @@ Parameters::Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType 
   return notfound;
 }
 
+void
+Parameters::ResetUnboundErrors()
+{
+  m_errors.Empty();
+}
+
+CString
+Parameters::GetUnboundErrors()
+{
+  return m_errors;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // PRIVATE
@@ -748,13 +760,15 @@ Parameters::Replace(CString& p_string
     int ch = p_string.GetAt(ind);
     if(ch == p_first)
     {
+      CString varName;
+      CString value;
+
       //// "str$name$test
       int pos = p_string.Find(p_last,ind + 1);
       if(pos > ind)
       {
-        CString varName = p_string.Mid(ind + 1,pos - ind - 1);
+        varName = p_string.Mid(ind + 1,pos - ind - 1);
 
-        CString value;
         bool exists(false);
         switch (p_find)
         {
@@ -785,14 +799,18 @@ Parameters::Replace(CString& p_string
         else
         {
           // Variable not found
+          AddError(varName,p_first,p_find,"Variable not found as parameter");
           replaced += p_first;
           ++notReplaced;
+          ind = pos;
         }
       }
       else
       {
         // End symbol not found: Stray symbol in the string
+        AddError(varName,p_first,p_find,"Stray symbol in the string without ending symbol.");
         replaced += p_first;
+        ++notReplaced;
       }
     }
     else if (ch == '\\')
@@ -823,4 +841,24 @@ Parameters::Replace(CString& p_string
   // Result
   p_string = replaced;
   return notReplaced;
+}
+
+// Add error to the list of errors
+void
+Parameters::AddError(CString p_varname,char p_first,ParType p_find,CString p_errortext)
+{
+  CString type;
+  switch (p_find)
+  {
+    case ParType::PAR_GLOBAL:  type = "$global$"; break;
+    case ParType::PAR_LOCAL:   type = "#local#";  break;
+    case ParType::PAR_RETURN:  type = "[return]"; break;
+    case ParType::PAR_BUFFER:  type = "<buffer>"; break;
+    case ParType::PAR_ENVIRON: type = "%environment%"; break;
+  }
+  m_errors.AppendFormat("%s. Looking for a %s variable '%s' with character '%c'\n"
+                        ,p_errortext.GetString()
+                        ,type.GetString()
+                        ,p_varname.GetString()
+                        ,p_first);
 }

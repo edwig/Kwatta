@@ -25,7 +25,6 @@
 #include <MapDialog.h>
 #include <TestSuite.h>
 #include <ExtraExtensions.h>
-#include <EnsureFile.h>
 #include <filesystem>
 
 // NewSuiteDlg dialog
@@ -124,8 +123,8 @@ NewSuiteDlg::CheckSuiteName()
   }
   m_editSuiteName.SetErrorState(false);
 
-  EnsureFile ensure;
-  CString extension = ensure.ExtensionPart(m_suiteName);
+  WinFile file(m_suiteName);
+  CString extension = file.GetFilenamePartExtension();
   if(extension.IsEmpty())
   {
     m_suiteName += EXTENSION_SUITE;
@@ -193,10 +192,10 @@ NewSuiteDlg::OnBnClickedChooseFile()
   DocFileDialog dlg(GetSafeHwnd(),false,"Choose a new test suite filename",EXTENSION_SUITE,"",0,"Kwatta test suite *.xtest|*.xtest");
   if(dlg.DoModal())
   {
-    CString file = dlg.GetChosenFile();
-    EnsureFile ensure;
-    m_directory = ensure.DirectoryPart(file);
-    m_suiteName = ensure.FilenamePart(file);
+    CString filename = dlg.GetChosenFile();
+    WinFile file(filename);
+    m_directory = file.GetFilenamePartDirectory();
+    m_suiteName = file.GetFilenamePartFilename();
     m_directory = m_directory.TrimRight('\\');
     UpdateData(FALSE);
     CheckDirectory();

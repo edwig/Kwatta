@@ -28,7 +28,6 @@
 #include <SearchVarDlg.h>
 #include <XMLMessage.h>
 #include <JSONMessage.h>
-#include <EnsureFile.h>
 #include <ExecuteShell.h>
 #include <WinFile.h>
 
@@ -389,7 +388,7 @@ RequestDlg::OnBnClickedChooseFile()
   if(doc.DoModal() == IDOK)
   {
     CString file = doc.GetChosenFile();
-    EnsureFile ens(file);
+    WinFile ens(file);
 
     CString relative;
     CString basedir = theApp.GetBaseDirectory();
@@ -430,7 +429,7 @@ RequestDlg::OnBnClickedOutputFile()
   if(doc.DoModal() == IDOK)
   {
     CString file = doc.GetChosenFile();
-    EnsureFile ens(file);
+    WinFile ens(file);
 
     CString relative;
     CString basedir = theApp.GetBaseDirectory();

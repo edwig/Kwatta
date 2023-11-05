@@ -22,7 +22,6 @@
 #include "TestEditor.h"
 #include "MutateDlg.h"
 #include <ExtraExtensions.h>
-#include <EnsureFile.h>
 #include <filesystem>
 
 using namespace ThemeColor;
@@ -81,9 +80,10 @@ MutateDlg::CheckFilenames()
     m_editNewFilename.SetEmpty(true,"Fill in a NEW (not existing) filename!");
     return false;
   }
-  EnsureFile ensure;
-  CString orgExtension = ensure.ExtensionPart(m_orgFilename);
-  CString newExtension = ensure.ExtensionPart(m_newFilename);
+  WinFile file(m_orgFilename);
+  CString orgExtension = file.GetFilenamePartExtension();
+  file.SetFilename(m_newFilename);
+  CString newExtension = file.GetFilenamePartExtension();
   if(orgExtension.CompareNoCase(newExtension))
   {
     m_editNewFilename.SetErrorState(true);

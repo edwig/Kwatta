@@ -55,6 +55,11 @@ protected:
   CString m_effectiveBefore;
   CString m_effectiveExec;
   CString m_effectiveAfter;
+  int     m_timeoutResolve;
+  int     m_timeoutConnect;
+  int     m_timeoutSend;
+  int     m_timeoutReceive;
+
 
   TestStep*     m_step       { nullptr };
   Parameters*   m_parameters { nullptr };
@@ -69,6 +74,10 @@ protected:
   StyleEdit     m_editEffWaitBefore;
   StyleEdit     m_editEffWaitExec;
   StyleEdit     m_editEffWaitAfter;
+  StyleEdit     m_editTOResolve;
+  StyleEdit     m_editTOConnect;
+  StyleEdit     m_editTOSend;
+  StyleEdit     m_editTOReceive;
 
 public:
   afx_msg void OnBnClickedKillontimeout();
@@ -78,4 +87,8 @@ public:
   afx_msg void OnBnClickedBefore();
   afx_msg void OnBnClickedExec();
   afx_msg void OnBnClickedAfter();
+  afx_msg void OnEnChangeTOResolve();
+  afx_msg void OnEnChangeTOConnect();
+  afx_msg void OnEnChangeTOSend();
+  afx_msg void OnEnChangeTOReceive();
 };

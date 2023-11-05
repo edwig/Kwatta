@@ -185,13 +185,13 @@ StyleButton::TranslateStyle(CString p_style)
 {
   m_style = 0;
 
-       if(p_style.Compare("ok")   == 0) m_style = IDI_OK;
-  else if(p_style.Compare("can")  == 0) m_style = IDI_CANCEL;
-  else if(p_style.Compare("rem")  == 0) m_style = IDI_REMOVE;
-  else if(p_style.Compare("save") == 0) m_style = IDI_SAVE;
-  else if(p_style.Compare("cal")  == 0) m_style = IDI_CALENDAR;
-  else if(p_style.Compare("hlp")  == 0) m_style = IDI_HELP;
-  else if(p_style.Compare("dir")  == 0) m_style = IDI_DIRECTORY;
+       if(p_style.Compare(_T("ok"))   == 0) m_style = IDI_OK;
+  else if(p_style.Compare(_T("can"))  == 0) m_style = IDI_CANCEL;
+  else if(p_style.Compare(_T("rem"))  == 0) m_style = IDI_REMOVE;
+  else if(p_style.Compare(_T("save")) == 0) m_style = IDI_SAVE;
+  else if(p_style.Compare(_T("cal"))  == 0) m_style = IDI_CALENDAR;
+  else if(p_style.Compare(_T("hlp"))  == 0) m_style = IDI_HELP;
+  else if(p_style.Compare(_T("dir"))  == 0) m_style = IDI_DIRECTORY;
 }
 
 void
@@ -232,7 +232,7 @@ StyleButton::ResetFont()
   lgFont.lfCharSet        = DEFAULT_CHARSET;
   lgFont.lfClipPrecision  = 0;
   lgFont.lfEscapement     = 0;
-  strcpy_s(lgFont.lfFaceName,LF_FACESIZE,m_fontName);
+  _tcscpy_s(lgFont.lfFaceName,LF_FACESIZE,m_fontName);
   lgFont.lfHeight         = m_fontSize;
   lgFont.lfItalic         = m_italic;
   lgFont.lfOrientation    = 0;
@@ -291,6 +291,25 @@ StyleButton::SetFontColor(int p_color)
   if(p_color >= 0 && p_color <= RGB(0xFF,0xFF,0xFF))
   {
     m_fontcolor = p_color;
+  }
+}
+
+void
+StyleButton::SetTextColor(int p_color)
+{
+  if(p_color >= 0 && p_color <= RGB(0xFF,0xFF,0xFF))
+  {
+    m_colorText = p_color;
+  }
+}
+
+
+void
+StyleButton::SetBkColor(int p_color)
+{
+  if(p_color >= 0 && p_color <= RGB(0xFF,0xFF,0xFF))
+  {
+    m_colorBackgnd = p_color;
   }
 }
 
@@ -581,12 +600,29 @@ StyleButton::Draw(CDC*    pDC
       textcolor = ThemeColor::GetColor(Colors::ColorControlTextHover);
       outline   = ThemeColor::GetColor(Colors::ColorControlFrameHover);
     }
-
     else
     {
       filling   = ThemeColor::GetColor(Colors::ColorButtonBackground);
       textcolor = ThemeColor::GetColor(Colors::ColorButtonText);
       outline   = ThemeColor::GetColor(Colors::AccentColor1);
+    }
+    if(m_colorText && !pInError)
+    {
+      textcolor = m_colorText;
+    }
+    if(m_colorBackgnd)
+    {
+      if(over)
+      {
+        int r = GetRValue(m_colorBackgnd) * BUTTON_DIMMING / 100;
+        int g = GetGValue(m_colorBackgnd) * BUTTON_DIMMING / 100;
+        int b = GetBValue(m_colorBackgnd) * BUTTON_DIMMING / 100;
+        filling = RGB(r,g,b);
+      }
+      else
+      {
+        filling = m_colorBackgnd;
+      }
     }
   }
   else

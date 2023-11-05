@@ -24,7 +24,6 @@
 #include "NewSuiteDlg.h"
 #include "resource.h"
 #include <RegistryManager.h>
-#include <EnsureFile.h>
 #include <FileDialog.h>
 #include <filesystem>
 
@@ -166,7 +165,7 @@ StarterDlg::SaveTestSuites()
 void
 StarterDlg::InitButtons()
 {
-  EnsureFile ensure;
+  WinFile file;
   EnableToolTips();
 
   // Do the test suite buttons
@@ -180,7 +179,8 @@ StarterDlg::InitButtons()
     if (index < (int)m_suites.size())
     {
       suite   = m_suites[index];
-      shorter = ensure.FilenamePart(suite);
+      file.SetFilename(suite);
+      shorter = file.GetFilenamePartFilename();
       active  = true;
       bold    = true;
     }

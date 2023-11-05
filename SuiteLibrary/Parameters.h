@@ -104,6 +104,10 @@ public:
   ParMap&  GetReturns() { return m_returns; }
   ParMap&  GetBuffers() { return m_buffers; }
 
+  // Result of the 
+  void     ResetUnboundErrors();
+  CString  GetUnboundErrors();
+
 private:
   // Check the filename's extension
   void    CheckFilename(CString p_filename);
@@ -113,6 +117,8 @@ private:
   void    CheckPasswordProtection(CString p_name,CString p_value);
   // Replacement of values
   int     Replace(CString& p_string,char p_first,char p_last,ParType p_find,bool p_forDisplay,ParType p_exclude = ParType::PAR_NONE);
+  // Add error to the list of errors
+  void    AddError(CString p_varname,char p_first,ParType p_find,CString p_errortext);
 
   ParMap  m_system;   // System parameters
   ParMap  m_buffers;  // [name]   values
@@ -121,6 +127,7 @@ private:
   ParMap  m_locals;   // #local#  values
 
   CString m_environmentValue;
+  CString m_errors;
 
   bool    m_changed  { false }; // Any parameters changed?
   bool    m_password { false }; // Use password protection?

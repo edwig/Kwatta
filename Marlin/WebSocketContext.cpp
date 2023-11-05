@@ -148,7 +148,7 @@ WebSocketContext::ReadFragment(_Out_   VOID*  pData,
   ULONG bytesTransferred = 0;
 
   // Keeping the buffer
-  buffers[0].Data.pbBuffer = (PBYTE) pData;
+  buffers[0].Data.pbBuffer = reinterpret_cast<PBYTE>(pData);
   buffers[0].Data.ulBufferLength = *pcbData;
 
   // Setting reasonable default answers
@@ -211,7 +211,7 @@ WebSocketContext::ReadFragment(_Out_   VOID*  pData,
           if(!ReadFile(m_handle,buffers[0].Data.pbBuffer,buffers[0].Data.ulBufferLength,&bytesTransferred,nullptr))
           {
             int result = GetLastError();
-            SvcReportErrorEvent(0,true,__FUNCTION__,"Socket error: %d",result);
+            SvcReportErrorEvent(0,true,_T(__FUNCTION__),_T("Socket error: %d"),result);
             return -result;
           }
 

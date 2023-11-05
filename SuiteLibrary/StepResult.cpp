@@ -21,7 +21,6 @@
 #include "StdAfx.h"
 #include "StepResult.h"
 #include "StdException.h"
-#include "EnsureFile.h"
 #include "ExtraExtensions.h"
 #include "StepResultCMD.h"
 #include "StepResultNET.h"
@@ -39,8 +38,8 @@ using std::shared_ptr;
 StepResult*
 ReadStepResult(CString p_filename)
 {
-  EnsureFile ensure;
-  CString extension = ensure.ExtensionPart(p_filename);
+  WinFile file(p_filename);
+  CString extension = file.GetFilenamePartExtension(); 
 
   if(extension.CompareNoCase(EXTENSION_RESULT_CMD) == 0)
   {
@@ -196,11 +195,11 @@ void
 StepResult::AddValidation(int p_step,CString p_name,CString p_filename,bool p_result,bool p_global)
 {
   ValStep step;
-  EnsureFile ensure;
+  WinFile file(p_filename);
   
   step.m_number     = p_step;
   step.m_validation = p_name;
-  step.m_filename   = ensure.FilenamePart(p_filename);
+  step.m_filename   = file.GetFilenamePartFilename();
   step.m_ok         = p_result;
   step.m_global     = p_global;
 

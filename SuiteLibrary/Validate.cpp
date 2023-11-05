@@ -22,7 +22,6 @@
 #include "Validate.h"
 #include "Parameters.h"
 #include "StdException.h"
-#include <EnsureFile.h>
 #include "ExtraExtensions.h"
 #include "ValidateCMD.h"
 #include "ValidateNET.h"
@@ -38,8 +37,8 @@ static char THIS_FILE[] = __FILE__;
 
 Validate* ReadValidate(CString p_filename)
 {
-  EnsureFile ensure;
-  CString extension = ensure.ExtensionPart(p_filename);
+  WinFile file(p_filename);
+  CString extension = file.GetFilenamePartExtension();
 
   if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
   {

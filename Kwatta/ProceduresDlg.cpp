@@ -93,6 +93,7 @@ ProceduresDlg::OnBnClickedReset()
   {
     return;
   }
+  CWaitCursor takeAsigh;
   ResetAll all(m_baseDirectory,"","");
   all.Reset(true);
 
@@ -117,6 +118,7 @@ ProceduresDlg::OnBnClickedReport()
 {
   CString reportName("Report.txt");
 
+  CWaitCursor takeAsigh;
   TestReport report(m_baseDirectory,reportName,"KWATTA Test Report",m_depth);
   report.StartReport();
 

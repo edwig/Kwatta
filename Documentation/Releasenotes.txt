@@ -67,3 +67,10 @@ Version 1.1.1 Release date: 21-01-2023
 Version 1.1.2 Release date 19-03-2023
 -------------------------------------
 1)  Updated to the latest versions of BaseLibrary and SQLComponents
+
+Version 1.2.3 Release data 05-11-2023
+-------------------------------------
+1)  The GO button of the internet step dialog now as a green/red color when waiting/running.
+2)  For an internet step, the four HTTP timeouts are added to the timeout tab
+3)  On the formatted response tab, the output has been altered for XML and JSON messages
+    for a tab to be replaced with two spaces, so as to save space in the horizontal directionl

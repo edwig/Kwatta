@@ -552,10 +552,10 @@ TestReport::PrintStepNETDetails(TestStepNET* p_net)
   }
   PrintLine("URL parts : Anchor          : ", p_net->GetAnchor());
 
-  UrlHeaders& headers = p_net->GetHeaders();
-  if(!headers.empty())
+  UrlHeaders& allheaders = p_net->GetHeaders();
+  if(allheaders.empty())
   {
-    for(auto& head : headers)
+    for(auto& head : allheaders)
     {
       PrintLine("HTTP payload : header   : ",head.m_name + ": " + head.m_value);
     }

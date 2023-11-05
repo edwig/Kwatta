@@ -61,6 +61,10 @@ void TimingDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX, IDC_EFF_BEFORE,   m_editEffWaitBefore,m_effectiveBefore);
   DDX_Control(pDX, IDC_EFF_EXEC,     m_editEffWaitExec,  m_effectiveExec);
   DDX_Control(pDX, IDC_EFF_AFTER,    m_editEffWaitAfter, m_effectiveAfter);
+  DDX_Control(pDX, IDC_TO_RESOLVE,   m_editTOResolve,    m_timeoutResolve);
+  DDX_Control(pDX, IDC_TO_CONNECT,   m_editTOConnect,    m_timeoutConnect);
+  DDX_Control(pDX, IDC_TO_SEND,      m_editTOSend,       m_timeoutSend);
+  DDX_Control(pDX, IDC_TO_RECEIVE,   m_editTOReceive,    m_timeoutReceive);
 
   if(pDX->m_bSaveAndValidate == FALSE)
   {
@@ -78,6 +82,10 @@ BEGIN_MESSAGE_MAP(TimingDlg, StyleTab)
   ON_BN_CLICKED   (IDC_BUT_BEFORE,    &TimingDlg::OnBnClickedBefore)
   ON_BN_CLICKED   (IDC_BUT_EXEC,      &TimingDlg::OnBnClickedExec)
   ON_BN_CLICKED   (IDC_BUT_AFTER,     &TimingDlg::OnBnClickedAfter)
+  ON_EN_KILLFOCUS (IDC_TO_RESOLVE,    &TimingDlg::OnEnChangeTOResolve)
+  ON_EN_KILLFOCUS (IDC_TO_CONNECT,    &TimingDlg::OnEnChangeTOConnect)
+  ON_EN_KILLFOCUS (IDC_TO_SEND,       &TimingDlg::OnEnChangeTOSend)
+  ON_EN_KILLFOCUS (IDC_TO_RECEIVE,    &TimingDlg::OnEnChangeTOReceive)
 END_MESSAGE_MAP()
 
 BOOL
@@ -109,6 +117,14 @@ TimingDlg::InitTab(TestStep* p_step,Parameters* p_param)
   m_killOnTimeout     = m_step->GetKillOnTimeout();
   m_maxExecution      = m_step->GetMaxExecution();
 
+  TestStepNET* net = reinterpret_cast<TestStepNET*>(p_step);
+  if(net)
+  {
+    m_timeoutResolve = net->GetTimeoutResolve();
+    m_timeoutConnect = net->GetTimeoutConnect();
+    m_timeoutSend    = net->GetTimeoutSend();
+    m_timeoutReceive = net->GetTimeoutReceive();
+  }
   m_buttonKillOnTimeout.SetCheck(m_killOnTimeout);
   Effectuate();
 }
@@ -128,6 +144,15 @@ TimingDlg::StoreVariables()
     m_step->SetWaitAfterRun(m_waitAfterRun);
     m_step->SetKillOnTimeout(m_killOnTimeout);
     m_step->SetMaxExecution(m_maxExecution);
+
+    TestStepNET* net = reinterpret_cast<TestStepNET*>(m_step);
+    if(net)
+    {
+      net->SetTimeoutResolve(m_timeoutResolve);
+      net->SetTimeoutConnect(m_timeoutConnect);
+      net->SetTimeoutSend   (m_timeoutSend);
+      net->SetTimeoutReceive(m_timeoutReceive);
+    }
   }
 }
 
@@ -229,4 +254,31 @@ TimingDlg::OnBnClickedAfter()
     UpdateData();
     Effectuate();
   }
+}
+
+void
+TimingDlg::OnEnChangeTOResolve()
+{
+  UpdateData();
+  m_editTOConnect.SetFocus();
+}
+
+void
+TimingDlg::OnEnChangeTOConnect()
+{
+  UpdateData();
+  m_editTOSend.SetFocus();
+}
+
+void
+TimingDlg::OnEnChangeTOSend()
+{
+  UpdateData();
+  m_editTOReceive.SetFocus();
+}
+
+void
+TimingDlg::OnEnChangeTOReceive()
+{
+  UpdateData();
 }

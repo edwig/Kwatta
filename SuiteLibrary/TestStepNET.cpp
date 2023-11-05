@@ -82,10 +82,10 @@ TestStepNET::ReadFromXML(CString p_filename)
     }
   }
 
-  XMLElement* headers = msg.FindElement(def,"Headers");
-  if(headers)
+  XMLElement* allheaders = msg.FindElement(def,"Headers");
+  if(allheaders)
   {
-    XMLElement* header = msg.FindElement(headers,"Header");
+    XMLElement* header = msg.FindElement(allheaders,"Header");
     while(header)
     {
       INPair head;
@@ -108,6 +108,17 @@ TestStepNET::ReadFromXML(CString p_filename)
     m_clientID    = msg.GetElement(auth,"ClientID");
     m_clientKey   = msg.GetElement(auth,"ClientKey");
     m_clientScope = msg.GetElement(auth,"ClientScope");
+  }
+
+
+  // Timeouts
+  XMLElement* timeouts = msg.FindElement(def,"Timeouts");
+  if(timeouts)
+  {
+    m_timeoutResolve = atoi(msg.GetElement(timeouts,"TimeoutResolve"));
+    m_timeoutConnect = atoi(msg.GetElement(timeouts,"TimeoutConnect"));
+    m_timeoutSend    = atoi(msg.GetElement(timeouts,"TimeoutSend"));
+    m_timeoutReceive = atoi(msg.GetElement(timeouts,"TimeoutReceive"));
   }
 
   // Read the body
@@ -152,10 +163,10 @@ TestStepNET::WriteToXML(CString p_filename)
   }
 
   // Headers
-  XMLElement* headers = msg.AddElement(def,"Headers",XDT_String,"");
+  XMLElement* allheaders = msg.AddElement(def,"Headers",XDT_String,"");
   for(auto& head : m_headers)
   {
-    XMLElement* header = msg.AddElement(headers,"Header",XDT_String,"");
+    XMLElement* header = msg.AddElement(allheaders,"Header",XDT_String,"");
     msg.AddElement(header,"Name",XDT_String,           head.m_name);
     msg.AddElement(header,"Value",XDT_String|XDT_CDATA,head.m_value);
   }
@@ -179,6 +190,13 @@ TestStepNET::WriteToXML(CString p_filename)
   msg.AddElement(def,"FileOutput",      XDT_String, m_filenameOutput);
   msg.AddElement(def,"Body",            XDT_String|XDT_CDATA,m_body);
 
+  // Timeouts
+  XMLElement* timeouts = msg.AddElement(def,"Timeouts",XDT_String,"");
+  msg.AddElement(timeouts,"TimeoutResolve", XDT_Integer,IntegerToString(m_timeoutResolve));
+  msg.AddElement(timeouts,"TimeoutConnect", XDT_Integer,IntegerToString(m_timeoutConnect));
+  msg.AddElement(timeouts,"TimeoutSend",    XDT_Integer,IntegerToString(m_timeoutSend));
+  msg.AddElement(timeouts,"TimeoutReceive", XDT_Integer,IntegerToString(m_timeoutReceive));
+
   // Now save it
   return msg.SaveFile(p_filename);
 }
@@ -187,6 +205,9 @@ TestStepNET::WriteToXML(CString p_filename)
 int
 TestStepNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
+  // Clear the error stack
+  p_parameters->ResetUnboundErrors();
+
   int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
 
   unbound += p_parameters->Replace(m_url,           m_effectiveUrl,       p_forDisplay);

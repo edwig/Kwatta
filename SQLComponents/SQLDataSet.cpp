@@ -42,47 +42,47 @@ namespace SQLComponents
 {
 
 // Names for saving datasets to XML in various languages
-const char* dataset_names[LN_NUMLANG][NUM_DATASET_NAMES] =
+LPCTSTR dataset_names[LN_NUMLANG][NUM_DATASET_NAMES] =
 {
   // LN_DUTCH
-  { "Naam"          // DATASET_NAME
-   ,"Structuur"     // DATASET_STRUCTURE
-   ,"Veld"          // DATASET_FIELD
-   ,"Record"        // DATASET_RECORD
-   ,"Records"       // DATASET_RECORDS
-   ,"id"            // DATASET_ID
-   ,"type"          // DATASET_TYPE
-   ,"typenaam"      // DATASET_TYPENAME
+  { _T("Naam")          // DATASET_NAME
+   ,_T("Structuur")     // DATASET_STRUCTURE
+   ,_T("Veld")          // DATASET_FIELD
+   ,_T("Record")        // DATASET_RECORD
+   ,_T("Records")       // DATASET_RECORDS
+   ,_T("id")            // DATASET_ID
+   ,_T("type")          // DATASET_TYPE
+   ,_T("typenaam")      // DATASET_TYPENAME
   },
   // LN_ENGLISH
-  { "Name"          // DATASET_NAME
-   ,"Structure"     // DATASET_STRUCTURE
-   ,"Field"         // DATASET_FIELD
-   ,"Record"        // DATASET_RECORD
-   ,"Records"       // DATASET_RECORDS
-   ,"ID"            // DATASET_ID
-   ,"Type"          // DATASET_TYPE
-   ,"TypeName"      // DATASET_TYPENAME
+  { _T("Name")          // DATASET_NAME
+   ,_T("Structure")     // DATASET_STRUCTURE
+   ,_T("Field")         // DATASET_FIELD
+   ,_T("Record")        // DATASET_RECORD
+   ,_T("Records")       // DATASET_RECORDS
+   ,_T("ID")            // DATASET_ID
+   ,_T("Type")          // DATASET_TYPE
+   ,_T("TypeName")      // DATASET_TYPENAME
   },
   // LN_GERMAN
-  { "Name"          // DATASET_NAME
-   ,"Struktur"      // DATASET_STRUCTURE
-   ,"Feld"          // DATASET_FIELD
-   ,"Rekord"        // DATASET_RECORD
-   ,"Rekords"       // DATASET_RECORDS
-   ,"ID"            // DATASET_ID
-   ,"Typ"           // DATASET_TYPE
-   ,"Typename"      // DATASET_TYPENAME
+  { _T("Name")          // DATASET_NAME
+   ,_T("Struktur")      // DATASET_STRUCTURE
+   ,_T("Feld")          // DATASET_FIELD
+   ,_T("Rekord")        // DATASET_RECORD
+   ,_T("Rekords")       // DATASET_RECORDS
+   ,_T("ID")            // DATASET_ID
+   ,_T("Typ")           // DATASET_TYPE
+   ,_T("Typename")      // DATASET_TYPENAME
   },
   // LN_FRENCH
-  { "Nom"           // DATASET_NAME
-   ,"Structure"     // DATASET_STRUCTURE
-   ,"Domaine"       // DATASET_FIELD
-   ,"Record"        // DATASET_RECORD
-   ,"Records"       // DATASET_RECORDS
-   ,"ID"            // DATASET_ID
-   ,"Type"          // DATASET_TYPE
-   ,"NomDeType"     // DATASET_TYPENAME
+  { _T("Nom")           // DATASET_NAME
+   ,_T("Structure")     // DATASET_STRUCTURE
+   ,_T("Domaine")       // DATASET_FIELD
+   ,_T("Record")        // DATASET_RECORD
+   ,_T("Records")       // DATASET_RECORDS
+   ,_T("ID")            // DATASET_ID
+   ,_T("Type")          // DATASET_TYPE
+   ,_T("NomDeType")     // DATASET_TYPENAME
   },
 };
 
@@ -101,7 +101,7 @@ SQLDataSet::SQLDataSet(XString p_name,SQLDatabase* p_database /*=NULL*/)
 
 SQLDataSet::~SQLDataSet()
 {
-  Close();
+  SQLDataSet::Close();
 }
 
 void
@@ -250,7 +250,7 @@ SQLDataSet::ForgetObject(int p_primary,bool p_force /*=false*/)
 
 // Forget 1 record and primary is a compound key (Slower)
 bool
-SQLDataSet::ForgetObject(VariantSet& p_primary,bool p_force /*=false*/)
+SQLDataSet::ForgetObject(const VariantSet& p_primary,bool p_force /*=false*/)
 {
   // Find the record to forget
   SQLRecord* record = FindObjectRecord(p_primary);
@@ -272,7 +272,7 @@ SQLDataSet::SetStatus(int m_add,int m_delete /*=0*/)
 }
 
 void 
-SQLDataSet::SetParameter(SQLParameter p_parameter)
+SQLDataSet::SetParameter(const SQLParameter& p_parameter)
 {
   // See if the parameter is already there
   for(unsigned int ind = 0;ind < m_parameters.size(); ++ind)
@@ -289,22 +289,22 @@ SQLDataSet::SetParameter(SQLParameter p_parameter)
 }
 
 void 
-SQLDataSet::SetParameter(XString p_naam,SQLVariant p_waarde)
+SQLDataSet::SetParameter(const XString& p_name,const SQLVariant& p_value)
 {
   // See if the parameter is already there
   for(unsigned int ind = 0;ind < m_parameters.size();++ind)
   {
-    if(m_parameters[ind].m_name == p_naam)
+    if(m_parameters[ind].m_name == p_name)
     {
       // Found it: set a new value
-      m_parameters[ind].m_value = p_waarde;
+      m_parameters[ind].m_value = p_value;
       return;
     }
   }
   // New parameter
   SQLParameter par;
-  par.m_name   = p_naam;
-  par.m_value  = p_waarde;
+  par.m_name   = p_name;
+  par.m_value  = p_value;
   m_parameters.push_back(par);
 }
 
@@ -330,7 +330,7 @@ SQLDataSet::SetFilters(SQLFilterSet* p_filters)
 
 // Add filter to current set of filters
 void
-SQLDataSet::SetFilter(SQLFilter p_filter)
+SQLDataSet::SetFilter(const SQLFilter& p_filter)
 {
   if(!m_filters)
   {
@@ -362,7 +362,7 @@ SQLDataSet::SetPrimaryKeyColumn(WordList& p_list)
 }
 
 SQLVariant*  
-SQLDataSet::GetParameter(XString& p_name)
+SQLDataSet::GetParameter(const XString& p_name)
 {
   for(unsigned int ind = 0;ind < m_parameters.size(); ++ind)
   {
@@ -531,10 +531,10 @@ SQLDataSet::ParseQuery()
 XString
 SQLDataSet::ParseSelection(SQLQuery& p_query)
 {
-  XString sql("SELECT ");
+  XString sql(_T("SELECT "));
   
-  sql += m_selection.IsEmpty() ? XString("*") : m_selection;
-  sql += "\n  FROM ";
+  sql += m_selection.IsEmpty() ? XString(_T("*")) : m_selection;
+  sql += _T("\n  FROM ");
 
   if(!m_fromTables.IsEmpty())
   {
@@ -544,12 +544,12 @@ SQLDataSet::ParseSelection(SQLQuery& p_query)
   {
     if(!m_primarySchema.IsEmpty())
     {
-      sql += m_primarySchema + ".";
+      sql += m_primarySchema + _T(".");
     }
     sql += m_primaryTableName;
     if(!m_primaryAlias.IsEmpty())
     {
-      sql += " ";
+      sql += _T(" ");
       sql += m_primaryAlias;
     }
   }
@@ -558,15 +558,15 @@ SQLDataSet::ParseSelection(SQLQuery& p_query)
   ParameterSet::iterator it;
   for(it = m_parameters.begin();it != m_parameters.end(); ++it)
   {
-    sql += (count++ == 0) ? "\n WHERE " : "\n   AND ";
+    sql += (count++ == 0) ? _T("\n WHERE ") : _T("\n   AND ");
     sql += it->m_name;
     if(it->m_value.IsNULL())
     {
-      sql += " IS NULL";
+      sql += _T(" IS NULL");
     }
     else
     {
-      sql += " = ?";
+      sql += _T(" = ?");
       p_query.SetParameter(++number,&(it->m_value));
     }
   }
@@ -580,11 +580,11 @@ SQLDataSet::ParseFilters(SQLQuery& p_query,XString p_sql)
 {
   XString query(p_sql);
   query.MakeUpper();
-  query.Replace("\t"," ");
-  bool whereFound = m_query.Find("WHERE ") > 0;
+  query.Replace(_T("\t"),_T(" "));
+  bool whereFound = m_query.Find(_T("WHERE ")) > 0;
 
   // Offset in the WHERE clause
-  query += whereFound ? "\n   AND " : "\n WHERE ";
+  query += whereFound ? _T("\n   AND ") : _T("\n WHERE ");
 
   // Add all filters
   query += m_filters->ParseFiltersToCondition(p_query);
@@ -623,28 +623,28 @@ SQLDataSet::GetSelectionSQL(SQLQuery& p_qry)
   {
     if(m_parameters.size())
     {
-      sql += "\n   AND " + m_whereCondition;
+      sql += _T("\n   AND ") + m_whereCondition;
     }
     else
     {
-      sql += "\n WHERE " + m_whereCondition;
+      sql += _T("\n WHERE ") + m_whereCondition;
     }
   }
 
   if(!m_groupby.IsEmpty())
   {
-    sql += "\n GROUP BY " + m_groupby;
+    sql += _T("\n GROUP BY ") + m_groupby;
   }
 
   if(m_havings && !m_havings->Empty())
   {
-    sql += "\n HAVING ";
+    sql += _T("\n HAVING ");
     sql += m_havings->ParseFiltersToCondition(p_qry);
   }
 
   if(!m_orderby.IsEmpty())
   {
-    sql += "\n ORDER BY " + m_orderby;
+    sql += _T("\n ORDER BY ") + m_orderby;
   }
 
   return sql;
@@ -653,9 +653,7 @@ SQLDataSet::GetSelectionSQL(SQLQuery& p_qry)
 bool
 SQLDataSet::Open()
 {
-  bool    result = false;
-  ULONG64 begin  = 0;
-  XString query;
+  bool result = false;
 
   if(m_query.IsEmpty() && m_selection.IsEmpty())
   {
@@ -675,6 +673,7 @@ SQLDataSet::Open()
   {
     SQLQuery qry(m_database);
     SQLTransaction trans(m_database,m_name);
+    ULONG64 begin = 0;
 
     // Set a trap to stop an action that will take too much time...
     if(m_cancelFunction)
@@ -683,7 +682,7 @@ SQLDataSet::Open()
     }
 
     // Get the select query
-    query = GetSelectionSQL(qry);
+    XString query = GetSelectionSQL(qry);
 
     // Apply top <N> records selection
     if(m_topRecords)
@@ -718,7 +717,7 @@ SQLDataSet::Open()
       // See if we can read a next record
       if(begin && ((GetCounter() - begin) > (ULONG64)m_queryTime))
       {
-        throw StdException("Querytime exceeded");
+        throw StdException(_T("Querytime exceeded"));
       }
     }
     // Reached the end: we are OPEN!
@@ -743,9 +742,7 @@ SQLDataSet::Open()
 bool
 SQLDataSet::Open(SQLQuery& p_query)
 {
-  ULONG64 begin = 0;
-  XString sql;
-
+  // Check that we *CAN* query
   if(m_query.IsEmpty() && m_selection.IsEmpty())
   {
     return false;
@@ -754,7 +751,7 @@ SQLDataSet::Open(SQLQuery& p_query)
   {
     Close();
   }
-  // Test if possibly modifiable if primary table name and key are givven
+  // Test if possibly modifiable if primary table name and key are given
   bool modifiable = false;
   if(!m_isolation && !m_primaryTableName.IsEmpty() && m_primaryKey.size())
   {
@@ -762,6 +759,8 @@ SQLDataSet::Open(SQLQuery& p_query)
   }
   try
   {
+    ULONG64 begin = 0;
+
     // Set a trap to stop an action that will take too much time...
     if(m_cancelFunction)
     {
@@ -769,7 +768,7 @@ SQLDataSet::Open(SQLQuery& p_query)
     }
 
     // Get the select query
-    sql = GetSelectionSQL(p_query);
+    XString sql = GetSelectionSQL(p_query);
 
     // Apply top <N> records selection
     if(m_topRecords && !m_isolation)
@@ -805,7 +804,7 @@ SQLDataSet::Open(SQLQuery& p_query)
       // See if we can read a next record
       if(begin && ((GetCounter() - begin) > (ULONG64)m_queryTime))
       {
-        throw StdException("Querytime exceeded");
+        throw StdException(_T("Querytime exceeded"));
       }
       ++records;
       if(m_isolation)
@@ -840,8 +839,7 @@ SQLDataSet::Open(SQLQuery& p_query)
 bool 
 SQLDataSet::Append()
 {
-  bool    result = false;
-  ULONG64 begin  = 0;
+  bool result = false;
 
   // See if already opened
   if(!m_open)
@@ -863,6 +861,7 @@ SQLDataSet::Append()
   {
     SQLQuery qry(m_database);
     SQLTransaction trans(m_database,m_name);
+    ULONG64 begin = 0;
 
     // Get the select query
     XString query = GetSelectionSQL(qry);
@@ -895,7 +894,7 @@ SQLDataSet::Append()
       // See if we can read a next record
       if(begin && ((GetCounter() - begin) > (ULONG64)m_queryTime))
       {
-        throw StdException("Querytime exceeded");
+        throw StdException(_T("Querytime exceeded"));
       }
     }
     // Legal 0 or more records
@@ -975,7 +974,7 @@ SQLDataSet::ReadRecordFromQuery(SQLQuery& p_query,bool p_modifiable,bool p_appen
   int num = p_query.GetNumberOfColumns();
   for(int ind = 1; ind <= num; ++ind)
   {
-    SQLVariant* var = p_query.GetColumn(ind);
+    const SQLVariant* var = p_query.GetColumn(ind);
     record->AddField(var);
   }
 
@@ -1013,37 +1012,37 @@ SQLDataSet::ReadRecordFromQuery(SQLQuery& p_query,bool p_modifiable,bool p_appen
 
 // Make a primary key record
 XString
-SQLDataSet::MakePrimaryKey(SQLRecord* p_record)
+SQLDataSet::MakePrimaryKey(const SQLRecord* p_record)
 {
   XString key;
   XString value;
 
-  for(auto& field : m_primaryKey)
+  for(const auto& field : m_primaryKey)
   {
-    SQLVariant* var = p_record->GetField(field);
+    const SQLVariant* var = p_record->GetField(field);
     if (var != nullptr)
     {
       var->GetAsString(value);
 
       key += value;
-      key += "\0x1E";  // ASCII UNIT Separator
+      key += _T("\0x1E");  // ASCII UNIT Separator
     }
   }
   return key;
 }
 
 XString
-SQLDataSet::MakePrimaryKey(VariantSet& p_primary)
+SQLDataSet::MakePrimaryKey(const VariantSet& p_primary)
 {
   XString key;
   XString value;
 
-  for(auto& val : p_primary)
+  for(const auto val : p_primary)
   {
     val->GetAsString(value);
 
     key += value;
-    key += "\0x1E";  // ASCII UNIT Separator
+    key += _T("\0x1E");  // ASCII UNIT Separator
   }
   return key;
 }
@@ -1065,11 +1064,10 @@ SQLDataSet::ReadNames(SQLQuery& qr)
 void
 SQLDataSet::ReadTypes(SQLQuery& qr)
 {
-  int type;
   int num = qr.GetNumberOfColumns();
   for(int ind = 1; ind <= num; ++ind)
   {
-    type = qr.GetColumnType(ind);
+    int type = qr.GetColumnType(ind);
     m_types.push_back(type);
   }
 }
@@ -1085,7 +1083,7 @@ SQLDataSet::CheckNames(SQLQuery& p_query)
     p_query.GetColumnName(ind,name);
     if(m_names[(size_t)ind-1].CompareNoCase(name))
     {
-      throw StdException("Append needs exactly the same query column names");
+      throw StdException(_T("Append needs exactly the same query column names"));
     }
   }
 }
@@ -1100,7 +1098,7 @@ SQLDataSet::CheckTypes(SQLQuery& p_query)
     int type = p_query.GetColumnType(ind);
     if(m_types[(size_t)ind-1] != type)
     {
-      throw StdException("Append needs exactly the same datatypes for the query columns.");
+      throw StdException(_T("Append needs exactly the same datatypes for the query columns."));
     }
   }
 }
@@ -1109,7 +1107,7 @@ SQLDataSet::CheckTypes(SQLQuery& p_query)
 SQLRecord*
 SQLDataSet::GetRecord(int p_recnum)
 {
-  if((unsigned)p_recnum >= 0 && (unsigned)p_recnum < m_records.size())
+  if(p_recnum >= 0 && p_recnum < (int)m_records.size())
   {
     return m_records[p_recnum];
   }
@@ -1121,7 +1119,7 @@ int
 SQLDataSet::FindObjectRecNum(int p_primary)
 {
   XString key;
-  key.Format("%d\0x1E",p_primary);
+  key.Format(_T("%d\0x1E"),p_primary);
   ObjectMap::iterator it = m_objects.find(key);
   if(it != m_objects.end())
   {
@@ -1135,7 +1133,7 @@ SQLRecord*
 SQLDataSet::FindObjectRecord(int p_primary)
 {
   XString key;
-  key.Format("%d\0x1E",p_primary);
+  key.Format(_T("%d\0x1E"),p_primary);
   ObjectMap::iterator it = m_objects.find(key);
   if(it != m_objects.end())
   {
@@ -1146,7 +1144,7 @@ SQLDataSet::FindObjectRecord(int p_primary)
 
 // If your primary is a compound key or not INTEGER (Slower)
 int
-SQLDataSet::FindObjectRecNum(VariantSet& p_primary)
+SQLDataSet::FindObjectRecNum(const VariantSet& p_primary)
 {
   if(!GetPrimaryKeyInfo())
   {
@@ -1171,7 +1169,7 @@ SQLDataSet::FindObjectRecNum(VariantSet& p_primary)
 
 // If your primary is a compound key or not INTEGER (Slower)
 SQLRecord*
-SQLDataSet::FindObjectRecord(VariantSet& p_primary)
+SQLDataSet::FindObjectRecord(const VariantSet& p_primary)
 {
   if(!GetPrimaryKeyInfo())
   {
@@ -1204,8 +1202,8 @@ SQLDataSet::FindObjectFilter(bool p_primary /*=false*/)
   // Optimize for network databases
   if(p_primary && m_filters->Size() == 1)
   {
-    SQLFilter* filter = m_filters->GetFilters().front();
-    SQLVariant* prim  = filter->GetValue();
+    const SQLFilter* filter = m_filters->GetFilters().front();
+    const SQLVariant* prim  = filter->GetValue();
     if(filter->GetOperator() == OP_Equal && prim->GetDataType() == SQL_C_SLONG )
     {
       return FindObjectRecord(prim->GetAsSLong());
@@ -1330,7 +1328,7 @@ SQLDataSet::InsertRecord()
 
 // Insert new field in new record
 int
-SQLDataSet::InsertField(XString p_name,SQLVariant* p_value)
+SQLDataSet::InsertField(XString p_name,const SQLVariant* p_value)
 {
   if(m_current >= 0 && m_current < (int)m_records.size())
   {
@@ -1346,7 +1344,7 @@ SQLDataSet::InsertField(XString p_name,SQLVariant* p_value)
 
 // Set a field value in the current record
 bool
-SQLDataSet::SetField(XString& p_name,SQLVariant* p_value,int p_mutationID /*=0*/)
+SQLDataSet::SetField(const XString& p_name,const SQLVariant* p_value,int p_mutationID /*=0*/)
 {
   int num = GetFieldNumber(p_name);
   if(num >= 0)
@@ -1358,7 +1356,7 @@ SQLDataSet::SetField(XString& p_name,SQLVariant* p_value,int p_mutationID /*=0*/
 
 // Set a field value in the current record
 bool
-SQLDataSet::SetField(int p_num,SQLVariant* p_value,int p_mutationID /*=0*/)
+SQLDataSet::SetField(int p_num,const SQLVariant* p_value,int p_mutationID /*=0*/)
 {
   if(m_current >= 0)
   {
@@ -1398,7 +1396,7 @@ SQLDataSet::Aggregate(int p_num,AggregateInfo& p_info)
   unsigned int total   = (int)m_records.size();
   for(unsigned int ind = 0;ind < total; ++ind)
   {
-    SQLVariant* var = m_records[ind]->GetField(p_num);
+    const SQLVariant* var = m_records[ind]->GetField(p_num);
     if(var && var->IsNULL() == false)
     {
       double waarde = var->GetAsDouble();
@@ -1489,7 +1487,7 @@ SQLDataSet::Synchronize(int p_mutationID /*=0*/,bool p_throw /*=false*/)
   {
     ReThrowSafeException(er);
     // Automatic rollback will be done now
-    XString error = "Database synchronization stopped: " + er.GetErrorMessage();
+    XString error = _T("Database synchronization stopped: ") + er.GetErrorMessage();
     if(p_throw)
     {
       throw StdException(error);
@@ -1573,7 +1571,7 @@ SQLDataSet::Deletes(int p_mutationID)
       {
         case MUT_OnlyOthers: ++it;  // do nothing with record
                              break;
-        case MUT_Mixed:      throw StdException("Mixed mutations");
+        case MUT_Mixed:      throw StdException(_T("Mixed mutations"));
         case MUT_NoMutation: // Fall through: Remove record
         case MUT_MyMutation: sql = GetSQLDelete(&query,record);
                              query.DoSQLStatement(sql);
@@ -1629,7 +1627,7 @@ SQLDataSet::Updates(int p_mutationID)
       {
         case MUT_NoMutation: // Fall through: do nothing
         case MUT_OnlyOthers: break;
-        case MUT_Mixed:      throw StdException("Mixed mutations");
+        case MUT_Mixed:      throw StdException(_T("Mixed mutations"));
         case MUT_MyMutation: sql = GetSQLUpdate(&query,record);
                              query.DoSQLStatement(sql);
                              ++update;
@@ -1666,7 +1664,7 @@ SQLDataSet::Inserts(int p_mutationID)
       {
         case MUT_NoMutation: // Fall through: Do nothing
         case MUT_OnlyOthers: break;
-        case MUT_Mixed:      throw StdException("Mixed mutations");
+        case MUT_Mixed:      throw StdException(_T("Mixed mutations"));
         case MUT_MyMutation: sql = GetSQLInsert(&query,record,serial);
                              query.DoSQLStatement(sql);
                              ++insert;
@@ -1728,22 +1726,22 @@ SQLDataSet::AllMixedMutations(MutationIDS& p_list,int p_mutationID)
 }
 
 XString
-SQLDataSet::GetSQLDelete(SQLQuery* p_query,SQLRecord* p_record)
+SQLDataSet::GetSQLDelete(SQLQuery* p_query,const SQLRecord* p_record)
 {
   // New set of parameters
   p_query->ResetParameters();
 
-  XString sql("DELETE FROM " + m_primaryTableName + "\n");
+  XString sql(_T("DELETE FROM ") + m_primaryTableName + _T("\n"));
   int parameter = 1;
   sql += GetWhereClause(p_query,p_record,parameter);
   return sql;
 }
 
 XString
-SQLDataSet::GetSQLUpdate(SQLQuery* p_query,SQLRecord* p_record)
+SQLDataSet::GetSQLUpdate(SQLQuery* p_query,const SQLRecord* p_record)
 {
   int parameter = 1;
-  XString sql("UPDATE " + m_primaryTableName + "\n");
+  XString sql(_T("UPDATE ") + m_primaryTableName + _T("\n"));
   WordList::iterator it;
 
   // New set of parameters
@@ -1774,15 +1772,15 @@ SQLDataSet::GetSQLUpdate(SQLQuery* p_query,SQLRecord* p_record)
     {
       SQLVariant* value = p_record->GetField(ind);
 
-      sql += first ? "   SET " : "      ,";
+      sql += first ? _T("   SET ") : _T("      ,");
       sql += m_names[ind];
       if(value->IsNULL())
       {
-        sql += " = NULL\n";
+        sql += _T(" = NULL\n");
       }
       else
       {
-        sql += " = ?\n";
+        sql += _T(" = ?\n");
         p_query->SetParameter(parameter++,value);
       }
       first = false;
@@ -1795,13 +1793,13 @@ SQLDataSet::GetSQLUpdate(SQLQuery* p_query,SQLRecord* p_record)
 }
 
 XString
-SQLDataSet::GetSQLInsert(SQLQuery* p_query,SQLRecord* p_record,XString& p_serial)
+SQLDataSet::GetSQLInsert(SQLQuery* p_query,const SQLRecord* p_record,XString& p_serial)
 {
   int parameter = 1;
-  XString sql("INSERT INTO " + m_primaryTableName);
+  XString sql(_T("INSERT INTO ") + m_primaryTableName);
 
-  XString fields("(");
-  XString params("(");
+  XString fields(_T("("));
+  XString params(_T("("));
 
   // New set of parameters
   p_query->ResetParameters();
@@ -1812,17 +1810,17 @@ SQLDataSet::GetSQLInsert(SQLQuery* p_query,SQLRecord* p_record,XString& p_serial
     SQLVariant* value = p_record->GetField(ind);
     if((int)ind == p_record->GetGenerator() && value->IsEmpty())
     {
-      fields  += m_names[ind] + ",";
+      fields  += m_names[ind] + _T(",");
       p_serial = m_database->GetSQL_GenerateSerial(m_primaryTableName);
       params  += p_serial;
-      params  += ",";
+      params  += _T(",");
     }
     else
     {
       if(value->IsNULL() == false)
       {
-        fields += m_names[ind] + ",";
-        params += "?,";
+        fields += m_names[ind] + _T(",");
+        params += _T("?,");
         p_query->SetParameter(parameter++,value);
       }
     }
@@ -1830,27 +1828,27 @@ SQLDataSet::GetSQLInsert(SQLQuery* p_query,SQLRecord* p_record,XString& p_serial
   // Closing
   fields.TrimRight(',');
   params.TrimRight(',');
-  fields += ")\n";
-  params += ")";
+  fields += _T(")\n");
+  params += _T(")");
   // Put it together
   sql += fields;
-  sql += "VALUES ";
+  sql += _T("VALUES ");
   sql += params;
 
   return sql;
 }
 
 XString
-SQLDataSet::GetWhereClause(SQLQuery* p_query,SQLRecord* p_record,int& p_parameter)
+SQLDataSet::GetWhereClause(SQLQuery* p_query,const SQLRecord* p_record,int& p_parameter)
 {
-  XString sql(" WHERE ");
+  XString sql(_T(" WHERE "));
 
   bool more = false;
   for(unsigned ind = 0;ind < m_primaryKey.size();++ind)
   {
     if(more)
     {
-      sql += "\n   AND ";
+      sql += _T("\n   AND ");
     }
     more = true;
     int column = GetFieldNumber(m_primaryKey[ind]);
@@ -1858,11 +1856,11 @@ SQLDataSet::GetWhereClause(SQLQuery* p_query,SQLRecord* p_record,int& p_paramete
     SQLVariant* value = p_record->GetField(column);
     if(value->IsNULL())
     {
-      sql += " = NULL";
+      sql += _T(" = NULL");
     }
     else
     {
-      sql += " = ?";
+      sql += _T(" = ?");
       p_query->SetParameter(p_parameter++,value);
     }
   }
@@ -1876,7 +1874,7 @@ SQLDataSet::GetWhereClause(SQLQuery* p_query,SQLRecord* p_record,int& p_paramete
 //////////////////////////////////////////////////////////////////////////
 
 bool
-SQLDataSet::XMLSave(XString p_filename,XString p_name,StringEncoding p_encoding /*= StringEncoding::ENC_UTF8*/)
+SQLDataSet::XMLSave(XString p_filename,XString p_name,Encoding p_encoding /*= Encoding::UTF8*/)
 {
   XMLMessage msg;
   msg.SetRootNodeName(p_name);
@@ -1909,13 +1907,13 @@ SQLDataSet::XMLSave(XMLMessage* p_msg,XMLElement* p_dataset)
   XString nameField = dataset_names[g_defaultLanguage][DATASET_FIELD];
 
   // Add record structure
-  SQLRecord* record = GetRecord(0);
+  const SQLRecord* record = GetRecord(0);
   if(record)
   {
     for(unsigned int ind = 0;ind < m_names.size(); ++ind)
     {
       XString fieldname = GetFieldName(ind);
-      SQLVariant* var   = record->GetField(ind);
+      const SQLVariant* var = record->GetField(ind);
       int type = var->GetDataType();
 
       XMLElement* field = p_msg->AddElement(structure,nameField,XDT_String,fieldname);
@@ -1949,12 +1947,12 @@ SQLDataSet::XMLSave(XMLMessage* p_msg,XMLElement* p_dataset)
 }
 
 void
-SQLDataSet::XMLLoad(XMLMessage* p_msg,XMLElement* p_dataset,LONG* p_abort)
+SQLDataSet::XMLLoad(XMLMessage* p_msg,XMLElement* p_dataset,const LONG* p_abort /*=nullptr*/)
 {
   XMLElement* structur = p_msg->FindElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_STRUCTURE],false);
   XMLElement* records  = p_msg->FindElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_RECORDS],  false);
-  if(structur == NULL) throw StdException("Structure part missing in the XML dataset." + m_name);
-  if(records  == NULL) throw StdException("Records part missing in the XML dataset" + m_name);
+  if(structur == NULL) throw StdException(_T("Structure part missing in the XML dataset.") + m_name);
+  if(records  == NULL) throw StdException(_T("Records part missing in the XML dataset")    + m_name);
 
   // Read the structure
   XMLElement* field = p_msg->GetElementFirstChild(structur);
@@ -2029,7 +2027,7 @@ SQLDataSet::ForgetRecord(SQLRecord* p_record,bool p_force)
 
 // Forget the registration of the optimized primary key
 void
-SQLDataSet::ForgetPrimaryObject(SQLRecord* p_record)
+SQLDataSet::ForgetPrimaryObject(const SQLRecord* p_record)
 {
   XString key = MakePrimaryKey(p_record);
 

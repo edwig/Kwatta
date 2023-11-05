@@ -357,15 +357,15 @@ struct LittleEndian
     for (size_t i=0; i<bytes; ++i) Write(buffer, str[i], pos+i*sizeof(Type));	\
   }	\
 
-  READWRITE(char)
-  READWRITE(unsigned char)
-  READWRITE(short)
-  READWRITE(int)
-  READWRITE(unsigned int)
-  READWRITE(long)
-  READWRITE(unsigned long)
-  READWRITE(__int64)
-  READWRITE(unsigned __int64)
+  READWRITE(const char)
+  READWRITE(const unsigned char)
+  READWRITE(const short)
+  READWRITE(const int)
+  READWRITE(const unsigned int)
+  READWRITE(const long)
+  READWRITE(const unsigned long)
+  READWRITE(const __int64)
+  READWRITE(const unsigned __int64)
 
   #undef READWRITE
 
@@ -399,7 +399,7 @@ struct LittleEndian
     }
   }
 
-  static void WriteString(char* buffer, wchar_t* str, size_t pos=0, int bytes=0)
+  static void WriteString(char* buffer,const wchar_t* str, size_t pos=0, int bytes=0)
   {
     for (int i=0; i<bytes; ++i)
       Write(buffer, str[i], pos+i*SIZEOFWCHAR_T);
@@ -432,7 +432,7 @@ struct LittleEndian
     }
   }
 
-  static void WriteString(vector<char>& buffer, wchar_t* str, size_t pos=0, int bytes=0)
+  static void WriteString(vector<char>& buffer,const wchar_t* str, size_t pos=0, int bytes=0)
   {
     for (int i=0; i<bytes; ++i)
       Write(buffer, str[i], pos+i*SIZEOFWCHAR_T);
@@ -543,7 +543,7 @@ struct LittleEndian
     }
   }
 
-  static void WriteString(char* buffer, wchar_t* str, size_t pos=0, int bytes=0)
+  static void WriteString(char* buffer,const wchar_t* str, size_t pos=0, int bytes=0)
   {
     for(int i = 0; i < bytes; ++i)
     {
@@ -589,7 +589,7 @@ struct LittleEndian
     }
   }
 
-  static void WriteString(vector<char>& buffer, wchar_t* str, size_t pos=0, int bytes=0)
+  static void WriteString(vector<char>& buffer,const wchar_t* str, size_t pos=0, int bytes=0)
   {
     for(int i = 0; i < bytes; ++i)
     {
@@ -853,8 +853,8 @@ template<typename T> struct SmartPtr
   }
 
    // The initialized SmartPtr constructor increments the reference counter in struct RefCnt.
-  SmartPtr(T* p)
-   :	_ptr(p)
+   SmartPtr(T* p)
+   :_ptr(p)
   {
     if (p)
       ++_ptr->_ref_cnt;
@@ -862,7 +862,7 @@ template<typename T> struct SmartPtr
 
    // The copy constructor increments the reference counter.
   SmartPtr(const SmartPtr& other)
-   :	_ptr(other._ptr)
+   :_ptr(other._ptr)
   {
     if (_ptr)
       ++_ptr->_ref_cnt;
@@ -1047,8 +1047,8 @@ public:
 struct BOF : public Record
 {
   BOF();
-  virtual ULONG Read(const char* data);
-  virtual ULONG Write(char* data);
+  virtual ULONG Read(const char* data) override;
+  virtual ULONG Write(char* data) override;
   USHORT version_;
   USHORT type_;
   USHORT buildIdentifier_;
@@ -1308,8 +1308,8 @@ public:
 //MF: exception to handle unexpected YEOF records
 struct EXCEPTION_YEOF
 {
-  EXCEPTION_YEOF(ULONG bytesRead)
-   :	_bytesRead(bytesRead)
+  explicit EXCEPTION_YEOF(ULONG bytesRead)
+   :_bytesRead(bytesRead)
   {
   }
 
@@ -1740,8 +1740,9 @@ class BasicExcel
 {
 public:
   BasicExcel();
-  BasicExcel(const char* filename,bool readonly = false);
- ~BasicExcel();
+  explicit BasicExcel(const char* filename,bool readonly = false);
+  explicit BasicExcel(const wchar_t* filename,bool readonly = false);
+  ~BasicExcel();
 
 public: // File functions.
   void  New(int sheets=3); ///< Create a new Excel workbook with a given number of spreadsheets (Minimum 1).
@@ -1754,7 +1755,8 @@ public: // File functions.
   char* GetError() { return error_;};
 
 public: // Worksheet functions.
-  int GetTotalWorkSheets(const char* p_file);	///< Total number of Excel worksheets in current Excel workbook.
+  int GetTotalWorkSheets(const char*    p_file);	///< Total number of Excel worksheets in current Excel workbook.
+  int GetTotalWorkSheets(const wchar_t* p_file);	///< Total number of Excel worksheets in current Excel workbook.
 
   BasicExcelWorksheet* GetWorksheet(int sheetIndex);	///< Get a pointer to an Excel worksheet at the given index. Index starts from 0. Returns 0 if index is invalid.
   BasicExcelWorksheet* GetWorksheet(const char* name);	///< Get a pointer to an Excel worksheet that has given ANSI name. Returns 0 if there is no Excel worksheet with the given name.
@@ -1832,7 +1834,7 @@ public: // Cell functions
   const BasicExcelCell* Cell(int row, int col) const; ///< Return a pointer to an Excel cell. row and col starts from 0. Returns 0 if row exceeds 65535 or col exceeds 255.
   bool    EraseCell(int row, int col);		///< Erase content of a cell. row and col starts from 0. Returns true if successful, false if row or col exceeds range.
   // Get the value of a cell, just as a end-user would see it.
-  char*   CellValue(int row,int col,char* p_buffer,int p_length);
+  TCHAR*   CellValue(int row,int col,TCHAR* p_buffer,int p_length);
 
   void    SetColWidth(const int colindex , const USHORT colwidth);
   USHORT  GetColWidth(const int colindex);
@@ -1843,7 +1845,7 @@ public: // Cell functions
     
 private: // Internal functions
   void UpdateCells(); ///< Update cells using information from BasicExcel.worksheets_.
-  void TrimDoubleString(char* p_number); ///< Trim value of a double in a string
+  void TrimDoubleString(TCHAR* p_number); ///< Trim value of a double in a string
 
 
 private:
@@ -1921,7 +1923,7 @@ private:
 
   struct Formula : public RefCount::RefCnt
   {
-    Formula(const Worksheet::CellTable::RowBlock::CellBlock::Formula& f);
+    explicit Formula(const Worksheet::CellTable::RowBlock::CellBlock::Formula& f);
 
     int           _formula_type;
     vector<char>  _formula;

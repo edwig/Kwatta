@@ -54,8 +54,8 @@ enum class JPStatus
 class JSONPointer
 {
 public:
-  JSONPointer(bool p_originOne = false);
-  JSONPointer(JSONMessage* p_message,XString p_pointer,bool p_originOne = false);
+  explicit JSONPointer(bool p_originOne = false);
+  explicit JSONPointer(JSONMessage* p_message,XString p_pointer,bool p_originOne = false);
  ~JSONPointer();
 
   // Our main purpose: evaluate the pointer in the message
@@ -95,7 +95,7 @@ private:
   XString       m_pointer;
   JSONMessage*  m_message     { nullptr };
   JPStatus      m_status      { JPStatus::JP_None };
-  char          m_delimiter   { '/'   };
+  TCHAR         m_delimiter   { '/'   };
   bool          m_canAppend   { false };
   int           m_origin      { 0     };
   XString       m_lastToken;

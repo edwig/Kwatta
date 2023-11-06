@@ -14,7 +14,7 @@ rainforest. In the evening, when they tuck in for the night they tend to
 make a lot of noise by making high-pitched screeching screams. The kept me
 awake for many a night when I lived as a boy in that region.
 
-For more information, see: https://en.wikipedia.org/wiki/Red-faced_spider_monkey
+For more information, see: [spider monkey on wikipedia](https://en.wikipedia.org/wiki/Red-faced_spider_monkey)
 
 
 THE TEST SUITE

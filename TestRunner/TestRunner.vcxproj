@@ -59,7 +59,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;$(SolutionDir)QLLanguage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -92,7 +92,7 @@
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML;$(SolutionDir)StyleFramework\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;$(SolutionDir)QLLanguage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <ConformanceMode>false</ConformanceMode>

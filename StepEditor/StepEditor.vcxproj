@@ -61,7 +61,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Async</ExceptionHandling>
-      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;$(SolutionDir)QLLanguage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -99,7 +99,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <PreprocessorDefinitions>_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)BaseLibrary\;$(SolutionDir)SuiteLibrary\;$(SolutionDir)SuiteLibrary\XML\;$(SolutionDir)StyleFrameWork\;$(SolutionDir)StyleFrameWork\Grid\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;$(SolutionDir)QLLanguage\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
@@ -144,6 +144,7 @@
     <ClInclude Include="RawSQLDlg.h" />
     <ClInclude Include="RespHeadersDlg.h" />
     <ClInclude Include="ResponseDlg.h" />
+    <ClInclude Include="ScriptDlg.h" />
     <ClInclude Include="SQLDlg.h" />
     <ClInclude Include="SQLOutputDlg.h" />
     <ClInclude Include="SQLResultDlg.h" />
@@ -173,6 +174,7 @@
     <ClCompile Include="RawSQLDlg.cpp" />
     <ClCompile Include="RespHeadersDlg.cpp" />
     <ClCompile Include="ResponseDlg.cpp" />
+    <ClCompile Include="ScriptDlg.cpp" />
     <ClCompile Include="SQLDlg.cpp" />
     <ClCompile Include="SQLOutputDlg.cpp" />
     <ClCompile Include="SQLResultDlg.cpp" />

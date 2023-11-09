@@ -1,0 +1,268 @@
+BACKUS-NAUR DEFINITION OF Quantum Language
+==========================================
+
+GLOBAL DEFINITION
+  global <datatype> <variablename> [ = <value-expression> ];
+  <global-definition> , ... ;
+
+CLASS DEFINITION
+  class <class-name> [: <base-class-name>]
+  { <member-definition> ... }
+
+MEMBER DEFINITION
+  [static] <function-name> ( [<formal-argument-list>] ) ...;
+  [static] <variable-name>...;
+
+FUNCTION DEFINITION
+  [ <class-name> ::] <function-name> ([<formal-argument-list> )
+  { 
+    <local-declaration>,...
+    <statement>,...
+  }
+
+FORMAL-ARGUMENT-LIST
+  <built-in-datatype> <parameter>,...
+  <classname> <parameter>,...
+
+LOCAL-DECLARATION
+  <built-in-datatype> <variablename> [ = <value-expression> ];
+  <classname> <parameter> [ = new <classname>( [<formal-argument-list>] )];
+  <local-declaration> , ...;
+
+DATATYPE
+  int
+  string
+  bcd
+  file
+  database
+  query
+  variant
+  <class-name>
+
+STATEMENT
+  if ( <test-expression> ) <then-statement> [else <else-statement>];
+  while ( <test-expression> ) <statement>;
+  do <statement> while ( <test-expression> );
+  for ( <init-expression> ; <test-expression> ; <increment-expression> ) statement;
+  switch(expression) { case <constant> : <expression>; ... [ default <expression> ] }
+  break;
+  continue;
+  return [ <result-expression> ] ;
+  [ <expression> ] ;
+  { [local-declaration] <statement> ... }
+
+EXPRESSION
+  <expression> , <expression>
+  <lvalue>   = <expression>
+  <lvalue>  += <expression>
+  <lvalue>  -= <expression>
+  <lvalue>  *= <expression>
+  <lvalue)  /= <expression>
+  <lvalue)  %= <expression>
+  <lvalue) <<= <expression>
+  <lvalue) >>= <expression>
+  <test-expression> ? <true-expression> : <false-expression>
+  <expression>  | <expression>
+  <expression>  & <expression>
+  <expression> || <expression>
+  <expression> && <expression>
+  <expression> == <expression>
+  <expression> != <expression>
+  <expression> << <expression>
+  <expression> >> <expression>
+  <expression> <= <expression>
+  <expression> >= <expression>
+  <expression>  > <expression>
+  <expression>  < <expression>
+  <expression>  + <expression>
+  <expression>  - <expression>
+  <expression>  * <expression>
+  <expression>  / <expression>
+  <expression>  % <expression>
+  -- <expression>
+  !  <expression>
+  ~  <expression>
+  ++ <lvalue>
+  -- <lvalue>
+  <lvalue>++
+  <lvalue>--
+  new <class-name> ( [<constructor-arguments>] )
+  delete <object>
+  <expression>([<arguments>])
+  <expression>.<function-name> ([<arguments>])
+  <expression>-><function-name>([<arguments>])
+  <superclass>::<function-name) ([<arguments>])
+  this.<expression>
+  { <expression> ...}
+  <variable-name>
+  <constant>
+
+VARIABLE-NAME
+  <parameter>
+  <local-variable>
+  <global-variable>
+  <global-constant-object>
+
+CONSTANT
+  false
+  true
+  <string>
+  <integer number>
+  <floating point number>
+
+GLOBAL-CONSTANT-OBJECT
+  stdin    (of type file)
+  stdout   (of type file)
+  stderr   (of type file)
+  this     (of type object)
+
+BUILT-IN-DATATYPES
+  int
+  string
+  bcd
+  file
+  dbase
+  query
+  variant
+  array
+
+STANDARD OBJECT METHODS
+  <objectname>::<objectname> -> XTOR
+  <objectname>::destroy()    -> DTOR + gc.
+  
+STANDARD INTERNAL FUNCTIONS
+  exit([exitcode])
+  trace(on-off)
+  Sleep(milliseconds)
+  LoadSourceFile(<filename.ql>)
+  LoadObjectFile(<filename.qb>)
+  <bcd>     = abs(x)     (type: int, bcd)
+  <bcd>     = sin(x)     (type: bcd)
+  <bcd>     = cos(x)     (type: bcd)
+  <bcd>     = tan(x)     (type: bcd)
+  <bcd>     = asin(x)    (type: bcd)
+  <bcd>     = acos(x)    (type: bcd)
+  <bcd>     = atan(x)    (type: bcd)
+  <bcd>     = sqrt(x)    (type: bcd)
+  <bcd>     = ceil(x)    (type: bcd)
+  <bcd>     = floor(x)   (type: bcd)
+  <bcd>     = exp(x)     (type: bcd)
+  <bcd>     = log(x)     (type: bcd)
+  <bcd>     = logn(x)    (type: bcd)
+  <bcd>     = log10(x)   (type: bcd)
+  <bcd>     = pow(x,y)   (type: int)
+  <bcd>     = round(x,y) (type: bcd,int)
+  <bcd>     = rand()   
+  <file>    = fopen(filename,mode)
+  <int>     = fclose(file)
+  <int>     = getc(file)
+  <int>     = putc(file,int)
+  <string>  = gets(file)
+  <int>     = puts(file,string)
+  <nil>     = print(<expression> [, ...])
+  <nil>     = fprint(file,<expression> [, ...])
+  <string>  = getarg(int)
+  <int>     = system(string)
+  <nil>     = gc();
+  <bcd>     = tobcd    (int | string | bcd)
+  <int>     = toint    (int | string | bcd)
+  <string>  = tostring (int | string | bcd)
+  <variant> = tovariant(int | string | bcd)
+  <int>     = typeof(var)
+
+STANDARD TEST FUNCTIONS
+  <int>     = TestIterations()
+  <int>     = TestResult()
+              TestRunning(int)
+
+STANDARD NEW OBJECT FUNCTIONS
+  <dbase>  = newdbase([database[,user[,password]]])
+  <query>  = newquery(dbase)
+  <string> = newstring()
+  <array>  = newarray(size)
+
+STANDARD METHODS
+  string.index(<expression>)
+  string.find(<string-expression>[,startpos])
+  string.find(<char-expression>[,startpos])
+  string.size()
+  string.substring(<expression>[,<expression])
+  string.left(<expression>)
+  string.right(<expression>)
+  // string methods to implement:
+  string.reverseIndex(<expression>)
+  string.reverseFind(<expression>)
+  string.makeupper()
+  string.makelower()
+
+  dbase.IsOpen()
+  dbase.Close()
+  dbase.StartTransaction()
+  dbase.Commit()
+  
+  query.Close()
+  query.DoSQLStatement(text)
+  query.DoSQLScalar(text)
+  query.GetColumn(n)
+  query.GetColumnType(n)
+  query.GetColumnNumber(text)
+  query.GetColumnName(n)
+  query.GetColumnLength(n)
+  query.GetColumnDisplaySize(n)
+  query.GetError()
+  query.GetNumberOfColumns()
+  query.GetRecord()
+  query.IsNull(n)
+  query.IsEmpty(n)
+  query.SetMaxRows(n)
+  query.SetParameter(n,<expression>)
+
+  // array methods to implement
+  array.push_front(<expression>)
+  array.push_back (<expression>)
+  array.pop_front()
+  array.pop_back()
+  array.front()
+  array.back()
+  array.size()
+  array.find(<expression>)
+  array.get(n)
+  array.next()
+  array.prev()
+  array.clear()
+
+  // Stil to implement:
+  bcd.*     (all bcd         members)
+  sqlvar.*  (all SQLVariant  members)
+  query.*   (all SQLQuery    members)
+  dbase.*   (all SQLDatabase members)
+
+
+DLL IMPORT FUNCTIONS FOR LIBRARIES
+  <int> = import("<dll library path>")
+  loadfunction(<n>,"name")
+
+QL-PROGRAM
+==========
+ql [options] sourcefile[.ql] [objectfile.qob]
+
+The following are valid options
+-v	      Verbose + copyrights
+-c        Compile only to object file
+-b        Show compiling trace (object, method, bytecode)
+-t        Show tracing bytecode execution
+-e name   Use 'name' as entry point, other than 'main'
+-d name   Use 'name' as database name
+-u name   Use 'name' as database user's name
+-p word   Use 'word' as database password
+-h        Show this help page
+-o        show contents of object file
+-x        check for memory leaks on exit
+-s        Print stack on error exit
+
+
+QLLinker program
+================
+QLLinker -o <outputfile[.qob]> <inputfile[.qob]> ...
+
+(links all but first header, wich rewrites)

@@ -272,8 +272,23 @@ ServerApp::ExitInstance()
   // Stopping our logfile
   if(m_logfile)
   {
+    bool writer = m_logfile->GetBackgroundWriter();
     m_logfile->AnalysisLog(_T(__FUNCTION__),LogType::LOG_INFO,true,_T("%s closed"),m_applicationName.GetString());
+    m_logfile->Reset();
 
+    // The server is about to stop. So we wait for the background writer to stop also
+    // otherwise the last thread might be prematurely stopped.
+    if(writer)
+    {
+      for(int ind = 0;ind < 100; ++ind)
+      {
+        if(m_logfile->GetBackgroundWriter() == false)
+        {
+          break;
+        }
+        Sleep(100);
+      }
+    }
     LogAnalysis::DeleteLogfile(m_logfile);
     m_logfile = nullptr;
   }

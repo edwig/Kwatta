@@ -1758,10 +1758,6 @@ HTTPClient::ReceiveResponseDataFile()
   } 
   while (dwSize > 0);
 
-  // UTF-16 Null terminated
-  m_response[m_responseLength    ] = 0;
-  m_response[m_responseLength + 1] = 0;
-
   // Close the file, flush it to the file system
   m_buffer->CloseFile();
   DETAILLOG(_T("File closed"));

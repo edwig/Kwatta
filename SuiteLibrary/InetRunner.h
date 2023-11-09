@@ -61,9 +61,9 @@ public:
 
   // GETTERS
   StepResultNET* GetStepResult() { return &m_result; }
-  CString       GetEffectiveStepFilename();
-  int           GetMaxRunningTime();
-  void          DisconnectClient();
+  CString        GetEffectiveStepFilename();
+  int            GetMaxRunningTime();
+  void           DisconnectClient();
 
 private:
   // Running the test
@@ -80,8 +80,12 @@ private:
   void  SaveTestResults();
   void  SaveResultParameters();
   int   ReadTotalResult();
+  int   PerformQLScript(int p_result);
+  int   CheckStatusOK(int p_returnCode);
+  void  CreateQLErrorMessage(CString p_error);
   void  SetBoobytrap();
   void  StopBoobytrap();
+
   // Setting authentication
   void  SetBasicAuthentication();
   void  SetNTLMAuthentication();
@@ -111,17 +115,22 @@ private:
   int           m_steps       { 0    };
   int           m_stepSize    { 12   };
   int           m_progress    { 0    };
-  TestStepNET    m_testStep;
+  TestStepNET   m_testStep;
   Parameters    m_parameters;
   ValiSteps     m_localValidations;
   ValiSteps     m_globalValidations;
   Validations   m_validations;
-  StepResultNET  m_result;
-  HTTPMessage   m_message;
+  StepResultNET m_result;
+  HTTPMessage*  m_message     { nullptr };
   HTTPClient*   m_client      { nullptr };
   OAuth2Cache*  m_oauth       { nullptr };
+  LogAnalysis*  m_logfile     { nullptr };
   HWND          m_callingHWND { NULL    };
   int           m_callingROW  { 0       };
   bool          m_global      { false   };
   HANDLE        m_thread      { NULL    };
+  bool          m_running     { true    };
+  int           m_interations { 0       };
+  bool          m_isJson      { false   };
+  bool          m_isXml       { false   };
 };

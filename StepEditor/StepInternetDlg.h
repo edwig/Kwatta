@@ -26,10 +26,11 @@ class URLParameterDlg;
 class UrlHeaderDlg;
 class RawRequestDlg;
 class AuthenticateDlg;
+class TimingDlg;
+class ScriptDlg;
 class ResponseDlg;
 class RespHeadersDlg;
 class RawResponseDlg;
-class TimingDlg;
 class TestStepNET;
 class StepResultNET;
 
@@ -101,6 +102,7 @@ protected:
   AuthenticateDlg*  m_page4;
   RawRequestDlg*    m_page5;
   TimingDlg*        m_page6;
+  ScriptDlg*        m_page7;
 
   ResponseDlg*      m_page10;
   RespHeadersDlg*   m_page11;

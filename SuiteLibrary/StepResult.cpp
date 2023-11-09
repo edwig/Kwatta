@@ -35,6 +35,16 @@ static char THIS_FILE[] = __FILE__;
 
 using std::shared_ptr;
 
+void 
+StepResult::Reset()
+{
+  m_name.Empty();
+  m_documentation.Empty();
+  m_seconds = 0.0;
+  // Validation steps
+  m_validations.clear();
+}
+
 StepResult*
 ReadStepResult(CString p_filename)
 {

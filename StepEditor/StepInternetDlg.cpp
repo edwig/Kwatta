@@ -30,6 +30,7 @@
 #include "RespHeadersDlg.h"
 #include "RawResponseDlg.h"
 #include "TimingDlg.h"
+#include "ScriptDlg.h"
 #include <AboutDlg.h>
 #include <SearchVarDlg.h>
 #include <TestStepNET.h>
@@ -59,6 +60,7 @@ StepInternetDlg::StepInternetDlg(CWnd* pParent /*=nullptr*/)
   m_page4 = new AuthenticateDlg(this);
   m_page5 = new RawRequestDlg(this);
   m_page6 = new TimingDlg(this);
+  m_page7 = new ScriptDlg(this);
   // Response
   m_page10 = new ResponseDlg(this);
   m_page11 = new RespHeadersDlg(this);
@@ -73,6 +75,7 @@ StepInternetDlg::~StepInternetDlg()
   delete m_page4;
   delete m_page5;
   delete m_page6;
+  delete m_page7;
 
   delete m_page10;
   delete m_page11;
@@ -198,6 +201,7 @@ StepInternetDlg::InitTabs()
   m_page4->Create(IDD_AUTHENTICATE, &m_tabsRequest);
   m_page5->Create(IDD_RAW_REQUEST,  &m_tabsRequest);
   m_page6->Create(IDD_TIMING,       &m_tabsRequest);
+  m_page7->Create(IDD_SCRIPT,       &m_tabsRequest);
 
   m_tabsRequest.InsertItem(0, m_page1, "Request");
   m_tabsRequest.InsertItem(1, m_page2, "Parameters");
@@ -205,6 +209,7 @@ StepInternetDlg::InitTabs()
   m_tabsRequest.InsertItem(3, m_page4, "Authenticate");
   m_tabsRequest.InsertItem(4, m_page5, "Raw request");
   m_tabsRequest.InsertItem(5, m_page6, "Timing");
+  m_tabsRequest.InsertItem(6, m_page7, "Script");
 
   m_tabsRequest.Init();
 
@@ -403,6 +408,7 @@ StepInternetDlg::LoadVariablesTabs()
   m_page4->InitTab(m_testStep,&m_parameters);
   m_page5->InitTab(m_testStep);
   m_page6->InitTab(m_testStep,&m_parameters);
+  m_page7->InitTab(m_testStep,&m_parameters);
 
   ResetStepResult();
 }
@@ -473,6 +479,7 @@ StepInternetDlg::StoreVariables()
   m_page4->StoreVariables();
   m_page5->StoreVariables();
   m_page6->StoreVariables();
+  m_page7->StoreVariables();
 }
 
 void
@@ -484,6 +491,7 @@ StepInternetDlg::SetFirstTab()
   else if(m_page4->IsFilled()) m_tabsRequest.SelectTab(3);
   else if(m_page5->IsFilled()) m_tabsRequest.SelectTab(4);
   else if(m_page6->IsFilled()) m_tabsRequest.SelectTab(5);
+  else if(m_page7->IsFilled()) m_tabsRequest.SelectTab(6);
 }
 
 //////////////////////////////////////////////////////////////////////////

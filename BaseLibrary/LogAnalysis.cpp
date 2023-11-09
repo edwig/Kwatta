@@ -79,7 +79,11 @@ LogAnalysis::CreateLogfile(XString p_name)
 /*static */bool
 LogAnalysis::DeleteLogfile(LogAnalysis* p_log)
 {
-  return p_log->Release() <= 0;
+  if(p_log)
+  {
+    return p_log->Release() <= 0;
+  }
+  return false;
 }
 
 long 

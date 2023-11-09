@@ -33,6 +33,7 @@ public:
   virtual bool WriteToXML (CString p_filename);
   virtual void CheckFilename(CString p_filename);
   virtual void ResetEffective();
+  virtual void Reset();
 
   // GETTERS
   int         GetStatus()         { return m_status;        }

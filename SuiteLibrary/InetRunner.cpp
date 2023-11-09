@@ -28,6 +28,9 @@
 #include <HPFCounter.h>
 #include <HTTPClient.h>
 #include <OAuth2Cache.h>
+#include <QL_vm.h>
+#include <QL_Interpreter.h>
+#include <QL_Exception.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -87,20 +90,29 @@ InetRunner::PerformTest()
     StartingLogfile();
     // SetAuthentication
     PerformAuthentication();
-    // Perform the test (3 steps)
-    PreCommandWaiting();
-    PerformCommand();
-    PostCommandWaiting();
-    // Perform the validations (x * 1 steps)
-    PerformAllValidations();
-    // Write the results (1 step)
-    SaveTestResults();
-    // Save return parameters (if any)
-    SaveResultParameters();
-    // Return the conclusion (1 step)
-    result = ReadTotalResult();
-    // Send total result to callers
-    EndTesting(result);
+
+    while(m_running)
+    {
+      // One (extra) iteration
+      ++m_interations;
+
+      // Perform the test (3 steps)
+      PreCommandWaiting();
+      PerformCommand();
+      PostCommandWaiting();
+      // Perform the validations (x * 1 steps)
+      PerformAllValidations();
+      // Write the results (1 step)
+      SaveTestResults();
+      // Save return parameters (if any)
+      SaveResultParameters();
+      // Return the conclusion (1 step)
+      result = ReadTotalResult();
+      // Possibly run our script, controlling m_running
+      result = PerformQLScript(result);
+      // Send total result to callers
+      EndTesting(result);
+    }
   }
   catch(StdException& ex)
   {
@@ -244,22 +256,14 @@ InetRunner::StartingLogfile()
   {
     if(m_client)
     {
-      if(m_client->GetLogging() == nullptr)
-      {
-        // Create logfile. Defaults are OK for this application
-        LogAnalysis* log = LogAnalysis::CreateLogfile("Kwatta Testrunner");
-        log->SetLogLevel(loglevel);
-        log->SetLogFilename(logfile);
+      // Create logfile. Defaults are OK for this application
+      m_logfile = LogAnalysis::CreateLogfile("Kwatta HTTP Test");
+      m_logfile->SetLogLevel(loglevel);
+      m_logfile->SetLogFilename(logfile);
 
-        // Transfer logfile to the HTTP client
-        m_client->SetLogging(log,true);
-        m_client->SetLogLevel(loglevel);
-      }
-      else
-      {
-        m_client->GetLogging()->SetLogLevel(0);
-        m_client->GetLogging()->SetLogLevel(loglevel);
-      }
+      // Tell it to the client
+      m_client->SetLogging(m_logfile,true);
+      m_client->SetLogLevel(loglevel);
     }
   }
 }
@@ -306,27 +310,38 @@ InetRunner::PreCommandWaiting()
 void
 InetRunner::PrepareMessage()
 {
+  // Create a message
+  if(m_message)
+  {
+    delete m_message;
+  }
+  m_message = new HTTPMessage();
+
   // VERB URL
   CString url = m_testStep.GetEffectiveCombinedURL();
-  m_message.SetVerb(m_testStep.GetVerb());
-  m_message.SetURL(url);
+  m_message->SetVerb(m_testStep.GetVerb());
+  m_message->SetURL(url);
 
   // Adding all headers
   for(auto& header : m_testStep.GetEffectiveHeaders())
   {
-    m_message.AddHeader(header.m_name,header.m_value);
+    m_message->AddHeader(header.m_name,header.m_value);
   }
 
   // Getting the body of the message
   if(m_testStep.GetBodyInputIsFile())
   {
     CString file = m_baseDirectory + m_testStep.GetFilenameInput();
-    m_message.GetFileBuffer()->SetFileName(file);
+    m_message->GetFileBuffer()->SetFileName(file);
   }
   else
   {
-    m_message.SetBody(m_testStep.GetEffectiveBody());
+    m_message->SetBody(m_testStep.GetEffectiveBody());
   }
+
+  CString accept = m_message->GetHeader("Accept");
+  if(accept.Find("json") >= 0) m_isJson = true;
+  if(accept.Find("xml")  >= 0) m_isXml  = true;
 }
 
 void
@@ -335,6 +350,7 @@ InetRunner::PerformCommand()
   PerformStep("RUN THE COMMAND...");
 
   // Take name and documentation
+  m_result.Reset();
   m_result.SetName(m_testStep.GetName());
   m_result.SetDocumentation(m_testStep.GetDocumentation());
 
@@ -365,7 +381,7 @@ InetRunner::PerformCommand()
   //
   // RUN THE TEST !!
   //
-  m_client->Send(&m_message);
+  m_client->Send(m_message);
   //
   //////////////////////////////////////////////////////////////////////////
 
@@ -388,10 +404,10 @@ InetRunner::ExamineMessage()
   m_result.SetOSErrorString(message);
 
   // Keep the return status
-  m_result.SetStatus(m_message.GetStatus());
+  m_result.SetStatus(m_message->GetStatus());
 
   // Keep result headers
-  for (auto& header : *m_message.GetHeaderMap())
+  for (auto& header : *m_message->GetHeaderMap())
   {
     INPair pair;
     pair.m_name = header.first;
@@ -403,19 +419,19 @@ InetRunner::ExamineMessage()
   if(m_testStep.GetBodyOutputIsFile())
   {
     CString file = m_baseDirectory + m_testStep.GetFilenameOutput();
-       m_message.GetFileBuffer()->SetFileName(file);
-    if(m_message.GetFileBuffer()->WriteFile())
+       m_message->GetFileBuffer()->SetFileName(file);
+    if(m_message->GetFileBuffer()->WriteFile())
     {
-      m_message.GetFileBuffer()->ResetFilename();
-      m_message.SetBody("<File written: OK>\r\nFile: " + file);
+      m_message->GetFileBuffer()->ResetFilename();
+      m_message->SetBody("<File written: OK>\r\nFile: " + file);
     }
     else
     {
-      m_message.GetFileBuffer()->ResetFilename();
-      m_message.SetBody("<FILE NOT WRITTEN>\r\nFile: " + file);
+      m_message->GetFileBuffer()->ResetFilename();
+      m_message->SetBody("<FILE NOT WRITTEN>\r\nFile: " + file);
     }
   }
-  m_result.SetBody(m_message.GetBody());
+  m_result.SetBody(m_message->GetBody());
 
   // Keep last OAuth2 bearer token
   m_result.SetBearerToken(m_client->GetLastBearerToken());
@@ -636,6 +652,165 @@ InetRunner::StopBoobytrap()
   TerminateThread(m_thread,0xFFFFFFFF);
 }
 
+__declspec(thread) LogAnalysis* runlog = nullptr;
+
+void osputs_stdout(const char* str)
+{
+  static CString out;
+  int len = (int) strlen(str);
+  if(len > 0 && str[len - 1] == '\n')
+  {
+    out += str;
+
+    if(runlog)
+    {
+      out = out.TrimRight("\n");
+      out.Replace("\r","");
+      runlog->BareStringLog(out);
+    }
+    else
+    {
+      OutputDebugString(out);
+    }
+    out.Empty();
+  }
+  else
+  {
+    out += str;
+  }
+}
+
+void osputs_stderr(const char* str)
+{
+  osputs_stdout(str);
+}
+
+int
+InetRunner::CheckStatusOK(int p_returnCode)
+{
+  int statusOK = atoi(m_testStep.GetEffectiveStatusOK());
+  if(statusOK != 0 && (p_returnCode != statusOK))
+  {
+    return 1;
+  }
+  // All OK
+  return 0;
+}
+
+void  
+InetRunner::CreateQLErrorMessage(CString p_error)
+{
+  CString error;
+  if(m_isJson)
+  {
+    error = "{ \"error\" : \"QL Language script: " + p_error + "\" }";
+  }
+  else if(m_isXml)
+  {
+    error = "<Error>\n"
+            "  <Type>QL Language script</Type>\n"
+            "  <Message>" + p_error + "</Message>\n"
+            "</Error>\n";
+  }
+  else
+  {
+    error = p_error;
+  }
+
+  m_result.SetBody(error);
+  SaveTestResults();
+
+}
+
+int
+InetRunner::PerformQLScript(int p_result)
+{
+  // Reset the running status
+  m_running = false;
+
+  // See if we must run the script
+  ScriptStatus status = m_testStep.GetScriptStatus();
+  if(status == ScriptStatus::NoScript)
+  {
+    return p_result;
+  }
+
+  // Write to the logfile (if any)
+  bool trace_run = false;
+  bool trace_cmp = false;
+  if(m_logfile)
+  {
+    runlog    = m_logfile;
+    trace_run = m_logfile->GetLogLevel() >= HLL_LOGGING;
+    trace_cmp = m_logfile->GetLogLevel() >= HLL_TRACEDUMP;
+
+    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true, "Validation errors: %d",p_result);
+    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,false,"Running QL Script.");
+    osputs_stdout(m_testStep.GetEffectiveScriptToRun());
+    osputs_stdout("\n");
+  }
+
+  int retCode = 0;
+  try
+  {
+    // Compile our script first
+    QLVirtualMachine vm;
+    if(!vm.CompileBuffer(m_testStep.GetEffectiveScriptToRun(),trace_cmp))
+    {
+      return 1;
+    }
+    // Set up an interpreter
+    QLInterpreter inter(&vm,trace_run);
+    CString entrypoint("main");
+
+    // Set the latest test status
+    inter.SetTestIterations(m_interations);
+    inter.SetTestResult(p_result);
+    inter.SetTestRunning(0);
+
+    // GO run our QL-script
+    retCode = inter.Execute(entrypoint);
+
+    // Should we continue running?
+    m_running = inter.GetTestRunning();
+  }
+  catch(QLException& ex)
+  {
+    CreateQLErrorMessage(ex.GetErrorMessage());
+    m_running = 0;
+    return 1;
+  }
+  // Flush the log
+  osputs_stdout("\n");
+  osputs_stderr("\n");
+
+  // Combine all the status codes
+  switch(status)
+  {
+    case ScriptStatus::SuccessIsZero:     if(retCode != 0)
+                                          {
+                                            p_result = 1;
+                                          }
+                                          break;
+    case ScriptStatus::SuccessIsNegative: if(retCode >= 0 || CheckStatusOK(retCode) != 0)
+                                          {
+                                            p_result = 1;
+                                          }
+                                          break;
+    case ScriptStatus::SuccessIsPositive: if(retCode <= 0 || CheckStatusOK(retCode) != 0)
+                                          {
+                                            p_result = 1;
+                                          }
+                                          break;
+  }
+  if(m_logfile)
+  {
+    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true,"QL Script. Return value: %d",retCode);
+    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true,"QL Script. Extra iteration: %s",m_running ? "Yes" : "No");
+  }
+  return p_result;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // TELLING IT THE OUTSIDE WORLD
@@ -765,4 +940,10 @@ InetRunner::CleanUp()
     delete val;
   }
   m_validations.clear();
+
+  if(m_message)
+  {
+    delete m_message;
+    m_message = nullptr;
+  }
 }

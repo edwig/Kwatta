@@ -65,7 +65,7 @@
       <ConformanceMode>false</ConformanceMode>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;$(SolutionDir)QLLanguage\</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
@@ -87,7 +87,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
-      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>XML;$(SolutionDir)BaseLibrary\;$(SolutionDir)StyleFramework\Grid\;$(SolutionDir)StyleFramework\;$(SolutionDir)Marlin\;$(SolutionDir)SQLComponents\;$(SolutionDir)QLLanguage\</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>

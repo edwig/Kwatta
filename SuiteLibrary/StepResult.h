@@ -51,6 +51,7 @@ public:
   virtual bool WriteToXML   (CString p_filename) = 0;
   virtual void CheckFilename(CString p_filename) = 0;
   virtual void ResetEffective() = 0;
+  virtual void Reset();
 
   // GETTERS
   CString   GetName()           { return m_name;           }

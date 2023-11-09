@@ -100,6 +100,8 @@ TestStep::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
   unbound += p_parameters->Replace(m_maxExecution, m_effectiveMaxEcecution, p_forDisplay);
   unbound += p_parameters->Replace(m_waitBeforeRun,m_effectiveWaitBeforeRun,p_forDisplay);
   unbound += p_parameters->Replace(m_waitAfterRun, m_effectiveWaitAfterRun, p_forDisplay);
+  unbound += p_parameters->Replace(m_scriptToRun,  m_effectiveScriptToRun,  p_forDisplay);
+  unbound += p_parameters->Replace(m_statusOK,     m_effectiveStatusOK,     p_forDisplay);
 
   return unbound;
 }
@@ -141,7 +143,7 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
   m_name           = FindElementString(msg,root,"Name");
   m_documentation  = FindElementString(msg,root,"Documentation");
 
-    // Find Parameters
+  // Find Parameters
   XMLElement* param = msg.FindElement(root,"Parameters",false);
   if(param)
   {
@@ -149,6 +151,15 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
     m_maxExecution  = FindElementString (msg,param,"MaxExecutionTime");
     m_waitBeforeRun = FindElementString (msg,param,"WaitBeforeRun");
     m_waitAfterRun  = FindElementString (msg,param,"WaitAfterRun");
+  }
+
+  // Find our post-script
+  XMLElement* script = msg.FindElement(root,"Script",false);
+  if(script)
+  {
+    m_scriptToRun  = FindElementString(msg,script,"QLScript");
+    m_statusOK     = FindElementString(msg,script,"StatusOK");
+    m_scriptStatus = (ScriptStatus) FindElementInteger(msg,script,"ScriptResult");
   }
 }
 
@@ -167,6 +178,13 @@ TestStep::WriteToXML(XMLMessage& msg,CString p_filename)
   msg.SetElement(parameters,"WaitBeforeRun",   m_waitBeforeRun);
   msg.SetElement(parameters,"WaitAfterRun",    m_waitAfterRun);
 
+  if(!m_scriptToRun.IsEmpty())
+  {
+    XMLElement* script = msg.AddElement(root,"Script",XDT_String,"");
+    msg.SetElement(script,"ScriptResult",IntegerToString((int)m_scriptStatus));
+    msg.SetElement(script,"QLScript",m_scriptToRun);
+    msg.SetElement(script,"StatusOK",m_statusOK);
+  }
   return true;
 }
 

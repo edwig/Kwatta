@@ -29,6 +29,7 @@ class TimingDlg;
 class RawSQLDlg;
 class SQLResultDlg;
 class SQLOutputDlg;
+class ScriptDlg;
 
 // StepInternetDlg dialog
 
@@ -85,6 +86,7 @@ protected:
   DatabaseDlg*      m_page2;
   TimingDlg*        m_page3;
   RawSQLDlg*        m_page4;
+  ScriptDlg*        m_page5;
   SQLResultDlg*     m_page10;
   SQLOutputDlg*     m_page11;
 

@@ -31,6 +31,22 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
+StepResultNET::Reset()
+{
+  StepResult::Reset();
+  ResetEffective();
+
+  m_status  = 0;
+  m_osError = 0;
+
+  m_headers.clear();
+  m_body.Empty();
+  m_bodyFile.Empty();
+  m_bearerToken.Empty();
+  m_osErrorString.Empty();
+}
+
+void
 StepResultNET::ReadFromXML(CString p_filename)
 {
   XMLMessage msg;
@@ -154,7 +170,7 @@ StepResultNET::GetRawResponse()
   return raw;
 }
 
-void 
+void
 StepResultNET::ResetEffective()
 {
   // NOP

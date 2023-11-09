@@ -476,18 +476,18 @@ HTTPServer::RegisterSite(const HTTPSite* p_site,const XString& p_urlPrefix)
 {
   AutoCritSec lock(&m_sitesLock);
 
-  // Use counter
-  m_counter.Start();
-
-  if(p_site == nullptr)
+  // Check that we have the minimal parameters
+  if(p_site == nullptr || p_urlPrefix.IsEmpty())
   {
     ERRORLOG(ERROR_INVALID_PARAMETER,_T("RegisterSite: no site to register"));
     return false;
   }
 
+  // Use counter
+  m_counter.Start();
+
   // See to it that we are initialized
-  Initialise();
-  if(GetLastError())
+  if(!Initialise())
   {
     // If initialize did not work out OK
     m_counter.Stop();

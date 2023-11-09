@@ -27,6 +27,7 @@
 #include "RawSQLDlg.h"
 #include "SQLResultDlg.h"
 #include "SQLOutputDlg.h"
+#include "ScriptDlg.h"
 #include <AboutDlg.h>
 #include <SearchVarDlg.h>
 #include <TestStepSQL.h>
@@ -53,6 +54,7 @@ StepDatabaseDlg::StepDatabaseDlg(CWnd* p_parent)
   m_page2 = new DatabaseDlg(this);
   m_page3 = new TimingDlg(this);
   m_page4 = new RawSQLDlg(this);
+  m_page5 = new ScriptDlg(this);
 // 
   m_page10 = new SQLResultDlg(this);
   m_page11 = new SQLOutputDlg(this);
@@ -64,6 +66,7 @@ StepDatabaseDlg::~StepDatabaseDlg()
   delete m_page2;
   delete m_page3;
   delete m_page4;
+  delete m_page5;
   delete m_page10;
   delete m_page11;
 
@@ -206,11 +209,13 @@ StepDatabaseDlg::InitTabs()
   m_page2->Create(IDD_DATABASE, &m_tabsRequest);
   m_page3->Create(IDD_TIMING,   &m_tabsRequest);
   m_page4->Create(IDD_RAW_SQL,  &m_tabsRequest);
+  m_page5->Create(IDD_SCRIPT,   &m_tabsRequest);
  
   m_tabsRequest.InsertItem(0,m_page1,"SQL");
   m_tabsRequest.InsertItem(1,m_page2,"Database");
   m_tabsRequest.InsertItem(2,m_page3,"Timing");
   m_tabsRequest.InsertItem(3,m_page4,"Raw SQL");
+  m_tabsRequest.InsertItem(4,m_page5,"Script");
 
   m_tabsRequest.Init();
  
@@ -322,6 +327,7 @@ StepDatabaseDlg::LoadVariablesTabs()
   m_page2->InitTab(m_testStep,&m_parameters);
   m_page3->InitTab(m_testStep,&m_parameters);
   m_page4->InitTab(m_testStep);
+  m_page5->InitTab(m_testStep,&m_parameters);
 
   ResetStepResult();
 }
@@ -385,6 +391,7 @@ StepDatabaseDlg::StoreVariables()
   m_page2->StoreVariables();
   m_page3->StoreVariables();
   m_page4->StoreVariables();
+  m_page5->StoreVariables();
 }
 
 // StepDatabaseDlg message handlers

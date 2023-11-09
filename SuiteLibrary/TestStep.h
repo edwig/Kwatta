@@ -33,6 +33,14 @@ enum class StepType
  ,Step_sql
 };
 
+enum class ScriptStatus
+{
+  NoScript
+ ,SuccessIsZero
+ ,SuccessIsNegative
+ ,SuccessIsPositive
+};
+
 class TestStep;
 
 // General factory to read-in a test step
@@ -62,6 +70,11 @@ public:
   CString  GetEffectiveMaxExecution()  { return m_effectiveMaxEcecution;  }
   CString  GetEffectiveWaitBeforeRun() { return m_effectiveWaitBeforeRun; }
   CString  GetEffectiveWaitAfterRun()  { return m_effectiveWaitAfterRun;  }
+  CString  GetStatusOK()               { return m_statusOK;               }
+  CString  GetEffectiveStatusOK()      { return m_effectiveStatusOK;      }
+  CString  GetScriptToRun()            { return m_scriptToRun;            }
+  CString  GetEffectiveScriptToRun()   { return m_effectiveScriptToRun;   }
+  ScriptStatus GetScriptStatus()       { return m_scriptStatus;           }
 
   // SETTERS
   void    SetName(CString p_name)           { m_name              = p_name;     }
@@ -71,6 +84,9 @@ public:
   void    SetMaxExecution(CString p_exec)   { m_maxExecution      = p_exec;     }
   void    SetWaitBeforeRun(CString p_wait)  { m_waitBeforeRun     = p_wait;     }
   void    SetWaitAfterRun (CString p_wait)  { m_waitAfterRun      = p_wait;     }
+  void    SetScriptToRun(CString p_script)  { m_scriptToRun       = p_script;   }
+  void    SetStatusOK(CString p_status)     { m_statusOK          = p_status;   }
+  void    SetScriptStatus(ScriptStatus p_s) { m_scriptStatus      = p_s;        }
 
 protected:
   // Interface with the file system
@@ -95,4 +111,11 @@ protected:
   CString       m_effectiveMaxEcecution;
   CString       m_effectiveWaitBeforeRun;
   CString       m_effectiveWaitAfterRun;
+
+  // QL Script to run
+  CString       m_scriptToRun;
+  CString       m_effectiveScriptToRun;
+  CString       m_statusOK;
+  CString       m_effectiveStatusOK;
+  ScriptStatus  m_scriptStatus { ScriptStatus::NoScript };
 };

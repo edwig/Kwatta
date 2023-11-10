@@ -24,6 +24,7 @@
 #include "RunRedirect.h"
 #include "TestMessages.h"
 #include "ExtraMessages.h"
+#include <RegistryManager.h>
 #include <HPFCounter.h>
 
 #ifdef _DEBUG
@@ -232,8 +233,11 @@ ExecRunner::SetExtraEnvironmentStrings()
     if(handle == 1)
     {
       CString var;
-      var.GetEnvironmentVariable(name);
-      if (!var.IsEmpty())
+      if(!var.GetEnvironmentVariable(name))
+      {
+        var = GetGlobalEnvironmentVariable(name);
+      }
+      if(!var.IsEmpty())
       {
         continue;
       }

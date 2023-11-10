@@ -173,7 +173,7 @@ STANDARD INTERNAL FUNCTIONS
 STANDARD TEST FUNCTIONS
   <int>     = TestIterations()
   <int>     = TestResult()
-              TestRunning(int)
+  <nil>     = TestRunning(int)
 
 STANDARD NEW OBJECT FUNCTIONS
   <dbase>  = newdbase([database[,user[,password]]])
@@ -238,31 +238,3 @@ STANDARD METHODS
   dbase.*   (all SQLDatabase members)
 
 
-DLL IMPORT FUNCTIONS FOR LIBRARIES
-  <int> = import("<dll library path>")
-  loadfunction(<n>,"name")
-
-QL-PROGRAM
-==========
-ql [options] sourcefile[.ql] [objectfile.qob]
-
-The following are valid options
--v	      Verbose + copyrights
--c        Compile only to object file
--b        Show compiling trace (object, method, bytecode)
--t        Show tracing bytecode execution
--e name   Use 'name' as entry point, other than 'main'
--d name   Use 'name' as database name
--u name   Use 'name' as database user's name
--p word   Use 'word' as database password
--h        Show this help page
--o        show contents of object file
--x        check for memory leaks on exit
--s        Print stack on error exit
-
-
-QLLinker program
-================
-QLLinker -o <outputfile[.qob]> <inputfile[.qob]> ...
-
-(links all but first header, wich rewrites)

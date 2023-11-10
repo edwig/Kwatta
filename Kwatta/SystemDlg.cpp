@@ -250,9 +250,9 @@ SystemDlg::OnBnClickedShow()
 {
   if(!m_password.GetEnvironmentVariable(KWATTA_PASSWORD))
   {
-    m_password.Empty();
+    m_password = GetGlobalEnvironmentVariable(KWATTA_PASSWORD);
   }
-  else
+  if(!m_password.IsEmpty())
   {
     Crypto crypt;
     m_password = crypt.Decryption(m_password,KWATTA_ENCRYPT);

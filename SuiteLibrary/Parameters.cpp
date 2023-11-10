@@ -22,6 +22,7 @@
 #include "Parameters.h"
 #include <XMLMessage.h>
 #include <StdException.h>
+#include <RegistryManager.h>
 #include <Crypto.h>
 #include <io.h>
 
@@ -383,7 +384,11 @@ Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
     if(m_password)
     {
       CString pwd;
-      if(pwd.GetEnvironmentVariable(KWATTA_PASSWORD))
+      if(!pwd.GetEnvironmentVariable(KWATTA_PASSWORD))
+      {
+        pwd = GetGlobalEnvironmentVariable(KWATTA_PASSWORD);
+      }
+      if(!pwd.IsEmpty())
       {
         Crypto crypt;
         pwd = crypt.Decryption(pwd,KWATTA_ENCRYPT);

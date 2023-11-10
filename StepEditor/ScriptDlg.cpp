@@ -49,7 +49,7 @@ void ScriptDlg::DoDataExchange(CDataExchange* pDX)
   if(pDX->m_bSaveAndValidate == FALSE)
   {
     m_editScript  .EnableWindow(m_status != ScriptStatus::NoScript);
-    m_editStatusOK.EnableWindow(m_status != ScriptStatus::NoScript);
+    m_editStatusOK.EnableWindow(m_status >= ScriptStatus::SuccessIsZero);
   }
 }
 
@@ -88,8 +88,8 @@ ScriptDlg::InitCombo()
 {
   m_comboStatus.AddString("No QL Script");
   m_comboStatus.AddString("Success is ZERO");
-  m_comboStatus.AddString("Success is Negative");
   m_comboStatus.AddString("Success is Positive");
+  m_comboStatus.AddString("Success is Negative");
 }
 
 void

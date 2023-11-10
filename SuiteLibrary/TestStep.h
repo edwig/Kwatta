@@ -37,8 +37,8 @@ enum class ScriptStatus
 {
   NoScript
  ,SuccessIsZero
- ,SuccessIsNegative
  ,SuccessIsPositive
+ ,SuccessIsNegative
 };
 
 class TestStep;

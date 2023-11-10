@@ -699,10 +699,10 @@ InetRunner::CheckStatusOK(int p_returnCode)
   int statusOK = atoi(m_testStep.GetEffectiveStatusOK());
   if(statusOK != 0 && (p_returnCode != statusOK))
   {
-    return 1;
+    return 0;
   }
   // All OK
-  return 0;
+  return 1;
 }
 
 void  
@@ -724,6 +724,9 @@ InetRunner::CreateQLErrorMessage(CString p_error)
   SaveTestResults();
 }
 
+// Perform a script
+// Input p_result == 1 -> All validations where OK
+// Input p_result == 0 -> Errors in validations 
 int
 InetRunner::PerformQLScript(int p_result)
 {
@@ -734,6 +737,7 @@ InetRunner::PerformQLScript(int p_result)
   ScriptStatus status = m_testStep.GetScriptStatus();
   if(status == ScriptStatus::NoScript)
   {
+    // Pass back the original result
     return p_result;
   }
 
@@ -755,13 +759,22 @@ InetRunner::PerformQLScript(int p_result)
     if(m_logfile)
     {
       runlog    = m_logfile;
-      trace_run = m_logfile->GetLogLevel() >= HLL_LOGGING;
+      trace_run = m_logfile->GetLogLevel() >= HLL_TRACE;
       trace_cmp = m_logfile->GetLogLevel() >= HLL_TRACEDUMP;
 
       m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true, "Validation errors: %d",p_result);
       m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,false,"Running QL Script.");
-      osputs_stdout(script);
-      osputs_stdout("\n");
+      if(trace_run)
+      {
+        if(trace_cmp)
+        {
+          osputs_stdout("Script before replacements:\n");
+          osputs_stdout(m_testStep.GetScriptToRun() + "\n");
+          osputs_stdout("Script after replacements:\n");
+        }
+        osputs_stdout(script);
+        osputs_stdout("\n");
+      }
     }
 
     // Compile our script first
@@ -799,17 +812,17 @@ InetRunner::PerformQLScript(int p_result)
   {
     case ScriptStatus::SuccessIsZero:     if(retCode != 0)
                                           {
-                                            p_result = 1;
+                                            p_result = 0;
                                           }
                                           break;
-    case ScriptStatus::SuccessIsNegative: if(retCode >= 0 || CheckStatusOK(retCode) != 0)
+    case ScriptStatus::SuccessIsNegative: if(retCode >= 0 || CheckStatusOK(retCode) == 0)
                                           {
-                                            p_result = 1;
+                                            p_result = 0;
                                           }
                                           break;
-    case ScriptStatus::SuccessIsPositive: if(retCode <= 0 || CheckStatusOK(retCode) != 0)
+    case ScriptStatus::SuccessIsPositive: if(retCode <= 0 || CheckStatusOK(retCode) == 0)
                                           {
-                                            p_result = 1;
+                                            p_result = 0;
                                           }
                                           break;
   }

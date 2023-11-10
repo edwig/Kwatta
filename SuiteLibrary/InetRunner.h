@@ -132,5 +132,4 @@ private:
   bool          m_running     { true    };
   int           m_interations { 0       };
   bool          m_isJson      { false   };
-  bool          m_isXml       { false   };
 };

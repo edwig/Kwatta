@@ -340,8 +340,10 @@ InetRunner::PrepareMessage()
   }
 
   CString accept = m_message->GetHeader("Accept");
-  if(accept.Find("json") >= 0) m_isJson = true;
-  if(accept.Find("xml")  >= 0) m_isXml  = true;
+  if(accept.Find("json") >= 0)
+  {
+    m_isJson = true;
+  }
 }
 
 void
@@ -652,6 +654,12 @@ InetRunner::StopBoobytrap()
   TerminateThread(m_thread,0xFFFFFFFF);
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// Running a QL Script after the test step
+//
+//////////////////////////////////////////////////////////////////////////
+
 __declspec(thread) LogAnalysis* runlog = nullptr;
 
 void osputs_stdout(const char* str)
@@ -705,21 +713,15 @@ InetRunner::CreateQLErrorMessage(CString p_error)
   {
     error = "{ \"error\" : \"QL Language script: " + p_error + "\" }";
   }
-  else if(m_isXml)
+  else
   {
     error = "<Error>\n"
             "  <Type>QL Language script</Type>\n"
             "  <Message>" + p_error + "</Message>\n"
             "</Error>\n";
   }
-  else
-  {
-    error = p_error;
-  }
-
   m_result.SetBody(error);
   SaveTestResults();
-
 }
 
 int
@@ -735,27 +737,36 @@ InetRunner::PerformQLScript(int p_result)
     return p_result;
   }
 
-  // Write to the logfile (if any)
-  bool trace_run = false;
-  bool trace_cmp = false;
-  if(m_logfile)
-  {
-    runlog    = m_logfile;
-    trace_run = m_logfile->GetLogLevel() >= HLL_LOGGING;
-    trace_cmp = m_logfile->GetLogLevel() >= HLL_TRACEDUMP;
-
-    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true, "Validation errors: %d",p_result);
-    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,false,"Running QL Script.");
-    osputs_stdout(m_testStep.GetEffectiveScriptToRun());
-    osputs_stdout("\n");
-  }
-
   int retCode = 0;
   try
   {
+    // Getting the script to run
+    // But first effectuate the output parameters of the last run command
+    int unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
+    if (unbound)
+    {
+      throw QLException("Parameters not replaced. " + m_parameters.GetUnboundErrors(),unbound);
+    }
+    CString script = m_testStep.GetEffectiveScriptToRun();
+
+    // Write to the logfile (if any)
+    bool trace_run = false;
+    bool trace_cmp = false;
+    if(m_logfile)
+    {
+      runlog    = m_logfile;
+      trace_run = m_logfile->GetLogLevel() >= HLL_LOGGING;
+      trace_cmp = m_logfile->GetLogLevel() >= HLL_TRACEDUMP;
+
+      m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true, "Validation errors: %d",p_result);
+      m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,false,"Running QL Script.");
+      osputs_stdout(script);
+      osputs_stdout("\n");
+    }
+
     // Compile our script first
     QLVirtualMachine vm;
-    if(!vm.CompileBuffer(m_testStep.GetEffectiveScriptToRun(),trace_cmp))
+    if(!vm.CompileBuffer(script,trace_cmp))
     {
       return 1;
     }
@@ -780,9 +791,8 @@ InetRunner::PerformQLScript(int p_result)
     m_running = 0;
     return 1;
   }
-  // Flush the log
+  // Flush the log from the script
   osputs_stdout("\n");
-  osputs_stderr("\n");
 
   // Combine all the status codes
   switch(status)

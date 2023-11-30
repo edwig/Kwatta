@@ -421,8 +421,8 @@ public:
     void Refresh();
     void AutoFill();   // Fill grid with blank cells
 
-    void EnsureVisible(CCellID &cell)       { EnsureVisible(cell.row, cell.col); }
-    void EnsureVisible(int nRow, int nCol);
+    void EnsureVisible(CCellID& cell,bool p_ingrid = false);
+    void EnsureVisible(int nRow, int nCol,bool p_ingrid = false);
     BOOL IsCellVisible(int nRow, int nCol);
     BOOL IsCellVisible(CCellID cell);
     BOOL IsCellEditable(int nRow, int nCol) const;
@@ -771,6 +771,8 @@ protected:
     afx_msg LRESULT OnGetFont(WPARAM hFont, LPARAM lParam);
     afx_msg LRESULT OnImeChar(WPARAM wCharCode, LPARAM lParam);
     afx_msg void OnEndInPlaceEdit(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg BOOL OnComboKillFocus();
+
     DECLARE_MESSAGE_MAP()
 
     enum eMouseModes { MOUSE_NOTHING, MOUSE_SELECT_ALL, MOUSE_SELECT_COL, MOUSE_SELECT_ROW,

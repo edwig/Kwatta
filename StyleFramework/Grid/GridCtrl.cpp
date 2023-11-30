@@ -606,6 +606,7 @@ BEGIN_MESSAGE_MAP(CGridCtrl, CWnd)
   ON_MESSAGE(WM_GETFONT, OnGetFont)
   ON_MESSAGE(WM_IME_CHAR, OnImeChar)
   ON_NOTIFY(GVN_ENDLABELEDIT, IDC_INPLACE_CONTROL, OnEndInPlaceEdit)
+  ON_CONTROL_REFLECT_EX(CBN_KILLFOCUS,OnComboKillFocus)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -957,6 +958,14 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
   BOOL bFoundVisible;
   int iOrig;
 
+  // Check for end-of-edit
+  if(nChar == VK_UP    || nChar == VK_DOWN  ||
+     nChar == VK_LEFT  || nChar == VK_RIGHT ||
+     nChar == VK_PRIOR || nChar == VK_NEXT)
+  {
+    EndEditing();
+  }
+
   if (nChar == VK_DELETE)
   {
 		CutSelectedText();
@@ -1221,7 +1230,8 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
   }
   else
   {
-    CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
+    // OnEditCell(m_idCurrentCell.row,m_idCurrentCell.col,CPoint(-1,-1),nChar);
+    CWnd::OnKeyDown(nChar,nRepCnt,nFlags);
     return;
   }
 
@@ -1300,10 +1310,10 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                       }
                       break;
       }
-      EnsureVisible(next); // Make sure cell is visible
+      EnsureVisible(next,true); // Make sure cell is visible
       Invalidate();
     }
-    EnsureVisible(next); // Make sure cell is visible
+    EnsureVisible(next,true); // Make sure cell is visible
 
     if(bHorzScrollAction)
     {
@@ -1339,6 +1349,7 @@ void CGridCtrl::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
     if(!m_bHandleTabKey || (m_bHandleTabKey && nChar != VK_TAB))
     {
       OnEditCell(m_idCurrentCell.row,m_idCurrentCell.col,CPoint(-1,-1),nChar);
+      return;
     }
   }
 
@@ -1370,7 +1381,6 @@ void CGridCtrl::OnEndInPlaceEdit(NMHDR* pNMHDR, LRESULT* pResult)
     return;
   }
   OnEndEditCell(pgvItem->row, pgvItem->col, pgvItem->strText);
-  //InvalidateCellRect(CCellID(pgvItem->row, pgvItem->col));
 
   switch (pgvItem->lParam)
   {
@@ -1384,8 +1394,9 @@ void CGridCtrl::OnEndInPlaceEdit(NMHDR* pNMHDR, LRESULT* pResult)
     case VK_HOME:
     case VK_END:
                   OnKeyDown((UINT)pgvItem->lParam, 0, 0);
-                  OnEditCell(m_idCurrentCell.row, m_idCurrentCell.col, CPoint( -1, -1), (UINT)pgvItem->lParam);
+                  OnEditCell(m_idCurrentCell.row,m_idCurrentCell.col,CPoint(-1,-1),0); //(UINT)pgvItem->lParam);
   }
+  InvalidateCellRect(CCellID(pgvItem->row,pgvItem->col));
   *pResult = 0;
 }
 
@@ -5828,8 +5839,15 @@ void CGridCtrl::Refresh()
   }
 }
 
+void
+CGridCtrl::EnsureVisible(CCellID& p_cell,bool p_ingrid /*=false*/)
+{ 
+  EnsureVisible(p_cell.row, p_cell.col,p_ingrid); 
+}
+
 // EnsureVisible supplied by Roelf Werkman
-void CGridCtrl::EnsureVisible(int nRow, int nCol)
+void 
+CGridCtrl::EnsureVisible(int nRow, int nCol,bool p_ingrid /*=false*/)
 {
   if(!m_bAllowDraw)
   {
@@ -5860,7 +5878,7 @@ void CGridCtrl::EnsureVisible(int nRow, int nCol)
   // We are going to send some scroll messages, which will steal the focus 
   // from it's rightful owner. Squirrel it away ourselves so we can give
   // it back. (Damir)
-  CWnd* pFocusWnd = GetFocus();
+  CWnd* pFocusWnd = p_ingrid ? this : GetFocus();
 
   CCellRange VisibleCells = GetVisibleNonFixedCellRange();
 
@@ -8005,7 +8023,7 @@ void CGridCtrl::OnEditCell(int nRow, int nCol, CPoint point, UINT nChar)
     return;
   }
   // Can we see what we are doing?
-  EnsureVisible(nRow, nCol);
+  EnsureVisible(nRow, nCol,true);
   if(!IsCellVisible(nRow,nCol))
   {
     return;
@@ -8135,4 +8153,16 @@ CGridCtrl::RegisterEditCell(int nRow,int nCol)
 {
   m_curEditRow = nRow;
   m_curEditCol = nCol;
+}
+
+BOOL
+CGridCtrl::OnComboKillFocus()
+{
+  CGridCellBase* cell = GetCell(m_idCurrentCell.row,m_idCurrentCell.col);
+  if(cell)
+  {
+    cell->EndEdit();
+  }
+  SetFocus();
+  return FALSE;
 }

@@ -79,6 +79,7 @@ BEGIN_MESSAGE_MAP(StyleDialog,CDialog)
   ON_WM_ACTIVATEAPP()
   ON_WM_SETTINGCHANGE()
   ON_WM_QUERYDRAGICON()
+  ON_WM_DROPFILES()
   ON_REGISTERED_MESSAGE(g_msg_changed,OnStyleChanged)
   ON_NOTIFY_EX(TTN_NEEDTEXT,0,        OnToolTipNotify)
   ON_MESSAGE(WM_CTLCOLORSTATIC,       OnCtlColorStatic)
@@ -1520,6 +1521,12 @@ HCURSOR
 StyleDialog::OnQueryDragIcon()
 {
   return static_cast<HCURSOR>(m_hIcon);
+}
+
+void
+StyleDialog::OnDroppedFile(UINT p_id,UINT p_index,LPCTSTR p_fileName)
+{
+  StyleMessageBox(this,"ERROR: Implement your own OnDroppedFile for this Dialog","Error",MB_OK | MB_ICONERROR);
 }
 
 // Try overridden OnClosing before canceling the dialog

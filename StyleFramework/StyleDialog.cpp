@@ -117,6 +117,7 @@ int
 StyleDialog::OnCreate(LPCREATESTRUCT p_create)
 {
   p_create->dwExStyle |= WS_EX_CONTROLPARENT;
+
   int res = CDialog::OnCreate(p_create);
 
   CRect rect;

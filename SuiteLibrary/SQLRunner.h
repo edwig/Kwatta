@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "TestRunner.h"
 #include "TestStepSQL.h"
 #include "Parameters.h"
 #include "ValidateSQL.h"
@@ -28,9 +29,8 @@
 #include <vector>
 
 using namespace SQLComponents;
-using ValiSteps = std::vector<CString>;
 
-class SQLRunner
+class SQLRunner : public TestRunner
 {
 public:
   SQLRunner(SQLDatabase*  p_database
@@ -45,22 +45,19 @@ public:
            ,HWND          p_callingHWND
            ,int           p_callingROW
            ,bool          p_global);
- ~SQLRunner();
+  virtual ~SQLRunner();
 
-  int     PerformTest();
-  CString GetEffectiveStepFilename();
-  int     GetMaxRunningTime();
-  void    StopTestProgram();
-  StepResultSQL* GetStepResult();
+  virtual int     PerformTest();
+  virtual void    StopTestProgram();
+
+  StepResultSQL*  GetStepResult();
 
 private:
   // Running the test
   void  InitRunner();
   void  ReadingAllFiles();
   void  ParameterProcessing();
-  void  PreCommandWaiting();
   void  PerformCommand();
-  void  PostCommandWaiting();
   void  PerformAllValidations();
   void  SaveTestResults();
   void  SaveResultParameters();
@@ -69,38 +66,13 @@ private:
   void  StopBoobytrap();
   // Details
   void  ReadTestStep();
-  void  ReadParameters();
   void  ReadValidations();
-  void  PerformStep(CString p_stepName);
-  void  WaitingForATimeout(CString p_stepname,int p_miliseconds);
   void  ReadResultSet();
+  // For a QL test to JSON or XML translation
+  virtual void  CreateQLErrorMessage(CString p_error) override;
+  virtual int   CheckStatusOK(int p_returnCode);
 
-  // Telling it the outside world
-  void  SetTest(CString p_test);
-  void  SetStep(CString p_step);
-  void  SetProgress(int p_percent);
-  void  EndTesting(int p_result);
-
-  CString       m_baseDirectory;
-  CString       m_testDirectory;
-  CString       m_testStepFilename;
-  CString       m_parametersFilename;
-  HWND          m_reportHWND { NULL };
-  HWND          m_consoleHNWD{ NULL };
-  int           m_steps      {  0 };
-  int           m_stepSize   { 12 };
-  int           m_progress   {  0 };
-  TestStepSQL   m_testStep;
-  Parameters    m_parameters;
-  ValiSteps     m_localValidations;
-  ValiSteps     m_globalValidations;
-  Validations   m_validations;
-  StepResultSQL m_result;
-  HWND          m_callingHWND { NULL    };
-  int           m_callingROW  { 0       };
-  bool          m_global      { false   };
-  HANDLE        m_thread      { NULL    };
-  // Database objects
+  // Data specific to an SQL test step
   SQLDatabase*  m_database    { nullptr };
   SQLQuery*     m_query       { nullptr };
 };

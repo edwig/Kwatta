@@ -978,6 +978,7 @@ StyleComboBox::OnDropdown()
   PreShowComboList();
   ShowComboList();
   PostShowComboList();
+
   m_buttonDown = true;
 }
 
@@ -1066,7 +1067,7 @@ StyleComboBox::OnSetFocus(CWnd* pOldWnd)
   {
     m_listControl->SetFocus();
   }
-  else if(m_itemControl)
+  else if(m_itemControl && m_itemControl->GetSafeHwnd())
   {
     m_itemControl->SetFocus();
   }

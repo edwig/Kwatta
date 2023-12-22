@@ -1,0 +1,34 @@
+DESIGN FOR WINDOWS TESTING in KWATTA
+====================================
+
+start     "executable path" "parameters"
+locate    "Name pattern"    "action"     -- eg. focus
+abspos    "x" "y"                        -- Mouse position
+relpos    "Name pattern"    "x" "y"      -- Mouse position rel to window
+click     ["name pattern"]               -- Mouse click
+dblclk    ["name pattern"]               -- Mouse double click
+char      "a" / "virtual name"           -- Key stroke
+string    "string"                       -- Alpanumeric keys only
+present   "Name pattern"                 -- (sub)Window is present
+hasstyle  "Name pattern" "style"         -- Check that windows has style x
+txtarea   "Name pattern" [line [start [end]]]  -- Getting part of the text area
+
+
+
+
+General parameters
+a) screen resolution (size)
+b) desktop rel to home desktop
+c) waittimes (before, after each step)
+
+
+
+ 1  COMMAND   [win name pattern] param1 param2 param3  <Pause>
+ ..
+ n  COMMANd   ... 
+ 
+ 
+ 
+use "SendInput" for keystrokes / mouseinput
+https://nibuthomas.wordpress.com/2009/08/04/how-to-use-sendinput/
+https://stackoverflow.com/questions/18647053/sendinput-not-equal-to-pressing-key-manually-on-keyboard-in-c

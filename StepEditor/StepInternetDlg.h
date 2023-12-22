@@ -26,7 +26,7 @@ class URLParameterDlg;
 class UrlHeaderDlg;
 class RawRequestDlg;
 class AuthenticateDlg;
-class TimingDlg;
+class TimingHTTPDlg;
 class ScriptDlg;
 class ResponseDlg;
 class RespHeadersDlg;
@@ -101,7 +101,7 @@ protected:
   UrlHeaderDlg*     m_page3;
   AuthenticateDlg*  m_page4;
   RawRequestDlg*    m_page5;
-  TimingDlg*        m_page6;
+  TimingHTTPDlg*    m_page6;
   ScriptDlg*        m_page7;
 
   ResponseDlg*      m_page10;

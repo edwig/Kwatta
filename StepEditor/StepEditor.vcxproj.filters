@@ -21,7 +21,7 @@
     <ClInclude Include="StepEditor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StepEditorDlg.h">
+    <ClInclude Include="StepCommandDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
@@ -105,12 +105,24 @@
     <ClInclude Include="ScriptDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="StepWindowsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinActionsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimingHTTPDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinResultDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StepEditor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="StepEditorDlg.cpp">
+    <ClCompile Include="StepCommandDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
@@ -185,6 +197,18 @@
     <ClCompile Include="ScriptDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StepWindowsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinActionsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimingHTTPDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinResultDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StepEditor.rc">
@@ -240,6 +264,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\example.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon4.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\ArrowDN.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\ArrowUP.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

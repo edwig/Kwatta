@@ -1639,10 +1639,10 @@ void CGridCtrl::OnDraw(CDC* pDC)
   // This necessary since we may be using a Memory DC.
   EraseBkgnd(pDC);
 
-#ifdef _DEBUG
-	LARGE_INTEGER iStartCount;
-	QueryPerformanceCounter(&iStartCount);
-#endif
+// #ifdef _DEBUG
+// 	LARGE_INTEGER iStartCount;
+// 	QueryPerformanceCounter(&iStartCount);
+// #endif
 
   CRect rect;
   int row, col;
@@ -1839,11 +1839,11 @@ void CGridCtrl::OnDraw(CDC* pDC)
     SendCacheHintToParent(CCellRange(-1,-1,-1,-1));
   }
 
-#ifdef _DEBUG
-	LARGE_INTEGER iEndCount;
-	QueryPerformanceCounter(&iEndCount);
-	TRACE1("Draw counter seconds: %.7f\n", double(iEndCount.LowPart-iStartCount.LowPart)/10000000);
-#endif
+// #ifdef _DEBUG
+// 	LARGE_INTEGER iEndCount;
+// 	QueryPerformanceCounter(&iEndCount);
+// 	TRACE1("Draw counter seconds: %.7f\n", double(iEndCount.LowPart-iStartCount.LowPart)/10000000);
+// #endif
 
 }
 

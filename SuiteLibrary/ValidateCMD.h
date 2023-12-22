@@ -35,6 +35,11 @@ public:
   // Check our filenames extension
   virtual void    CheckFilename(CString p_filename) override;
 
+  // OUR MAIN FUNCTION: Performing our VALIDATIONS
+  bool            ValidateReturnValue(int p_value);
+  bool            ValidateOutputBuffer(CString p_buffer);
+  bool            ValidateErrorBuffer(CString p_buffer);
+
   // GETTERS
   bool            GetReturnValueIsSigned()  { return m_returnIsSigned;    }
   bool            GetCheckReturnValue()     { return m_checkReturnValue;  }
@@ -61,11 +66,6 @@ public:
   void            SetExpectedReturn(CString p_retval)     { m_expectedReturn    = p_retval;   }
   void            SetExpectedOutput(CString p_buffer)     { m_expectedOutput    = p_buffer;   }
   void            SetExpectedError (CString p_buffer)     { m_expectedError     = p_buffer;   }
-
-  // Performing our validations
-  bool            ValidateReturnValue(int p_value);
-  bool            ValidateOutputBuffer(CString p_buffer);
-  bool            ValidateErrorBuffer(CString p_buffer);
 
 protected:
 

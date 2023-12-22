@@ -14,6 +14,12 @@
     <Filter Include="Configuration">
       <UniqueIdentifier>{1f7ee383-9487-43f1-b862-28187f796f34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Runners">
+      <UniqueIdentifier>{fc196677-7a27-456a-834e-51067f940663}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Runners\Header files">
+      <UniqueIdentifier>{f1808274-0b39-41e0-b84c-a89edacf2d0d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TestStep.h">
@@ -83,12 +89,6 @@
     <ClInclude Include="AboutDlg.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="ExecRunner.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="InetRunner.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
     <ClInclude Include="NewVariableDlg.h">
       <Filter>Header files</Filter>
     </ClInclude>
@@ -116,10 +116,34 @@
     <ClInclude Include="ValidateSQL.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="SQLRunner.h">
+    <ClInclude Include="TestReport.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="TestReport.h">
+    <ClInclude Include="TestStepWIN.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="ValidateWIN.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="CMDRunner.h">
+      <Filter>Runners\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="TestRunner.h">
+      <Filter>Runners\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLRunner.h">
+      <Filter>Runners\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="NETRunner.h">
+      <Filter>Runners\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="WINRunner.h">
+      <Filter>Runners\Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="StepResultWIN.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinAction.h">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -181,12 +205,6 @@
     <ClCompile Include="StyleRichEdit.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ExecRunner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InetRunner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="NewVariableDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -205,10 +223,34 @@
     <ClCompile Include="ValidateSQL.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SQLRunner.cpp">
+    <ClCompile Include="TestReport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TestReport.cpp">
+    <ClCompile Include="TestStepWIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidateWIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SQLRunner.cpp">
+      <Filter>Runners</Filter>
+    </ClCompile>
+    <ClCompile Include="CMDRunner.cpp">
+      <Filter>Runners</Filter>
+    </ClCompile>
+    <ClCompile Include="NETRunner.cpp">
+      <Filter>Runners</Filter>
+    </ClCompile>
+    <ClCompile Include="TestRunner.cpp">
+      <Filter>Runners</Filter>
+    </ClCompile>
+    <ClCompile Include="WINRunner.cpp">
+      <Filter>Runners</Filter>
+    </ClCompile>
+    <ClCompile Include="StepResultWIN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinAction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

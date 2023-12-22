@@ -63,6 +63,12 @@
     <ClInclude Include="SQLStatusDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ResultWindowsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WINOutputDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ResultViewer.cpp">
@@ -99,6 +105,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SQLStatusDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultWindowsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WINOutputDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

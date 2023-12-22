@@ -26,6 +26,7 @@
 #include "ValidateCMD.h"
 #include "ValidateNET.h"
 #include "ValidateSQL.h"
+#include "ValidateWIN.h"
 #include <vector>
 #include <io.h>
 
@@ -71,6 +72,20 @@ Validate* ReadValidate(CString p_filename)
   if(extension.CompareNoCase(EXTENSION_VALIDATE_SQL) == 0)
   {
     ValidateSQL* validate = new ValidateSQL();
+    try
+    {
+      validate->ReadFromXML(p_filename);
+    }
+    catch (StdException& ex)
+    {
+      delete validate;
+      throw ex;
+    }
+    return validate;
+  }
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_WIN) == 0)
+  {
+    ValidateWIN* validate = new ValidateWIN();
     try
     {
       validate->ReadFromXML(p_filename);

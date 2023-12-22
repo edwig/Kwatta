@@ -23,7 +23,7 @@
 #include "ScriptDlg.h"
 #include "StepInternetDlg.h"
 #include "StepDatabaseDlg.h"
-#include "StepEditorDlg.h"
+#include "StepCommandDlg.h"
 
 // ScriptDlg dialog
 
@@ -139,7 +139,7 @@ ScriptDlg::EffectiveParameters()
     {
       dstep->EffectiveParameters();
     }
-    StepEditorDlg* estep = dynamic_cast<StepEditorDlg*>(GetParent()->GetParent());
+    StepCommandDlg* estep = dynamic_cast<StepCommandDlg*>(GetParent()->GetParent());
     if(estep)
     {
       estep->EffectiveParameters();

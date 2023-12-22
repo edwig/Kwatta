@@ -63,6 +63,7 @@ enum class ValidateType
   ,Validate_command
   ,Validate_inet
   ,Validate_sql
+  ,Validate_win
 };
 
 class Validate

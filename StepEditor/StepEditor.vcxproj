@@ -149,7 +149,9 @@
     <ClInclude Include="SQLOutputDlg.h" />
     <ClInclude Include="SQLResultDlg.h" />
     <ClInclude Include="StepDatabaseDlg.h" />
+    <ClInclude Include="StepWindowsDlg.h" />
     <ClInclude Include="TimingDlg.h" />
+    <ClInclude Include="TimingHTTPDlg.h" />
     <ClInclude Include="UrlHeaderDlg.h" />
     <ClInclude Include="URLParameterDlg.h" />
     <ClInclude Include="InputDlg.h" />
@@ -159,9 +161,11 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="StepEditor.h" />
-    <ClInclude Include="StepEditorDlg.h" />
+    <ClInclude Include="StepCommandDlg.h" />
     <ClInclude Include="StepInternetDlg.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="WinActionsDlg.h" />
+    <ClInclude Include="WinResultDlg.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AuthenticateDlg.cpp" />
@@ -179,7 +183,9 @@
     <ClCompile Include="SQLOutputDlg.cpp" />
     <ClCompile Include="SQLResultDlg.cpp" />
     <ClCompile Include="StepDatabaseDlg.cpp" />
+    <ClCompile Include="StepWindowsDlg.cpp" />
     <ClCompile Include="TimingDlg.cpp" />
+    <ClCompile Include="TimingHTTPDlg.cpp" />
     <ClCompile Include="UrlHeaderDlg.cpp" />
     <ClCompile Include="URLParameterDlg.cpp" />
     <ClCompile Include="InputDlg.cpp" />
@@ -191,8 +197,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="StepEditor.cpp" />
-    <ClCompile Include="StepEditorDlg.cpp" />
+    <ClCompile Include="StepCommandDlg.cpp" />
     <ClCompile Include="StepInternetDlg.cpp" />
+    <ClCompile Include="WinActionsDlg.cpp" />
+    <ClCompile Include="WinResultDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StepEditor.rc">
@@ -208,11 +216,14 @@
     <None Include="test.xval" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="res\ArrowDN.ico" />
+    <Image Include="res\ArrowUP.ico" />
     <Image Include="res\Check.ico" />
     <Image Include="res\Clear.ico" />
     <Image Include="res\Earth.ico" />
     <Image Include="res\example.ico" />
     <Image Include="res\icon2.ico" />
+    <Image Include="res\icon4.ico" />
     <Image Include="res\List.ico" />
     <Image Include="res\new.ico" />
     <Image Include="res\remove.ico" />

@@ -84,6 +84,18 @@
     <ClInclude Include="SQLDataDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ValidateWindowsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WINReturnDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WinLoggingDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="WINErrorsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ValidateEditor.cpp">
@@ -141,6 +153,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SQLDataDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidateWindowsDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WINReturnDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WINLoggingDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WINErrorsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

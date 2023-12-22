@@ -87,12 +87,14 @@ NewStepDlg::OnInitDialog()
 	m_comboType.AddString("Command  (CMD)");
 	m_comboType.AddString("Internet (HTTP)");
 	m_comboType.AddString("Database (SQL)");
+	m_comboType.AddString("Windows  (WIN)");
 	m_comboType.SetCurSel(0);
   m_stepType = StepType::Step_command;
 
 	m_comboVali.AddString("Command  (CMD)");
 	m_comboVali.AddString("Internet (HTTP)");
 	m_comboVali.AddString("Database (SQL)");
+	m_comboVali.AddString("Windows  (WIN)");
 	m_comboVali.SetCurSel(0);
 
   m_buttonStepGlobal.SetIconImage(IDI_EARTH);
@@ -114,6 +116,7 @@ NewStepDlg::CheckFilename()
       case StepType::Step_command: file += EXTENSION_TESTSTEP_CMD; break;
       case StepType::Step_http:    file += EXTENSION_TESTSTEP_NET; break;
       case StepType::Step_sql:     file += EXTENSION_TESTSTEP_SQL; break;
+      case StepType::Step_win:     file += EXTENSION_TESTSTEP_WIN; break;
     }
 	}
 	path += file;
@@ -141,6 +144,7 @@ NewStepDlg::CheckValiFile()
       case StepType::Step_command: file += EXTENSION_VALIDATE_CMD; break;
       case StepType::Step_http:    file += EXTENSION_VALIDATE_NET; break;
       case StepType::Step_sql:     file += EXTENSION_VALIDATE_SQL; break;
+      case StepType::Step_win:     file += EXTENSION_VALIDATE_WIN; break;
     }
   }
   path += file;

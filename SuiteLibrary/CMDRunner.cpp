@@ -11,7 +11,7 @@
 // 
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: TestRunner
-// This File   : ExecRunner.cpp
+// This File   : CMDRunner.cpp
 // What it does: Running one (1) command line executable test
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "ExecRunner.h"
+#include "CMDRunner.h"
 #include "StdException.h"
 #include "RunRedirect.h"
 #include "TestMessages.h"
@@ -33,45 +33,41 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-ExecRunner::ExecRunner(CString    p_baseDirectory
-                      ,CString    p_testDirectory
-                      ,CString    p_testStepFilename
-                      ,CString    p_parametersFilename
-                      ,ValiSteps& p_localValidations
-                      ,ValiSteps& p_globalValidations
-                      ,HWND       p_consoleHWND
-                      ,HWND       p_reportHWND
-                      ,HWND       p_callingHWND
-                      ,int        p_callingROW
-                      ,bool       p_global)
-           :m_baseDirectory(p_baseDirectory)
-           ,m_testDirectory(p_testDirectory)
-           ,m_testStepFilename(p_testStepFilename)
-           ,m_parametersFilename(p_parametersFilename)
-           ,m_localValidations(p_localValidations)
-           ,m_globalValidations(p_globalValidations)
-           ,m_consoleHNWD(p_consoleHWND)
-           ,m_reportHWND(p_reportHWND)
-           ,m_callingHWND(p_callingHWND)
-           ,m_callingROW(p_callingROW)
-           ,m_global(p_global)
+CMDRunner::CMDRunner(CString    p_baseDirectory
+                    ,CString    p_testDirectory
+                    ,CString    p_testStepFilename
+                    ,CString    p_parametersFilename
+                    ,ValiSteps& p_localValidations
+                    ,ValiSteps& p_globalValidations
+                    ,HWND       p_consoleHWND
+                    ,HWND       p_reportHWND
+                    ,HWND       p_callingHWND
+                    ,int        p_callingROW
+                    ,bool       p_global)
+          :TestRunner(p_baseDirectory
+                     ,p_testDirectory
+                     ,p_testStepFilename
+                     ,p_parametersFilename
+                     ,p_localValidations
+                     ,p_globalValidations
+                     ,p_consoleHWND
+                     ,p_reportHWND
+                     ,p_callingHWND
+                     ,p_callingROW
+                     ,p_global)
 {
+  m_testStep = new TestStepCMD();
+  m_result   = new StepResultCMD();
 }
 
-ExecRunner::~ExecRunner()
+CMDRunner::~CMDRunner()
 {
-  // Clean out all validations
-  for(auto& vali : m_validations)
-  {
-    delete vali;
-  }
-  m_validations.clear();
 }
 
 // General start of the test
 // Public part, called by the main TestRunnerApp
 int
-ExecRunner::PerformTest()
+CMDRunner::PerformTest()
 {
   AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
@@ -113,24 +109,8 @@ ExecRunner::PerformTest()
   return result;
 }
 
-CString
-ExecRunner::GetEffectiveStepFilename()
-{
-  CString filename(m_baseDirectory);
-  filename += m_global ? CString("Steps\\") : m_testDirectory;
-  filename += m_testStepFilename;
-
-  return filename;
-}
-
-int
-ExecRunner::GetMaxRunningTime()
-{
-  return atoi(m_testStep.GetEffectiveMaxExecution());
-}
-
 void
-ExecRunner::StopTestProgram()
+CMDRunner::StopTestProgram()
 {
   if(m_redirect)
   {
@@ -145,7 +125,7 @@ ExecRunner::StopTestProgram()
 //////////////////////////////////////////////////////////////////////////
 
 void
-ExecRunner::InitRunner()
+CMDRunner::InitRunner()
 {
   // Reset the dialog
   SetTest("Initializing");
@@ -171,7 +151,7 @@ ExecRunner::InitRunner()
 }
 
 void
-ExecRunner::ReadingAllFiles()
+CMDRunner::ReadingAllFiles()
 {
   SetTest("Reading all definition files");
   PerformStep("XML files...");
@@ -181,17 +161,17 @@ ExecRunner::ReadingAllFiles()
   ReadValidations();
 
   // Now set the name proper to the given test step
-  SetTest(m_testStep.GetName());
+  SetTest(m_testStep->GetName());
 }
 
 void
-ExecRunner::ParameterProcessing()
+CMDRunner::ParameterProcessing()
 {
   int unbound = 0;
   PerformStep("Parameter processing...");
 
   // Effectuate the parameters for the step
-  unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
+  unbound = m_testStep->EffectiveReplacements(&m_parameters,false);
 
   // Effectuate the parameters for the validation steps
   for(auto& validate : m_validations)
@@ -210,11 +190,12 @@ ExecRunner::ParameterProcessing()
 
 // Environment strings processing
 void
-ExecRunner::SetExtraEnvironmentStrings()
+CMDRunner::SetExtraEnvironmentStrings()
 {
   PerformStep("Extra environment strings");
 
-  int handle = m_testStep.GetHandleEnvironment();
+  TestStepCMD* step = reinterpret_cast<TestStepCMD*>(m_testStep);
+  int handle = step->GetHandleEnvironment();
 
   // Check that we must do something with them
   if (handle == 0)
@@ -223,7 +204,7 @@ ExecRunner::SetExtraEnvironmentStrings()
   }
 
   // Loop through all environment variables
-  ParMap& environs = m_testStep.GetEnvironmentVars();
+  ParMap& environs = step->GetEnvironmentVars();
   for(auto& envi : environs)
   {
     CString name  = envi.first;
@@ -249,37 +230,26 @@ ExecRunner::SetExtraEnvironmentStrings()
   }
 }
 
-// Waiting before we run a command
 void
-ExecRunner::PreCommandWaiting()
-{
-  CString step("Pre-command waiting.");
-  PerformStep(step);
-
-  int time = atoi(m_testStep.GetEffectiveWaitBeforeRun());
-  if (time > 0)
-  {
-    WaitingForATimeout(step,time);
-  }
-}
-
-void
-ExecRunner::PerformCommand()
+CMDRunner::PerformCommand()
 {
   PerformStep("RUN THE COMMAND...");
 
+  TestStepCMD*   step   = reinterpret_cast<TestStepCMD*>(m_testStep);
+  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
+
   // Take name and documentation
-  m_result.SetName(m_testStep.GetName());
-  m_result.SetDocumentation(m_testStep.GetDocumentation());
+  m_result->SetName(m_testStep->GetName());
+  m_result->SetDocumentation(m_testStep->GetDocumentation());
 
   CString     standardout;
   CString     standarderr;
   HPFCounter  counter;
 
   // See if we must set a boobytrap
-  if(m_testStep.GetKillOnTimeout())
+  if(m_testStep->GetKillOnTimeout())
   {
-    int maxtime = atoi(m_testStep.GetEffectiveMaxExecution());
+    int maxtime = atoi(m_testStep->GetEffectiveMaxExecution());
     if (maxtime > 0)
     {
       SetBoobytrap();
@@ -287,16 +257,16 @@ ExecRunner::PerformCommand()
   }
 
   // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,TRUE,0);
-  int retval = PosixCallProgram(m_testStep.GetEffectiveDirectory()
-                               ,m_testStep.GetEffectiveRuntimer()
-                               ,m_testStep.GetEffectiveCommandLine()
-                               ,m_testStep.GetEffectiveInput()
+  int retval = PosixCallProgram(step->GetEffectiveDirectory()
+                               ,step->GetEffectiveRuntimer()
+                               ,step->GetEffectiveCommandLine()
+                               ,step->GetEffectiveInput()
                                ,standardout
                                ,standarderr
                                ,m_consoleHNWD
-                               ,m_testStep.GetStartWindow()
-                               ,m_testStep.GetWaitForIdle()
-                               ,atoi(m_testStep.GetMaxExecution())
+                               ,step->GetStartWindow()
+                               ,step->GetWaitForIdle()
+                               ,atoi(step->GetMaxExecution())
                                ,&m_redirect);
   // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,FALSE,0);
 
@@ -305,13 +275,13 @@ ExecRunner::PerformCommand()
 
   // Stop the high-performance timer!
   counter.Stop();
-  m_result.SetTiming(counter.GetCounter());
+  m_result->SetTiming(counter.GetCounter());
 
   // Keep the return value
-  if(m_testStep.GetUseReturnValue())
+  if(step->GetUseReturnValue())
   {
-    m_result.SetReturnValue(retval);
-    CString var = m_testStep.GetReturnVariable();
+    result->SetReturnValue(retval);
+    CString var = step->GetReturnVariable();
     if(!var.IsEmpty())
     {
       CString retvalstring;
@@ -321,10 +291,10 @@ ExecRunner::PerformCommand()
   }
 
   // Keep standard output if desired
-  if(m_testStep.GetUseOutputValue())
+  if(step->GetUseOutputValue())
   {
-    m_result.SetStandardOutput(standardout);
-    CString var = m_testStep.GetOutputVariable();
+    result->SetStandardOutput(standardout);
+    CString var = step->GetOutputVariable();
     if(!var.IsEmpty())
     {
       m_parameters.OverwriteBufferParameter(var,standardout);
@@ -332,15 +302,15 @@ ExecRunner::PerformCommand()
   }
 
   // Keep error if desired, or program has gotten an error
-  if(m_testStep.GetUseErrorValue() || !standarderr.IsEmpty())
+  if(step->GetUseErrorValue() || !standarderr.IsEmpty())
   {
-    m_result.SetStandardError(standarderr);
+    result->SetStandardError(standarderr);
   }
 
   // Save errors to error variable if desired
-  if(m_testStep.GetUseErrorValue())
+  if(step->GetUseErrorValue())
   {
-    CString var = m_testStep.GetErrorVariable();
+    CString var = step->GetErrorVariable();
     if(!var.IsEmpty())
     {
       m_parameters.OverwriteBufferParameter(var,standarderr);
@@ -348,43 +318,31 @@ ExecRunner::PerformCommand()
   }
 }
 
-// Waiting for cleanup after a command
 void
-ExecRunner::PostCommandWaiting()
-{
-  CString step("Post-command waiting.");
-  PerformStep(step);
-
-  int time = atoi(m_testStep.GetEffectiveWaitAfterRun());
-  if (time >= 0)
-  {
-    WaitingForATimeout(step,time);
-  }
-}
-
-void
-ExecRunner::PerformAllValidations()
+CMDRunner::PerformAllValidations()
 {
   int step = 1;
+  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
+
   for(auto& vali : m_validations)
   {
     ValidateCMD* validate = reinterpret_cast<ValidateCMD*>(vali);
     PerformStep("Validation: " + validate->GetName());
 
     // Do the validations
-    bool result = true;
-    if(validate->ValidateReturnValue (m_result.GetReturnValue())    == false) result = false;
-    if(validate->ValidateOutputBuffer(m_result.GetStandardOutput()) == false) result = false;
-    if(validate->ValidateErrorBuffer (m_result.GetStandardError())  == false) result = false;
+    bool totalresult = true;
+    if(validate->ValidateReturnValue (result->GetReturnValue())    == false) totalresult = false;
+    if(validate->ValidateOutputBuffer(result->GetStandardOutput()) == false) totalresult = false;
+    if(validate->ValidateErrorBuffer (result->GetStandardError())  == false) totalresult = false;
 
     // Add the validation to the result set
-    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
+    result->AddValidation(step++,validate->GetName(),validate->GetFilename(),totalresult,validate->GetGlobal());
   }
 }
 
 // Saving the test results to the disk
 void
-ExecRunner::SaveTestResults()
+CMDRunner::SaveTestResults()
 {
   PerformStep("Saving the test results");
 
@@ -392,7 +350,8 @@ ExecRunner::SaveTestResults()
   filename.MakeLower();
   filename.Replace(".xrun",".xres");
 
-  if(m_result.WriteToXML(filename) == false)
+  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
+  if(result->WriteToXML(filename) == false)
   {
     CString error;
     error.Format("Cannot save results file: %s",filename.GetString());
@@ -405,26 +364,29 @@ ExecRunner::SaveTestResults()
 
 // Save return parameters (if any)
 void
-ExecRunner::SaveResultParameters()
+CMDRunner::SaveResultParameters()
 {
   PerformStep("Saving result parameters");
   bool saved(false);
 
-  if(m_testStep.GetUseReturnValue() && !m_testStep.GetReturnVariable().IsEmpty())
+  TestStepCMD*   step   = reinterpret_cast<TestStepCMD*>(m_testStep);
+  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
+
+  if(step->GetUseReturnValue() && !step->GetReturnVariable().IsEmpty())
   {
     CString value;
-    value.Format("%d",m_result.GetReturnValue());
-    m_parameters.OverwriteReturnParameter(m_testStep.GetReturnVariable(),value);
+    value.Format("%d",result->GetReturnValue());
+    m_parameters.OverwriteReturnParameter(step->GetReturnVariable(),value);
     saved = true;
   }
-  if(m_testStep.GetUseOutputValue() && !m_testStep.GetOutputVariable().IsEmpty())
+  if(step->GetUseOutputValue() && !step->GetOutputVariable().IsEmpty())
   {
-    m_parameters.OverwriteBufferParameter(m_testStep.GetOutputVariable(),m_result.GetStandardOutput());
+    m_parameters.OverwriteBufferParameter(step->GetOutputVariable(),result->GetStandardOutput());
     saved = true;
   }
-  if(m_testStep.GetUseErrorValue() && !m_testStep.GetErrorVariable().IsEmpty())
+  if(step->GetUseErrorValue() && !step->GetErrorVariable().IsEmpty())
   {
-    m_parameters.OverwriteBufferParameter(m_testStep.GetErrorVariable(),m_result.GetStandardError());
+    m_parameters.OverwriteBufferParameter(step->GetErrorVariable(),result->GetStandardError());
     saved = true;
   }
 
@@ -437,49 +399,30 @@ ExecRunner::SaveResultParameters()
 
 // Conclusion of the test
 int
-ExecRunner::ReadTotalResult()
+CMDRunner::ReadTotalResult()
 {
   PerformStep("Getting total result...");
-  return m_result.GetTotalResult();
+  return m_result->GetTotalResult();
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 // DETAILS
 
-// Perform the next step in the total progress
 void
-ExecRunner::PerformStep(CString p_stepName)
+CMDRunner::ReadTestStep()
 {
-  SetStep(p_stepName);
-  m_progress += m_stepSize;
-  SetProgress(m_progress);
-}
+  TestStepCMD* step = reinterpret_cast<TestStepCMD*>(m_testStep);
 
-void
-ExecRunner::ReadTestStep()
-{
   // Read in the definition file for a test step
   CString filename = GetEffectiveStepFilename();
-  m_testStep.ReadFromXML(filename);
-}
-
-void
-ExecRunner::ReadParameters()
-{
-  // read the global parameters
-  CString filename = m_baseDirectory + "Parameters.xpar";
-  m_parameters.ReadFromXML(filename);
-
-  // read the definition of the test parameters
-  filename = m_baseDirectory + m_testDirectory + m_parametersFilename;
-  m_parameters.ReadFromXML(filename,false);
+  step->ReadFromXML(filename);
 }
 
 // Reads all validations from the command line
 // Could be more than 1 file in all...
 void
-ExecRunner::ReadValidations()
+CMDRunner::ReadValidations()
 {
   for(auto& filename : m_localValidations)
   {
@@ -499,41 +442,31 @@ ExecRunner::ReadValidations()
 }
 
 void
-ExecRunner::WaitingForATimeout(CString p_stepname,int p_milliseconds)
+CMDRunner::CreateQLErrorMessage(CString p_error) 
 {
-  // Reset the progress step-name and progress-controlbar
-  p_stepname.AppendFormat(" %.3f seconds",((double)p_milliseconds / 1000.0));
-  SetStep(p_stepname);
-  SetProgress(0);
+  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
 
-  // Preset the progress
-  int progress = 1;
-  int count    = 100;
-  int interval = p_milliseconds / 100;
+  CString error = result->GetStandardError();
+  error += p_error;
+  result->SetStandardError(error);
+}
 
-  // Progress intervals cannot be to short
-  if(interval < MINIMUM_INTERVAL_TIME)
+int
+CMDRunner::CheckStatusOK(int p_returnCode)
+{
+  int statusOK = atoi(m_testStep->GetEffectiveStatusOK());
+  if (statusOK != 0 && (p_returnCode != statusOK))
   {
-    count    = (p_milliseconds / MINIMUM_INTERVAL_TIME) + 1;
-    interval = p_milliseconds / count;
-    progress = 100 / count;
+    return 0;
   }
-
-  // Perform the waiting
-  for(int index = 0; index < count; ++index)
-  {
-    SetProgress(index * progress);
-    Sleep(interval);
-  }
-
-  // Progress complete
-  SetProgress(100);
+  // All OK
+  return 1;
 }
 
 /*static*/ unsigned
 __stdcall ExecBoobytrap(void* p_data)
 {
-  ExecRunner* runner = reinterpret_cast<ExecRunner*>(p_data);
+  CMDRunner* runner = reinterpret_cast<CMDRunner*>(p_data);
   int maxtime = runner->GetMaxRunningTime();
   // Wait the maximum time of the test
   Sleep(maxtime);
@@ -544,7 +477,7 @@ __stdcall ExecBoobytrap(void* p_data)
 }
 
 void
-ExecRunner::SetBoobytrap()
+CMDRunner::SetBoobytrap()
 {
   // Start a new thread
   unsigned int threadID = 0L;
@@ -556,54 +489,7 @@ ExecRunner::SetBoobytrap()
 }
 
 void
-ExecRunner::StopBoobytrap()
+CMDRunner::StopBoobytrap()
 {
-  TerminateThread(m_thread,0xFFFFFFFF);
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// TELLING IT THE OUTSIDE WORLD
-//
-//////////////////////////////////////////////////////////////////////////
-
-void
-ExecRunner::SetTest(CString p_test)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_TESTNAME,(WPARAM)p_test.GetString(),0);
-  }
-}
-
-void
-ExecRunner::SetStep(CString p_step)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_STEPNAME,(WPARAM)p_step.GetString(),0);
-  }
-}
-
-void
-ExecRunner::SetProgress(int p_percent)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_PROGRESS,(WPARAM)p_percent,0);
-  }
-}
-
-void
-ExecRunner::EndTesting(int p_result)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_ENDING,(WPARAM)p_result,0);
-  }
-  if(m_callingHWND && m_callingROW)
-  {
-    ::PostMessage(m_callingHWND,WM_READYTEST,(WPARAM)m_callingROW,p_result);
-    ::PostMessage(m_callingHWND,WM_READYVALI,(WPARAM)m_callingROW,p_result);
-  }
+  ::TerminateThread(m_thread,0xFFFFFFFF);
 }

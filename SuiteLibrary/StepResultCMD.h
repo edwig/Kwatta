@@ -39,9 +39,9 @@ public:
   CString   GetStandardError()  { return m_standardError; };
 
   // SETTERS
-  void      SetReturnValue(int p_value)               { m_returnValue = p_value; }
+  void      SetReturnValue(int p_value)               { m_returnValue    = p_value; }
   void      SetStandardOutput(CString p_output)       { m_standardOutput = p_output; }
-  void      SetStandardError(CString p_error)         { m_standardError = p_error; }
+  void      SetStandardError(CString p_error)         { m_standardError  = p_error; }
 
 protected:
   // Output Command line

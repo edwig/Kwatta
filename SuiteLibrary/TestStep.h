@@ -31,6 +31,7 @@ enum class StepType
   Step_command
  ,Step_http
  ,Step_sql
+ ,Step_win
 };
 
 enum class ScriptStatus

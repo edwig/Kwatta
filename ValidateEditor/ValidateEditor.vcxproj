@@ -154,6 +154,10 @@
     <ClInclude Include="ValidateEditor.h" />
     <ClInclude Include="ValidateEditorDlg.h" />
     <ClInclude Include="ValidateInternetDlg.h" />
+    <ClInclude Include="ValidateWindowsDlg.h" />
+    <ClInclude Include="WINErrorsDlg.h" />
+    <ClInclude Include="WinLoggingDlg.h" />
+    <ClInclude Include="WINReturnDlg.h" />
     <ClInclude Include="XMLNodeDlg.h" />
   </ItemGroup>
   <ItemGroup>
@@ -178,6 +182,10 @@
     <ClCompile Include="ValidateEditor.cpp" />
     <ClCompile Include="ValidateEditorDlg.cpp" />
     <ClCompile Include="ValidateInternetDlg.cpp" />
+    <ClCompile Include="ValidateWindowsDlg.cpp" />
+    <ClCompile Include="WINErrorsDlg.cpp" />
+    <ClCompile Include="WINLoggingDlg.cpp" />
+    <ClCompile Include="WINReturnDlg.cpp" />
     <ClCompile Include="XMLNodeDlg.cpp" />
   </ItemGroup>
   <ItemGroup>

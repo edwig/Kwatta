@@ -205,11 +205,3 @@ ValidateCMD::ValidateErrorBuffer(CString p_buffer)
   }
   return result;
 }
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-// Validation comparisons
-//
-

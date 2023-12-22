@@ -11,7 +11,7 @@
 // 
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: TestRunner
-// This File   : InetRunner.cpp
+// This File   : NETRunner.cpp
 // What it does: Running one (1) HTTPMessage call to the internet
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
-#include "InetRunner.h"
+#include "NETRunner.h"
 #include "TestMessages.h"
 #include "ExtraMessages.h"
 #include <LogAnalysis.h>
@@ -28,9 +28,6 @@
 #include <HPFCounter.h>
 #include <HTTPClient.h>
 #include <OAuth2Cache.h>
-#include <QL_vm.h>
-#include <QL_Interpreter.h>
-#include <QL_Exception.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -38,40 +35,43 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-InetRunner::InetRunner(CString      p_baseDirectory
-                      ,CString      p_testDirectory
-                      ,CString      p_testStepFilename
-                      ,CString      p_parametersFilename
-                      ,ValiSteps&   p_localValidations
-                      ,ValiSteps&   p_globalValidations
-                      ,HWND         p_reportHWND
-                      ,HTTPClient*  p_client
-                      ,OAuth2Cache* p_cache
-                      ,HWND         p_callingHWND
-                      ,int          p_callingROW
-                      ,bool         p_global)
-           :m_baseDirectory(p_baseDirectory)
-           ,m_testDirectory(p_testDirectory)
-           ,m_testStepFilename(p_testStepFilename)
-           ,m_parametersFilename(p_parametersFilename)
-           ,m_localValidations(p_localValidations)
-           ,m_globalValidations(p_globalValidations)
-           ,m_reportHWND(p_reportHWND)
-           ,m_client(p_client)
-           ,m_oauth(p_cache)
-           ,m_callingHWND(p_callingHWND)
-           ,m_callingROW(p_callingROW)
-           ,m_global(p_global)
+NETRunner::NETRunner(CString      p_baseDirectory
+                    ,CString      p_testDirectory
+                    ,CString      p_testStepFilename
+                    ,CString      p_parametersFilename
+                    ,ValiSteps&   p_localValidations
+                    ,ValiSteps&   p_globalValidations
+                    ,HWND         p_reportHWND
+                    ,HTTPClient*  p_client
+                    ,OAuth2Cache* p_cache
+                    ,HWND         p_callingHWND
+                    ,int          p_callingROW
+                    ,bool         p_global)
+          :TestRunner(p_baseDirectory
+                     ,p_testDirectory
+                     ,p_testStepFilename
+                     ,p_parametersFilename
+                     ,p_localValidations
+                     ,p_globalValidations
+                     ,NULL
+                     ,p_reportHWND
+                     ,p_callingHWND
+                     ,p_callingROW
+                     ,p_global)
+          ,m_client(p_client)
+          ,m_oauth(p_cache)
 {
+  m_testStep = new TestStepNET();
+  m_result   = new StepResultNET();
 }
 
-InetRunner::~InetRunner()
+NETRunner::~NETRunner()
 {
   CleanUp();
 }
 
 int
-InetRunner::PerformTest()
+NETRunner::PerformTest()
 {
   AFX_MANAGE_STATE(AfxGetStaticModuleState());
 
@@ -94,7 +94,7 @@ InetRunner::PerformTest()
     while(m_running)
     {
       // One (extra) iteration
-      ++m_interations;
+      ++m_iterations;
 
       // Perform the test (3 steps)
       PreCommandWaiting();
@@ -124,24 +124,8 @@ InetRunner::PerformTest()
   return result;
 }
 
-CString
-InetRunner::GetEffectiveStepFilename()
-{
-  CString filename(m_baseDirectory);
-  filename += m_global ? CString("Steps\\") : m_testDirectory;
-  filename += m_testStepFilename;
-
-  return filename;
-}
-
-int
-InetRunner::GetMaxRunningTime()
-{
-  return atoi(m_testStep.GetEffectiveMaxExecution());
-}
-
 void
-InetRunner::DisconnectClient()
+NETRunner::StopTestProgram()
 {
   m_client->Disconnect();
 }
@@ -153,7 +137,7 @@ InetRunner::DisconnectClient()
 //////////////////////////////////////////////////////////////////////////
 
 void
-InetRunner::InitRunner()
+NETRunner::InitRunner()
 {
   // Reset the dialog
   SetTest("Initializing");
@@ -180,7 +164,7 @@ InetRunner::InitRunner()
 }
 
 void
-InetRunner::ReadingAllFiles()
+NETRunner::ReadingAllFiles()
 {
   SetTest("Reading all definition files");
   PerformStep("XML files...");
@@ -190,17 +174,19 @@ InetRunner::ReadingAllFiles()
   ReadValidations();
 
   // Now set the name proper to the given test step
-  SetTest(m_testStep.GetName());
+  SetTest(m_testStep->GetName());
 }
 
 void
-InetRunner::ParameterProcessing()
+NETRunner::ParameterProcessing()
 {
   int unbound = 0;
   PerformStep("Parameter processing...");
 
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+
   // Effectuate the parameters for the step
-  unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
+  unbound = step->EffectiveReplacements(&m_parameters,false);
 
   // Effectuate the parameters for the validation steps
   for(auto& validate : m_validations)
@@ -217,28 +203,28 @@ InetRunner::ParameterProcessing()
   }
 
   // Setting the timeouts
-  int timeoutResolve = m_testStep.GetTimeoutResolve();
+  int timeoutResolve = step->GetTimeoutResolve();
   if(timeoutResolve < MIN_TIMEOUT_RESOLVE)
   {
     timeoutResolve = MIN_TIMEOUT_RESOLVE;
   }
   m_client->SetTimeoutResolve(timeoutResolve);
 
-  int timeooutConnect = m_testStep.GetTimeoutConnect();
+  int timeooutConnect = step->GetTimeoutConnect();
   if(timeooutConnect < MIN_TIMEOUT_CONNECT)
   {
     timeooutConnect = MIN_TIMEOUT_CONNECT;
   }
   m_client->SetTimeoutConnect(timeooutConnect);
 
-  int timeoutSend = m_testStep.GetTimeoutSend();
+  int timeoutSend = step->GetTimeoutSend();
   if(timeoutSend < MIN_TIMEOUT_SEND)
   {
     timeoutSend = MIN_TIMEOUT_SEND;
   }
   m_client->SetTimeoutSend(timeoutSend);
 
-  int timeoutReceive = m_testStep.GetTimeoutReceive();
+  int timeoutReceive = step->GetTimeoutReceive();
   if(timeoutReceive < MIN_TIMEOUT_RECEIVE)
   {
     timeoutReceive = MIN_TIMEOUT_RECEIVE;
@@ -247,7 +233,7 @@ InetRunner::ParameterProcessing()
 }
 
 void
-InetRunner::StartingLogfile()
+NETRunner::StartingLogfile()
 {
   int loglevel = atoi(m_parameters.FindSystemParameter("Loglevel"));
   CString logfile =   m_parameters.FindSystemParameter("Logfile");
@@ -270,11 +256,12 @@ InetRunner::StartingLogfile()
 
 // SetAuthentication
 void
-InetRunner::PerformAuthentication()
+NETRunner::PerformAuthentication()
 {
   PerformStep("Setting the authentication");
 
-  CString auth = m_testStep.GetAuthType();
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+  CString auth = step->GetAuthType();
   if(auth.Find("Basic") >= 0)
   {
     SetBasicAuthentication();
@@ -293,22 +280,8 @@ InetRunner::PerformAuthentication()
   }
 }
 
-// Waiting before we run a command
 void
-InetRunner::PreCommandWaiting()
-{
-  CString step("Pre-command waiting.");
-  PerformStep(step);
-
-  int time = atoi(m_testStep.GetEffectiveWaitBeforeRun());
-  if (time > 0)
-  {
-    WaitingForATimeout(step, time);
-  }
-}
-
-void
-InetRunner::PrepareMessage()
+NETRunner::PrepareMessage()
 {
   // Create a message
   if(m_message)
@@ -317,26 +290,28 @@ InetRunner::PrepareMessage()
   }
   m_message = new HTTPMessage();
 
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+
   // VERB URL
-  CString url = m_testStep.GetEffectiveCombinedURL();
-  m_message->SetVerb(m_testStep.GetVerb());
+  CString url = step->GetEffectiveCombinedURL();
+  m_message->SetVerb(step->GetVerb());
   m_message->SetURL(url);
 
   // Adding all headers
-  for(auto& header : m_testStep.GetEffectiveHeaders())
+  for(auto& header : step->GetEffectiveHeaders())
   {
     m_message->AddHeader(header.m_name,header.m_value);
   }
 
   // Getting the body of the message
-  if(m_testStep.GetBodyInputIsFile())
+  if(step->GetBodyInputIsFile())
   {
-    CString file = m_baseDirectory + m_testStep.GetFilenameInput();
+    CString file = m_baseDirectory + step->GetFilenameInput();
     m_message->GetFileBuffer()->SetFileName(file);
   }
   else
   {
-    m_message->SetBody(m_testStep.GetEffectiveBody());
+    m_message->SetBody(step->GetEffectiveBody());
   }
 
   CString accept = m_message->GetHeader("Accept");
@@ -347,14 +322,14 @@ InetRunner::PrepareMessage()
 }
 
 void
-InetRunner::PerformCommand()
+NETRunner::PerformCommand()
 {
   PerformStep("RUN THE COMMAND...");
 
   // Take name and documentation
-  m_result.Reset();
-  m_result.SetName(m_testStep.GetName());
-  m_result.SetDocumentation(m_testStep.GetDocumentation());
+  m_result->Reset();
+  m_result->SetName(m_testStep->GetName());
+  m_result->SetDocumentation(m_testStep->GetDocumentation());
 
   // Prepare message
   PrepareMessage();
@@ -367,9 +342,9 @@ InetRunner::PerformCommand()
                             SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE  );
 
   // See if we must set a boobytrap
-  if(m_testStep.GetKillOnTimeout())
+  if(m_testStep->GetKillOnTimeout())
   {
-    int maxtime = atoi(m_testStep.GetEffectiveMaxExecution());
+    int maxtime = atoi(m_testStep->GetEffectiveMaxExecution());
     if(maxtime > 0)
     {
       SetBoobytrap();
@@ -389,24 +364,27 @@ InetRunner::PerformCommand()
 
   // Stop the high-performance timer!
   counter.Stop();
-  m_result.SetTiming(counter.GetCounter());
+  m_result->SetTiming(counter.GetCounter());
 
   // Get everything from the test
   ExamineMessage();
 }
 
 void
-InetRunner::ExamineMessage()
+NETRunner::ExamineMessage()
 {
+  TestStepNET*   step   = reinterpret_cast<TestStepNET*>(m_testStep);
+  StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
+
   // Getting the OS status for the HTTP call
   CString message;
   int error = m_client->GetError(&message);
 
-  m_result.SetOSError(error);
-  m_result.SetOSErrorString(message);
+  result->SetOSError(error);
+  result->SetOSErrorString(message);
 
   // Keep the return status
-  m_result.SetStatus(m_message->GetStatus());
+  result->SetStatus(m_message->GetStatus());
 
   // Keep result headers
   for (auto& header : *m_message->GetHeaderMap())
@@ -414,13 +392,13 @@ InetRunner::ExamineMessage()
     INPair pair;
     pair.m_name = header.first;
     pair.m_value = header.second;
-    m_result.SetHeader(pair);
+    result->SetHeader(pair);
   }
 
   // Keep the body of the message
-  if(m_testStep.GetBodyOutputIsFile())
+  if(step->GetBodyOutputIsFile())
   {
-    CString file = m_baseDirectory + m_testStep.GetFilenameOutput();
+    CString file = m_baseDirectory + step->GetFilenameOutput();
        m_message->GetFileBuffer()->SetFileName(file);
     if(m_message->GetFileBuffer()->WriteFile())
     {
@@ -433,29 +411,17 @@ InetRunner::ExamineMessage()
       m_message->SetBody("<FILE NOT WRITTEN>\r\nFile: " + file);
     }
   }
-  m_result.SetBody(m_message->GetBody());
+  result->SetBody(m_message->GetBody());
 
   // Keep last OAuth2 bearer token
-  m_result.SetBearerToken(m_client->GetLastBearerToken());
-}
-
-// Waiting for cleanup after a command
-void
-InetRunner::PostCommandWaiting()
-{
-  CString step("Post-command waiting.");
-  PerformStep(step);
-
-  int time = atoi(m_testStep.GetEffectiveWaitAfterRun());
-  if (time >= 0)
-  {
-    WaitingForATimeout(step, time);
-  }
+  result->SetBearerToken(m_client->GetLastBearerToken());
 }
 
 void
-InetRunner::PerformAllValidations()
+NETRunner::PerformAllValidations()
 {
+  StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
+
   int step = 1;
   for(auto& vali : m_validations)
   {
@@ -463,53 +429,54 @@ InetRunner::PerformAllValidations()
     PerformStep("Validation: " + validate->GetName());
 
     // Do the validations
-    bool result = true;
-    if(!validate->ValidateStatusValue(&m_parameters,m_result.GetStatus()))
+    bool totalresult = true;
+    if(!validate->ValidateStatusValue(&m_parameters,result->GetStatus()))
     {
-      result = false;
+      totalresult = false;
     }
-    if(!validate->ValidateBodyValue(&m_parameters,m_result.GetBody()))
+    if(!validate->ValidateBodyValue(&m_parameters,result->GetBody()))
     {
-      result = false;
+      totalresult = false;
     }
     if(validate->GetCheckHeader())
     {
-      CString header = m_result.GetHeader(validate->GetVerifyHeader());
+      CString header = result->GetHeader(validate->GetVerifyHeader());
       if(!validate->ValidateHeaderValue(&m_parameters,header))
       {
-        result = false;
+        totalresult = false;
       }
     }
     if(validate->GetCheckXML())
     {
-      if(!validate->ValidateXMLValue(&m_parameters,m_result.GetBody()))
+      if(!validate->ValidateXMLValue(&m_parameters,result->GetBody()))
       {
-        result = false;
+        totalresult = false;
       }
     }
     if(validate->GetCheckJSON())
     {
-      if(!validate->ValidateJSONValue(&m_parameters,m_result.GetBody()))
+      if(!validate->ValidateJSONValue(&m_parameters,result->GetBody()))
       {
-        result = false;
+        totalresult = false;
       }
     }
 
     // Add the validation to the result set
-    m_result.AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
+    result->AddValidation(step++,validate->GetName(),validate->GetFilename(),totalresult,validate->GetGlobal());
   }
 }
 
 void
-InetRunner::SaveTestResults()
+NETRunner::SaveTestResults()
 {
   PerformStep("Saving the test results");
+  StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
 
   CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(".irun",".ires");
 
-  if(m_result.WriteToXML(filename) == false)
+  if(result->WriteToXML(filename) == false)
   {
     CString error;
     error.Format("Cannot save results file: %s",filename.GetString());
@@ -522,7 +489,7 @@ InetRunner::SaveTestResults()
 
 // Save return parameters (if any)
 void
-InetRunner::SaveResultParameters()
+NETRunner::SaveResultParameters()
 {
   // Write back local parameters (return + stream)
   // Parameters already changed in "PerformAllValidations" !!
@@ -530,9 +497,9 @@ InetRunner::SaveResultParameters()
 }
 
 int
-InetRunner::ReadTotalResult()
+NETRunner::ReadTotalResult()
 {
-  for(auto& vali : m_result.GetValidations())
+  for(auto& vali : m_result->GetValidations())
   {
     if (vali.m_ok == false)
     {
@@ -544,27 +511,16 @@ InetRunner::ReadTotalResult()
 }
 
 void
-InetRunner::ReadTestStep()
+NETRunner::ReadTestStep()
 {
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
   // Read in the definition file for a test step
   CString filename = GetEffectiveStepFilename();
-  m_testStep.ReadFromXML(filename);
+  step->ReadFromXML(filename);
 }
 
 void
-InetRunner::ReadParameters()
-{
-  // read the global parameters
-  CString filename = m_baseDirectory + "Parameters.xpar";
-  m_parameters.ReadFromXML(filename);
-
-  // read the definition of the test parameters
-  filename = m_baseDirectory + m_testDirectory + m_parametersFilename;
-  m_parameters.ReadFromXML(filename,false);
-}
-
-void
-InetRunner::ReadValidations()
+NETRunner::ReadValidations()
 {
   for(auto& filename : m_localValidations)
   {
@@ -583,61 +539,21 @@ InetRunner::ReadValidations()
   }
 }
 
-void
-InetRunner::PerformStep(CString p_stepName)
-{
-  SetStep(p_stepName);
-  m_progress += m_stepSize;
-  SetProgress(m_progress);
-}
-
-void
-InetRunner::WaitingForATimeout(CString p_stepname,int p_milliseconds)
-{
-  // Reset the progress step-name and progress-controlbar
-  p_stepname.AppendFormat(" %.3f seconds",((double)p_milliseconds / 1000.0));
-  SetStep(p_stepname);
-  SetProgress(0);
-
-  // Preset the progress
-  int progress = 1;
-  int count    = 100;
-  int interval = p_milliseconds / 100;
-
-  // Progress intervals cannot be to short
-  if(interval < MINIMUM_INTERVAL_TIME)
-  {
-    count    = (p_milliseconds / MINIMUM_INTERVAL_TIME) + 1;
-    interval = p_milliseconds / count;
-    progress = 100 / count;
-  }
-
-  // Perform the waiting
-  for(int index = 0; index < count; ++index)
-  {
-    SetProgress(index * progress);
-    Sleep(interval);
-  }
-
-  // Progress complete
-  SetProgress(100);
-}
-
 /*static*/ unsigned
 __stdcall InetBoobytrap(void* p_data)
 {
-  InetRunner* runner = reinterpret_cast<InetRunner*>(p_data);
+  NETRunner* runner = reinterpret_cast<NETRunner*>(p_data);
   int maxtime = runner->GetMaxRunningTime();
   // Wait the maximum time of the test
   Sleep(maxtime);
   // End the HTTPClient connection
-  runner->DisconnectClient();
+  runner->StopTestProgram();
 
   return 0;
 }
 
 void
-InetRunner::SetBoobytrap()
+NETRunner::SetBoobytrap()
 {
   // Start a new thread
   unsigned int threadID = 0L;
@@ -649,54 +565,15 @@ InetRunner::SetBoobytrap()
 }
 
 void
-InetRunner::StopBoobytrap()
+NETRunner::StopBoobytrap()
 {
   TerminateThread(m_thread,0xFFFFFFFF);
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-// Running a QL Script after the test step
-//
-//////////////////////////////////////////////////////////////////////////
-
-__declspec(thread) LogAnalysis* runlog = nullptr;
-
-void osputs_stdout(const char* str)
-{
-  static CString out;
-  int len = (int) strlen(str);
-  if(len > 0 && str[len - 1] == '\n')
-  {
-    out += str;
-
-    if(runlog)
-    {
-      out = out.TrimRight("\n");
-      out.Replace("\r","");
-      runlog->BareStringLog(out);
-    }
-    else
-    {
-      OutputDebugString(out);
-    }
-    out.Empty();
-  }
-  else
-  {
-    out += str;
-  }
-}
-
-void osputs_stderr(const char* str)
-{
-  osputs_stdout(str);
-}
-
 int
-InetRunner::CheckStatusOK(int p_returnCode)
+NETRunner::CheckStatusOK(int p_returnCode)
 {
-  int statusOK = atoi(m_testStep.GetEffectiveStatusOK());
+  int statusOK = atoi(m_testStep->GetEffectiveStatusOK());
   if(statusOK != 0 && (p_returnCode != statusOK))
   {
     return 0;
@@ -706,7 +583,7 @@ InetRunner::CheckStatusOK(int p_returnCode)
 }
 
 void  
-InetRunner::CreateQLErrorMessage(CString p_error)
+NETRunner::CreateQLErrorMessage(CString p_error)
 {
   CString error;
   if(m_isJson)
@@ -720,165 +597,15 @@ InetRunner::CreateQLErrorMessage(CString p_error)
             "  <Message>" + p_error + "</Message>\n"
             "</Error>\n";
   }
-  m_result.SetBody(error);
+  StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
+  result->SetBody(error);
   SaveTestResults();
 }
 
-// Perform a script
-// Input p_result == 1 -> All validations where OK
-// Input p_result == 0 -> Errors in validations 
-int
-InetRunner::PerformQLScript(int p_result)
+StepResultNET* 
+NETRunner::GetStepResult()
 {
-  // Reset the running status
-  m_running = false;
-
-  // See if we must run the script
-  ScriptStatus status = m_testStep.GetScriptStatus();
-  if(status == ScriptStatus::NoScript)
-  {
-    // Pass back the original result
-    return p_result;
-  }
-
-  int retCode = 0;
-  try
-  {
-    // Getting the script to run
-    // But first effectuate the output parameters of the last run command
-    int unbound = m_testStep.EffectiveReplacements(&m_parameters,false);
-    if (unbound)
-    {
-      throw QLException("Parameters not replaced. " + m_parameters.GetUnboundErrors(),unbound);
-    }
-    CString script = m_testStep.GetEffectiveScriptToRun();
-
-    // Write to the logfile (if any)
-    bool trace_run = false;
-    bool trace_cmp = false;
-    if(m_logfile)
-    {
-      runlog    = m_logfile;
-      trace_run = m_logfile->GetLogLevel() >= HLL_TRACE;
-      trace_cmp = m_logfile->GetLogLevel() >= HLL_TRACEDUMP;
-
-      m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true, "Validation errors: %d",p_result);
-      m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,false,"Running QL Script.");
-      if(trace_run)
-      {
-        if(trace_cmp)
-        {
-          osputs_stdout("Script before replacements:\n");
-          osputs_stdout(m_testStep.GetScriptToRun() + "\n");
-          osputs_stdout("Script after replacements:\n");
-        }
-        osputs_stdout(script);
-        osputs_stdout("\n");
-      }
-    }
-
-    // Compile our script first
-    QLVirtualMachine vm;
-    if(!vm.CompileBuffer(script,trace_cmp))
-    {
-      return 1;
-    }
-    // Set up an interpreter
-    QLInterpreter inter(&vm,trace_run);
-    CString entrypoint("main");
-
-    // Set the latest test status
-    inter.SetTestIterations(m_interations);
-    inter.SetTestResult(p_result);
-    inter.SetTestRunning(0);
-
-    // GO run our QL-script
-    retCode = inter.Execute(entrypoint);
-
-    // Should we continue running?
-    m_running = inter.GetTestRunning();
-  }
-  catch(QLException& ex)
-  {
-    CreateQLErrorMessage(ex.GetErrorMessage());
-    m_running = 0;
-    return 1;
-  }
-  // Flush the log from the script
-  osputs_stdout("\n");
-
-  // Combine all the status codes
-  switch(status)
-  {
-    case ScriptStatus::SuccessIsZero:     if(retCode != 0)
-                                          {
-                                            p_result = 0;
-                                          }
-                                          break;
-    case ScriptStatus::SuccessIsNegative: if(retCode >= 0 || CheckStatusOK(retCode) == 0)
-                                          {
-                                            p_result = 0;
-                                          }
-                                          break;
-    case ScriptStatus::SuccessIsPositive: if(retCode <= 0 || CheckStatusOK(retCode) == 0)
-                                          {
-                                            p_result = 0;
-                                          }
-                                          break;
-  }
-  if(m_logfile)
-  {
-    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true,"QL Script. Return value: %d",retCode);
-    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true,"QL Script. Extra iteration: %s",m_running ? "Yes" : "No");
-  }
-  return p_result;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-// TELLING IT THE OUTSIDE WORLD
-//
-//////////////////////////////////////////////////////////////////////////
-
-void
-InetRunner::SetTest(CString p_test)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_TESTNAME,(WPARAM)p_test.GetString(),0);
-  }
-}
-
-void
-InetRunner::SetStep(CString p_step)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_STEPNAME,(WPARAM)p_step.GetString(),0);
-  }
-}
-
-void
-InetRunner::SetProgress(int p_percent)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_PROGRESS,(WPARAM)p_percent,0);
-  }
-}
-
-void
-InetRunner::EndTesting(int p_result)
-{
-  if(m_reportHWND)
-  {
-    ::SendMessage(m_reportHWND,WM_TEST_ENDING,(WPARAM)p_result,0);
-  }
-  if(m_callingHWND && m_callingROW)
-  {
-    ::PostMessage(m_callingHWND,WM_READYTEST,(WPARAM)m_callingROW,p_result);
-    ::PostMessage(m_callingHWND,WM_READYVALI,(WPARAM)m_callingROW,p_result);
-  }
+  return reinterpret_cast<StepResultNET*>(m_result);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -888,12 +615,14 @@ InetRunner::EndTesting(int p_result)
 //////////////////////////////////////////////////////////////////////////
 
 void
-InetRunner::SetBasicAuthentication()
+NETRunner::SetBasicAuthentication()
 {
   CString calluser;
   CString callpswd;
-  CString user = m_testStep.GetAuthUser();
-  CString pswd = m_testStep.GetAuthPassword();
+
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+  CString user = step->GetAuthUser();
+  CString pswd = step->GetAuthPassword();
 
   // Allow for parameter replacements (but not the complete buffer!)
   m_parameters.Replace(user, calluser, false, ParType::PAR_BUFFER);
@@ -906,7 +635,7 @@ InetRunner::SetBasicAuthentication()
 }
 
 void  
-InetRunner::SetNTLMSSOAuthentication()
+NETRunner::SetNTLMSSOAuthentication()
 {
   m_client->SetPreEmptiveAuthorization(WINHTTP_AUTH_SCHEME_NTLM);
   m_client->SetSingleSignOn(true);
@@ -914,14 +643,14 @@ InetRunner::SetNTLMSSOAuthentication()
 
 
 void
-InetRunner::SetNTLMAuthentication()
+NETRunner::SetNTLMAuthentication()
 {
   SetBasicAuthentication();
   m_client->SetPreEmptiveAuthorization(WINHTTP_AUTH_SCHEME_NTLM);
 }
 
 void
-InetRunner::SetOAuth2Authentication()
+NETRunner::SetOAuth2Authentication()
 {
   if(!m_oauth)
   {
@@ -932,10 +661,12 @@ InetRunner::SetOAuth2Authentication()
   CString clientID;
   CString clientKey;
   CString clientScope;
-  m_parameters.Replace(m_testStep.GetAuthTokenServer(),tokenServer,false,ParType::PAR_BUFFER);
-  m_parameters.Replace(m_testStep.GetAuthClientID(),   clientID,   false,ParType::PAR_BUFFER);
-  m_parameters.Replace(m_testStep.GetAuthClientKey(),  clientKey,  false,ParType::PAR_BUFFER);
-  m_parameters.Replace(m_testStep.GetAuthClientScope(),clientScope,false,ParType::PAR_BUFFER);
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+
+  m_parameters.Replace(step->GetAuthTokenServer(),tokenServer,false,ParType::PAR_BUFFER);
+  m_parameters.Replace(step->GetAuthClientID(),   clientID,   false,ParType::PAR_BUFFER);
+  m_parameters.Replace(step->GetAuthClientKey(),  clientKey,  false,ParType::PAR_BUFFER);
+  m_parameters.Replace(step->GetAuthClientScope(),clientScope,false,ParType::PAR_BUFFER);
 
   // Checking for a session
   int session = m_oauth->GetHasSession(clientID,clientKey);
@@ -955,15 +686,9 @@ InetRunner::SetOAuth2Authentication()
 //////////////////////////////////////////////////////////////////////////
 
 void
-InetRunner::CleanUp()
+NETRunner::CleanUp()
 {
-  // Clean up all validations
-  for(auto& val : m_validations)
-  {
-    delete val;
-  }
-  m_validations.clear();
-
+  // Clean up the message
   if(m_message)
   {
     delete m_message;

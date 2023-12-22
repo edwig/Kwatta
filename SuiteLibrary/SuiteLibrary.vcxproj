@@ -102,17 +102,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
-    <ClInclude Include="ExecRunner.h" />
+    <ClInclude Include="CMDRunner.h" />
     <ClInclude Include="ExtraExtensions.h" />
     <ClInclude Include="ExtraMessages.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GetExePath.h" />
     <ClInclude Include="GlobalFileDlg.h" />
-    <ClInclude Include="InetRunner.h" />
+    <ClInclude Include="NETRunner.h" />
     <ClInclude Include="NewVariableDlg.h" />
     <ClInclude Include="Parameters.h" />
     <ClInclude Include="ResetAll.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="StepResultWIN.h" />
+    <ClInclude Include="TestRunner.h" />
     <ClInclude Include="SQLRunner.h" />
     <ClInclude Include="StepResultSQL.h" />
     <ClInclude Include="StyleRichEdit.h" />
@@ -132,23 +134,28 @@
     <ClInclude Include="TestStepCMD.h" />
     <ClInclude Include="TestStepNET.h" />
     <ClInclude Include="TestStepSQL.h" />
+    <ClInclude Include="TestStepWIN.h" />
     <ClInclude Include="TestSuite.h" />
     <ClInclude Include="Validate.h" />
     <ClInclude Include="ValidateCMD.h" />
     <ClInclude Include="ValidateNET.h" />
     <ClInclude Include="ValidateSQL.h" />
+    <ClInclude Include="ValidateWIN.h" />
+    <ClInclude Include="WinAction.h" />
+    <ClInclude Include="WINRunner.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutDlg.cpp" />
-    <ClCompile Include="ExecRunner.cpp" />
+    <ClCompile Include="CMDRunner.cpp" />
     <ClCompile Include="GetExePath.cpp" />
     <ClCompile Include="GlobalFileDlg.cpp" />
-    <ClCompile Include="InetRunner.cpp" />
+    <ClCompile Include="NETRunner.cpp" />
     <ClCompile Include="NewVariableDlg.cpp" />
     <ClCompile Include="Parameters.cpp" />
     <ClCompile Include="ResetAll.cpp" />
     <ClCompile Include="SQLRunner.cpp" />
     <ClCompile Include="StepResultSQL.cpp" />
+    <ClCompile Include="StepResultWIN.cpp" />
     <ClCompile Include="StyleRichEdit.cpp" />
     <ClCompile Include="SearchVarDlg.cpp" />
     <ClCompile Include="StartProgram.cpp" />
@@ -161,16 +168,21 @@
     <ClCompile Include="StepResultNET.cpp" />
     <ClCompile Include="StreamBuffer.cpp" />
     <ClCompile Include="TestReport.cpp" />
+    <ClCompile Include="TestRunner.cpp" />
     <ClCompile Include="TestSet.cpp" />
     <ClCompile Include="TestStep.cpp" />
     <ClCompile Include="TestStepCMD.cpp" />
     <ClCompile Include="TestStepNET.cpp" />
     <ClCompile Include="TestStepSQL.cpp" />
+    <ClCompile Include="TestStepWIN.cpp" />
     <ClCompile Include="TestSuite.cpp" />
     <ClCompile Include="Validate.cpp" />
     <ClCompile Include="ValidateCMD.cpp" />
     <ClCompile Include="ValidateNET.cpp" />
     <ClCompile Include="ValidateSQL.cpp" />
+    <ClCompile Include="ValidateWIN.cpp" />
+    <ClCompile Include="WinAction.cpp" />
+    <ClCompile Include="WINRunner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SuiteLibrary.rc" />

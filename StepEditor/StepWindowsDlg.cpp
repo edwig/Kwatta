@@ -400,10 +400,16 @@ void
 StepWindowsDlg::OnBnClickedGO()
 {
   CWaitCursor sigh;
+  m_buttonGO.SetBkColor(RGB(255, 0, 0));
+  m_buttonGO.Invalidate();
+  Redraw();
   if(SaveStep())
   {
     theApp.StartTheWINRunner(this);
   }
+  m_buttonGO.SetBkColor(RGB(0, 255, 0));
+  m_buttonGO.Invalidate();
+  Redraw();
 }
 
 void 
@@ -423,5 +429,25 @@ StepWindowsDlg::OnExit()
   if(SaveStep())
   {
     StyleDialog::OnOK();
+  }
+}
+
+void
+StepWindowsDlg::Redraw()
+{
+  // Handle all paint messages for a short period of time
+  MSG msg;
+  UINT ticks = GetTickCount();
+  while(GetTickCount() - ticks < 500 && PeekMessage(&msg,NULL,WM_MOVE,WM_USER,PM_REMOVE))
+  {
+    try
+    {
+      ::TranslateMessage(&msg);
+      ::DispatchMessage(&msg);
+    }
+    catch (...)
+    {
+      // How now, brown cow?
+    }
   }
 }

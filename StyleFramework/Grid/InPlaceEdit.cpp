@@ -159,6 +159,7 @@ void CInPlaceEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
     GetParent()->SetFocus();    // This will destroy this window
     return;
   }
+
   if (nChar == VK_ESCAPE) 
   {
     SetWindowText(m_sInitText);    // restore previous text

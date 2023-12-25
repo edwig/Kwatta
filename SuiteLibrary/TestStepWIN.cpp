@@ -71,9 +71,9 @@ TestStepWIN::ReadFromXML(CString p_filename)
     // Fill in
     action->m_action    = StringToWinUIAction(msg.GetElement(line,"Action"));
     action->m_pattern   = msg.GetElement(line,"Pattern");
-    action->m_argument1 = msg.GetElement(line,"Arugment1");
-    action->m_argument2 = msg.GetElement(line,"Arugment2");
-    action->m_argument3 = msg.GetElement(line,"Arugment3");
+    action->m_argument1 = msg.GetElement(line,"Argument1");
+    action->m_argument2 = msg.GetElement(line,"Argument2");
+    action->m_argument3 = msg.GetElement(line,"Argument3");
     action->m_wait      = msg.GetElement(line,"Wait");
     // Keep
     m_actions.push_back(action);

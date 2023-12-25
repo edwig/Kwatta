@@ -61,6 +61,7 @@ protected:
   void StoreVariables();
   void LoadVariables();
   void LoadVariablesTabs();
+  void Redraw();
 
   CString           m_name;
   CString           m_comment;

@@ -141,6 +141,7 @@
     <ClInclude Include="ValidateNET.h" />
     <ClInclude Include="ValidateSQL.h" />
     <ClInclude Include="ValidateWIN.h" />
+    <ClInclude Include="VirtualKeys.h" />
     <ClInclude Include="WinAction.h" />
     <ClInclude Include="WINRunner.h" />
   </ItemGroup>
@@ -181,6 +182,7 @@
     <ClCompile Include="ValidateNET.cpp" />
     <ClCompile Include="ValidateSQL.cpp" />
     <ClCompile Include="ValidateWIN.cpp" />
+    <ClCompile Include="VirtualKeys.cpp" />
     <ClCompile Include="WinAction.cpp" />
     <ClCompile Include="WINRunner.cpp" />
   </ItemGroup>

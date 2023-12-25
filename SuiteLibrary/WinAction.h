@@ -75,12 +75,28 @@ private:
   friend WinActionsDlg;       // May mutate
   friend WINRunner;           // May read
 
+  // Helper functions
+  void MapScreenPositionToMousePosition(int& p_x,int& p_y);
+
+  // All actions
   int ActionStartProgram (CString& p_log,CString& p_errors,UINT& p_error);
   int ActionCloseProgram (CString& p_log,CString& p_errors,UINT& p_error);
   int ActionWindowPresent(CString& p_log,CString& p_errors,UINT& p_error);
   int ActionWindowFocus  (CString& p_log,CString& p_errors,UINT& p_error);
   int ActionWindowTxtArea(CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionSendOneChar  (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionSendString   (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionMouseClick   (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionMouseDblClick(CString& p_log,CString& p_errors,UINT& p_error);
 
+  // Sending a keyboard character and mouse info
+  int SendInputChar(WORD p_char1);
+  int SendInputChar(WORD p_char1,WORD p_char2);
+  int SendInputMouseClick(int x,int y);
+  int SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error);
+  int SendString   (CString str,CString& p_log,CString& p_errors,UINT& p_error);
+  int SendMouseClick(bool p_dbl,CString& p_log,CString& p_errors,UINT& p_error);
+  
   WinUIAction m_action;       // Action to perform
   CString     m_pattern;      // Name pattern to find MS-Window
   CString     m_argument1;    // Argument 1 as a string

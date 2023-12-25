@@ -37,6 +37,9 @@ static char THIS_FILE[] = __FILE__;
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
+// Sleeping after each simulated keyboard press
+int g_keyboardSleep = 100;
+
 WINRunner::WINRunner(CString      p_baseDirectory
                     ,CString      p_testDirectory
                     ,CString      p_testStepFilename
@@ -86,20 +89,29 @@ WINRunner::PerformTest()
     ReadingAllFiles();
     // Initial parameter processing (1 step)
     ParameterProcessing();
-    // Perform the test (3 steps)
-    PreCommandWaiting();
-    PerformCommand();
-    PostCommandWaiting();
-    // Perform the validations (x * 1 steps)
-    PerformAllValidations();
-    // Write the results (1 step)
-    SaveTestResults();
-    // Save return parameters (if any)
-    SaveResultParameters();
-    // Return the conclusion (1 step)
-    result = ReadTotalResult();
-    // Tell it to our callers
-    EndTesting(result);
+
+    while(m_running)
+    {
+      // One (extra) iteration
+      ++m_iterations;
+
+      // Perform the test (3 steps)
+      PreCommandWaiting();
+      PerformCommand();
+      PostCommandWaiting();
+      // Perform the validations (x * 1 steps)
+      PerformAllValidations();
+      // Write the results (1 step)
+      SaveTestResults();
+      // Save return parameters (if any)
+      SaveResultParameters();
+      // Return the conclusion (1 step)
+      result = ReadTotalResult();
+      // Possibly run our script, controlling m_running
+      result = PerformQLScript(result);
+      // Tell it to our callers
+      EndTesting(result);
+    }
   }
   catch(StdException& ex)
   {

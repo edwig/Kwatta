@@ -77,6 +77,7 @@ private:
 
   // Helper functions
   void MapScreenPositionToMousePosition(int& p_x,int& p_y);
+  void GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey);
 
   // All actions
   int ActionStartProgram (CString& p_log,CString& p_errors,UINT& p_error);

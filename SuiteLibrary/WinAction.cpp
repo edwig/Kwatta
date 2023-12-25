@@ -115,7 +115,7 @@ WinAction::ActionWindowPresent(CString& p_log,CString& p_errors,UINT& p_error)
     return 1;
   }
   m_hwnd = search.m_hwnd; // Last found window
-  p_log.AppendFormat("Top-level window is present. HWND = [%lX]\n",m_hwnd);
+  p_log.AppendFormat("Top-level window is present. HWND = [%llX]\n",m_hwnd);
 
   int index = 1;
   while(FillSearchPattern(search,index))
@@ -263,7 +263,7 @@ WinAction::IterateChildWindows(SearchWindow& p_search,CString& p_log,CString& p_
 
       if(MatchWindowName(&p_search,text))
       {
-        p_log.AppendFormat("Next child window found [%s] HWND = [%lX]\n",p_search.m_partialname.GetString(),child);
+        p_log.AppendFormat("Next child window found [%s] HWND = [%llX]\n",p_search.m_partialname.GetString(),child);
         m_hwnd = child;
         return true;
       }
@@ -456,58 +456,104 @@ WinAction::SendInputMouseClick(int x,int y)
   return 0;
 }
 
-int
-WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error)
+// Scan a (possibly virtual) key from the input string
+// Return the left over of the string along with
+// the first keystroke and the virtual key code (VK_*)
+void
+WinAction::GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey)
 {
-  int char1 = 0;
-  int char2 = 0;
-  CString vkey;
-  CString argument(key);
-  if(argument.GetLength() > 1)
+  // Reset input
+  p_tosend.Empty();
+  p_virtkey = 0;
+
+  // Test if we have something to do
+  if(p_input.IsEmpty())
   {
-    if(argument.Left(1) == "{")
+    return;
+  }
+  // Special key escaped
+  if(p_input.GetAt(0) == '\\' && p_input.GetAt(1) == '{')
+  {
+    p_tosend = "{";
+    p_input  = p_input.Mid(1);
+    return;
+  }
+  // Regular character
+  if(p_input.GetAt(0) == '{')
+  {
+    if(int pos = p_input.Find('}'); pos > 1)
     {
-      if(int pos = argument.Find('}'); pos > 1)
+      CString vkey = p_input.Mid(1,pos - 1);
+      int code = GetVirtualKeyCode(vkey);
+      if (code > 0)
       {
-        vkey = argument.Mid(1,pos - 1);
-        char1 = GetVirtualKeyCode(vkey);
-        if(char1 == -1)
-        {
-          p_errors.AppendFormat("Virtual key code [%s] not found!\n",vkey.GetString());
-          return (p_error = ERROR_NOT_FOUND);
-        }
-        argument = argument.Mid(pos + 1);
+        p_tosend  = p_input.Left(pos + 1);
+        p_input   = p_input.Mid(pos + 1);
+        p_virtkey = code;
+        return;
       }
     }
   }
-  if(argument.GetLength() > 1)
+  // Regular character
+  p_tosend = p_input.Left(1);
+  p_input  = p_input.Mid(1);
+}
+
+int
+WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error)
+{
+  CString tosend(key);
+  CString send;
+  int vkey = 0;
+  int result = 0;
+
+  GetSystemKey(tosend,send,vkey);
+
+  if(vkey == VK_CONTROL || vkey == VK_LCONTROL || vkey == VK_RCONTROL ||
+     vkey == VK_MENU    || vkey == VK_LMENU    || vkey == VK_RMENU    ||
+     vkey == VK_SHIFT   || vkey == VK_LSHIFT   || vkey == VK_RSHIFT   ||
+     vkey == VK_LWIN    || vkey == VK_RWIN )
+  {
+    CString second;
+    int vkey2;
+    GetSystemKey(tosend,second,vkey2);
+
+    if(!vkey2)
+    {
+      vkey2 = toupper(second.GetAt(0));
+    }
+    p_log.AppendFormat("Sending one character [%s%s]\n",send.GetString(),second.GetString());
+    result += SendInputChar((WORD)vkey,(WORD)vkey2);
+
+    Sleep(0); // Yield processor
+    Sleep(g_keyboardSleep);
+
+    return result;
+  }
+
+  // Single virtual key case
+  if(vkey)
+  {
+    p_log.AppendFormat("Sending one character [%s]\n",key.GetString());
+    return SendInputChar((WORD)vkey);
+  }
+
+  if(send.GetLength() > 1)
   {
     // Error: More than one character
-    p_errors.AppendFormat("Cannot output more than 1 character. Found: %s\n", argument.GetString());
+    p_errors.AppendFormat("Cannot output more than 1 character. Found: %s\n",tosend.GetString());
     return (p_error = ERROR_INVALID_PARAMETER);
   }
-  if(char1 == VK_CONTROL || char1 == VK_LCONTROL || char1 == VK_RCONTROL ||
-     char1 == VK_MENU    || char1 == VK_LMENU    || char1 == VK_RMENU    ||
-     char1 == VK_LWIN    || char1 == VK_RWIN)
-  {
-    char2 = argument.GetAt(0);
-    p_log.AppendFormat("Sending one character [%s%c]\n", vkey.IsEmpty() ? "" : (vkey + "-"), char2);
-    return SendInputChar((WORD)char1,(WORD)char2);
-  }
-  if(char1 && argument.IsEmpty())
-  {
-    p_log.AppendFormat("Sending one character [%s]\n",vkey.GetString());
-    return SendInputChar((WORD)char1);
-  }
+
   // Getting the HWND with the keyboard focus
   HWND hwnd = m_hwnd ? m_hwnd : ::GetFocus();
-  char2 = argument.GetAt(0);
+  char ckey = send.GetAt(0);
 
   // Regular non-virtual key
-  p_log.AppendFormat("Sending one character [%c] to window [%lX]\n",char2,hwnd);
-  ::PostMessage(hwnd,WM_KEYDOWN,0,    0);
-  ::PostMessage(hwnd,WM_CHAR,   char2,0);
-  ::PostMessage(hwnd,WM_KEYUP,  0,    0);
+  p_log.AppendFormat("Sending one character [%c] to window [%llX]\n",ckey,hwnd);
+  ::PostMessage(hwnd,WM_KEYDOWN,(WPARAM)0,   (LPARAM)0);
+  ::PostMessage(hwnd,WM_CHAR,   (WPARAM)ckey,(LPARAM)0);
+  ::PostMessage(hwnd,WM_KEYUP,  (WPARAM)0,   (LPARAM)0);
 
   Sleep(0); // Yield processor
   Sleep(g_keyboardSleep);
@@ -518,54 +564,40 @@ WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_er
 int
 WinAction::SendString(CString str,CString& p_log,CString& p_errors,UINT& p_error)
 {
+  int res = 0;
   p_log.AppendFormat("Sending string of characters: %s\n",str.GetString());
 
   while(str.GetLength())
   {
     CString send;
-    CString vkey;
+    int vkey = 0;
+    GetSystemKey(str,send,vkey);
 
-    if(str.GetAt(0) == '\\' && str.GetAt(1) == '{')
+    if(vkey == VK_CONTROL || vkey == VK_LCONTROL || vkey == VK_RCONTROL ||
+       vkey == VK_MENU    || vkey == VK_LMENU    || vkey == VK_RMENU    ||
+       vkey == VK_SHIFT   || vkey == VK_LSHIFT   || vkey == VK_RSHIFT   ||
+       vkey == VK_LWIN    || vkey == VK_RWIN )
     {
-      send = "{";
-      str = str.Mid(2);
-    }
-    else if (str.GetAt(0) != '{')
-    {
-      send = str.GetAt(0);
-      str  = str.Mid(1);
+      CString second;
+      int vkey2;
+      GetSystemKey(str,second,vkey2);
+
+      if(!vkey2)
+      {
+        vkey2 = toupper(second.GetAt(0));
+      }
+      p_log.AppendFormat("Sending one character [%s%s]\n",send.GetString(),second.GetString());
+      res += SendInputChar((WORD)vkey,(WORD)vkey2);
+
+      Sleep(0); // Yield processor
+      Sleep(g_keyboardSleep);
     }
     else
     {
-      int pos = str.Find('}');
-      if(pos > 1)
-      {
-        vkey = str.Left(pos + 1);
-        str  = str.Mid (pos + 1);
-
-        if(vkey.Compare("CTRL")  == 0 ||
-           vkey.Compare("ALT")   == 0 ||
-           vkey.Compare("LCTRL") == 0 ||
-           vkey.Compare("RCTRL") == 0 ||
-           vkey.Compare("LWIN")  == 0 ||
-           vkey.Compare("RWIN")  == 0 ||
-           vkey.Compare("LALT")  == 0 ||
-           vkey.Compare("RALT")  == 0 )
-        {
-          vkey += str.Left(1);
-          str   = str.Mid(1);
-        }
-      }
-      else
-      {
-        send = "{";
-        str = str.Mid(1);
-      }
+      res += SendSystemKey(send,p_log,p_errors,p_error);
     }
-
-    int res = SendSystemKey(vkey.IsEmpty() ? send : vkey,p_log,p_errors,p_error);
     // Break of after error
-    if (res)
+    if(res)
     {
       return res;
     }

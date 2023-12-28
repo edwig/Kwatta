@@ -19,5 +19,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+
+// Sleeping after each simulated keyboard press
+extern int g_keyboardSleep;
+
 // Translate name to virtual-keycode. e.g "F1" -> VK_F1
 int GetVirtualKeyCode(CString p_name);
+
+// Sending a keyboard character
+int SendInputKey(WORD p_char1);
+// Sending two keys. First most likely a virtual key
+int SendInputKey(WORD p_char1,WORD p_char2);

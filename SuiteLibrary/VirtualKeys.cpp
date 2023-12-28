@@ -30,6 +30,9 @@ typedef struct _vkey
 }
 VirtualKey;
 
+// Sleeping after each simulated keyboard press
+int g_keyboardSleep = 20;
+
 // All names and virtual codes
 static VirtualKey vkeys[] =
 {
@@ -156,7 +159,7 @@ static void InitVirtualKeymap()
   }
 }
 
-// Translate name to virtual-keycode
+// Translate name to virtual-key code
 // e.g "F1" -> VK_F1
 int GetVirtualKeyCode(CString p_name)
 {
@@ -170,4 +173,118 @@ int GetVirtualKeyCode(CString p_name)
     vkey = it->second;
   }
   return vkey;
+}
+
+// https://learn.microsoft.com/en-us/windows/win32/inputdev/wm-char
+// https://learn.microsoft.com/en-us/windows/win32/inputdev/about-keyboard-input#keystroke-message-flags
+
+// Sending a keyboard character
+int
+SendInputKey(WORD p_char1)
+{
+  INPUT inputs[1] = {};
+  ZeroMemory(inputs,sizeof(inputs));
+
+  // Key / Scancode for WM_KEYDOWN
+  inputs[0].type       = INPUT_KEYBOARD;
+  inputs[0].ki.wVk     = p_char1;
+  inputs[0].ki.wScan   = (WORD)MapVirtualKey(p_char1,MAPVK_VK_TO_VSC);
+  inputs[0].ki.dwFlags = 0;
+
+  UINT uSent = SendInput(1,inputs,sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  // Keyboard works better if timestamps are slightly apart!!
+  Sleep(rand() % 15 + 5);
+
+  // Key / Scancode for WM_KEYUP
+  inputs[0].type       = INPUT_KEYBOARD;
+  inputs[0].ki.wVk     = p_char1;
+  inputs[0].ki.wScan   = (WORD)MapVirtualKey(p_char1,MAPVK_VK_TO_VSC);
+  inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+
+  uSent = SendInput(1,inputs,sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  // Yield processor
+  // Sleep after EACH character
+  Sleep(g_keyboardSleep);
+
+  return 0;
+}
+
+// Sending two keys. First most likely a virtual key
+int
+SendInputKey(WORD p_char1,WORD p_char2)
+{
+  INPUT inputs[1] = {};
+  ZeroMemory(inputs,sizeof(inputs));
+
+  // Key / Scancode for first prefix key
+  inputs[0].type       = INPUT_KEYBOARD;
+  inputs[0].ki.wVk     = p_char1;
+  inputs[0].ki.wScan   = (WORD)MapVirtualKey(p_char1,MAPVK_VK_TO_VSC);
+  inputs[0].ki.dwFlags = 0;
+
+  UINT uSent = SendInput(1,inputs,sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  // Keyboard works better if timestamps are slightly apart!!
+  Sleep(rand() % 15 + 5);
+
+  // Key / Scancode for second key (after the prefix) for the WM_KEYDOWN
+  inputs[0].type       = INPUT_KEYBOARD;
+  inputs[0].ki.wVk     = p_char2;
+  inputs[0].ki.wScan   = (WORD)MapVirtualKey(p_char2,MAPVK_VK_TO_VSC);
+  inputs[0].ki.dwFlags = 0;
+
+  uSent = SendInput(1,inputs,sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  // Keyboard works better if timestamps are slightly apart!!
+  Sleep(rand() % 15 + 5);
+
+  // Key / Scancode for the SECOND char for the WM_KEYUP
+  inputs[0].type       = INPUT_KEYBOARD;
+  inputs[0].ki.wVk     = p_char2;
+  inputs[0].ki.wScan   = (WORD)MapVirtualKey(p_char2,MAPVK_VK_TO_VSC);
+  inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+
+  uSent = SendInput(1,inputs,sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  // Keyboard works better if timestamps are slightly apart!!
+  Sleep(rand() % 15 + 5);
+
+  // Key / Scancode for the FIRST char for the WM_KEYUP
+  inputs[0].type = INPUT_KEYBOARD;
+  inputs[0].ki.wVk     = p_char1;
+  inputs[0].ki.wScan   = (WORD)MapVirtualKey(p_char1,MAPVK_VK_TO_VSC);
+  inputs[0].ki.dwFlags = KEYEVENTF_KEYUP;
+
+  uSent = SendInput(1,inputs,sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  // Yield processor
+  // Sleep after EACH character
+  Sleep(g_keyboardSleep);
+  return 0;
 }

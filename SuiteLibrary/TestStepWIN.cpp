@@ -169,17 +169,16 @@ TestStepWIN::WinUIActionToString(WinUIAction p_action)
   {
     case WinUIAction::WA_Start:       action = "Start";               break;
     case WinUIAction::WA_Close:       action = "Close";               break;
-    case WinUIAction::WA_AbsolutePos: action = "Absolute Position";   break;
-    case WinUIAction::WA_RelativePos: action = "Relative Position";   break;
+    case WinUIAction::WA_CaretPos:    action = "Caret position";      break;
     case WinUIAction::WA_Click:       action = "Mouse click";         break;
     case WinUIAction::WA_DblClick:    action = "Mouse double click";  break;
     case WinUIAction::WA_Char:        action = "Character";           break;
     case WinUIAction::WA_String:      action = "String";              break;
     case WinUIAction::WA_Present:     action = "Present";             break;
+    case WinUIAction::WA_Activate:    action = "Activate";            break;
     case WinUIAction::WA_Focus:       action = "Focus";               break;
-    case WinUIAction::WA_HasStyle:    action = "HasStyle";            break;
     case WinUIAction::WA_TextArea:    action = "Text area";           break;
-    case WinUIAction::WA_Nothing:     break;
+    case WinUIAction::WA_Nothing:     action = "Nothing";             break;
     default:                          break;
 
   }
@@ -192,15 +191,14 @@ TestStepWIN::StringToWinUIAction(CString p_action)
   if(p_action.CompareNoCase("start")              == 0) return WinUIAction::WA_Start;
   if(p_action.CompareNoCase("close")              == 0) return WinUIAction::WA_Close;
   if(p_action.CompareNoCase("present")            == 0) return WinUIAction::WA_Present;
+  if(p_action.CompareNoCase("activate")           == 0) return WinUIAction::WA_Activate;
   if(p_action.CompareNoCase("focus")              == 0) return WinUIAction::WA_Focus;
-  if(p_action.CompareNoCase("absolute position")  == 0) return WinUIAction::WA_AbsolutePos;
-  if(p_action.CompareNoCase("relative position")  == 0) return WinUIAction::WA_RelativePos;
+  if(p_action.CompareNoCase("caret position")     == 0) return WinUIAction::WA_CaretPos;
   if(p_action.CompareNoCase("mouse click")        == 0) return WinUIAction::WA_Click;
   if(p_action.CompareNoCase("mouse double click") == 0) return WinUIAction::WA_DblClick;
   if(p_action.CompareNoCase("character")          == 0) return WinUIAction::WA_Char;
   if(p_action.CompareNoCase("string")             == 0) return WinUIAction::WA_String;
-  if(p_action.CompareNoCase("has style")          == 0) return WinUIAction::WA_HasStyle;
-  if(p_action.CompareNoCase("textarea")           == 0) return WinUIAction::WA_TextArea;
+  if(p_action.CompareNoCase("text area")          == 0) return WinUIAction::WA_TextArea;
   if(p_action.CompareNoCase("nothing")            == 0) return WinUIAction::WA_Nothing;
 
   return WinUIAction::WA_Nothing;

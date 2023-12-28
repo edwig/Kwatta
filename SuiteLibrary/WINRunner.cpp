@@ -37,9 +37,6 @@ static char THIS_FILE[] = __FILE__;
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
-// Sleeping after each simulated keyboard press
-int g_keyboardSleep = 100;
-
 WINRunner::WINRunner(CString      p_baseDirectory
                     ,CString      p_testDirectory
                     ,CString      p_testStepFilename

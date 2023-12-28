@@ -29,15 +29,14 @@ enum class WinUIAction
    WA_Nothing = 0
   ,WA_Start
   ,WA_Close
-  ,WA_AbsolutePos
-  ,WA_RelativePos
+  ,WA_CaretPos
   ,WA_Click
   ,WA_DblClick
   ,WA_Char
   ,WA_String
   ,WA_Present
+  ,WA_Activate
   ,WA_Focus
-  ,WA_HasStyle
   ,WA_TextArea
 };
 
@@ -46,8 +45,10 @@ typedef struct
 {
   HWND    m_hwnd;
   CString m_partialname;
+  CString m_partialClass;
   bool    m_fromstart;
   bool    m_toend;
+  bool    m_all;
 }
 SearchWindow;
 
@@ -67,8 +68,8 @@ public:
 
   // Helper functions
   [[nodiscard]]        bool FillSearchPattern  (SearchWindow& p_search,int p_part);
-  [[nodiscard]]        bool IterateChildWindows(SearchWindow& p_search,CString& p_log,CString& p_errors);
-  [[nodiscard]] static bool MatchWindowName    (SearchWindow* p_search,CString& p_name);
+  [[nodiscard]]        bool IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log,CString& p_errors);
+  [[nodiscard]] static bool MatchWindowName    (SearchWindow* p_search,CString& p_name,CString& p_classname);
 
 private:
   friend TestStepWIN;         // May mutate
@@ -78,21 +79,23 @@ private:
   // Helper functions
   void MapScreenPositionToMousePosition(int& p_x,int& p_y);
   void GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey);
+  int  FindPattern(bool p_activate,CString& p_log,CString& p_errors,UINT& p_error);
+  int  ActivateWindow(HWND p_hwnd, CString& p_log,CString& p_errors,UINT& p_error);
 
   // All actions
-  int ActionStartProgram (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionCloseProgram (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowPresent(CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowFocus  (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowTxtArea(CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionSendOneChar  (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionSendString   (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionMouseClick   (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionMouseDblClick(CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionStartProgram  (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionCloseProgram  (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionWindowPresent (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionActivateWindow(CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionWindowFocus   (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionWindowTxtArea (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionWindowCaretPos(CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionSendOneChar   (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionSendString    (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionMouseClick    (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionMouseDblClick (CString& p_log,CString& p_errors,UINT& p_error);
 
   // Sending a keyboard character and mouse info
-  int SendInputChar(WORD p_char1);
-  int SendInputChar(WORD p_char1,WORD p_char2);
   int SendInputMouseClick(int x,int y);
   int SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error);
   int SendString   (CString str,CString& p_log,CString& p_errors,UINT& p_error);

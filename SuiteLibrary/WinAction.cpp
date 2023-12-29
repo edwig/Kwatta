@@ -24,11 +24,11 @@
 #include <ExecuteProcess.h>
 #include <stdlib.h>
 
-// Forward declarations
-BOOL IterateTopLevelWindows(HWND p_hwnd, LPARAM p_param);
+// Forward declaration for EnumWindows
+static BOOL IterateTopLevelWindows(HWND p_hwnd,LPARAM p_param);
 
 int
-WinAction::PerformAction(CString& p_log, CString& p_errors, UINT& p_error)
+WinAction::PerformAction(CString& p_log,CString& p_errors,UINT& p_error)
 {
   switch (m_action)
   {
@@ -37,6 +37,7 @@ WinAction::PerformAction(CString& p_log, CString& p_errors, UINT& p_error)
     case WinUIAction::WA_CaretPos:      return ActionWindowCaretPos(p_log,p_errors,p_error); break;
     case WinUIAction::WA_Click:         return ActionMouseClick    (p_log,p_errors,p_error); break;
     case WinUIAction::WA_DblClick:      return ActionMouseDblClick (p_log,p_errors,p_error); break;
+    case WinUIAction::WA_RClick:        return ActionMouseRClick   (p_log,p_errors,p_error); break;
     case WinUIAction::WA_Char:          return ActionSendOneChar   (p_log,p_errors,p_error); break;
     case WinUIAction::WA_String:        return ActionSendString    (p_log,p_errors,p_error); break;
     case WinUIAction::WA_Present:       return ActionWindowPresent (p_log,p_errors,p_error); break;
@@ -46,7 +47,7 @@ WinAction::PerformAction(CString& p_log, CString& p_errors, UINT& p_error)
     default:                            break;
   }
   p_log += "Nothing done\n";
-  p_errors.AppendFormat("Unknown action [%d] (%s) (%s) (%s)", (int)m_action, m_argument1.GetString(), m_argument2.GetString(), m_argument3.GetString());
+  p_errors.AppendFormat("Unknown action [%d] (%s) (%s) (%s)\n",(int)m_action,m_argument1.GetString(),m_argument2.GetString(),m_argument3.GetString());
   p_error = 1;
   return 1;
 }
@@ -81,7 +82,7 @@ WinAction::ActionCloseProgram(CString& p_log,CString& p_errors,UINT& p_error)
 {
   if(FindPattern(false,p_log,p_errors,p_error) == 0)
   {
-    p_log += "Posted a WM_CLOSE. Window MAY close!";
+    p_log += "Posted a WM_CLOSE. Window MAY close!\n";
     ::PostMessage(m_hwnd,WM_CLOSE,NULL,NULL);
     return 0;
   }
@@ -217,7 +218,7 @@ WinAction::ActionMouseClick(CString& p_log,CString& p_errors,UINT& p_error)
       return res;
     }
   }
-  return SendMouseClick(false,p_log,p_errors,p_error);
+  return SendMouseClick(false,true,p_log,p_errors,p_error);
 }
 
 int 
@@ -232,7 +233,22 @@ WinAction::ActionMouseDblClick(CString& p_log,CString& p_errors,UINT& p_error)
       return res;
     }
   }
-  return SendMouseClick(true,p_log,p_errors,p_error);
+  return SendMouseClick(true,true,p_log,p_errors,p_error);
+}
+
+int
+WinAction::ActionMouseRClick(CString& p_log,CString& p_errors,UINT& p_error)
+{
+  if(!m_pattern.IsEmpty())
+  {
+    // Try to locate the (sub) window for a character keystroke
+    int res = FindPattern(false,p_log,p_errors,p_error);
+    if(res)
+    {
+      return res;
+    }
+  }
+  return SendMouseClick(true,false,p_log,p_errors,p_error);
 }
 
 int
@@ -282,7 +298,7 @@ WinAction::FindPattern(bool p_activate,CString& p_log,CString& p_errors,UINT& p_
   SearchWindow search;
   if(!FillSearchPattern(search,0))
   {
-    p_errors += "No top-level window pattern to search for!";
+    p_errors += "No top-level window pattern to search for!\n";
     p_error = ERROR_NOT_FOUND;
     return 1;
   }
@@ -334,7 +350,8 @@ BOOL IterateTopLevelWindows(HWND p_hwnd,LPARAM p_param)
   CString name(windowname);
   CString nclass(classname);
 
-  if(WinAction::MatchWindowName(search,name,nclass))
+  // Top level windows have NO control-ID
+  if(WinAction::MatchWindowName(search,0,name,nclass))
   {
     search->m_hwnd = p_hwnd;
     return FALSE; // Stop further search
@@ -388,8 +405,10 @@ WinAction::IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log
         ::SendMessage(child,WM_GETTEXT,(WPARAM)(length + 1),(LPARAM)buffer);
         text.ReleaseBufferSetLength(length);
       }
+      // Possibly getting a control-id or zero
+      int controlID = GetDlgCtrlID(child);
 
-      if(MatchWindowName(&p_search,text,nclass))
+      if(MatchWindowName(&p_search,controlID,text,nclass))
       {
         m_hwnd = child;
         // See if we are not the last in the search
@@ -431,7 +450,7 @@ WinAction::ActivateWindow(HWND p_hwnd,CString& p_log,CString& p_errors,UINT& p_e
       p_log += "Window brought to the foreground.\n";
       return 0;
     }
-    p_errors += "Window NOT in the foreground. Cannot be used for keyboard.";
+    p_errors += "Window NOT in the foreground. Cannot be used for keyboard.\n";
     return (p_error = ERROR_WAKE_SYSTEM);
   }
   p_log += "Window IS foreground window.\n";
@@ -468,14 +487,24 @@ WinAction::FillSearchPattern(SearchWindow& p_search,int p_part)
   // Fill the search parameter
   p_search.m_partialname.Empty();
   p_search.m_partialClass.Empty();
+  p_search.m_dialogID    = 0;
   p_search.m_hwnd        = NULL;
   p_search.m_fromstart   = true;
   p_search.m_toend       = true;
   p_search.m_all         = false;
   
+  // Look for dialog ID "{n}" or a partial class name "{identifier}"
   if(pattern.Left(1) == "{" && pattern.Right(1) == "}")
   {
-    p_search.m_partialClass = pattern.Mid(1,pattern.GetLength() - 2);
+    CString partial = pattern.Mid(1,pattern.GetLength() - 2);
+    if(atoi(partial) > 0)
+    {
+      p_search.m_dialogID = atoi(partial);
+    }
+    else
+    {
+      p_search.m_partialClass = partial;
+    }
   }
   else
   {
@@ -507,9 +536,14 @@ WinAction::FillSearchPattern(SearchWindow& p_search,int p_part)
 }
 
 bool
-WinAction::MatchWindowName(SearchWindow* p_search,CString& p_name,CString& p_classname)
+WinAction::MatchWindowName(SearchWindow* p_search,int p_ctrlID,CString& p_name,CString& p_classname)
 {
-  // Try (partial) classname first
+  // STEP 1: Try control ID first
+  if(p_search->m_dialogID && p_search->m_dialogID == p_ctrlID)
+  {
+    return true;
+  }
+  // STEP 2: Try (partial) classname 
   if(!p_search->m_partialClass.IsEmpty())
   {
     if(p_classname.Find(p_search->m_partialClass) >= 0)
@@ -518,6 +552,7 @@ WinAction::MatchWindowName(SearchWindow* p_search,CString& p_name,CString& p_cla
     }
     return false;
   }
+  // STEP 3: Somewhere within the text
   if(!p_search->m_fromstart && !p_search->m_toend)
   {
     // Must be somewhere within the name
@@ -528,67 +563,23 @@ WinAction::MatchWindowName(SearchWindow* p_search,CString& p_name,CString& p_cla
   }
   else if(!p_search->m_toend)
   {
-    // Must be at the start of the name
+    // STEP 4: Must be at the start of the name
     if(p_name.Find(p_search->m_partialname) == 0)
     {
       return true;
     }
   }
-  else // Must be at the end
+  else
   {
+    // STEP 5: Must be at the end
     p_name = p_name.Right(p_search->m_partialname.GetLength());
     if(p_name == p_search->m_partialname)
     {
       return true;
     }
   }
+  // Nope: not found
   return false;
-}
-
-int
-WinAction::SendInputMouseClick(int x,int y)
-{
-  INPUT inputs[1] = {};
-  ZeroMemory(inputs,sizeof(inputs));
-
-  inputs[0].type  = INPUT_MOUSE;
-  inputs[0].mi.dx = x;
-  inputs[0].mi.dy = y;
-  inputs[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
-
-  UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
-  if (uSent != ARRAYSIZE(inputs))
-  {
-    return HRESULT_FROM_WIN32(GetLastError());
-  }
-
-  Sleep(rand() % 15 + 5);
-
-  inputs[0].type = INPUT_MOUSE;
-  inputs[0].mi.dx = x;
-  inputs[0].mi.dy = y;
-  inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-
-  uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
-  if (uSent != ARRAYSIZE(inputs))
-  {
-    return HRESULT_FROM_WIN32(GetLastError());
-  }
-
-  Sleep(rand() % 15 + 5);
-
-  inputs[0].type  = INPUT_MOUSE;
-  inputs[0].mi.dx = x;
-  inputs[0].mi.dy = y;
-  inputs[0].mi.dwFlags = MOUSEEVENTF_LEFTUP;
-
-  uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
-  if (uSent != ARRAYSIZE(inputs))
-  {
-    return HRESULT_FROM_WIN32(GetLastError());
-  }
-
-  return 0;
 }
 
 // Scan a (possibly virtual) key from the input string
@@ -741,46 +732,8 @@ WinAction::SendString(CString str,CString& p_log,CString& p_errors,UINT& p_error
   return 0;
 }
 
-void
-WinAction::MapScreenPositionToMousePosition(int& p_x,int& p_y)
-{
-  CRect rectWindow;
-  GetWindowRect(m_hwnd,&rectWindow);
-
-  // Try to get the work-area from the multi-monitor setup
-  MONITORINFO mi;
-  mi.cbSize = sizeof(MONITORINFO);
-  CPoint point;
-  if(p_x || p_y)
-  {
-    point.x = p_x;
-    point.y = p_y;
-  }
-  else
-  {
-    point = rectWindow.CenterPoint();
-  }
-  CRect monitor;
-  if(GetMonitorInfo(MonitorFromPoint(point,MONITOR_DEFAULTTONEAREST),&mi))
-  {
-    monitor = mi.rcWork;
-  }
-  else
-  {
-    // Fall back on system parameters (pre-Vista)
-    ::SystemParametersInfo(SPI_GETWORKAREA,0,&monitor, 0);
-  }
-
-  // Mouse positions are relative to (0,0) -> (65535,65535)
-  p_x <<= 16;
-  p_x  /= monitor.Width();
-
-  p_y <<= 16;
-  p_y  /= monitor.Height();
-}
-
 int 
-WinAction::SendMouseClick(bool p_dbl,CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::SendMouseClick(bool p_dbl,bool p_left,CString& p_log,CString& p_errors,UINT& p_error)
 {
   CRect windowRect;
   GetWindowRect(m_hwnd,windowRect);
@@ -788,26 +741,26 @@ WinAction::SendMouseClick(bool p_dbl,CString& p_log,CString& p_errors,UINT& p_er
   int x = atoi(m_argument1);
   int y = atoi(m_argument2);
 
-  p_log.AppendFormat("Mouse coordinates relative to [%s]\n",m_hwnd ? "window" : "desktop");
-  p_log.AppendFormat("Sending a %s mouse click to [%d,%d]\n",p_dbl ? "double" : "single",x,y);
+  p_log.AppendFormat("Mouse coordinates relative to [%s]\n",  m_hwnd ? "window" : "desktop");
+  p_log.AppendFormat("Sending a %s %smouse click to [%d,%d]\n",p_dbl ? "double" : "single",p_left ? "" : "right ",x,y);
 
   x += (x >= 0) ? windowRect.left : windowRect.right;
   y += (y >= 0) ? windowRect.top  : windowRect.bottom;
 
   p_log.AppendFormat("Absolute mouse coordinates [%d,%d]\n",x,y);
-  MapScreenPositionToMousePosition(x, y);
+  MapScreenPositionToMousePosition(x,y,m_hwnd);
   p_log.AppendFormat("Absolute mouse position [%d,%d]\n", x, y);
 
   if(p_dbl)
   {
-    SendInputMouseClick(x,y);
+    SendInputMouseClick(x,y,p_left);
     Sleep(GetDoubleClickTime() / 2);
   }
-  int res = SendInputMouseClick(x,y);
+  int res = SendInputMouseClick(x,y,p_left);
   if(res)
   {
     p_error = res;
-    p_errors += "Cannot send mouse coordinates/click";
+    p_errors += "Cannot send mouse coordinates/click\n";
   }
   return res;
 }

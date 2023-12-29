@@ -172,6 +172,7 @@ TestStepWIN::WinUIActionToString(WinUIAction p_action)
     case WinUIAction::WA_CaretPos:    action = "Caret position";      break;
     case WinUIAction::WA_Click:       action = "Mouse click";         break;
     case WinUIAction::WA_DblClick:    action = "Mouse double click";  break;
+    case WinUIAction::WA_RClick:      action = "Mouse right click";   break;
     case WinUIAction::WA_Char:        action = "Character";           break;
     case WinUIAction::WA_String:      action = "String";              break;
     case WinUIAction::WA_Present:     action = "Present";             break;
@@ -196,6 +197,7 @@ TestStepWIN::StringToWinUIAction(CString p_action)
   if(p_action.CompareNoCase("caret position")     == 0) return WinUIAction::WA_CaretPos;
   if(p_action.CompareNoCase("mouse click")        == 0) return WinUIAction::WA_Click;
   if(p_action.CompareNoCase("mouse double click") == 0) return WinUIAction::WA_DblClick;
+  if(p_action.CompareNoCase("mouse right click")  == 0) return WinUIAction::WA_RClick;
   if(p_action.CompareNoCase("character")          == 0) return WinUIAction::WA_Char;
   if(p_action.CompareNoCase("string")             == 0) return WinUIAction::WA_String;
   if(p_action.CompareNoCase("text area")          == 0) return WinUIAction::WA_TextArea;

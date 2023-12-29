@@ -13,6 +13,7 @@
 // This program: SuiteLibrary
 // This File   : VirtualKeys.cpp
 // What it does: Translation of a formal VIRTUAL KEY definition to the correct scancode
+//               Can send VIRTUAL mouse movements and does a button click (left / right)
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
 // 
@@ -286,5 +287,90 @@ SendInputKey(WORD p_char1,WORD p_char2)
   // Yield processor
   // Sleep after EACH character
   Sleep(g_keyboardSleep);
+  return 0;
+}
+
+void
+MapScreenPositionToMousePosition(int& p_x,int& p_y,HWND p_hwnd /*=NULL*/)
+{
+  CRect rectWindow;
+  GetWindowRect(p_hwnd,&rectWindow);
+
+  // Try to get the work-area from the multi-monitor setup
+  MONITORINFO mi;
+  mi.cbSize = sizeof(MONITORINFO);
+  CPoint point;
+  if(p_x || p_y)
+  {
+    point.x = p_x;
+    point.y = p_y;
+  }
+  else
+  {
+    point = rectWindow.CenterPoint();
+  }
+  CRect monitor;
+  if(GetMonitorInfo(MonitorFromPoint(point,MONITOR_DEFAULTTONEAREST),&mi))
+  {
+    monitor = mi.rcWork;
+  }
+  else
+  {
+    // Fall back on system parameters (pre-Vista)
+    ::SystemParametersInfo(SPI_GETWORKAREA,0,&monitor, 0);
+  }
+
+  // Mouse positions are relative to (0,0) -> (65535,65535)
+  p_x <<= 16;
+  p_x  /= monitor.Width();
+
+  p_y <<= 16;
+  p_y  /= monitor.Height();
+}
+
+// Sending virtual mouse click to the system
+// Moves the mouse to this position and then emits a button click
+int
+SendInputMouseClick(int x,int y,bool p_left /*=true*/)
+{
+  INPUT inputs[1] = {};
+  ZeroMemory(inputs,sizeof(inputs));
+
+  inputs[0].type  = INPUT_MOUSE;
+  inputs[0].mi.dx = x;
+  inputs[0].mi.dy = y;
+  inputs[0].mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+
+  UINT uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  Sleep(rand() % 15 + 5);
+
+  inputs[0].type = INPUT_MOUSE;
+  inputs[0].mi.dx = x;
+  inputs[0].mi.dy = y;
+  inputs[0].mi.dwFlags = p_left ? MOUSEEVENTF_LEFTDOWN : MOUSEEVENTF_RIGHTDOWN;
+
+  uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
+
+  Sleep(rand() % 15 + 5);
+
+  inputs[0].type  = INPUT_MOUSE;
+  inputs[0].mi.dx = x;
+  inputs[0].mi.dy = y;
+  inputs[0].mi.dwFlags = p_left ? MOUSEEVENTF_LEFTUP : MOUSEEVENTF_RIGHTUP;
+
+  uSent = SendInput(ARRAYSIZE(inputs), inputs, sizeof(INPUT));
+  if(uSent != ARRAYSIZE(inputs))
+  {
+    return HRESULT_FROM_WIN32(GetLastError());
+  }
   return 0;
 }

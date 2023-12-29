@@ -32,6 +32,7 @@ enum class WinUIAction
   ,WA_CaretPos
   ,WA_Click
   ,WA_DblClick
+  ,WA_RClick
   ,WA_Char
   ,WA_String
   ,WA_Present
@@ -46,6 +47,7 @@ typedef struct
   HWND    m_hwnd;
   CString m_partialname;
   CString m_partialClass;
+  int     m_dialogID;
   bool    m_fromstart;
   bool    m_toend;
   bool    m_all;
@@ -69,7 +71,7 @@ public:
   // Helper functions
   [[nodiscard]]        bool FillSearchPattern  (SearchWindow& p_search,int p_part);
   [[nodiscard]]        bool IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log,CString& p_errors);
-  [[nodiscard]] static bool MatchWindowName    (SearchWindow* p_search,CString& p_name,CString& p_classname);
+  [[nodiscard]] static bool MatchWindowName    (SearchWindow* p_search,int p_ctrlID,CString& p_name,CString& p_classname);
 
 private:
   friend TestStepWIN;         // May mutate
@@ -77,7 +79,6 @@ private:
   friend WINRunner;           // May read
 
   // Helper functions
-  void MapScreenPositionToMousePosition(int& p_x,int& p_y);
   void GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey);
   int  FindPattern(bool p_activate,CString& p_log,CString& p_errors,UINT& p_error);
   int  ActivateWindow(HWND p_hwnd, CString& p_log,CString& p_errors,UINT& p_error);
@@ -94,12 +95,12 @@ private:
   int ActionSendString    (CString& p_log,CString& p_errors,UINT& p_error);
   int ActionMouseClick    (CString& p_log,CString& p_errors,UINT& p_error);
   int ActionMouseDblClick (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionMouseRClick   (CString& p_log,CString& p_errors,UINT& p_error);
 
   // Sending a keyboard character and mouse info
-  int SendInputMouseClick(int x,int y);
   int SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error);
   int SendString   (CString str,CString& p_log,CString& p_errors,UINT& p_error);
-  int SendMouseClick(bool p_dbl,CString& p_log,CString& p_errors,UINT& p_error);
+  int SendMouseClick(bool p_dbl,bool p_left,CString& p_log,CString& p_errors,UINT& p_error);
   
   WinUIAction m_action;       // Action to perform
   CString     m_pattern;      // Name pattern to find MS-Window

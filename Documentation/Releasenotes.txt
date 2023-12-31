@@ -68,9 +68,39 @@ Version 1.1.2 Release date 19-03-2023
 -------------------------------------
 1)  Updated to the latest versions of BaseLibrary and SQLComponents
 
-Version 1.2.3 Release data 05-11-2023
+Version 1.2.3 Release date 05-11-2023
 -------------------------------------
 1)  The GO button of the internet step dialog now as a green/red color when waiting/running.
 2)  For an internet step, the four HTTP timeouts are added to the timeout tab
 3)  On the formatted response tab, the output has been altered for XML and JSON messages
     for a tab to be replaced with two spaces, so as to save space in the horizontal directionl
+
+Version 1.4.0 Release date 31-12-2023
+-------------------------------------
+1)  This version features the new Windows UI testing (full documentation still to follow
+2)  Windows strings feature {CTRL}{ALT}{SHIFT}{ENTER} en all other virtual key sequences
+3)  Window search pattern includes the following
+    -  *name*         -> Name is part of the window title
+    -  *name          -> Window title ends on this name
+    -  name*          -> Window title starts with this name
+    -  *              -> All sub windows are searched
+    -  {EDIT}         -> Part of a windows class name. e.g. "Scintilla" in Notepad++
+    - {n}             -> Where n is a control ID number in a dialog (sub window)
+    - /               -> Continuation of the search path
+    Example:
+    "*Notepad/*/{RichEdit}" works in Notepad: title of the main windows ends on 'Notepad'
+    all subsequent sub windows are searched, the first sub-window below that has the string
+    '{RichEdit}' as  class name will be selected for the next action.
+4) Actions include:
+   - Start            -> Starting a new program (with arguments)
+   - Close            -> Closing a window by way of sending the "WM_CLOSE" message
+   - CaretPos         -> Setting the caret position in an EDIT window
+   - Click            -> Sending a left  mouse button click to (x,y)
+   - Right click      -> Sending a right mouse button click to (x,y)
+   - Double click     -> Sending a left  mouse double click to (x,y)
+   - Char             -> Sending 1 (one) virtual key stroke
+   - String           -> Sending a full string of key strokes
+   - Present          -> Waiting until a window appears (count, waittime)
+   - Active           -> (Re)Activate a top level window
+   - Focus            -> Setting the keyboard focus to a (sub) window
+   - TextArea         -> Capturing a text area into the log (for checking purposes)

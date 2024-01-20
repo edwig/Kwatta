@@ -503,6 +503,7 @@ StepInternetDlg::SetFirstTab()
 void
 StepInternetDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }
@@ -545,6 +546,7 @@ StepInternetDlg::OnEnChangeUrl()
 void 
 StepInternetDlg::OnBnClickedUrlParm()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,&m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {

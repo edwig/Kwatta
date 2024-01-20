@@ -130,41 +130,43 @@ DatabaseDlg::OnEnChangeDatasource()
 void 
 DatabaseDlg::OnBnClickedButDatasource()
 {
-	SearchVarDlg dlg(this,m_parameters,true,true,true,true);
-	if (dlg.DoModal() == IDOK || dlg.GetSaved())
-	{
-		CString variable = dlg.GetVariable();
-		m_editDatasource.InsertAtCurPos(variable,0);
-		UpdateData();
-		EffectiveParameters();
-	}
+  AutoFocus focus;
+  SearchVarDlg dlg(this,m_parameters,true,true,true,true);
+  if (dlg.DoModal() == IDOK || dlg.GetSaved())
+  {
+    CString variable = dlg.GetVariable();
+    m_editDatasource.InsertAtCurPos(variable,0);
+    UpdateData();
+    EffectiveParameters();
+  }
 }
 
 
 void 
 DatabaseDlg::OnEnChangeEffDatasource()
 {
-	UpdateData();
+  UpdateData();
 }
 
 void 
 DatabaseDlg::OnEnChangeUser()
 {
-	UpdateData();
+  UpdateData();
   EffectiveParameters();
 }
 
 void 
 DatabaseDlg::OnBnClickedButUser()
 {
-	SearchVarDlg dlg(this,m_parameters,true,true,true,true);
-	if (dlg.DoModal() == IDOK || dlg.GetSaved())
-	{
-		CString variable = dlg.GetVariable();
-		m_editUser.InsertAtCurPos(variable,0);
-		UpdateData();
-		EffectiveParameters();
-	}
+  AutoFocus focus;
+  SearchVarDlg dlg(this,m_parameters,true,true,true,true);
+  if (dlg.DoModal() == IDOK || dlg.GetSaved())
+  {
+    CString variable = dlg.GetVariable();
+    m_editUser.InsertAtCurPos(variable,0);
+    UpdateData();
+    EffectiveParameters();
+  }
 }
 
 void 
@@ -183,18 +185,19 @@ DatabaseDlg::OnEnChangePassword()
 void 
 DatabaseDlg::OnBnClickedButPassword()
 {
-	SearchVarDlg dlg(this,m_parameters,true,true,true,true);
-	if (dlg.DoModal() == IDOK || dlg.GetSaved())
-	{
-		CString variable = dlg.GetVariable();
-		m_editPassword.InsertAtCurPos(variable,0);
-		UpdateData();
-		EffectiveParameters();
-	}
+  AutoFocus focus;
+  SearchVarDlg dlg(this,m_parameters,true,true,true,true);
+  if (dlg.DoModal() == IDOK || dlg.GetSaved())
+  {
+    CString variable = dlg.GetVariable();
+    m_editPassword.InsertAtCurPos(variable,0);
+    UpdateData();
+    EffectiveParameters();
+   }
 }
 
 void 
 DatabaseDlg::OnEnChangeEffPassword()
 {
-	UpdateData();
+  UpdateData();
 }

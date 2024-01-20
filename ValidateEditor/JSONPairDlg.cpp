@@ -246,6 +246,7 @@ JSONPairDlg::OnEnKillfocusJSON()
 void 
 JSONPairDlg::OnBnClickedNewvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -277,6 +278,7 @@ JSONPairDlg::OnCbnSelchangeJsonVariable()
 void 
 JSONPairDlg::OnBnClickedJsonParm()
 {
+  AutoFocus focus;
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if (dlg.DoModal() == IDOK)
   {

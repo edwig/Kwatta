@@ -167,7 +167,8 @@ ResultWindowsDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
 	{
-		AboutDlg dlgAbout;
+    AutoFocus focus;
+    AboutDlg dlgAbout;
 		dlgAbout.DoModal();
 	}
 	else
@@ -216,6 +217,7 @@ HCURSOR ResultWindowsDlg::OnQueryDragIcon()
 void
 ResultWindowsDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }

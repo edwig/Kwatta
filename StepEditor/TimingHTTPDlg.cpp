@@ -220,6 +220,7 @@ TimingHTTPDlg::OnEnChangeTimeout()
 void 
 TimingHTTPDlg::OnBnClickedBefore()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -233,6 +234,7 @@ TimingHTTPDlg::OnBnClickedBefore()
 void 
 TimingHTTPDlg::OnBnClickedExec()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -246,6 +248,7 @@ TimingHTTPDlg::OnBnClickedExec()
 void 
 TimingHTTPDlg::OnBnClickedAfter()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {

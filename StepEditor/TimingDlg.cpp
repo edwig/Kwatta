@@ -195,6 +195,7 @@ TimingDlg::OnEnChangeTimeout()
 void 
 TimingDlg::OnBnClickedBefore()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -208,6 +209,7 @@ TimingDlg::OnBnClickedBefore()
 void 
 TimingDlg::OnBnClickedExec()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -221,6 +223,7 @@ TimingDlg::OnBnClickedExec()
 void 
 TimingDlg::OnBnClickedAfter()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {

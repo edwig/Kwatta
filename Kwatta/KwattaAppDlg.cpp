@@ -562,6 +562,7 @@ KwattaAppDlg::OnSysCommand(UINT nID,LPARAM lParam)
 void
 KwattaAppDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }
@@ -584,6 +585,7 @@ KwattaAppDlg::OnBnClickedButChoose()
                    ,m_testsuite
                    ,0
                    ,"Kwatta test suite *.xtest|*.xtest|All files|*.*");
+  AutoFocus focus;
   if(dlg.DoModal() == IDOK)
   {
     CString path = dlg.GetChosenFile();
@@ -609,6 +611,7 @@ KwattaAppDlg::OnEnChangeDescription()
 void 
 KwattaAppDlg::OnBnClickedButSuite()
 {
+  AutoFocus focus;
   LoadParameters();
   SystemDlg dlg(this,m_parameters);
   dlg.DoModal();
@@ -617,6 +620,7 @@ KwattaAppDlg::OnBnClickedButSuite()
 
 void KwattaAppDlg::OnBnClickedButParam()
 {
+  AutoFocus focus;
   LoadParameters();
   SearchVarDlg dlg(this,m_parameters,true,false,false,false,false);
   dlg.DoModal();
@@ -630,6 +634,7 @@ void KwattaAppDlg::OnBnClickedButParam()
 void 
 KwattaAppDlg::OnBnClickedButProc()
 {
+  AutoFocus focus;
   ProceduresDlg dlg(this,theApp.GetBaseDirectory());
   dlg.DoModal();
 
@@ -724,6 +729,7 @@ KwattaAppDlg::OnBnClickedButEdit()
 void 
 KwattaAppDlg::OnBnClickedButNew()
 {
+  AutoFocus focus;
   NewTestDlg dlg(this);
   if(dlg.DoModal() != IDOK)
   {
@@ -892,6 +898,7 @@ KwattaAppDlg::OnBnClickedButDN()
 void 
 KwattaAppDlg::OnBnClickedButMutate()
 {
+  AutoFocus focus;
   CCellID cell = m_list.GetFocusCell();
   CString testname = m_list.GetItemText(cell.row,2 /*NAME*/);
 

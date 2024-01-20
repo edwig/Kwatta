@@ -316,6 +316,7 @@ AuthenticateDlg::PresetBasicAuthentication()
 void
 AuthenticateDlg::ChooseVariable(StyleEdit& p_edit)
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {

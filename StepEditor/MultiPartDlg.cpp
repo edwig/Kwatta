@@ -234,6 +234,7 @@ MultiPartDlg::OnBnClickedMulti()
   content += "; boundary=";
   content += m_boundary;
 
+  AutoFocus focus;
   FormDataDlg dlg(this,m_data,content);
   dlg.DoModal();
 
@@ -264,6 +265,7 @@ MultiPartDlg::OnEnChangeFullfile()
 
 void MultiPartDlg::OnBnClickedButtFile()
 {
+  AutoFocus focus;
   DocFileDialog dlg(GetSafeHwnd(),true,"Select a file for a MultiPart","",m_LongFilename);
   if(dlg.DoModal())
   {

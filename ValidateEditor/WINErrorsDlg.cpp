@@ -169,6 +169,7 @@ WINErrorsDlg::OnCbnSelchangeOperator()
 void
 WINErrorsDlg::OnBnClickedSearchvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,false);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {

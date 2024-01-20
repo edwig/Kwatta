@@ -274,6 +274,7 @@ StarterDlg::OnSysCommand(UINT nID, LPARAM lParam)
 void 
 StarterDlg::OnBnClickedSearch()
 {
+  AutoFocus focus;
   DocFileDialog dlg(GetSafeHwnd()
                    ,true
                    ,"Choose a Kwatta test suite"
@@ -296,6 +297,7 @@ StarterDlg::OnBnClickedNew()
 {
   NewSuiteDlg suite(this);
 
+  AutoFocus focus;
   if(suite.DoModal() == IDOK)
   {
     m_chosenSuite = suite.GetNewTestsuiteFile();

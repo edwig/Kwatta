@@ -119,7 +119,9 @@
     <ClInclude Include="CombiEditorDlg.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="MutateDlg.h" />
-    <ClInclude Include="NewStepDlg.h" />
+    <ClInclude Include="NewStepNamesDlg.h" />
+    <ClInclude Include="NewStepTypeDlg.h" />
+    <ClInclude Include="NewStepValiDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -129,7 +131,9 @@
   <ItemGroup>
     <ClCompile Include="CombiEditorDlg.cpp" />
     <ClCompile Include="MutateDlg.cpp" />
-    <ClCompile Include="NewStepDlg.cpp" />
+    <ClCompile Include="NewStepNamesDlg.cpp" />
+    <ClCompile Include="NewStepTypeDlg.cpp" />
+    <ClCompile Include="NewStepValiDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
@@ -158,8 +162,10 @@
     <Image Include="res\ERROR.bmp" />
     <Image Include="res\global.bmp" />
     <Image Include="res\icon1.ico" />
+    <Image Include="res\icon2.ico" />
     <Image Include="res\Kopieren.ico" />
     <Image Include="res\Mutate.ico" />
+    <Image Include="res\mval.ico" />
     <Image Include="res\new.ico" />
     <Image Include="res\OK.bmp" />
     <Image Include="res\remove.ico" />

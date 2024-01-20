@@ -284,6 +284,7 @@ ValidateWindowsDlg::SaveValidate()
 void
 ValidateWindowsDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlg(this);
   dlg.DoModal();
 }
@@ -293,7 +294,8 @@ ValidateWindowsDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
 	if ((nID & 0xFFF0) == IDM_ABOUTBOX)
 	{
-		AboutDlg dlgAbout;
+    AutoFocus focus;
+    AboutDlg dlgAbout;
 		dlgAbout.DoModal();
 	}
 	else

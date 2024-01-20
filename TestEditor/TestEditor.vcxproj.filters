@@ -30,9 +30,6 @@
     <ClInclude Include="CombiEditorDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NewStepDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MutateDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -44,6 +41,15 @@
     </ClInclude>
     <ClInclude Include="framework.h">
       <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="NewStepTypeDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NewStepNamesDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NewStepValiDlg.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -59,10 +65,16 @@
     <ClCompile Include="CombiEditorDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="NewStepDlg.cpp">
+    <ClCompile Include="MutateDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MutateDlg.cpp">
+    <ClCompile Include="NewStepTypeDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NewStepNamesDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NewStepValiDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -126,6 +138,12 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\Earth.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\mval.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon2.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

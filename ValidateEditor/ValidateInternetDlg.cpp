@@ -316,6 +316,7 @@ ValidateInternetDlg::SetFirstUsedTab()
 void
 ValidateInternetDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }

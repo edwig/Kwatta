@@ -226,6 +226,7 @@ StatusDlg::OnEnKillfocusStatus()
 void 
 StatusDlg::OnBnClickedNewvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,false);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -257,6 +258,7 @@ StatusDlg::OnCbnSelchangeStatusVar()
 void 
 StatusDlg::OnBnClickedStatusVar()
 {
+  AutoFocus focus;
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {

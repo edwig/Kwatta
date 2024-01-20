@@ -371,6 +371,7 @@ StepWindowsDlg::StoreVariables()
 void
 StepWindowsDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }

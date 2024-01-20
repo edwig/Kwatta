@@ -243,6 +243,7 @@ XMLNodeDlg::OnEnKillfocusXML()
 void 
 XMLNodeDlg::OnBnClickedNewvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -274,6 +275,7 @@ XMLNodeDlg::OnCbnSelchangeXmlVariable()
 void 
 XMLNodeDlg::OnBnClickedXmlParm()
 {
+  AutoFocus focus;
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {

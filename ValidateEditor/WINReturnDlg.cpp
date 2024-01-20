@@ -186,6 +186,7 @@ WINReturnDlg::OnEnKillfocusReturn()
 void 
 WINReturnDlg::OnBnClickedNewvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,false);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {

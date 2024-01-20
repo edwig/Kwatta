@@ -11,83 +11,61 @@
 // 
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: TestEditor
-// This File   : NewStepDlg.h
-// What it does: Defining a new test step in the set
+// This File   : NewStepNamesDlg.h
+// What it does: Defining the third step of the new teststep wizard
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
 // 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include "afxdialogex.h"
 
-// NewStepDlg dialog
 
-class NewStepDlg : public StyleDialog
+// NewStepValiDlg dialog
+
+class NewStepValiDlg : public StyleTab
 {
-  DECLARE_DYNAMIC(NewStepDlg)
+	DECLARE_DYNAMIC(NewStepValiDlg)
 
 public:
-  NewStepDlg(CWnd* pParent = nullptr,bool p_valiOnly = false);
-  virtual ~NewStepDlg();
+	NewStepValiDlg(CWnd* pParent = nullptr);
+	virtual ~NewStepValiDlg();
 
-  StepType GetType()        { return m_stepType;       }
-  CString  GetName()        { return m_stepName;   }
-  CString  GetFilename()    { return m_stepFile;   }
-  bool     GetStepGlobal()  { return m_stepGlobal; }
+  virtual bool InitStyleTab (void* p_data) override;
+  virtual bool CheckStyleTab(void* p_data) override;
+  virtual bool SaveStyleTab (void* p_data) override;
 
-
-  StepType GetValiType()    { return m_valiType;   }
-  CString  GetValiName()    { return m_valiName;   }
-  CString  GetValiFile()    { return m_valiFile;   }
-  bool     GetValiGlobal()  { return m_valiGlobal; }
+  bool         GetValiGlobal()  { return m_valiGlobal;  }
+  CString      GetValiName()    { return m_valiName;    }
+  CString      GetValiFile()    { return m_valiFile;    }
 
   // Dialog Data
-  enum { IDD = IDD_NEW_STEP };
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_NEWSTEP_VALI };
+#endif
 
 protected:
   virtual void DoDataExchange(CDataExchange* pDX) override;
-  virtual BOOL OnInitDialog() override;
+  virtual void SetupDynamicLayout() override;
 
   CString StripExtension(CString p_filename);
-  void    CheckFilename();
+  void    ResetPage();
   void    CheckValiFile();
   void    PresetFilenames();
 
-  StyleComboBox  m_comboType;
-  StyleButton    m_buttonStepGlobal;
-  StyleEdit      m_editName;
-  StyleEdit      m_editFilename;
-
-  StyleComboBox  m_comboVali;
-  StyleButton    m_buttonValiGlobal;
-  StyleEdit      m_editVali;
-  StyleEdit      m_editValiFile;
-
-  StyleButton    m_buttonOK;
-  StyleButton    m_buttonCancel;
-
-  StepType       m_stepType;
-  CString        m_stepName;
-  CString        m_stepFile;
-  bool           m_stepGlobal { false };
-
-  bool           m_valiOnly;
-  StepType       m_valiType;
-  CString        m_valiName;
-  CString        m_valiFile;
-  bool           m_valiGlobal { false };
+  StepType     m_stepType { StepType::Step_command };
+  StyleButton  m_buttonValiGlobal;
+  StyleEdit    m_editName;
+  StyleEdit    m_editFile;
+  
+  CString      m_valiName;
+  CString      m_valiFile;
+  bool         m_valiGlobal { false };
 
   DECLARE_MESSAGE_MAP()
-public:
-  afx_msg void OnCbnSelchangeTestType();
-  afx_msg void OnBnClickedStepGlobal();
-  afx_msg void OnEnChangeName();
-  afx_msg void OnEnChangeFilename();
 
-  afx_msg void OnCbnSelchangeValiType();
   afx_msg void OnBnClickedValiGlobal();
   afx_msg void OnEnChangeValiName();
   afx_msg void OnEnChangeValiFile();
-
-  afx_msg void OnBnClickedOK();
 };

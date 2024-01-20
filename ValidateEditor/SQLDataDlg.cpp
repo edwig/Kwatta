@@ -298,6 +298,7 @@ SQLDataDlg::OnBnClickedParm()
     CGridCellBase* cell = m_list.GetCell(row,1);
     if(cell)
     {
+      AutoFocus focus;
       SearchVarDlg dlg(this,m_parameters,true,true,true,true);
       if(dlg.DoModal() == IDOK || dlg.GetSaved())
       {
@@ -383,6 +384,7 @@ SQLDataDlg::OnCbnSelchangeDataVariable()
 void
 SQLDataDlg::OnBnClickedNewvar()
 {
+  AutoFocus focus;
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if (dlg.DoModal() == IDOK)
   {

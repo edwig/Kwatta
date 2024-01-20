@@ -171,6 +171,7 @@ WINLoggingDlg::OnCbnSelchangeOperator()
 void 
 WINLoggingDlg::OnBnClickedSearchvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {

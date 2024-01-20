@@ -21,7 +21,7 @@
 #include "stdafx.h"
 #include "TestEditor.h"
 #include "CombiEditorDlg.h"
-#include "NewStepDlg.h"
+#include "NewStepValiDlg.h"
 #include "TestEditorDlg.h"
 #include "MutateDlg.h" 
 #include "afxdialogex.h"
@@ -228,30 +228,31 @@ CombiEditorDlg::OnGridDblClick(NMHDR* pNMHDR, LRESULT* pResult)
 void 
 CombiEditorDlg::OnBnClickedAddValidation()
 {
-  NewStepDlg dlg(this,true);
-  if (dlg.DoModal() == IDOK)
-  {
-    CString  valiName   = dlg.GetValiName();
-    CString  valiFile   = dlg.GetValiFile();
-    StepType valiType   = dlg.GetValiType();
-    bool     valiGlobal = dlg.GetValiGlobal();
-
-    TestEditorDlg* editor = reinterpret_cast<TestEditorDlg*>(GetParent());
-    if(editor)
-    {
-      editor->MakeNewVali(valiType,valiGlobal,valiName,valiFile,m_row);
-
-      CString num;
-      int number = m_grid.GetRowCount();
-      num.Format("Number %d",number);
-
-      int row = m_grid.InsertRow(num);
-      SetTextImage(row,1,"",valiGlobal ? 2 : 3);
-      m_grid.GetCell(row,2)->SetText(valiName);
-      m_grid.GetCell(row,3)->SetText(valiFile);
-      m_grid.Refresh();
-    }
-  }
+  AutoFocus focus;
+//   NewStepDlg dlg(this,true);
+//   if (dlg.DoModal() == IDOK)
+//   {
+//     CString  valiName   = dlg.GetValiName();
+//     CString  valiFile   = dlg.GetValiFile();
+//     StepType valiType   = dlg.GetValiType();
+//     bool     valiGlobal = dlg.GetValiGlobal();
+// 
+//     TestEditorDlg* editor = reinterpret_cast<TestEditorDlg*>(GetParent());
+//     if(editor)
+//     {
+//       editor->MakeNewVali(valiType,valiGlobal,valiName,valiFile,m_row);
+// 
+//       CString num;
+//       int number = m_grid.GetRowCount();
+//       num.Format("Number %d",number);
+// 
+//       int row = m_grid.InsertRow(num);
+//       SetTextImage(row,1,"",valiGlobal ? 2 : 3);
+//       m_grid.GetCell(row,2)->SetText(valiName);
+//       m_grid.GetCell(row,3)->SetText(valiFile);
+//       m_grid.Refresh();
+//     }
+//   }
 }
 
 void 
@@ -317,6 +318,7 @@ CombiEditorDlg::OnBnClickedMutValidation()
         {
           CString filename = it->m_filename;
 
+          AutoFocus focus;
           MutateDlg dlg(this, "validation", filename);
           dlg.DoModal();
 

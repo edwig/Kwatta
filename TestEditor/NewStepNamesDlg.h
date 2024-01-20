@@ -10,9 +10,9 @@
 // 
 // 
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
-// This program: SuiteLibrary
-// This File   : SuiteLibrary.h
-// What it does: Auto linking to the internal library
+// This program: TestEditor
+// This File   : NewStepNamesDlg.h
+// What it does: Defining the second step of the new teststep wizard
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
 // 
@@ -20,37 +20,50 @@
 
 #pragma once
 
-#define KWATTA_VERSION_MAJOR  1
-#define KWATTA_VERSION_MINOR  3
-#define KWATTA_VERSION_SP     0
-#define KWATTA_VERSION_BUILD  252
+// NewStepNamesDlg dialog
 
-#define KWATTA                "Kwatta"
-#define KWATTA_VERSION        "1.3.0"
-#define KWATTA_YEAR           "2024"
+class NewStepNamesDlg : public StyleTab
+{
+	DECLARE_DYNAMIC(NewStepNamesDlg)
 
-// Used for environment variables
-#define KWATTA_PASSWORD       "KWATTA_PASSWORD"
-#define KWATTA_ENCRYPT        "Kw@77@P@r@m@r1b0$ur1n@m3"
+public:
+	NewStepNamesDlg(CWnd* pParent = nullptr);   // standard constructor
+	virtual ~NewStepNamesDlg();
 
-// Used for global objects
-#define GLOBAL_COLOR          RGB(200,191,231)
+  virtual bool InitStyleTab (void* p_data) override;
+  virtual bool CheckStyleTab(void* p_data) override;
+  virtual bool SaveStyleTab (void* p_data) override;
 
-// Selecting the right library to link with automatically
-// So we do not need to worry about which library to use in the linker settings
-#if defined _M_IX86
-#define KWATTA_PLATFORM "x86"
-#else
-#define KWATTA_PLATFORM "x64"
+  bool         GetStepGlobal()  { return m_stepGlobal;  }
+  CString      GetStepName()    { return m_stepName;    }
+  CString      GetStepFile()    { return m_stepFile;    }
+
+  // Dialog Data
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_NEWSTEP_NAMES };
 #endif
 
-#if defined _DEBUG
-#define KWATTA_CONFIGURATION "D"
-#else
-#define KWATTA_CONFIGURATION "R"
-#endif 
+protected:
+  virtual void DoDataExchange(CDataExchange* pDX) override;
+  virtual void SetupDynamicLayout() override;
 
-#ifndef KWATTA_NOAUTOLINK
-#pragma comment(lib,"SuiteLibrary_"                        KWATTA_PLATFORM KWATTA_CONFIGURATION ".lib")
-#pragma message("Automatically linking with SuiteLibrary_" KWATTA_PLATFORM KWATTA_CONFIGURATION ".lib")
-#endif 
+  CString StripExtension(CString p_filename);
+  void    PresetFilenames();
+  void    CheckFilename();
+  void    ResetPage();
+
+  StepType     m_stepType { StepType::Step_command };
+  StyleButton  m_buttonStepGlobal;
+  StyleEdit    m_editName;
+  StyleEdit    m_editFile;
+
+  CString      m_stepName;
+  CString      m_stepFile;
+  bool         m_stepGlobal{false};
+  
+  DECLARE_MESSAGE_MAP()
+
+  afx_msg void OnBnClickedStepGlobal();
+  afx_msg void OnEnChangeName();
+  afx_msg void OnEnChangeFilename();
+};

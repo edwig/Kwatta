@@ -55,6 +55,8 @@ StyleTab::OnInitDialog()
 {
   CDialog::OnInitDialog();
   OnStyleChanged(0,0);
+
+  ASSERT(GetStyle() & WS_CHILD);
   return TRUE;
 }
 
@@ -94,6 +96,27 @@ StyleTab::SetupDynamicLayout()
     manager->Create(this);
     LoadDynamicLayoutResource(m_lpszTemplateName);
   }
+}
+
+bool
+StyleTab::InitStyleTab(void* /*p_data*/)
+{
+  // Does nothing: Implement your own!
+  return true;
+}
+
+bool
+StyleTab::CheckStyleTab(void* /*p_data*/)
+{
+  // Does nothing: Implement your own!
+  return true;
+}
+
+bool
+StyleTab::SaveStyleTab(void* /*p_data*/)
+{
+  // Does nothing: Implement your own!
+  return true;
 }
 
 void 

@@ -215,6 +215,7 @@ SystemDlg::OnEnKillfocusLogfile()
 void 
 SystemDlg::OnBnClickedLogfile()
 {
+  AutoFocus focus;
   DocFileDialog dlg(GetSafeHwnd(),false,"Choose a logfile for HTTP actions","txt","",0,"Logfiles *.txt|*.txt|All files *.*|*.*");
   if(dlg.DoModal())
   {

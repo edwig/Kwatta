@@ -246,6 +246,7 @@ HeaderDlg::OnEnKillfocusHeader()
 void 
 HeaderDlg::OnBnClickedNewvar()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -277,6 +278,7 @@ HeaderDlg::OnCbnSelHeaderVariable()
 void 
 HeaderDlg::OnBnClickedHeaderParm()
 {
+  AutoFocus focus;
   NewVariableDlg dlg(ParType::PAR_RETURN,m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {

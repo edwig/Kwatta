@@ -247,6 +247,7 @@ HCURSOR ResultDatabaseDlg::OnQueryDragIcon()
 void
 ResultDatabaseDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }

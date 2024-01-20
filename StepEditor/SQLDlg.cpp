@@ -134,6 +134,7 @@ SQLDlg::StoreVariables()
 void
 SQLDlg::OnBnClickedParam()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {

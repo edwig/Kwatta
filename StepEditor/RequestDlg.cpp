@@ -313,6 +313,7 @@ RequestDlg::OnBnClickedCheck()
 void 
 RequestDlg::OnBnClickedParam()
 {
+  AutoFocus focus;
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
@@ -332,6 +333,7 @@ RequestDlg::OnBnClickedMulti()
     content = m_mimeType;
   }
 
+  AutoFocus focus;
   FormDataDlg dlg(this,m_payload,content);
   dlg.DoModal();
 
@@ -384,6 +386,7 @@ RequestDlg::OnBnClickedChooseFile()
   filter += "|DOCX MS-Word documents *.docx|*.docx";
   filter += "|RTF Richt Text Format *.rtf|*.rtf";
 
+  AutoFocus focus;
   DocFileDialog doc(GetSafeHwnd(),true,"Choose file to input as body","",m_inputFile,0,filter);
   if(doc.DoModal() == IDOK)
   {
@@ -425,6 +428,7 @@ RequestDlg::OnBnClickedOutputFile()
   filter += "|DOCX MS-Word documents *.docx|*.docx";
   filter += "|RTF Richt Text Format *.rtf|*.rtf";
 
+  AutoFocus focus;
   DocFileDialog doc(GetSafeHwnd(),false,"Choose file to output the body to","",m_outputFile,0,filter);
   if(doc.DoModal() == IDOK)
   {

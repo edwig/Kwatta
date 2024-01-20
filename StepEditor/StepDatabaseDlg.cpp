@@ -399,6 +399,7 @@ StepDatabaseDlg::StoreVariables()
 void
 StepDatabaseDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }

@@ -251,6 +251,7 @@ HCURSOR ResultInternetDlg::OnQueryDragIcon()
 void
 ResultInternetDlg::OnAbout()
 {
+  AutoFocus focus;
   AboutDlg dlgAbout(this);
   dlgAbout.DoModal();
 }

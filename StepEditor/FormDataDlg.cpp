@@ -267,6 +267,7 @@ FormDataDlg::OnBnClickedNew()
   int row = m_grid.GetRowCount();
   FillRow(part,row);
 
+  AutoFocus focus;
   MultiPartDlg dlg(this, part);
   if(dlg.DoModal() == IDOK)
   {
@@ -312,6 +313,7 @@ void FormDataDlg::OnBnClickedEdit()
     MultiPart* part = m_buffer.GetPart(cell.row - 1);
     if(part)
     {
+      AutoFocus focus;
       MultiPartDlg dlg(this,part);
       if(dlg.DoModal() == IDOK)
       {

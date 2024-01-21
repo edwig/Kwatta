@@ -21,10 +21,12 @@
 #include "stdafx.h"
 #include "TestEditor.h"
 #include "CombiEditorDlg.h"
+#include "NewStepTypeDlg.h"
 #include "NewStepValiDlg.h"
 #include "TestEditorDlg.h"
 #include "MutateDlg.h" 
-#include "afxdialogex.h"
+#include <Validate.h>
+
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -139,6 +141,11 @@ CombiEditorDlg::FillGrid()
       SetTextImage(row,1,"",val.m_global ? 2 : 3);
       m_grid.GetCell(row,2)->SetText(val.m_name);
       m_grid.GetCell(row,3)->SetText(val.m_filename);
+
+      if(m_stepType == StepType::Step_unknown)
+      {
+        m_stepType = Validate::FindStepTypeFromFile(val.m_filename);
+      }
     }
   }
 }
@@ -229,30 +236,44 @@ void
 CombiEditorDlg::OnBnClickedAddValidation()
 {
   AutoFocus focus;
-//   NewStepDlg dlg(this,true);
-//   if (dlg.DoModal() == IDOK)
-//   {
-//     CString  valiName   = dlg.GetValiName();
-//     CString  valiFile   = dlg.GetValiFile();
-//     StepType valiType   = dlg.GetValiType();
-//     bool     valiGlobal = dlg.GetValiGlobal();
-// 
-//     TestEditorDlg* editor = reinterpret_cast<TestEditorDlg*>(GetParent());
-//     if(editor)
-//     {
-//       editor->MakeNewVali(valiType,valiGlobal,valiName,valiFile,m_row);
-// 
-//       CString num;
-//       int number = m_grid.GetRowCount();
-//       num.Format("Number %d",number);
-// 
-//       int row = m_grid.InsertRow(num);
-//       SetTextImage(row,1,"",valiGlobal ? 2 : 3);
-//       m_grid.GetCell(row,2)->SetText(valiName);
-//       m_grid.GetCell(row,3)->SetText(valiFile);
-//       m_grid.Refresh();
-//     }
-//   }
+
+  StepType type = m_stepType;
+  StyleStepper wizard(this,IDD_STEPPER,"New validation");
+  wizard.SetStepperData(&type);
+
+  // Optionally add first page
+  NewStepTypeDlg page1;
+  if(type == StepType::Step_unknown)
+  {
+    wizard.AddPage(&page1,IDD_NEWSTEP_TYPE);
+  }
+  // Then only add the last page (validation)
+  NewStepValiDlg page3(&wizard);
+  wizard.AddPage(&page3,IDD_NEWSTEP_VALI);
+
+  if(wizard.DoModal() == IDOK)
+  {
+    TestEditorDlg* editor = reinterpret_cast<TestEditorDlg*>(GetParent());
+    if(editor)
+    {
+      editor->MakeNewVali(type,page3.GetValiGlobal(),page3.GetValiName(),page3.GetValiFile(),m_row);
+
+      CString num;
+      int number = m_grid.GetRowCount();
+      num.Format("Number %d",number);
+
+      int row = m_grid.InsertRow(num);
+      SetTextImage(row,1,"",page3.GetValiGlobal() ? 2 : 3);
+      m_grid.GetCell(row,2)->SetText(page3.GetValiName());
+      m_grid.GetCell(row,3)->SetText(page3.GetValiFile());
+      m_grid.Refresh();
+    }
+  }
+  if(m_stepType == StepType::Step_unknown)
+  {
+    // Now all validations are of this type!!!
+    m_stepType = type;
+  }
 }
 
 void 

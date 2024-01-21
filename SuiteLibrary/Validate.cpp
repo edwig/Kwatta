@@ -21,12 +21,13 @@
 #include "stdafx.h"
 #include "Validate.h"
 #include "Parameters.h"
-#include "StdException.h"
 #include "ExtraExtensions.h"
 #include "ValidateCMD.h"
 #include "ValidateNET.h"
 #include "ValidateSQL.h"
 #include "ValidateWIN.h"
+#include "TestStep.h"
+#include <StdException.h>
 #include <vector>
 #include <io.h>
 
@@ -38,10 +39,9 @@ static char THIS_FILE[] = __FILE__;
 
 Validate* ReadValidate(CString p_filename)
 {
-  WinFile file(p_filename);
-  CString extension = file.GetFilenamePartExtension();
+  StepType type = Validate::FindStepTypeFromFile(p_filename);
 
-  if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
+  if(type == StepType::Step_command)
   {
     ValidateCMD* validate = new ValidateCMD();
     try
@@ -55,7 +55,7 @@ Validate* ReadValidate(CString p_filename)
     }
     return validate;
   }
-  if(extension.CompareNoCase(EXTENSION_VALIDATE_NET) == 0)
+  if(type == StepType::Step_http)
   {
     ValidateNET* validate = new ValidateNET();
     try
@@ -69,7 +69,7 @@ Validate* ReadValidate(CString p_filename)
     }
     return validate;
   }
-  if(extension.CompareNoCase(EXTENSION_VALIDATE_SQL) == 0)
+  if(type == StepType::Step_sql)
   {
     ValidateSQL* validate = new ValidateSQL();
     try
@@ -83,7 +83,7 @@ Validate* ReadValidate(CString p_filename)
     }
     return validate;
   }
-  if(extension.CompareNoCase(EXTENSION_VALIDATE_WIN) == 0)
+  if(type == StepType::Step_win)
   {
     ValidateWIN* validate = new ValidateWIN();
     try
@@ -98,6 +98,31 @@ Validate* ReadValidate(CString p_filename)
     return validate;
   }
   return nullptr;
+}
+
+/*static*/ StepType
+Validate::FindStepTypeFromFile(CString p_filename)
+{
+  WinFile file(p_filename);
+  CString extension = file.GetFilenamePartExtension();
+
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
+  {
+    return StepType::Step_command;
+  }
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_NET) == 0)
+  {
+    return StepType::Step_http;
+  }
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_SQL) == 0)
+  {
+    return StepType::Step_sql;
+  }
+  if(extension.CompareNoCase(EXTENSION_VALIDATE_WIN) == 0)
+  {
+    return StepType::Step_win;
+  }
+  return StepType::Step_unknown;
 }
 
 // Interface with the file system

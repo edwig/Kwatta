@@ -66,6 +66,8 @@ enum class ValidateType
   ,Validate_win
 };
 
+enum class StepType;
+
 class Validate
 {
 public:
@@ -91,6 +93,9 @@ public:
   virtual void    SetDocumentation(CString p_doc) { m_documentation = p_doc;    }
   virtual void    SetFilename(CString p_file)     { m_filename      = p_file;   }
   virtual void    SetGlobal(bool p_global)        { m_global        = p_global; }
+
+  // Various
+  static StepType FindStepTypeFromFile(CString p_filename);
 
 protected:
   // Interface with the file system

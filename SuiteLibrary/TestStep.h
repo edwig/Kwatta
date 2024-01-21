@@ -28,7 +28,8 @@ class XMLElement;
 
 enum class StepType
 {
-  Step_command
+  Step_unknown  = -1
+ ,Step_command  =  0
  ,Step_http
  ,Step_sql
  ,Step_win

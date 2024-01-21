@@ -49,6 +49,7 @@ protected:
   CString       m_name;
   CString       m_documentation;
   CString       m_stepName;
+  StepType      m_stepType { StepType::Step_unknown };
 
   TestSet&      m_testSet;
 

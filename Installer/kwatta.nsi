@@ -7,10 +7,10 @@
 ; All rights reserved
 ;
 ; Last change:       10-02-2024
-; Versionnumber:     1.4.0
+; Versionnumber:     1.3.1
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.4.0"
+ !define PRODUCT_VERSION                      "1.3.1"
  !define PRODUCT_BUILDNUMBER                  "254"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"

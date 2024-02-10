@@ -1,7 +1,16 @@
 KWATTA RELEASENOTES
 ===================
 
-Version 1.4.0 Release date 10-02-2024
+Version 1.3.1 Release date 02-01-2024
+-------------------------------------
+1) Added the 'Mustard' theme color
+2) Changed the creation of a teststep to a 3 steps wizard
+   - Page 1: Choose the test method (Posix, Internet, Database, Windows-UI)
+   - Page 2: Choose the test name and file
+   - Page 3: Choose the first validation name and file
+
+
+Version 1.3.0 Release date 02-01-2024
 -------------------------------------
 1)  This version features the new Windows UI testing (full documentation still to follow
 2)  Windows strings feature {CTRL}{ALT}{SHIFT}{ENTER} en all other virtual key sequences
@@ -30,11 +39,6 @@ Version 1.4.0 Release date 10-02-2024
    - Active           -> (Re)Activate a top level window
    - Focus            -> Setting the keyboard focus to a (sub) window
    - TextArea         -> Capturing a text area into the log (for checking purposes)
-5) Added the 'Mustard' theme color
-6) Changed the creation of a teststep to a 3 steps wizard
-   - Page 1: Choose the test method (Posix, Internet, Database, Windows-UI)
-   - Page 2: Choose the test name and file
-   - Page 3: Choose the first validation name and file
 
 Version 1.2.3 Release date 05-11-2023
 -------------------------------------

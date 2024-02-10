@@ -245,11 +245,11 @@ CombiEditorDlg::OnBnClickedAddValidation()
   NewStepTypeDlg page1;
   if(type == StepType::Step_unknown)
   {
-    wizard.AddPage(&page1,IDD_NEWSTEP_TYPE);
+    wizard.AddPage("Step type",&page1,IDD_NEWSTEP_TYPE);
   }
   // Then only add the last page (validation)
   NewStepValiDlg page3(&wizard);
-  wizard.AddPage(&page3,IDD_NEWSTEP_VALI);
+  wizard.AddPage("Validation",&page3,IDD_NEWSTEP_VALI);
 
   if(wizard.DoModal() == IDOK)
   {

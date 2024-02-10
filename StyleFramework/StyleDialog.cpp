@@ -715,21 +715,48 @@ StyleDialog::OnNcMouseMove(UINT nFlags, CPoint point)
   }
   else
   {
-    CDialog::OnNcMouseMove(nFlags, point);
+    CDialog::OnNcMouseMove(nFlags,point);
 
-    if (m_curhit != (LRESULT)nFlags)
+    if(m_curhit != (LRESULT)nFlags)
     {
-      UINT prev = (UINT) m_curhit;
+      UINT prev = (UINT)m_curhit;
       m_curhit = nFlags;
       ReDrawButton(prev);
       ReDrawButton(m_curhit);
     }
 
+    if(!m_trackMouse && OnNcHitTest(point) != HTNOWHERE)
+    {
+      TRACKMOUSEEVENT mouseEvent;
+      mouseEvent.cbSize      = sizeof(TRACKMOUSEEVENT);
+      mouseEvent.dwFlags     = TME_NONCLIENT | TME_LEAVE;
+      mouseEvent.hwndTrack   = m_hWnd;
+      mouseEvent.dwHoverTime = HOVER_DEFAULT;
+      _TrackMouseEvent(&mouseEvent);
+      m_trackMouse = true;
+    }
+  }
+}
+
+void
+StyleDialog::OnNcMouseLeave()
+{
+  if(m_curhit != HTNOWHERE)
+  {
+    UINT prev = (UINT)m_curhit;
+    m_curhit = HTNOWHERE;
+    m_down = false;
+    ReDrawButton(prev);
+  }
+  if(m_trackMouse)
+  {
     TRACKMOUSEEVENT mouseEvent;
-    mouseEvent.cbSize = sizeof(TRACKMOUSEEVENT);
-    mouseEvent.dwFlags = TME_NONCLIENT | TME_LEAVE;
-    mouseEvent.hwndTrack = m_hWnd;
+    mouseEvent.cbSize      = sizeof(TRACKMOUSEEVENT);
+    mouseEvent.dwFlags     = TME_NONCLIENT | TME_LEAVE | TME_CANCEL;
+    mouseEvent.hwndTrack   = m_hWnd;
+    mouseEvent.dwHoverTime = 0;
     _TrackMouseEvent(&mouseEvent);
+    m_trackMouse = false;
   }
 }
 
@@ -776,7 +803,7 @@ StyleDialog::PerformMenu()
 void
 StyleDialog::OnNcLButtonDown(UINT nFlags, CPoint point)
 {
-  if ((GetStyle() & WS_POPUP) == 0)
+  if((GetStyle() & WS_POPUP) == 0)
   {
     CDialog::OnNcLButtonDown(nFlags, point);
     return;
@@ -959,18 +986,6 @@ bool
 StyleDialog::OnClosing()
 {
   return true;
-}
-
-void
-StyleDialog::OnNcMouseLeave()
-{
-  if (m_curhit != HTNOWHERE)
-  {
-    UINT prev = (UINT) m_curhit;
-    m_curhit = HTNOWHERE;
-    m_down = false;
-    ReDrawButton(prev);
-  }
 }
 
 void
@@ -1527,7 +1542,7 @@ StyleDialog::OnQueryDragIcon()
 void
 StyleDialog::OnDroppedFile(UINT p_id,UINT p_index,LPCTSTR p_fileName)
 {
-  StyleMessageBox(this,"ERROR: Implement your own OnDroppedFile for this Dialog","Error",MB_OK | MB_ICONERROR);
+  StyleMessageBox(this,_T("ERROR: Implement your own OnDroppedFile for this Dialog"),_T("Error"),MB_OK | MB_ICONERROR);
 }
 
 // Try overridden OnClosing before canceling the dialog

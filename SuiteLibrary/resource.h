@@ -25,19 +25,20 @@
 #define ID_MENU_THEMELIME               40001
 #define ID_MENU_THEMESKYBLUE            40002
 #define ID_MENU_THEMEPURPLE             40003
-#define ID_MENU_THEMEMODERATE           40004
-#define ID_MENU_THEMEPURE               40005
-#define ID_MENU_THEMEBLACK              40006
-#define ID_MENU_THEMEDARK               40007
-#define ID_MENU_ABOUT                   40008
-#define ID_MENU_EXIT                    40009
+#define ID_MENU_THEMEMUSTARD            40004
+#define ID_MENU_THEMEMODERATE           40005
+#define ID_MENU_THEMEPURE               40006
+#define ID_MENU_THEMEBLACK              40007
+#define ID_MENU_THEMEDARK               40008
+#define ID_MENU_ABOUT                   40009
+#define ID_MENU_EXIT                    40010
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        203
-#define _APS_NEXT_COMMAND_VALUE         40010
+#define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

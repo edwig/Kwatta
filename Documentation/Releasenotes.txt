@@ -1,5 +1,57 @@
-KWATTA RELEASNOTES
-==================
+KWATTA RELEASENOTES
+===================
+
+Version 1.4.0 Release date 10-02-2024
+-------------------------------------
+1)  This version features the new Windows UI testing (full documentation still to follow
+2)  Windows strings feature {CTRL}{ALT}{SHIFT}{ENTER} en all other virtual key sequences
+3)  Window search pattern includes the following
+    -  *name*         -> Name is part of the window title
+    -  *name          -> Window title ends on this name
+    -  name*          -> Window title starts with this name
+    -  *              -> All sub windows are searched
+    -  {EDIT}         -> Part of a windows class name. e.g. "Scintilla" in Notepad++
+    - {n}             -> Where n is a control ID number in a dialog (sub window)
+    - /               -> Continuation of the search path
+    Example:
+    "*Notepad/*/{RichEdit}" works in Notepad: title of the main windows ends on 'Notepad'
+    all subsequent sub windows are searched, the first sub-window below that has the string
+    '{RichEdit}' as  class name will be selected for the next action.
+4) Actions include:
+   - Start            -> Starting a new program (with arguments)
+   - Close            -> Closing a window by way of sending the "WM_CLOSE" message
+   - CaretPos         -> Setting the caret position in an EDIT window
+   - Click            -> Sending a left  mouse button click to (x,y)
+   - Right click      -> Sending a right mouse button click to (x,y)
+   - Double click     -> Sending a left  mouse double click to (x,y)
+   - Char             -> Sending 1 (one) virtual key stroke
+   - String           -> Sending a full string of key strokes
+   - Present          -> Waiting until a window appears (count, waittime)
+   - Active           -> (Re)Activate a top level window
+   - Focus            -> Setting the keyboard focus to a (sub) window
+   - TextArea         -> Capturing a text area into the log (for checking purposes)
+5) Added the 'Mustard' theme color
+6) Changed the creation of a teststep to a 3 steps wizard
+   - Page 1: Choose the test method (Posix, Internet, Database, Windows-UI)
+   - Page 2: Choose the test name and file
+   - Page 3: Choose the first validation name and file
+
+Version 1.2.3 Release date 05-11-2023
+-------------------------------------
+1)  The GO button of the internet step dialog now as a green/red color when waiting/running.
+2)  For an internet step, the four HTTP timeouts are added to the timeout tab
+3)  On the formatted response tab, the output has been altered for XML and JSON messages
+    for a tab to be replaced with two spaces, so as to save space in the horizontal directionl
+
+Version 1.1.2 Release date 19-03-2023
+-------------------------------------
+1)  Updated to the latest versions of BaseLibrary and SQLComponents
+
+Version 1.1.1 Release date: 21-01-2023
+--------------------------------------
+1)  Updated all external libraries (BaseLibrary, Marlin, SQLComponents, StyleFramework)
+2)  Added StyleTab to better use tabs in the StyleTabCtrl, default handling of the ESC key
+3)  Better insertion of new rows, while setting focus to the first edittable cell
 
 Version 1.1.0 Release date: 12-11-2022
 --------------------------------------
@@ -8,7 +60,6 @@ Version 1.1.0 Release date: 12-11-2022
 2) Added the possibility to change a global environment variable (KWATTA_PASSWORD)
    Use the "Suite" parameter dialog in the main program and the button "New"
 3) KWATTA_PASSWORD is now stored in a encrypted manner, so we do not leak it.
-
 
 Version 1.0.14 Release date: 30-07-2022
 ---------------------------------------
@@ -56,51 +107,5 @@ Version 1.0.1 Release date: 02-01-2022
 2)  All resources now have the proper version information for the executables
 3)  Bugfix for bcd class (decimal numbers)
 4)  Fix for build depedencies. To build a installer, just build the release mode configuration.
-    64Bits NSIS must be present in the "C:\Program Files\NSIS" directory.
+    64Bits NSIS must be present in the "C:\Program Files\NSIS" directory
 
-Version 1.1.1 Release date: 21-01-2023
---------------------------------------
-1)  Updated all external libraries (BaseLibrary, Marlin, SQLComponents, StyleFramework)
-2)  Added StyleTab to better use tabs in the StyleTabCtrl, default handling of the ESC key
-3)  Better insertion of new rows, while setting focus to the first edittable cell
-
-Version 1.1.2 Release date 19-03-2023
--------------------------------------
-1)  Updated to the latest versions of BaseLibrary and SQLComponents
-
-Version 1.2.3 Release date 05-11-2023
--------------------------------------
-1)  The GO button of the internet step dialog now as a green/red color when waiting/running.
-2)  For an internet step, the four HTTP timeouts are added to the timeout tab
-3)  On the formatted response tab, the output has been altered for XML and JSON messages
-    for a tab to be replaced with two spaces, so as to save space in the horizontal directionl
-
-Version 1.4.0 Release date 31-12-2023
--------------------------------------
-1)  This version features the new Windows UI testing (full documentation still to follow
-2)  Windows strings feature {CTRL}{ALT}{SHIFT}{ENTER} en all other virtual key sequences
-3)  Window search pattern includes the following
-    -  *name*         -> Name is part of the window title
-    -  *name          -> Window title ends on this name
-    -  name*          -> Window title starts with this name
-    -  *              -> All sub windows are searched
-    -  {EDIT}         -> Part of a windows class name. e.g. "Scintilla" in Notepad++
-    - {n}             -> Where n is a control ID number in a dialog (sub window)
-    - /               -> Continuation of the search path
-    Example:
-    "*Notepad/*/{RichEdit}" works in Notepad: title of the main windows ends on 'Notepad'
-    all subsequent sub windows are searched, the first sub-window below that has the string
-    '{RichEdit}' as  class name will be selected for the next action.
-4) Actions include:
-   - Start            -> Starting a new program (with arguments)
-   - Close            -> Closing a window by way of sending the "WM_CLOSE" message
-   - CaretPos         -> Setting the caret position in an EDIT window
-   - Click            -> Sending a left  mouse button click to (x,y)
-   - Right click      -> Sending a right mouse button click to (x,y)
-   - Double click     -> Sending a left  mouse double click to (x,y)
-   - Char             -> Sending 1 (one) virtual key stroke
-   - String           -> Sending a full string of key strokes
-   - Present          -> Waiting until a window appears (count, waittime)
-   - Active           -> (Re)Activate a top level window
-   - Focus            -> Setting the keyboard focus to a (sub) window
-   - TextArea         -> Capturing a text area into the log (for checking purposes)

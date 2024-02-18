@@ -4,7 +4,7 @@
 //
 // BaseLibrary: Indispensable general objects and functions
 // 
-// Copyright (c) 2014-2022 ir. W.E. Huisman
+// Copyright (c) 2014-2024 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -124,7 +124,7 @@ public:
  ~HTTPMessage();
 
   // Recycle the object for usage in a return message
-  void Reset();
+  void Reset(bool p_resetURL = false);
 
   // SETTERS
   void SetBody(XString p_body,XString p_charset = _T(""));

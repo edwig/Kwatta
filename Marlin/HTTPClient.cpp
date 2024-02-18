@@ -4,7 +4,7 @@
 //
 // Marlin Server: Internet server/client
 // 
-// Copyright (c) 2014-2022 ir. W.E. Huisman
+// Copyright (c) 2014-2024 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -1758,6 +1758,10 @@ HTTPClient::ReceiveResponseDataFile()
   } 
   while (dwSize > 0);
 
+  // UTF-16 Null terminated
+  m_response[m_responseLength    ] = 0;
+  m_response[m_responseLength + 1] = 0;
+
   // Close the file, flush it to the file system
   m_buffer->CloseFile();
   DETAILLOG(_T("File closed"));
@@ -2382,25 +2386,28 @@ HTTPClient::Send(SOAPMessage* p_msg)
   // Transfer all headers to the client
   AddMessageHeaders(p_msg);
 
-  // Create a SOAPAction header value
-  XString soapAction(m_soapAction);
-  if(soapAction.IsEmpty())
-  {
-    soapAction += p_msg->GetSoapAction();
-    if(soapAction.Find('/') < 0)
-    {
-      XString namesp = p_msg->GetNamespace();
-      if(!namesp.IsEmpty() && namesp.Right(1).Compare(_T("/")))
-      {
-        namesp += _T("/");
-      }
-      soapAction = namesp + soapAction;
-      m_soapAction = soapAction;
-    }
-  }
   // Apply the SOAPAction header value to the appropriate HTTP header
-  if(p_msg->GetSoapVersion() < SoapVersion::SOAP_12) 
+  if(p_msg->GetSoapVersion() < SoapVersion::SOAP_12)
   {
+    // Create a version 1.1 SOAPAction header value
+    XString soapAction(m_soapAction);
+    if(soapAction.IsEmpty())
+    {
+      soapAction += p_msg->GetSoapAction();
+      if(soapAction.Find('/') < 0)
+      {
+        XString namesp = p_msg->GetNamespace();
+        if(!namesp.IsEmpty() && namesp.Right(1).Compare(_T("/")))
+        {
+          namesp += _T("/");
+        }
+        soapAction = namesp + soapAction;
+      }
+    }
+    if(soapAction[0] != '\"' && soapAction.Find(':') >= 0)
+    {
+      soapAction = _T("\"") + soapAction + _T("\"");
+    }
     AddHeader(_T("SOAPAction"),soapAction);
   }
   else // SOAP 1.2
@@ -2499,10 +2506,10 @@ HTTPClient::Send(SOAPMessage* p_msg)
   SoapVersion oldVersion = p_msg->GetSoapVersion();
   p_msg->ParseMessage(answer);
 
-  soapAction = p_msg->GetSoapAction();
-  if(!soapAction.IsEmpty())
+  XString incomingAction = p_msg->GetSoapAction();
+  if(!incomingAction.IsEmpty())
   {
-    DETAILLOG(_T("Incoming SOAP answer: %s"),soapAction.GetString());
+    DETAILLOG(_T("Incoming SOAP action: %s"),incomingAction.GetString());
   }
   // Keep cookies
   p_msg->SetCookies(m_resultCookies);

@@ -61,7 +61,7 @@ BOOL
 ProceduresDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Suite procedures");
+  SetWindowText(_T("Suite procedures"));
 
   InitButtons();
 
@@ -71,15 +71,15 @@ ProceduresDlg::OnInitDialog()
 void
 ProceduresDlg::InitButtons()
 {
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
   m_editReportOutcome.SetMutable(false);
   m_editResetOutcome.SetMutable(false);
 
-  m_comboDepth.AddString("Only test sets");
-  m_comboDepth.AddString("Include all test steps");
-  m_comboDepth.AddString("Include all validations");
-  m_comboDepth.AddString("Full info including output");
+  m_comboDepth.AddString(_T("Only test sets"));
+  m_comboDepth.AddString(_T("Include all test steps"));
+  m_comboDepth.AddString(_T("Include all validations"));
+  m_comboDepth.AddString(_T("Full info including output"));
 
   m_comboDepth.SetCurSel(0);
 }
@@ -89,24 +89,24 @@ ProceduresDlg::InitButtons()
 void 
 ProceduresDlg::OnBnClickedReset()
 {
-  if(StyleMessageBox(this,"Do you wish to reset all test results?",KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+  if(StyleMessageBox(this,_T("Do you wish to reset all test results?"),_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
     return;
   }
   CWaitCursor takeAsigh;
-  ResetAll all(m_baseDirectory,"","");
+  ResetAll all(m_baseDirectory,_T(""),_T(""));
   all.Reset(true);
 
   m_resetOutcome = all.LastError();
   if(m_resetOutcome.IsEmpty())
   {
-    m_resetOutcome = "OK";
+    m_resetOutcome = _T("OK");
   }
   else
   {
     if(m_resetOutcome.GetLength() > 30)
     {
-      StyleMessageBox(this,m_resetOutcome,KWATTA,MB_OK|MB_ICONERROR);
+      StyleMessageBox(this,m_resetOutcome,_T(KWATTA),MB_OK|MB_ICONERROR);
     }
   }
   UpdateData(FALSE);
@@ -116,13 +116,13 @@ ProceduresDlg::OnBnClickedReset()
 void 
 ProceduresDlg::OnBnClickedReport()
 {
-  CString reportName("Report.txt");
+  CString reportName(_T("Report.txt"));
 
   CWaitCursor takeAsigh;
-  TestReport report(m_baseDirectory,reportName,"KWATTA Test Report",m_depth);
+  TestReport report(m_baseDirectory,reportName,_T("KWATTA Test Report"),m_depth);
   report.StartReport();
 
-  ExecuteShell("open",m_baseDirectory + reportName,"",nullptr,true);
+  ExecuteShell(_T("open"),m_baseDirectory + reportName,_T(""),nullptr,true);
 }
 
 void 

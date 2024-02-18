@@ -113,7 +113,7 @@ WINRunner::PerformTest()
   catch(StdException& ex)
   {
     // WHOA: Something went wrong
-    StyleMessageBox(NULL,ex.GetErrorMessage(),"Kwatta",MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
+    StyleMessageBox(NULL,ex.GetErrorMessage(),_T("Kwatta"),MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
     // Test did went WRONG!!
     result = 0;
   }
@@ -142,8 +142,8 @@ void
 WINRunner::InitRunner()
 {
   // Reset the dialog
-  SetTest("Initializing");
-  SetStep("");
+  SetTest(_T("Initializing"));
+  SetStep(_T(""));
   SetProgress(0);
 
   // Calculate the number of steps
@@ -166,8 +166,8 @@ WINRunner::InitRunner()
 void
 WINRunner::ReadingAllFiles()
 {
-  SetTest("Reading all definition files");
-  PerformStep("XML files...");
+  SetTest(_T("Reading all definition files"));
+  PerformStep(_T("XML files..."));
 
   ReadTestStep();
   ReadParameters();
@@ -181,7 +181,7 @@ void
 WINRunner::ParameterProcessing()
 {
   int unbound = 0;
-  PerformStep("Parameter processing...");
+  PerformStep(_T("Parameter processing..."));
 
   // Effectuate the parameters for the step
   unbound = m_testStep->EffectiveReplacements(&m_parameters,false);
@@ -196,7 +196,7 @@ WINRunner::ParameterProcessing()
   if(unbound)
   {
     CString error;
-    error.Format("Cannot perform test. Existing unbound parameters: %d",unbound);
+    error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
 }
@@ -204,7 +204,7 @@ WINRunner::ParameterProcessing()
 void
 WINRunner::PerformCommand()
 {
-  PerformStep("WINDOWS UI...");
+  PerformStep(_T("WINDOWS UI..."));
   TestStepWIN*   step   = dynamic_cast<TestStepWIN*>(m_testStep);
   StepResultWIN* result = dynamic_cast<StepResultWIN*>(m_result);
 
@@ -212,14 +212,14 @@ WINRunner::PerformCommand()
   m_result->SetName(m_testStep->GetName());
   m_result->SetDocumentation(m_testStep->GetDocumentation());
   result->SetLastOSError(0);
-  result->SetErrorString("");
+  result->SetErrorString(_T(""));
 
   HPFCounter  counter;
 
   // See if we must set a boobytrap
   if(m_testStep->GetKillOnTimeout())
   {
-    int maxtime = atoi(m_testStep->GetEffectiveMaxExecution());
+    int maxtime = _ttoi(m_testStep->GetEffectiveMaxExecution());
     if (maxtime > 0)
     {
       SetBoobytrap();
@@ -237,15 +237,15 @@ WINRunner::PerformCommand()
     WinActionList& list = step->GetActions();
     for(auto& action : list)
     {
-      log.AppendFormat("Run action: %d\n",++index);
+      log.AppendFormat(_T("Run action: %d\n"),++index);
       if(action->PerformAction(log,errors,error) != 0)
       {
         break;
       }
       if(!action->m_effectiveWait.IsEmpty())
       {
-        log.AppendFormat("Sleeping [%s] ms\n",action->m_effectiveWait.GetString());
-        int wait = atoi(action->m_effectiveWait);
+        log.AppendFormat(_T("Sleeping [%s] ms\n"),action->m_effectiveWait.GetString());
+        int wait = _ttoi(action->m_effectiveWait);
         Sleep(wait);
       }
     }
@@ -280,7 +280,7 @@ WINRunner::PerformAllValidations()
   for (auto& vali : m_validations)
   {
     ValidateWIN* validate = dynamic_cast<ValidateWIN*>(vali);
-    PerformStep("Validation: " + validate->GetName());
+    PerformStep(_T("Validation: ") + validate->GetName());
 
     // Do the validations
     bool totalresult = true;
@@ -297,7 +297,7 @@ WINRunner::PerformAllValidations()
 void
 WINRunner::SaveTestResults()
 {
-  PerformStep("Saving the test results");
+  PerformStep(_T("Saving the test results"));
   StepResultWIN* result = dynamic_cast<StepResultWIN*>(m_result);
 
   CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
@@ -307,7 +307,7 @@ WINRunner::SaveTestResults()
   if(result->WriteToXML(filename) == false)
   {
     CString error;
-    error.Format("Cannot save results file: %s",filename.GetString());
+    error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
 
@@ -319,7 +319,7 @@ WINRunner::SaveTestResults()
 void
 WINRunner::SaveResultParameters()
 {
-  PerformStep("Saving result parameters");
+  PerformStep(_T("Saving result parameters"));
   // Write back local parameters (return + stream)
   m_parameters.WriteToXML();
 }
@@ -328,7 +328,7 @@ WINRunner::SaveResultParameters()
 int
 WINRunner::ReadTotalResult()
 {
-  PerformStep("Getting total result...");
+  PerformStep(_T("Getting total result..."));
   StepResultWIN* result = dynamic_cast<StepResultWIN*>(m_result);
   return result->GetTotalResult();
 }
@@ -361,7 +361,7 @@ WINRunner::ReadValidations()
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateWIN();
-    CString file = m_baseDirectory + "Validations\\" + filename;
+    CString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -371,7 +371,7 @@ WINRunner::ReadValidations()
 int
 WINRunner::CheckStatusOK(int p_returnCode)
 {
-  int statusOK = atoi(m_testStep->GetEffectiveStatusOK());
+  int statusOK = _ttoi(m_testStep->GetEffectiveStatusOK());
   if (statusOK != 0 && (p_returnCode != statusOK))
   {
     return 0;

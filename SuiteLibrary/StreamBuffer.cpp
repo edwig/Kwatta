@@ -31,7 +31,7 @@ StreamBuffer::~StreamBuffer()
 {
   if(m_buffer)
   {
-    free(m_buffer);
+    delete [] m_buffer;
     m_buffer = nullptr;
   }
 }
@@ -41,7 +41,7 @@ StreamBuffer::Reset()
 {
   if(m_buffer || m_length)
   {
-    free(m_buffer);
+    delete [] m_buffer;
     m_buffer = nullptr;
     m_length = 0;
     m_use    = false;
@@ -50,22 +50,23 @@ StreamBuffer::Reset()
 
 // Make a copy of the buffer
 void 
-StreamBuffer::SetBuffer(unsigned char* p_buffer, unsigned int p_length)
+StreamBuffer::SetBuffer(_TUCHAR* p_buffer, unsigned int p_length)
 {
   Reset();
 
   if(p_length)
   {
-    m_buffer = (unsigned char*) malloc(p_length + 1);
-    memcpy(m_buffer,p_buffer,p_length);
+    m_buffer = new _TUCHAR[p_length + 1];
+    memcpy(m_buffer,p_buffer,p_length * sizeof(_TUCHAR));
     m_buffer[p_length] = 0;
+    m_length = p_length;
 
     m_use = true;
   }
 }
 
 void 
-StreamBuffer::AddBuffer(unsigned char* p_buffer,unsigned int p_length)
+StreamBuffer::AddBuffer(_TUCHAR* p_buffer,unsigned int p_length)
 {
   if(m_length == 0)
   {
@@ -74,15 +75,19 @@ StreamBuffer::AddBuffer(unsigned char* p_buffer,unsigned int p_length)
   }
 
   // Add to the buffer
-  m_buffer = (unsigned char*)realloc(m_buffer,m_length + p_length);
-  memcpy(&m_buffer[m_length], p_buffer, p_length);
+  _TUCHAR* buffer = new _TUCHAR[m_length + p_length + 1];
+  memcpy(buffer,m_buffer,m_length * sizeof(_TUCHAR));
+  memcpy(&buffer[m_length],p_buffer,p_length * sizeof(_TUCHAR));
   m_length += p_length;
-  m_buffer[m_length] = 0;
+  buffer[m_length] = 0;
+
+  delete[] m_buffer;
+  m_buffer = buffer;
 }
 
 // Getting the buffer elements
 void 
-StreamBuffer::GetBuffer(unsigned char*& p_buffer,unsigned int& p_length)
+StreamBuffer::GetBuffer(_TUCHAR*& p_buffer,unsigned int& p_length)
 {
   p_buffer = m_buffer;
   p_length = m_length;

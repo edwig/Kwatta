@@ -77,7 +77,7 @@ ResponseDlg::OnInitDialog()
   m_editTime      .SetMutable(false);
 
   EnableToolTips();
-  RegisterTooltip(m_buttonClear, "Remove test results on response/header/raw-body pane!");
+  RegisterTooltip(m_buttonClear, _T("Remove test results on response/header/raw-body pane!"));
   m_buttonClear.SetIconImage(IDI_CLEAR);
 
   InitPayload();
@@ -112,7 +112,7 @@ ResponseDlg::InitTab()
 void
 ResponseDlg::InitPayload()
 {
-  m_editPayload.SetFontName("Courier new",100);
+  m_editPayload.SetFontName(_T("Courier new"),100);
   m_editPayload.SetMutable(false);
 }
 
@@ -122,7 +122,7 @@ ResponseDlg::SetResult(StepResultNET* p_result)
   m_status = p_result->GetStatus();
   m_statusText = GetHTTPStatusText(m_status);
   m_payload = p_result->GetBody();
-  m_time.Format("%6.3f",p_result->GetTiming());
+  m_time.Format(_T("%6.3f"),p_result->GetTiming());
 
   // In case we had an HTTP OS error!
   if(m_payload.IsEmpty() && !p_result->GetOSErrorString().IsEmpty())
@@ -134,28 +134,28 @@ ResponseDlg::SetResult(StepResultNET* p_result)
     FormatPayload(p_result);
   }
 
-  m_payload.Replace("\n","\r\n");
+  m_payload.Replace(_T("\n"),_T("\r\n"));
   UpdateData(FALSE);
 }
 
 void
 ResponseDlg::FormatPayload(StepResultNET* p_result)
 {
-  CString content = p_result->GetHeader("content-type");
-  if (content.Find("xml") >= 0)
+  CString content = p_result->GetHeader(_T("content-type"));
+  if (content.Find(_T("xml")) >= 0)
   {
     XMLMessage xml;
     xml.ParseMessage(m_payload);
     xml.SetCondensed(false);
     m_payload = xml.Print();
-    m_payload.Replace("\t","  ");
+    m_payload.Replace(_T("\t"),_T("  "));
   }
-  if (content.Find("json") >= 0)
+  if (content.Find(_T("json")) >= 0)
   {
     JSONMessage json(m_payload);
     json.SetWhitespace(true);
     m_payload = json.GetJsonMessage();
-    m_payload.Replace("\t","  ");
+    m_payload.Replace(_T("\t"),_T("  "));
   }
 }
 

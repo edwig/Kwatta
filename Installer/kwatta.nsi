@@ -6,12 +6,12 @@
 ; Copyright (c) 2021-2022 ir. W.E. Huisman
 ; All rights reserved
 ;
-; Last change:       10-02-2024
-; Versionnumber:     1.3.1
+; Last change:       18-02-2024
+; Versionnumber:     1.3.2
 ;-------------------------------------------------------
  !define PRODUCT_NAME                         "Kwatta"
- !define PRODUCT_VERSION                      "1.3.1"
- !define PRODUCT_BUILDNUMBER                  "254"
+ !define PRODUCT_VERSION                      "1.3.2"
+ !define PRODUCT_BUILDNUMBER                  "276"
  !define PRODUCT_PUBLISHER                    "EDO"
  !define PRODUCT_WEB_SITE                     "https://github.com/edwig/kwatta"
  !define PRODUCT_DIR_REGKEY                   "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}"
@@ -23,6 +23,7 @@
  
  ; Path for the input files
  !define InputDir             "..\Bin_Release\"
+ !define InputDirUnicode      "..\Bin_ReleaseUnicode\"
  !define RootDir              "..\"
 
 ;--------------------------------------------------------------------------------------------------------
@@ -47,10 +48,13 @@
  !macroend  
 
  !macro _CreateShortcutInStartMenuPrograms targetName program targetExtension
- SetShellVarContext all
- CreateShortCut "$INSTDIR\${targetName}.lnk" "$INSTDIR\${program}.${targetExtension}"
- CopyFiles /FILESONLY "$INSTDIR\${targetName}.lnk" "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\${targetName}.lnk"
- Delete "$INSTDIR\${targetName}.lnk"
+   SetShellVarContext all
+   CreateShortCut "$INSTDIR\${targetName}.lnk" "$INSTDIR\${program}.${targetExtension}"
+   CreateShortCut "$INSTDIR\${targetName}_Unicode.lnk" "$INSTDIR\Unicode\${program}.${targetExtension}"
+   CopyFiles /FILESONLY "$INSTDIR\${targetName}.lnk"         "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\${targetName}.lnk"
+   CopyFiles /FILESONLY "$INSTDIR\${targetName}_Unicode.lnk" "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\${targetName}_Unicode.lnk"
+   Delete "$INSTDIR\${targetName}.lnk"
+   Delete "$INSTDIR\${targetName}_Unicode.lnk"
  !macroend
  
  !define CreateShortcutInStartMenuPrograms "!insertmacro _CreateShortcutInStartMenuPrograms"
@@ -133,7 +137,7 @@
 Section "The Program" prog_always
 
  CreateDirectory "$INSTDIR"
- CreateDirectory "$INSTDIR\Data"
+ CreateDirectory "$INSTDIR\Unicode"
  
  ; Explicit overwrite of files
  SetOverwrite on
@@ -149,6 +153,14 @@ Section "The Program" prog_always
  File "${InputDir}ValidateEditor.exe"
  File "${InputDir}ResultViewer.exe"
  File "${InputDir}TestRunner.exe"
+ SetOutPath "$INSTDIR\Unicode"
+ File "${InputDirUnicode}Kwatta.exe"
+ File "${InputDirUnicode}TestEditor.exe"
+ File "${InputDirUnicode}StepEditor.exe"
+ File "${InputDirUnicode}ValidateEditor.exe"
+ File "${InputDirUnicode}ResultViewer.exe"
+ File "${InputDirUnicode}TestRunner.exe"
+ SetOutPath  "$INSTDIR"
 SectionEnd
 
 Section "Create startmenu" Create_Startmenu
@@ -165,6 +177,7 @@ Section "Create desktop icons" Desktop_icons
  DetailPrint "Creating of the desktop shortcuts"
  SetOutPath "$INSTDIR"
  CreateShortCut "$DESKTOP\Kwatta.lnk"          "$INSTDIR\Kwatta.exe"
+ CreateShortCut "$DESKTOP\Kwatta_Unicode.lnk"  "$INSTDIR\Unicode\Kwatta.exe"
 SectionEnd
 
 
@@ -263,10 +276,12 @@ Section Uninstall
  ; Remove directory in the start menu
  DetailPrint "Remove links from the startmenu"
  Delete "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\Kwatta.lnk"
+ Delete "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\Kwatta_Unicode.lnk"
  RmDir /r /REBOOTOK "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}"
 
  DetailPrint "Removing the links from the desktop"
  Delete "$DESKTOP\Kwatta.lnk"
+ Delete "$DESKTOP\Kwatta_Unicode.lnk"
  
  ;De-Registring of the product.
  DetailPrint "De-registration of ${PRODUCT_NAME}"

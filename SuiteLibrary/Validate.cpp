@@ -135,7 +135,7 @@ Validate::ReadFromXML(XMLMessage& p_msg,CString p_filename)
   // Load the file (if any)
   if(p_msg.LoadFile(p_filename) == false)
   {
-    throw StdException("Could not load the XML file: " + p_filename);
+    throw StdException(_T("Could not load the XML file: ") + p_filename);
   }
 
   // Remember our file
@@ -145,29 +145,29 @@ Validate::ReadFromXML(XMLMessage& p_msg,CString p_filename)
   if(p_msg.GetInternalError() != XmlError::XE_NoError)
   {
     CString error;
-    error.Format("Internal XML error in XVAL file [%d] %s",p_msg.GetInternalError(),p_msg.GetInternalErrorString().GetString());
+    error.Format(_T("Internal XML error in XVAL file [%d] %s"),p_msg.GetInternalError(),p_msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
 
   // Check that it is our message type
-  if(p_msg.GetRootNodeName().Compare("Validate"))
+  if(p_msg.GetRootNodeName().Compare(_T("Validate")))
   {
-    throw StdException("XVAL file is not a validation definition: " + p_filename);
+    throw StdException(_T("XVAL file is not a validation definition: ") + p_filename);
   }
 
   // General elements
-  m_name          = p_msg.GetElement("Name");
-  m_documentation = p_msg.GetElement("Documentation");
+  m_name          = p_msg.GetElement(_T("Name"));
+  m_documentation = p_msg.GetElement(_T("Documentation"));
 }
 
 bool
 Validate::WriteToXML(XMLMessage& p_msg,CString p_filename)
 {
-  p_msg.SetRootNodeName("Validate");
+  p_msg.SetRootNodeName(_T("Validate"));
 
   XMLElement* root = p_msg.GetRoot();
-  p_msg.AddElement(root,"Name",XDT_String,m_name);
-  p_msg.AddElement(root,"Documentation",XDT_String,m_documentation);
+  p_msg.AddElement(root,_T("Name"),XDT_String,m_name);
+  p_msg.AddElement(root,_T("Documentation"),XDT_String,m_documentation);
 
   return true;
 }
@@ -178,15 +178,15 @@ Validate::ReturnOperatorToString(ReturnOperator p_oper)
   CString string;
   switch (p_oper)
   {
-    case ReturnOperator::ROP_NOP:           string = "NOP";               break;
-    case ReturnOperator::ROP_EQUAL:         string = "EQUAL";             break;
-    case ReturnOperator::ROP_GREATER:       string = "GREATER";           break;
-    case ReturnOperator::ROP_GREATEREQUAL:  string = "GREATER_OR_EQUAL";  break;
-    case ReturnOperator::ROP_SMALLER:       string = "SMALLER";           break;
-    case ReturnOperator::ROP_SMALLEREQUAL:  string = "SMALLER_OR_EQUAL";  break;
-    case ReturnOperator::ROP_NOTEQUAL:      string = "NOT_EQUAL";         break;
-    case ReturnOperator::ROP_BETWEEN:       string = "BETWEEN";           break;
-    case ReturnOperator::ROP_IN:            string = "IN";                break;
+    case ReturnOperator::ROP_NOP:           string = _T("NOP");               break;
+    case ReturnOperator::ROP_EQUAL:         string = _T("EQUAL");             break;
+    case ReturnOperator::ROP_GREATER:       string = _T("GREATER");           break;
+    case ReturnOperator::ROP_GREATEREQUAL:  string = _T("GREATER_OR_EQUAL");  break;
+    case ReturnOperator::ROP_SMALLER:       string = _T("SMALLER");           break;
+    case ReturnOperator::ROP_SMALLEREQUAL:  string = _T("SMALLER_OR_EQUAL");  break;
+    case ReturnOperator::ROP_NOTEQUAL:      string = _T("NOT_EQUAL");         break;
+    case ReturnOperator::ROP_BETWEEN:       string = _T("BETWEEN");           break;
+    case ReturnOperator::ROP_IN:            string = _T("IN");                break;
   }
   return string;
 }
@@ -197,16 +197,16 @@ Validate::BufferOperatorToString(BufferOperator p_oper)
   CString string;
   switch (p_oper)
   {
-    case BufferOperator::BOP_NOP:         string = "NOP";         break;
-    case BufferOperator::BOP_EXACT:       string = "EXACT";       break;
-    case BufferOperator::BOP_CONTAINS:    string = "CONTAINS";    break;
-    case BufferOperator::BOP_BEGINSWITH:  string = "BEGINSWITH";  break;
-    case BufferOperator::BOP_ENDSWITH:    string = "ENDSWITH";    break;
-    case BufferOperator::BOP_ISEMPTY:     string = "ISEMPTY";     break;
-    case BufferOperator::BOP_NOTEMPTY:    string = "NOTEMPTY";    break;
-    case BufferOperator::BOP_NOTFOUND:    string = "NOTFOUND";    break;
-    case BufferOperator::BOP_FILEMATCH:   string = "FILEMATCH";   break;
-    case BufferOperator::BOP_EXISTFILE:   string = "EXISTFILE";   break;
+    case BufferOperator::BOP_NOP:         string = _T("NOP");         break;
+    case BufferOperator::BOP_EXACT:       string = _T("EXACT");       break;
+    case BufferOperator::BOP_CONTAINS:    string = _T("CONTAINS");    break;
+    case BufferOperator::BOP_BEGINSWITH:  string = _T("BEGINSWITH");  break;
+    case BufferOperator::BOP_ENDSWITH:    string = _T("ENDSWITH");    break;
+    case BufferOperator::BOP_ISEMPTY:     string = _T("ISEMPTY");     break;
+    case BufferOperator::BOP_NOTEMPTY:    string = _T("NOTEMPTY");    break;
+    case BufferOperator::BOP_NOTFOUND:    string = _T("NOTFOUND");    break;
+    case BufferOperator::BOP_FILEMATCH:   string = _T("FILEMATCH");   break;
+    case BufferOperator::BOP_EXISTFILE:   string = _T("EXISTFILE");   break;
   }
   return string;
 }
@@ -216,16 +216,16 @@ Validate::StringToReturnOperator(CString p_oper)
 {
   ReturnOperator oper = ReturnOperator::ROP_NOP;
 
-       if(p_oper.Compare("NOP")               == 0) oper = ReturnOperator::ROP_NOP;
-  else if(p_oper.Compare("EQUAL")             == 0) oper = ReturnOperator::ROP_EQUAL;
-  else if(p_oper.Compare("GREATER")           == 0) oper = ReturnOperator::ROP_GREATER;
-  else if(p_oper.Compare("GREATER_OR_EQUAL")  == 0) oper = ReturnOperator::ROP_GREATEREQUAL;
-  else if(p_oper.Compare("SMALLER")           == 0) oper = ReturnOperator::ROP_SMALLER;
-  else if(p_oper.Compare("SMALLER_OR_EQUAL")  == 0) oper = ReturnOperator::ROP_SMALLEREQUAL;
-  else if(p_oper.Compare("NOT_EQUAL")         == 0) oper = ReturnOperator::ROP_NOTEQUAL;
-  else if(p_oper.Compare("EQUAL")             == 0) oper = ReturnOperator::ROP_EQUAL;
-  else if(p_oper.Compare("BETWEEN")           == 0) oper = ReturnOperator::ROP_BETWEEN;
-  else if(p_oper.Compare("IN")                == 0) oper = ReturnOperator::ROP_IN;
+       if(p_oper.Compare(_T("NOP"))               == 0) oper = ReturnOperator::ROP_NOP;
+  else if(p_oper.Compare(_T("EQUAL"))             == 0) oper = ReturnOperator::ROP_EQUAL;
+  else if(p_oper.Compare(_T("GREATER"))           == 0) oper = ReturnOperator::ROP_GREATER;
+  else if(p_oper.Compare(_T("GREATER_OR_EQUAL"))  == 0) oper = ReturnOperator::ROP_GREATEREQUAL;
+  else if(p_oper.Compare(_T("SMALLER"))           == 0) oper = ReturnOperator::ROP_SMALLER;
+  else if(p_oper.Compare(_T("SMALLER_OR_EQUAL"))  == 0) oper = ReturnOperator::ROP_SMALLEREQUAL;
+  else if(p_oper.Compare(_T("NOT_EQUAL"))         == 0) oper = ReturnOperator::ROP_NOTEQUAL;
+  else if(p_oper.Compare(_T("EQUAL"))             == 0) oper = ReturnOperator::ROP_EQUAL;
+  else if(p_oper.Compare(_T("BETWEEN"))           == 0) oper = ReturnOperator::ROP_BETWEEN;
+  else if(p_oper.Compare(_T("IN"))                == 0) oper = ReturnOperator::ROP_IN;
   else                                              oper = ReturnOperator::ROP_NOP;
 
   return oper;
@@ -236,16 +236,16 @@ Validate::StringToBufferOperator(CString p_oper)
 {
   BufferOperator oper = BufferOperator::BOP_NOP;
 
-       if(p_oper.Compare("NOP")         == 0) oper = BufferOperator::BOP_NOP;
-  else if(p_oper.Compare("EXACT")       == 0) oper = BufferOperator::BOP_EXACT;
-  else if(p_oper.Compare("CONTAINS")    == 0) oper = BufferOperator::BOP_CONTAINS;
-  else if(p_oper.Compare("BEGINSWITH")  == 0) oper = BufferOperator::BOP_BEGINSWITH;
-  else if(p_oper.Compare("ENDSWITH")    == 0) oper = BufferOperator::BOP_ENDSWITH;
-  else if(p_oper.Compare("ISEMPTY")     == 0) oper = BufferOperator::BOP_ISEMPTY;
-  else if(p_oper.Compare("NOTEMPTY")    == 0) oper = BufferOperator::BOP_NOTEMPTY;
-  else if(p_oper.Compare("NOTFOUND")    == 0) oper = BufferOperator::BOP_NOTFOUND;
-  else if(p_oper.Compare("FILEMATCH")   == 0) oper = BufferOperator::BOP_FILEMATCH;
-  else if(p_oper.Compare("EXISTFILE")   == 0) oper = BufferOperator::BOP_EXISTFILE;
+       if(p_oper.Compare(_T("NOP"))         == 0) oper = BufferOperator::BOP_NOP;
+  else if(p_oper.Compare(_T("EXACT"))       == 0) oper = BufferOperator::BOP_EXACT;
+  else if(p_oper.Compare(_T("CONTAINS"))    == 0) oper = BufferOperator::BOP_CONTAINS;
+  else if(p_oper.Compare(_T("BEGINSWITH"))  == 0) oper = BufferOperator::BOP_BEGINSWITH;
+  else if(p_oper.Compare(_T("ENDSWITH"))    == 0) oper = BufferOperator::BOP_ENDSWITH;
+  else if(p_oper.Compare(_T("ISEMPTY"))     == 0) oper = BufferOperator::BOP_ISEMPTY;
+  else if(p_oper.Compare(_T("NOTEMPTY"))    == 0) oper = BufferOperator::BOP_NOTEMPTY;
+  else if(p_oper.Compare(_T("NOTFOUND"))    == 0) oper = BufferOperator::BOP_NOTFOUND;
+  else if(p_oper.Compare(_T("FILEMATCH"))   == 0) oper = BufferOperator::BOP_FILEMATCH;
+  else if(p_oper.Compare(_T("EXISTFILE"))   == 0) oper = BufferOperator::BOP_EXISTFILE;
   else                                        oper = BufferOperator::BOP_NOP;
 
   return oper;
@@ -261,8 +261,8 @@ Validate::Between(CString p_effective,int p_value)
     return false;
   }
 
-  int lower = atoi(p_effective.Left(pos));
-  int upper = atoi(p_effective.Mid(pos + 1));
+  int lower = _ttoi(p_effective.Left(pos));
+  int upper = _ttoi(p_effective.Mid(pos + 1));
 
   // See if we are in this interval (inclusive)
   return (lower <= p_value) && (p_value <= upper);
@@ -293,7 +293,7 @@ Validate::ValueIn(CString p_effective,int p_value)
   // See if it is one of the values
   for(auto& val : values)
   {
-    if(p_value == atoi(val))
+    if(p_value == _ttoi(val))
     {
       return true;
     }
@@ -309,8 +309,8 @@ Validate::FileMatch(CString p_file1,CString p_file2)
   ULONG size2 = 0;
 
   // Read in both files
-  char* buffer1 = ReadFileInBuffer(p_file1,size1);
-  char* buffer2 = ReadFileInBuffer(p_file1,size2);
+  TCHAR* buffer1 = ReadFileInBuffer(p_file1,size1);
+  TCHAR* buffer2 = ReadFileInBuffer(p_file1,size2);
 
   // Compare
   if(buffer1 && buffer2 && (size1 == size2) || memcmp(buffer1,buffer2,size1) == 0)
@@ -332,12 +332,12 @@ Validate::FileExist(CString p_file)
   p_file.Trim('\n');
 
   // Find out if it exists
-  return _access(p_file,0) == 0;
+  return _taccess(p_file,0) == 0;
 }
 
 // Read a file in a buffer
 // Caller must free the buffer again (if any)
-char*
+TCHAR*
 Validate::ReadFileInBuffer(CString p_filename,ULONG& p_size)
 {
   // Try to open the file
@@ -365,7 +365,7 @@ Validate::ReadFileInBuffer(CString p_filename,ULONG& p_size)
   }
 
   // Allocate a big enough buffer
-  char* buffer = (char*)malloc(sizeLow + 1);
+  TCHAR* buffer = (TCHAR*)malloc(sizeLow + 1);
 
   // Read file from disk in one (1) go
   bool  result = false;

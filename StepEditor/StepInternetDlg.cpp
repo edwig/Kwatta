@@ -140,7 +140,7 @@ BOOL
 StepInternetDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("StepEditor HTTP");
+  SetWindowText(_T("StepEditor HTTP"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
   SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
@@ -204,13 +204,13 @@ StepInternetDlg::InitTabs()
   m_page6->Create(IDD_TIMING_HTTP,  &m_tabsRequest);
   m_page7->Create(IDD_SCRIPT,       &m_tabsRequest);
 
-  m_tabsRequest.InsertItem(0, m_page1, "Request");
-  m_tabsRequest.InsertItem(1, m_page2, "Parameters");
-  m_tabsRequest.InsertItem(2, m_page3, "Headers");
-  m_tabsRequest.InsertItem(3, m_page4, "Authenticate");
-  m_tabsRequest.InsertItem(4, m_page5, "Raw request");
-  m_tabsRequest.InsertItem(5, m_page6, "Timing");
-  m_tabsRequest.InsertItem(6, m_page7, "Script");
+  m_tabsRequest.InsertItem(0, m_page1, _T("Request"));
+  m_tabsRequest.InsertItem(1, m_page2, _T("Parameters"));
+  m_tabsRequest.InsertItem(2, m_page3, _T("Headers"));
+  m_tabsRequest.InsertItem(3, m_page4, _T("Authenticate"));
+  m_tabsRequest.InsertItem(4, m_page5, _T("Raw request"));
+  m_tabsRequest.InsertItem(5, m_page6, _T("Timing"));
+  m_tabsRequest.InsertItem(6, m_page7, _T("Script"));
 
   m_tabsRequest.Init();
 
@@ -218,9 +218,9 @@ StepInternetDlg::InitTabs()
   m_page11->Create(IDD_RESP_HEADERS,&m_tabsResponse);
   m_page12->Create(IDD_RAW_RESPONSE,&m_tabsResponse);
 
-  m_tabsResponse.InsertItem(0,m_page10,"Response");
-  m_tabsResponse.InsertItem(1,m_page11,"Headers");
-  m_tabsResponse.InsertItem(2,m_page12,"Raw response");
+  m_tabsResponse.InsertItem(0,m_page10,_T("Response"));
+  m_tabsResponse.InsertItem(1,m_page11,_T("Headers"));
+  m_tabsResponse.InsertItem(2,m_page12,_T("Raw response"));
 
   m_tabsResponse.Init();
 }
@@ -228,36 +228,36 @@ StepInternetDlg::InitTabs()
 void
 StepInternetDlg::InitVerbs()
 {
-  m_comboVerb.AddString("GET");
-  m_comboVerb.AddString("POST");
-  m_comboVerb.AddString("PATCH");
-  m_comboVerb.AddString("UPDATE");
-  m_comboVerb.AddString("PUT");
-  m_comboVerb.AddString("DELETE");
-  m_comboVerb.AddString("TRACE");
-  m_comboVerb.AddString("OPTIONS");
-  m_comboVerb.AddString("CONNECT");
-  m_comboVerb.AddString("HEAD");
-  m_comboVerb.AddString("PROPFIND");
-  m_comboVerb.AddString("PROPPATCH");
-  m_comboVerb.AddString("MKCOL");
-  m_comboVerb.AddString("COPY");
-  m_comboVerb.AddString("MOVE");
-  m_comboVerb.AddString("LOCK");
-  m_comboVerb.AddString("UNLOCK");
-  m_comboVerb.AddString("VERSION-CONTROL");
-  m_comboVerb.AddString("REPORT");
-  m_comboVerb.AddString("CHECKOUT");
-  m_comboVerb.AddString("CHECKIN");
-  m_comboVerb.AddString("UNCHECKOUT");
-  m_comboVerb.AddString("MKWORKSPACE");
-  m_comboVerb.AddString("LABEL");
-  m_comboVerb.AddString("MERGE");
-  m_comboVerb.AddString("BASELINE-CONTROL");
-  m_comboVerb.AddString("MKACTIVITY");
-  m_comboVerb.AddString("ORDERPATCH");
-  m_comboVerb.AddString("ACL");
-  m_comboVerb.AddString("SEARCH");
+  m_comboVerb.AddString(_T("GET"));
+  m_comboVerb.AddString(_T("POST"));
+  m_comboVerb.AddString(_T("PATCH"));
+  m_comboVerb.AddString(_T("UPDATE"));
+  m_comboVerb.AddString(_T("PUT"));
+  m_comboVerb.AddString(_T("DELETE"));
+  m_comboVerb.AddString(_T("TRACE"));
+  m_comboVerb.AddString(_T("OPTIONS"));
+  m_comboVerb.AddString(_T("CONNECT"));
+  m_comboVerb.AddString(_T("HEAD"));
+  m_comboVerb.AddString(_T("PROPFIND"));
+  m_comboVerb.AddString(_T("PROPPATCH"));
+  m_comboVerb.AddString(_T("MKCOL"));
+  m_comboVerb.AddString(_T("COPY"));
+  m_comboVerb.AddString(_T("MOVE"));
+  m_comboVerb.AddString(_T("LOCK"));
+  m_comboVerb.AddString(_T("UNLOCK"));
+  m_comboVerb.AddString(_T("VERSION-CONTROL"));
+  m_comboVerb.AddString(_T("REPORT"));
+  m_comboVerb.AddString(_T("CHECKOUT"));
+  m_comboVerb.AddString(_T("CHECKIN"));
+  m_comboVerb.AddString(_T("UNCHECKOUT"));
+  m_comboVerb.AddString(_T("MKWORKSPACE"));
+  m_comboVerb.AddString(_T("LABEL"));
+  m_comboVerb.AddString(_T("MERGE"));
+  m_comboVerb.AddString(_T("BASELINE-CONTROL"));
+  m_comboVerb.AddString(_T("MKACTIVITY"));
+  m_comboVerb.AddString(_T("ORDERPATCH"));
+  m_comboVerb.AddString(_T("ACL"));
+  m_comboVerb.AddString(_T("SEARCH"));
 
   m_comboVerb.SetCurSel(0);
   m_comboVerb.SetMaxDroppedWidth(200);
@@ -285,7 +285,7 @@ StepInternetDlg::InitStep()
 void
 StepInternetDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + "Parameters.xpar";
+  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -306,8 +306,8 @@ StepInternetDlg::InitParameters()
 void
 StepInternetDlg::InitButtons()
 {
-  m_buttonOK     .SetStyle("ok");
-  m_buttonCancel .SetStyle("can");
+  m_buttonOK     .SetStyle(_T("ok"));
+  m_buttonCancel .SetStyle(_T("can"));
   m_editBound    .SetMutable(false);
   m_editBound    .SetBorderColor(RGB(0,255,0));
   m_buttonUrlParm.SetIconImage(IDI_LIST);
@@ -332,9 +332,9 @@ void
 StepInternetDlg::InitTooltips()
 {
   EnableToolTips();
-  RegisterTooltip(m_buttonUrlParm,"Choose global/test parameter(s) for the URL");
-  RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
-  RegisterTooltip(m_buttonGO,     "GO Run the HTTP Internet test step!!");
+  RegisterTooltip(m_buttonUrlParm,_T("Choose global/test parameter(s) for the URL"));
+  RegisterTooltip(m_buttonGlobal, _T("Promote teststep to a global teststep"));
+  RegisterTooltip(m_buttonGO,     _T("GO Run the HTTP Internet test step!!"));
 }
 
 void
@@ -359,7 +359,7 @@ StepInternetDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound("Parameters: OK");
+    CString bound(_T("Parameters: OK"));
 
     // Effectuate the parameters
     StoreVariables();
@@ -367,7 +367,7 @@ StepInternetDlg::EffectiveParameters()
 
     if(m_unbound > 0)
     {
-      bound.Format("Unbound parameters: %d", m_unbound);
+      bound.Format(_T("Unbound parameters: %d"), m_unbound);
     }
     m_bound = bound;
 
@@ -393,7 +393,7 @@ StepInternetDlg::LoadVariables()
   // Default verb
   if(m_verb.IsEmpty())
   {
-    m_verb = "GET";
+    m_verb = _T("GET");
   }
   int ind = m_comboVerb.FindStringExact(0,m_verb);
   m_comboVerb.SetCurSel(ind);
@@ -452,7 +452,7 @@ StepInternetDlg::SaveStep()
 
     if(!res1 || !res2)
     {
-      StyleMessageBox(this,"Could not save the test step",PRODUCT_NAME,MB_OK|MB_ICONWARNING);
+      StyleMessageBox(this,_T("Could not save the test step"),PRODUCT_NAME,MB_OK|MB_ICONWARNING);
       return false;
     }
     return true;
@@ -518,7 +518,7 @@ StepInternetDlg::OnEnChangeStepname()
 void
 StepInternetDlg::OnBnClickedGlobal()
 {
-  if(StyleMessageBox(this,"Promote this test step to a global teststep?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  if(StyleMessageBox(this,_T("Promote this test step to a global teststep?"),PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
     theApp.PromoteTestStep(this);
   }

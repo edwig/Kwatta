@@ -27,16 +27,16 @@ public:
  ~StreamBuffer();
 
   void Reset();
-  void SetBuffer(unsigned char*  p_buffer,unsigned int  p_length);
-  void AddBuffer(unsigned char*  p_buffer,unsigned int  p_length);
-  void GetBuffer(unsigned char*& p_buffer,unsigned int& p_length);
+  void SetBuffer(_TUCHAR*  p_buffer,unsigned int  p_length);
+  void AddBuffer(_TUCHAR*  p_buffer,unsigned int  p_length);
+  void GetBuffer(_TUCHAR*& p_buffer,unsigned int& p_length);
   void SetUse(bool p_use);
   bool GetUse() { return m_use; };
 
 //  CString AsCDataNode();
 
 private:
-  bool           m_use    { false   };
-  unsigned char* m_buffer { nullptr };
-  unsigned int   m_length { 0       };
+  bool         m_use    { false   };
+  _TUCHAR*     m_buffer { nullptr };
+  unsigned int m_length { 0       };
 };

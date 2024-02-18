@@ -127,18 +127,18 @@ XMLNodeDlg::FillCombos()
   m_comboOperator.ResetContent();
   m_comboXmlVariable.ResetContent();
 
-  m_comboOperator.AddString("");
-  m_comboOperator.AddString("EXACT buffer contents");
-  m_comboOperator.AddString("CONTAINS this text");
-  m_comboOperator.AddString("BEGINSWITH this text");
-  m_comboOperator.AddString("ENDSWITH this text");
-  m_comboOperator.AddString("IS EMPTY");
-  m_comboOperator.AddString("NOT EMPTY");
-  m_comboOperator.AddString("NOTFOUND");
-  m_comboOperator.AddString("FILE contents MATCH");
-  m_comboOperator.AddString("FILE EXISTS");
+  m_comboOperator.AddString(_T(""));
+  m_comboOperator.AddString(_T("EXACT buffer contents"));
+  m_comboOperator.AddString(_T("CONTAINS this text"));
+  m_comboOperator.AddString(_T("BEGINSWITH this text"));
+  m_comboOperator.AddString(_T("ENDSWITH this text"));
+  m_comboOperator.AddString(_T("IS EMPTY"));
+  m_comboOperator.AddString(_T("NOT EMPTY"));
+  m_comboOperator.AddString(_T("NOTFOUND"));
+  m_comboOperator.AddString(_T("FILE contents MATCH"));
+  m_comboOperator.AddString(_T("FILE EXISTS"));
 
-  m_comboXmlVariable.AddString("");
+  m_comboXmlVariable.AddString(_T(""));
   for (auto& ret : m_parameters->GetReturns())
   {
     m_comboXmlVariable.AddString(ret.first);

@@ -106,7 +106,7 @@ protected:
   StepType      m_type;
   // General parameters
   bool          m_killOnTimeout       { false   };    // Do kill (or not) after m_maxExecution
-  CString       m_maxExecution        { "90000" };    // Time in ms. 90 seconds
+  CString       m_maxExecution        { _T("90000") };    // Time in ms. 90 seconds
   CString       m_waitBeforeRun;                      // Time in ms.  0 seconds
   CString       m_waitAfterRun;                       // Time in ms.  0 seconds
 

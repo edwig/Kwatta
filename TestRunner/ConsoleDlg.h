@@ -35,7 +35,7 @@ public:
 	virtual ~ConsoleDlg();
   virtual BOOL OnInitDialog() override;
 
-  void AddLine(const char* p_line);
+  void AddLine(const TCHAR* p_line);
   void Move();
 
 // Dialog Data

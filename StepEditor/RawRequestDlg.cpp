@@ -82,7 +82,7 @@ RawRequestDlg::SetupDynamicLayout()
 void
 RawRequestDlg::InitPayload()
 {
-  m_editPayload.SetFontName("Courier new",100);
+  m_editPayload.SetFontName(_T("Courier new"),100);
   m_editPayload.SetMutable(false);
 }
 

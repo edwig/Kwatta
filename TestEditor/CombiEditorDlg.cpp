@@ -27,7 +27,6 @@
 #include "MutateDlg.h" 
 #include <Validate.h>
 
-
 #ifdef _DEBUG
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
@@ -76,7 +75,7 @@ BOOL
 CombiEditorDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Multiple Validations");
+  SetWindowText(_T("Multiple Validations"));
 
   m_name          = m_testSet.GetName();
   m_documentation = m_testSet.GetDocumentation();
@@ -91,17 +90,17 @@ CombiEditorDlg::OnInitDialog()
 void
 CombiEditorDlg::InitButtons()
 {
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
 
   m_buttonAddValidation.SetIconImage(IDI_NEW);
   m_buttonDelValidation.SetIconImage(IDI_DELETE);
   m_buttonMutValidation.SetIconImage(IDI_MUTATE);
 
   EnableToolTips();
-  RegisterTooltip(m_buttonAddValidation,"Add a new validation to the teststep.");
-  RegisterTooltip(m_buttonDelValidation,"Delete a validation from the teststep.");
-  RegisterTooltip(m_buttonMutValidation,"Change the underlying filename of the validation.");
+  RegisterTooltip(m_buttonAddValidation,_T("Add a new validation to the teststep."));
+  RegisterTooltip(m_buttonDelValidation,_T("Delete a validation from the teststep."));
+  RegisterTooltip(m_buttonMutValidation,_T("Change the underlying filename of the validation."));
 }
 
 void
@@ -112,10 +111,10 @@ CombiEditorDlg::FillGrid()
   m_grid.SetFixedRowCount(1);
   m_grid.SetFixedColumnCount(1);
   m_grid.SetEditable(FALSE);
-  m_grid.GetCell(0, 0)->SetText("Number");
-  m_grid.GetCell(0, 1)->SetText("GT");
-  m_grid.GetCell(0, 2)->SetText("Validation");
-  m_grid.GetCell(0, 3)->SetText("Filename");
+  m_grid.GetCell(0, 0)->SetText(_T("Number"));
+  m_grid.GetCell(0, 1)->SetText(_T("GT"));
+  m_grid.GetCell(0, 2)->SetText(_T("Validation"));
+  m_grid.GetCell(0, 3)->SetText(_T("Filename"));
   m_grid.SetSingleRowSelection();
   m_grid.SetSortColumn(0);
 
@@ -136,9 +135,9 @@ CombiEditorDlg::FillGrid()
     CString num;
     for(auto& val : *vals)
     {
-      num.Format("Number %d",number++);
+      num.Format(_T("Number %d"),number++);
       int row = m_grid.InsertRow(num);
-      SetTextImage(row,1,"",val.m_global ? 2 : 3);
+      SetTextImage(row,1,_T(""),val.m_global ? 2 : 3);
       m_grid.GetCell(row,2)->SetText(val.m_name);
       m_grid.GetCell(row,3)->SetText(val.m_filename);
 
@@ -177,7 +176,7 @@ CombiEditorDlg::TryChangeValiGlobalLocal(int p_row)
   TRValidation& vali = vals[p_row-1];
 
   CString ask;
-  ask.Format("Do you want to change the validation to a [%s] validation?", vali.m_global ? "local" : "global");
+  ask.Format(_T("Do you want to change the validation to a [%s] validation?"), vali.m_global ? _T("local") : _T("global"));
   if(StyleMessageBox(this,ask,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
     return;
@@ -201,7 +200,7 @@ CombiEditorDlg::TryChangeValiGlobalLocal(int p_row)
       m_changed = true;
     }
   }
-  SetTextImage(p_row,1,"",vali.m_global ? COL_STATUS_GLOBAL : COL_STATUS_LOCAL);
+  SetTextImage(p_row,1,_T(""),vali.m_global ? COL_STATUS_GLOBAL : COL_STATUS_LOCAL);
   m_grid.Invalidate();
 }
 
@@ -238,18 +237,18 @@ CombiEditorDlg::OnBnClickedAddValidation()
   AutoFocus focus;
 
   StepType type = m_stepType;
-  StyleStepper wizard(this,IDD_STEPPER,"New validation");
+  StyleStepper wizard(this,IDD_STEPPER,_T("New validation"));
   wizard.SetStepperData(&type);
 
   // Optionally add first page
   NewStepTypeDlg page1;
   if(type == StepType::Step_unknown)
   {
-    wizard.AddPage("Step type",&page1,IDD_NEWSTEP_TYPE);
+    wizard.AddPage(_T("Step type"),&page1,IDD_NEWSTEP_TYPE);
   }
   // Then only add the last page (validation)
   NewStepValiDlg page3(&wizard);
-  wizard.AddPage("Validation",&page3,IDD_NEWSTEP_VALI);
+  wizard.AddPage(_T("Validation"),&page3,IDD_NEWSTEP_VALI);
 
   if(wizard.DoModal() == IDOK)
   {
@@ -260,10 +259,10 @@ CombiEditorDlg::OnBnClickedAddValidation()
 
       CString num;
       int number = m_grid.GetRowCount();
-      num.Format("Number %d",number);
+      num.Format(_T("Number %d"),number);
 
       int row = m_grid.InsertRow(num);
-      SetTextImage(row,1,"",page3.GetValiGlobal() ? 2 : 3);
+      SetTextImage(row,1,_T(""),page3.GetValiGlobal() ? 2 : 3);
       m_grid.GetCell(row,2)->SetText(page3.GetValiName());
       m_grid.GetCell(row,3)->SetText(page3.GetValiFile());
       m_grid.Refresh();
@@ -293,8 +292,8 @@ CombiEditorDlg::OnBnClickedDelValidation()
         if(it->m_global == false)
         {
           CString ask;
-          ask.Format("Delete validation [%s] definitely! Are you sure?",validation.GetString());
-          if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+          ask.Format(_T("Delete validation [%s] definitely! Are you sure?"),validation.GetString());
+          if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
           {
             return;
           }
@@ -303,7 +302,7 @@ CombiEditorDlg::OnBnClickedDelValidation()
         }
         else
         {
-          StyleMessageBox(this,"Global validation no longer connected to this teststep",KWATTA,MB_OK|MB_ICONINFORMATION);
+          StyleMessageBox(this,_T("Global validation no longer connected to this teststep"),_T(KWATTA),MB_OK|MB_ICONINFORMATION);
         }
         vals->erase(it);
         m_grid.DeleteRow(id.row);
@@ -333,14 +332,14 @@ CombiEditorDlg::OnBnClickedMutValidation()
       {
         if(it->m_global)
         {
-          StyleMessageBox(this,"Global validation cannot be edited!",KWATTA,MB_OK|MB_ICONWARNING);
+          StyleMessageBox(this,_T("Global validation cannot be edited!"),_T(KWATTA),MB_OK|MB_ICONWARNING);
         }
         else
         {
           CString filename = it->m_filename;
 
           AutoFocus focus;
-          MutateDlg dlg(this, "validation", filename);
+          MutateDlg dlg(this, _T("validation"), filename);
           dlg.DoModal();
 
           CString newfile = dlg.GetFilename();

@@ -1,5 +1,22 @@
-// DatabaseDlg.cpp : implementation file
+﻿///////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+// 
+// ██╗░░██╗░██╗░░░░░░░██╗░█████╗░████████╗████████╗░█████╗░
+// ██║░██╔╝░██║░░██╗░░██║██╔══██╗╚══██╔══╝╚══██╔══╝██╔══██╗
+// █████═╝░░╚██╗████╗██╔╝███████║░░░██║░░░░░░██║░░░███████║
+// ██╔═██╗░░░████╔═████║░██╔══██║░░░██║░░░░░░██║░░░██╔══██║
+// ██║░╚██╗░░╚██╔╝░╚██╔╝░██║░░██║░░░██║░░░░░░██║░░░██║░░██║
+// ╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝
+// 
+// 
+// This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
+// This program: StepEditor
+// This File   : DatabaseDlg.cpp
+// What it does: Authentications for an HTTP internet call
+// Author      : ir. W.E. Huisman
+// License     : See license.md file in the root directory
+// 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "stdafx.h"
 #include "StepEditor.h"
@@ -7,6 +24,12 @@
 #include "StepDatabaseDlg.h"
 #include "TestStepSQL.h"
 #include <SearchVarDlg.h>
+
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#define new DEBUG_NEW
+#endif
 
 // DatabaseDlg dialog
 

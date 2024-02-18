@@ -94,10 +94,10 @@ SQLDataDlg::OnInitDialog()
 	m_buttonDelete.SetIconImage(IDI_DELETE);
   m_buttonVariable.SetIconImage(IDI_LIST);
 	EnableToolTips();
-	RegisterTooltip(m_buttonNew,		  "Add a column name and data cell value.");
-	RegisterTooltip(m_buttonDelete,   "Delete a result column name and data cell value");
-	RegisterTooltip(m_buttonParm,     "Choose global/test parameter(s) for a data cell.");
-	RegisterTooltip(m_buttonVariable, "Choose global/test parameter(s) for the resulting return value.");
+	RegisterTooltip(m_buttonNew,		  _T("Add a column name and data cell value."));
+	RegisterTooltip(m_buttonDelete,   _T("Delete a result column name and data cell value"));
+	RegisterTooltip(m_buttonParm,     _T("Choose global/test parameter(s) for a data cell."));
+	RegisterTooltip(m_buttonVariable, _T("Choose global/test parameter(s) for the resulting return value."));
 
 	InitLijst();
 
@@ -133,8 +133,8 @@ SQLDataDlg::InitLijst()
 	m_list.SetColumnCount(2);
 	m_list.SetRowCount(1);
 	m_list.SetFixedRowCount(1);
-	m_list.GetCell(0, 0)->SetText("Column");
-	m_list.GetCell(0, 1)->SetText("Value");
+	m_list.GetCell(0, 0)->SetText(_T("Column"));
+	m_list.GetCell(0, 1)->SetText(_T("Value"));
 	m_list.SetColumnWidth(0, 150);
 	m_list.SetColumnWidth(1, 500);
 	m_list.SetEditable();
@@ -159,18 +159,18 @@ SQLDataDlg::FillCombos()
   m_comboOperator.ResetContent();
   m_comboVariable.ResetContent();
 
-  m_comboOperator.AddString("");
-  m_comboOperator.AddString("EXACT buffer contents");
-  m_comboOperator.AddString("CONTAINS this text");
-  m_comboOperator.AddString("BEGINSWITH this text");
-  m_comboOperator.AddString("ENDSWITH this text");
-  m_comboOperator.AddString("IS EMPTY");
-  m_comboOperator.AddString("NOT EMPTY");
-  m_comboOperator.AddString("NOTFOUND");
-  m_comboOperator.AddString("FILE contents MATCH");
-  m_comboOperator.AddString("FILE EXISTS");
+  m_comboOperator.AddString(_T(""));
+  m_comboOperator.AddString(_T("EXACT buffer contents"));
+  m_comboOperator.AddString(_T("CONTAINS this text"));
+  m_comboOperator.AddString(_T("BEGINSWITH this text"));
+  m_comboOperator.AddString(_T("ENDSWITH this text"));
+  m_comboOperator.AddString(_T("IS EMPTY"));
+  m_comboOperator.AddString(_T("NOT EMPTY"));
+  m_comboOperator.AddString(_T("NOTFOUND"));
+  m_comboOperator.AddString(_T("FILE contents MATCH"));
+  m_comboOperator.AddString(_T("FILE EXISTS"));
 
-  m_comboVariable.AddString("");
+  m_comboVariable.AddString(_T(""));
   for (auto& ret : m_parameters->GetReturns())
   {
     m_comboVariable.AddString(ret.first);
@@ -245,8 +245,8 @@ SQLDataDlg::OnLvnItemchangedGrid(NMHDR* pNMHDR, LRESULT* pResult)
 void 
 SQLDataDlg::OnBnClickedNew()
 {
-  int row = m_list.InsertRow("");
-  m_list.GetCell(row, 1)->SetText("");
+  int row = m_list.InsertRow(_T(""));
+  m_list.GetCell(row, 1)->SetText(_T(""));
   m_list.SetFocusCell(row, 0);
   m_list.Invalidate();
 }
@@ -266,8 +266,8 @@ SQLDataDlg::OnBnClickedDelete()
       if(!variable.IsEmpty())
       {
         CString ask;
-        ask.Format("Do you want to delete the column [%s] ?", variable.GetString());
-        if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+        ask.Format(_T("Do you want to delete the column [%s] ?"), variable.GetString());
+        if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
         {
           return;
         }

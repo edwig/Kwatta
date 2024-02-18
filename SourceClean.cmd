@@ -1,5 +1,7 @@
 rmdir /q/s bin_debug
 rmdir /q/s bin_release
+rmdir /q/s bin_debugUnicode
+rmdir /q/s bin_releaseUnicode
 rmdir /q/s lib
 
 rmdir /q/s x64

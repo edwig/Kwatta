@@ -64,36 +64,40 @@ BOOL
 AboutDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("About");
+  SetWindowText(_T("About"));
   ShowCloseButton();
 
-  m_text = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1043{\\fonttbl{\\f0\\fnil\\fcharset0 Verdana;}}\n"
-           "\\viewkind4\\uc1\\pard\\f0\\fs20\n"
-           "\\tab{\\b KWATTA}\\par\n"
-           "\\par\n"
-           "KWALITY TEST API - Program\\par\n"
-           "\\par\n"
-           "Named after the 'Ateles Paniscus'\\par\n"
-           "monkey. Also named the spider-monkey,\\par\n"
-           "Jungle-devil or Bosduivel.\\par\n"
-           "\\par\n"
-           "This program is named {\\b Kwatta} as a\\par\n"
-           "short for {\\b Kwa}li{\\b T}y {\\b T}est {\\b A}pi program.\\par\n"
-           "To programmers the protests of a\\par\n"
-           "professional tester is somewhat like\\par\n"
-           "the screeching of the spider-monkey.\\par\n"
-           "After having accomplished a difficult\\par\n"
-           "task in programming, the programmer\\par\n"
-           "sits back in humble satisfaction.\\par\n"
-           "\\par\n"
-           "But his/her peace gets quickly disturbed\\par\n"
-           "by the noises of the quality testers\\par\n"
-           "who gets busy in the aftermath of the\\par\n"
-           "programming day......\\par\n"
-           "\\par\n";
+  m_text = _T("{\\rtf1\\ansi\\ansicpg1252\\deff0\\deflang1043{\\fonttbl{\\f0\\fnil\\fcharset0 Verdana;}}\n")
+           _T("\\viewkind4\\uc1\\pard\\f0\\fs20\n")
+           _T("\\tab{\\b KWATTA}\\par\n")
+           _T("\\par\n")
+#ifdef _UNICODE
+           _T("\\tab UNICODE VERSION !!\\par\n")
+           _T("\\par\n")
+#endif
+           _T("KWALITY TEST API - Program\\par\n")
+           _T("\\par\n")
+           _T("Named after the 'Ateles Paniscus'\\par\n")
+           _T("monkey. Also named the spider-monkey,\\par\n")
+           _T("Jungle-devil or Bosduivel.\\par\n")
+           _T("\\par\n")
+           _T("This program is named {\\b Kwatta} as a\\par\n")
+           _T("short for {\\b Kwa}li{\\b T}y {\\b T}est {\\b A}pi program.\\par\n")
+           _T("To programmers the protests of a\\par\n")
+           _T("professional tester is somewhat like\\par\n")
+           _T("the screeching of the spider-monkey.\\par\n")
+           _T("After having accomplished a difficult\\par\n")
+           _T("task in programming, the programmer\\par\n")
+           _T("sits back in humble satisfaction.\\par\n")
+           _T("\\par\n")
+           _T("But his/her peace gets quickly disturbed\\par\n")
+           _T("by the noises of the quality testers\\par\n")
+           _T("who gets busy in the aftermath of the\\par\n")
+           _T("programming day......\\par\n")
+           _T("\\par\n");
 
   CString version;
-  version.Format("{\\b VERSION: %s}}",KWATTA_VERSION);
+  version.Format(_T("{\\b VERSION: %s}}"),_T(KWATTA_VERSION));
   m_text += version;
 
   // Perform the streaming

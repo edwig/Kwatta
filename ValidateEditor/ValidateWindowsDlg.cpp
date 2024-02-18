@@ -94,7 +94,7 @@ END_MESSAGE_MAP()
 BOOL ValidateWindowsDlg::OnInitDialog()
 {
 	StyleDialog::OnInitDialog();
-  SetWindowText("Validate Editor (Command line)");
+  SetWindowText(_T("Validate Editor (Command line)"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
   SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
@@ -152,9 +152,9 @@ ValidateWindowsDlg::InitTabs()
   m_tab2->Create(IDD_WINRETURN, &m_tabs);
   m_tab3->Create(IDD_WINERRORS, &m_tabs);
 
-  m_tabs.InsertItem(0,m_tab1,"Logging");
-  m_tabs.InsertItem(1,m_tab2,"Return value");
-  m_tabs.InsertItem(2,m_tab3,"Error list");
+  m_tabs.InsertItem(0,m_tab1,_T("Logging"));
+  m_tabs.InsertItem(1,m_tab2,_T("Return value"));
+  m_tabs.InsertItem(2,m_tab3,_T("Error list"));
 
   m_tabs.Init();
 }
@@ -163,11 +163,11 @@ void
 ValidateWindowsDlg::InitButtons()
 {
   m_buttonGlobal.SetIconImage(IDI_EARTH);
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
 
   EnableToolTips();
-  RegisterTooltip(m_buttonGlobal,"Promote validation to a global validation");
+  RegisterTooltip(m_buttonGlobal,_T("Promote validation to a global validation"));
 }
 
 void
@@ -190,7 +190,7 @@ ValidateWindowsDlg::InitValidation()
 void
 ValidateWindowsDlg::InitParameters()
 {
-  CString global = theApp.GetBaseDirectory() + "Parameters.xpar";
+  CString global = theApp.GetBaseDirectory() + _T("Parameters.xpar");
   CString local  = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParameterFilename();
 
   // read the definition of the parameters
@@ -213,13 +213,13 @@ ValidateWindowsDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    m_bound = "Parameters: OK";
+    m_bound = _T("Parameters: OK");
     // Effectuate the parameters
     m_unbound = m_validate.EffectiveReplacements(&m_parameters,true);
 
     if (m_unbound > 0)
     {
-      m_bound.Format("Unbound parameters: %d", m_unbound);
+      m_bound.Format(_T("Unbound parameters: %d"), m_unbound);
     }
 
     m_editBound.SetTextColor  (m_unbound > 0 ? RGB(255, 0, 0) : RGB(0, 255, 0));
@@ -351,7 +351,7 @@ ValidateWindowsDlg::OnEnChangeName()
 void
 ValidateWindowsDlg::OnBnClickedGlobal()
 {
-  if(StyleMessageBox(this,"Promote this validation to a global validation?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  if(StyleMessageBox(this,_T("Promote this validation to a global validation?"),PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
     theApp.PromoteValidation(this);
   }

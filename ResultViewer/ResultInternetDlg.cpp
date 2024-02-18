@@ -85,7 +85,7 @@ BOOL
 ResultInternetDlg::OnInitDialog()
 {
 	StyleDialog::OnInitDialog();
-  SetWindowText("Result Viewer");
+  SetWindowText(_T("Result Viewer"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
 
@@ -153,10 +153,10 @@ ResultInternetDlg::InitTabs()
   m_tab4->Create(IDD_RESP_HEADERS,&m_tabs);
 
 
-  m_tabs.InsertItem(0,m_tab1,"Validations");
-  m_tabs.InsertItem(1,m_tab2,"Response");
-  m_tabs.InsertItem(2,m_tab3,"Raw Response");
-  m_tabs.InsertItem(3,m_tab4,"Headers");
+  m_tabs.InsertItem(0,m_tab1,_T("Validations"));
+  m_tabs.InsertItem(1,m_tab2,_T("Response"));
+  m_tabs.InsertItem(2,m_tab3,_T("Raw Response"));
+  m_tabs.InsertItem(3,m_tab4,_T("Headers"));
 
   // Position in the parent window
   m_tabs.Init();
@@ -185,7 +185,7 @@ ResultInternetDlg::LoadVariables()
   m_name          = m_stepResult.GetName();
   m_documentation = m_stepResult.GetDocumentation();
 
-  LPSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
+  LPTSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
   m_picture.LoadBitmaps(bitmap);
 }
 

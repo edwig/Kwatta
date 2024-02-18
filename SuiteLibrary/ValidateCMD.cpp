@@ -38,31 +38,31 @@ ValidateCMD::ReadFromXML(CString p_filename)
   Validate::ReadFromXML(msg,p_filename);
 
   // Return value validation
-  XMLElement* retval = msg.FindElement("CheckReturn");
+  XMLElement* retval = msg.FindElement(_T("CheckReturn"));
   if(retval)
   {
-    m_returnIsSigned   = msg.GetElementBoolean(retval,"IsSigned");
-    m_checkReturnValue = msg.GetElementBoolean(retval,"Check");
-    m_returnOperator   = StringToReturnOperator(msg.GetElement(retval,"Operator"));
-    m_expectedReturn   = msg.GetElement(retval,"Expected");
+    m_returnIsSigned   = msg.GetElementBoolean(retval,_T("IsSigned"));
+    m_checkReturnValue = msg.GetElementBoolean(retval,_T("Check"));
+    m_returnOperator   = StringToReturnOperator(msg.GetElement(retval,_T("Operator")));
+    m_expectedReturn   = msg.GetElement(retval,_T("Expected"));
   }
 
   // Standard output validation
-  XMLElement* output = msg.FindElement("CheckOutput");
+  XMLElement* output = msg.FindElement(_T("CheckOutput"));
   if(output)
   {
-    m_checkOutput    = msg.GetElementBoolean(output,"Check");
-    m_outputOperator = StringToBufferOperator(msg.GetElement(output,"Operator"));
-    m_expectedOutput = msg.GetElement(output,"Expected");
+    m_checkOutput    = msg.GetElementBoolean(output,_T("Check"));
+    m_outputOperator = StringToBufferOperator(msg.GetElement(output,_T("Operator")));
+    m_expectedOutput = msg.GetElement(output,_T("Expected"));
   }
 
   // Standard error validation
-  XMLElement* error = msg.FindElement("CheckError");
+  XMLElement* error = msg.FindElement(_T("CheckError"));
   if(error)
   {
-    m_checkError    = msg.GetElementBoolean(error,"Check");
-    m_errorOperator = StringToBufferOperator(msg.GetElement(error,"Operator"));
-    m_expectedError = msg.GetElement(error,"Expected");
+    m_checkError    = msg.GetElementBoolean(error,_T("Check"));
+    m_errorOperator = StringToBufferOperator(msg.GetElement(error,_T("Operator")));
+    m_expectedError = msg.GetElement(error,_T("Expected"));
   }
 }
 
@@ -75,21 +75,21 @@ ValidateCMD::WriteToXML(CString p_filename)
     return false;
   }
   XMLElement* root   = msg.GetRoot();
-  XMLElement* retval = msg.AddElement(root,"CheckReturn",XDT_String,"");
-  msg.SetElement(retval,"IsSigned",m_returnIsSigned);
-  msg.SetElement(retval,"Check",   m_checkReturnValue);
-  msg.SetElement(retval,"Operator",ReturnOperatorToString(m_returnOperator));
-  msg.AddElement(retval,"Expected",XDT_CDATA,m_expectedReturn);
+  XMLElement* retval = msg.AddElement(root,_T("CheckReturn"),XDT_String,_T(""));
+  msg.SetElement(retval,_T("IsSigned"),m_returnIsSigned);
+  msg.SetElement(retval,_T("Check"),   m_checkReturnValue);
+  msg.SetElement(retval,_T("Operator"),ReturnOperatorToString(m_returnOperator));
+  msg.AddElement(retval,_T("Expected"),XDT_CDATA,m_expectedReturn);
 
-  XMLElement* output = msg.AddElement(root,"CheckOutput",XDT_String,"");
-  msg.SetElement(output,"Check",   m_checkOutput);
-  msg.SetElement(output,"Operator",BufferOperatorToString(m_outputOperator));
-  msg.AddElement(output,"Expected",XDT_CDATA,m_expectedOutput);
+  XMLElement* output = msg.AddElement(root,_T("CheckOutput"),XDT_String,_T(""));
+  msg.SetElement(output,_T("Check"),   m_checkOutput);
+  msg.SetElement(output,_T("Operator"),BufferOperatorToString(m_outputOperator));
+  msg.AddElement(output,_T("Expected"),XDT_CDATA,m_expectedOutput);
 
-  XMLElement* error = msg.AddElement(root,"CheckError",XDT_String,"");
-  msg.SetElement(error,"Check",   m_checkError);
-  msg.SetElement(error,"Operator",BufferOperatorToString(m_errorOperator));
-  msg.AddElement(error,"Expected",XDT_CDATA,m_expectedError);
+  XMLElement* error = msg.AddElement(root,_T("CheckError"),XDT_String,_T(""));
+  msg.SetElement(error,_T("Check"),   m_checkError);
+  msg.SetElement(error,_T("Operator"),BufferOperatorToString(m_errorOperator));
+  msg.AddElement(error,_T("Expected"),XDT_CDATA,m_expectedError);
 
   // Now save it
   return msg.SaveFile(m_filename);
@@ -113,13 +113,13 @@ void
 ValidateCMD::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_VALIDATE_CMD,5))
+  if(_tcsncicmp(extension,EXTENSION_VALIDATE_CMD,5))
   {
-    throw StdException("A Validation XML definition file must be saved as a *.XVAL");
+    throw StdException(_T("A Validation XML definition file must be saved as a *.XVAL"));
   }
 }
 
@@ -134,7 +134,7 @@ ValidateCMD::ValidateReturnValue(int p_value)
   }
 
   // Convert expected result to an int
-  int expected = atoi(m_effectiveReturn);
+  int expected = _ttoi(m_effectiveReturn);
 
   // Check result, depending on the operator
   bool result = false;

@@ -84,7 +84,7 @@ BOOL
 ResultDatabaseDlg::OnInitDialog()
 {
 	StyleDialog::OnInitDialog();
-  SetWindowText("Result Viewer");
+  SetWindowText(_T("Result Viewer"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
 
@@ -151,9 +151,9 @@ ResultDatabaseDlg::InitTabs()
   m_tab3->Create(IDD_SQL_STATUS,  &m_tabs);
 
 
-  m_tabs.InsertItem(0,m_tab1,"Validations");
-  m_tabs.InsertItem(1,m_tab2,"Data row");
-  m_tabs.InsertItem(2,m_tab3,"Status");
+  m_tabs.InsertItem(0,m_tab1,_T("Validations"));
+  m_tabs.InsertItem(1,m_tab2,_T("Data row"));
+  m_tabs.InsertItem(2,m_tab3,_T("Status"));
 
   // Position in the parent window
   m_tabs.Init();
@@ -182,7 +182,7 @@ ResultDatabaseDlg::LoadVariables()
   m_name          = m_stepResult.GetName();
   m_documentation = m_stepResult.GetDocumentation();
 
-  LPSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
+  LPTSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
   m_picture.LoadBitmaps(bitmap);
 }
 

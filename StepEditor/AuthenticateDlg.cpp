@@ -169,25 +169,25 @@ AuthenticateDlg::InitButtons()
   m_buttonClientKeyParm  .SetIconImage(IDI_LIST);
   m_buttonClientScopeParm.SetIconImage(IDI_LIST);
 
-  RegisterTooltip(m_buttonUsernameParm,   "Choose global/test parameter for the username");
-  RegisterTooltip(m_buttonPasswordParm,   "Choose global/test parameter for the password");
-  RegisterTooltip(m_buttonTokenServerParm,"Choose global/test parameter for the OAuth2 token server");
-  RegisterTooltip(m_buttonClientIDParm,   "Choose global/test parameter for the client ID");
-  RegisterTooltip(m_buttonClientKeyParm,  "Choose global/test parameter for the client KEY");
-  RegisterTooltip(m_buttonClientScopeParm,"Choose global/test parameter for the client Scope");
+  RegisterTooltip(m_buttonUsernameParm,   _T("Choose global/test parameter for the username"));
+  RegisterTooltip(m_buttonPasswordParm,   _T("Choose global/test parameter for the password"));
+  RegisterTooltip(m_buttonTokenServerParm,_T("Choose global/test parameter for the OAuth2 token server"));
+  RegisterTooltip(m_buttonClientIDParm,   _T("Choose global/test parameter for the client ID"));
+  RegisterTooltip(m_buttonClientKeyParm,  _T("Choose global/test parameter for the client KEY"));
+  RegisterTooltip(m_buttonClientScopeParm,_T("Choose global/test parameter for the client Scope"));
 }
 
 void
 AuthenticateDlg::InitCombos()
 {
-  m_comboType.AddString("Anonymous");
-  m_comboType.AddString("Basic authentication");
-  m_comboType.AddString("NTLM Single-signon");
-  m_comboType.AddString("NTLM");
-  m_comboType.AddString("OAuth2");
+  m_comboType.AddString(_T("Anonymous"));
+  m_comboType.AddString(_T("Basic authentication"));
+  m_comboType.AddString(_T("NTLM Single-signon"));
+  m_comboType.AddString(_T("NTLM"));
+  m_comboType.AddString(_T("OAuth2"));
 
-  m_comboGrant.AddString("Client credentials grant");
-  m_comboGrant.AddString("User credentials grant");
+  m_comboGrant.AddString(_T("Client credentials grant"));
+  m_comboGrant.AddString(_T("User credentials grant"));
 }
 
 void 
@@ -274,11 +274,11 @@ AuthenticateDlg::EffectiveParameters()
 int  
 AuthenticateDlg::CalcAuthenticationType()
 {
-  if(m_authType.CompareNoCase("Anonymous")            == 0) return AUTH_ANONYMOUS;
-  if(m_authType.CompareNoCase("Basic authentication") == 0) return AUTH_BASIC;
-  if(m_authType.CompareNoCase("NTLM Single-signon")   == 0) return AUTH_NTLM_SSO;
-  if(m_authType.CompareNoCase("NTLM")                 == 0) return AUTH_NTLM;
-  if(m_authType.CompareNoCase("OAuth2")               == 0) return AUTH_OAUTH;
+  if(m_authType.CompareNoCase(_T("Anonymous"))            == 0) return AUTH_ANONYMOUS;
+  if(m_authType.CompareNoCase(_T("Basic authentication")) == 0) return AUTH_BASIC;
+  if(m_authType.CompareNoCase(_T("NTLM Single-signon"))   == 0) return AUTH_NTLM_SSO;
+  if(m_authType.CompareNoCase(_T("NTLM"))                 == 0) return AUTH_NTLM;
+  if(m_authType.CompareNoCase(_T("OAuth2"))               == 0) return AUTH_OAUTH;
  
   return 0;
 }
@@ -305,11 +305,11 @@ AuthenticateDlg::PresetBasicAuthentication()
 {
   if(m_userName.IsEmpty())
   {
-    m_userName = "$user$";
+    m_userName = _T("$user$");
   }
   if(m_password.IsEmpty())
   {
-    m_password = "$password$";
+    m_password = _T("$password$");
   }
 }
 

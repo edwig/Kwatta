@@ -120,7 +120,7 @@ SQLStatusDlg::PreTranslateMessage(MSG* pMsg)
     }
   }
   // Nothing done yet
-  return FALSE;
+  return StyleTab::PreTranslateMessage(pMsg);
 }
 
 // SQLStatusDlg message handlers

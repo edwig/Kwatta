@@ -62,7 +62,7 @@ ConsoleDlg::OnInitDialog()
   m_editText.SetBorderColor(RGB(0,0,0));
   m_editText.SetBkColor(RGB(0,0,0));
   m_editText.SetTextColor(RGB(180,180,180));
-  m_editText.SetFontName("Lucida console",120);
+  m_editText.SetFontName(_T("Lucida console"),120);
 
   UpdateData(FALSE);
   return TRUE;
@@ -79,11 +79,11 @@ ConsoleDlg::Move()
 LRESULT
 ConsoleDlg::OnConsoleTitle(WPARAM wParam,LPARAM lParam)
 {
-  CString title("Console");
-  const char* text = reinterpret_cast<const char*>(lParam);
+  CString title(_T("Console"));
+  const TCHAR* text = reinterpret_cast<const TCHAR*>(lParam);
   if(*text)
   {
-    title.AppendFormat(" - %s",text);
+    title.AppendFormat(_T(" - %s"),text);
     ShowWindow(SW_SHOW);
   }
   else
@@ -98,13 +98,13 @@ ConsoleDlg::OnConsoleTitle(WPARAM wParam,LPARAM lParam)
 LRESULT
 ConsoleDlg::OnConsoleText(WPARAM wParam,LPARAM lParam)
 {
-  const char* text = reinterpret_cast<const char*>(lParam);
+  const TCHAR* text = reinterpret_cast<const TCHAR*>(lParam);
   AddLine(text);
   return 0;
 }
 
 void
-ConsoleDlg::AddLine(const char* p_line)
+ConsoleDlg::AddLine(const TCHAR* p_line)
 {
   int line    = m_editText.GetLineCount() - 1;
   int endChar = m_editText.LineIndex(line);

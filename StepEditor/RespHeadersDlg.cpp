@@ -79,8 +79,8 @@ RespHeadersDlg::InitLijst()
   m_list.SetColumnCount(2);
   m_list.SetRowCount(1);
   m_list.SetFixedRowCount(1);
-  m_list.GetCell(0,0)->SetText("Header");
-  m_list.GetCell(0,1)->SetText("Value");
+  m_list.GetCell(0,0)->SetText(_T("Header"));
+  m_list.GetCell(0,1)->SetText(_T("Value"));
   m_list.SetColumnWidth(0,150);
   m_list.SetColumnWidth(1,500);
   m_list.SetEditable(FALSE);

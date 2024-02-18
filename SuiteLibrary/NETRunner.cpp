@@ -117,7 +117,7 @@ NETRunner::PerformTest()
   catch(StdException& ex)
   {
     // WHOA: Something went wrong
-    StyleMessageBox(NULL,ex.GetErrorMessage(),"Kwatta",MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
+    StyleMessageBox(NULL,ex.GetErrorMessage(),_T("Kwatta"),MB_OK | MB_ICONERROR | MB_SETFOREGROUND);
     // Test did went WRONG!!
     result = 0;
   }
@@ -140,8 +140,8 @@ void
 NETRunner::InitRunner()
 {
   // Reset the dialog
-  SetTest("Initializing");
-  SetStep("");
+  SetTest(_T("Initializing"));
+  SetStep(_T(""));
   SetProgress(0);
 
   // Calculate the number of steps
@@ -166,8 +166,8 @@ NETRunner::InitRunner()
 void
 NETRunner::ReadingAllFiles()
 {
-  SetTest("Reading all definition files");
-  PerformStep("XML files...");
+  SetTest(_T("Reading all definition files"));
+  PerformStep(_T("XML files..."));
 
   ReadTestStep();
   ReadParameters();
@@ -181,7 +181,7 @@ void
 NETRunner::ParameterProcessing()
 {
   int unbound = 0;
-  PerformStep("Parameter processing...");
+  PerformStep(_T("Parameter processing..."));
 
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
 
@@ -198,7 +198,7 @@ NETRunner::ParameterProcessing()
   if(unbound)
   {
     CString error;
-    error.Format("Cannot perform test. Existing unbound parameters: %d",unbound);
+    error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
 
@@ -235,15 +235,15 @@ NETRunner::ParameterProcessing()
 void
 NETRunner::StartingLogfile()
 {
-  int loglevel = atoi(m_parameters.FindSystemParameter("Loglevel"));
-  CString logfile =   m_parameters.FindSystemParameter("Logfile");
+  int loglevel = _ttoi(m_parameters.FindSystemParameter(_T("Loglevel")));
+  CString logfile =    m_parameters.FindSystemParameter(_T("Logfile"));
 
   if(loglevel > 0 && !logfile.IsEmpty())
   {
     if(m_client)
     {
       // Create logfile. Defaults are OK for this application
-      m_logfile = LogAnalysis::CreateLogfile("Kwatta HTTP Test");
+      m_logfile = LogAnalysis::CreateLogfile(_T("Kwatta HTTP Test"));
       m_logfile->SetLogLevel(loglevel);
       m_logfile->SetLogFilename(logfile);
 
@@ -258,23 +258,23 @@ NETRunner::StartingLogfile()
 void
 NETRunner::PerformAuthentication()
 {
-  PerformStep("Setting the authentication");
+  PerformStep(_T("Setting the authentication"));
 
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
   CString auth = step->GetAuthType();
-  if(auth.Find("Basic") >= 0)
+  if(auth.Find(_T("Basic")) >= 0)
   {
     SetBasicAuthentication();
   }
-  else if(auth.Find("NTLM Single") >= 0)
+  else if(auth.Find(_T("NTLM Single")) >= 0)
   {
     SetNTLMSSOAuthentication();
   }
-  else if(auth.Find("NTLM") >= 0)
+  else if(auth.Find(_T("NTLM")) >= 0)
   {
     SetNTLMAuthentication();
   }
-  else if(auth.Find("OAuth2") >= 0)
+  else if(auth.Find(_T("OAuth2")) >= 0)
   {
     SetOAuth2Authentication();
   }
@@ -314,8 +314,8 @@ NETRunner::PrepareMessage()
     m_message->SetBody(step->GetEffectiveBody());
   }
 
-  CString accept = m_message->GetHeader("Accept");
-  if(accept.Find("json") >= 0)
+  CString accept = m_message->GetHeader(_T("Accept"));
+  if(accept.Find(_T("json")) >= 0)
   {
     m_isJson = true;
   }
@@ -324,7 +324,7 @@ NETRunner::PrepareMessage()
 void
 NETRunner::PerformCommand()
 {
-  PerformStep("RUN THE COMMAND...");
+  PerformStep(_T("RUN THE COMMAND..."));
 
   // Take name and documentation
   m_result->Reset();
@@ -344,7 +344,7 @@ NETRunner::PerformCommand()
   // See if we must set a boobytrap
   if(m_testStep->GetKillOnTimeout())
   {
-    int maxtime = atoi(m_testStep->GetEffectiveMaxExecution());
+    int maxtime = _ttoi(m_testStep->GetEffectiveMaxExecution());
     if(maxtime > 0)
     {
       SetBoobytrap();
@@ -403,12 +403,12 @@ NETRunner::ExamineMessage()
     if(m_message->GetFileBuffer()->WriteFile())
     {
       m_message->GetFileBuffer()->ResetFilename();
-      m_message->SetBody("<File written: OK>\r\nFile: " + file);
+      m_message->SetBody(_T("<File written: OK>\r\nFile: ") + file);
     }
     else
     {
       m_message->GetFileBuffer()->ResetFilename();
-      m_message->SetBody("<FILE NOT WRITTEN>\r\nFile: " + file);
+      m_message->SetBody(_T("<FILE NOT WRITTEN>\r\nFile: ") + file);
     }
   }
   result->SetBody(m_message->GetBody());
@@ -426,7 +426,7 @@ NETRunner::PerformAllValidations()
   for(auto& vali : m_validations)
   {
     ValidateNET* validate = reinterpret_cast<ValidateNET*>(vali);
-    PerformStep("Validation: " + validate->GetName());
+    PerformStep(_T("Validation: ") + validate->GetName());
 
     // Do the validations
     bool totalresult = true;
@@ -469,17 +469,17 @@ NETRunner::PerformAllValidations()
 void
 NETRunner::SaveTestResults()
 {
-  PerformStep("Saving the test results");
+  PerformStep(_T("Saving the test results"));
   StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
 
   CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
-  filename.Replace(".irun",".ires");
+  filename.Replace(_T(".irun"),_T(".ires"));
 
   if(result->WriteToXML(filename) == false)
   {
     CString error;
-    error.Format("Cannot save results file: %s",filename.GetString());
+    error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
 
@@ -532,7 +532,7 @@ NETRunner::ReadValidations()
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateNET();
-    CString file = m_baseDirectory + "Validations\\" + filename;
+    CString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -573,7 +573,7 @@ NETRunner::StopBoobytrap()
 int
 NETRunner::CheckStatusOK(int p_returnCode)
 {
-  int statusOK = atoi(m_testStep->GetEffectiveStatusOK());
+  int statusOK = _ttoi(m_testStep->GetEffectiveStatusOK());
   if(statusOK != 0 && (p_returnCode != statusOK))
   {
     return 0;
@@ -588,14 +588,14 @@ NETRunner::CreateQLErrorMessage(CString p_error)
   CString error;
   if(m_isJson)
   {
-    error = "{ \"error\" : \"QL Language script: " + p_error + "\" }";
+    error = _T("{ \"error\" : \"QL Language script: ") + p_error + _T("\" }");
   }
   else
   {
-    error = "<Error>\n"
-            "  <Type>QL Language script</Type>\n"
-            "  <Message>" + p_error + "</Message>\n"
-            "</Error>\n";
+    error = _T("<Error>\n")
+            _T("  <Type>QL Language script</Type>\n")
+            _T("  <Message>") + p_error + _T("</Message>\n")
+            _T("</Error>\n");
   }
   StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
   result->SetBody(error);

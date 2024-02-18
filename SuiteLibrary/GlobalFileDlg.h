@@ -42,13 +42,13 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX) override;
 	virtual BOOL OnInitDialog() override;
-				  void InitGrid();
-					void FillGrid();
+          void InitGrid();
+          void FillGrid();
 
-	bool					m_step;
+	bool          m_step;
 	StepType      m_type;
 	CString       m_directory;
-	CString				m_pattern;
+	CString       m_pattern;
 	CString       m_chosen;
 
 	StyleGridCtrl m_grid;

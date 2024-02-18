@@ -81,7 +81,7 @@ BOOL
 ResultWindowsDlg::OnInitDialog()
 {
 	StyleDialog::OnInitDialog();
-  SetWindowText("Step Result Viewer");
+  SetWindowText(_T("Step Result Viewer"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
   SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
@@ -122,8 +122,8 @@ ResultWindowsDlg::InitTabs()
   m_tab1->Create(IDD_VALIDATIONS,&m_tabs);
   m_tab2->Create(IDD_WINOUTPUT,  &m_tabs);
 
-  m_tabs.InsertItem(0,m_tab1,"Validations");
-  m_tabs.InsertItem(1,m_tab2,"Program output");
+  m_tabs.InsertItem(0,m_tab1,_T("Validations"));
+  m_tabs.InsertItem(1,m_tab2,_T("Program output"));
 
   // Position in the parent window
   m_tabs.Init();
@@ -152,7 +152,7 @@ ResultWindowsDlg::LoadVariables()
   m_name          = m_stepResult.GetName();
   m_documentation = m_stepResult.GetDocumentation();
 
-  LPSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
+  LPTSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
   m_picture.LoadBitmaps(bitmap);
 }
 

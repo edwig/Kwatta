@@ -44,9 +44,9 @@ ResetAll::Reset(bool p_interface)
 
   if(!m_baseDirectory.IsEmpty())
   {
-    if(_access(m_baseDirectory, 06) != 0)
+    if(_taccess(m_baseDirectory, 06) != 0)
     {
-      m_error = "\nNo read/write rights on directory: " + m_baseDirectory;
+      m_error = _T("\nNo read/write rights on directory: ") + m_baseDirectory;
       return false;
     }
   }
@@ -81,7 +81,7 @@ ResetAll::Reset(bool p_interface)
 void
 ResetAll::ResetSuite()
 {
-  CString pattern = m_baseDirectory + "*" + EXTENSION_SUITE;
+  CString pattern = m_baseDirectory + _T("*") + EXTENSION_SUITE;
 
   // Read in all known files
   WIN32_FIND_DATA data;
@@ -110,7 +110,7 @@ ResetAll::ResetSuite()
       }
       catch(StdException& ex)
       {
-        m_error += "\n" + ex.GetErrorMessage();
+        m_error += _T("\n") + ex.GetErrorMessage();
       }
     }
     while(FindNextFile(hFind,&data) != 0);
@@ -121,7 +121,7 @@ ResetAll::ResetSuite()
 void
 ResetAll::ResetTestSet()
 {
-  CString pattern = m_baseDirectory + m_testDirectory + "\\*" + EXTENSION_SET;
+  CString pattern = m_baseDirectory + m_testDirectory + _T("\\*") + EXTENSION_SET;
 
   // Read in all known files
   WIN32_FIND_DATA data;
@@ -130,7 +130,7 @@ ResetAll::ResetTestSet()
   {
     do
     {
-      CString filename = m_baseDirectory + m_testDirectory + "\\" + CString(data.cFileName);
+      CString filename = m_baseDirectory + m_testDirectory + _T("\\") + CString(data.cFileName);
       try
       {
         TestSet testset;
@@ -144,7 +144,7 @@ ResetAll::ResetTestSet()
           trun.m_lastResult.Empty();
 
           // Add the result file to the delete list
-          CString deleting = m_baseDirectory + m_testDirectory + "\\" + trun.m_filename;
+          CString deleting = m_baseDirectory + m_testDirectory + _T("\\") + trun.m_filename;
           deleting.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
           deleting.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
           deleting.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
@@ -154,7 +154,7 @@ ResetAll::ResetTestSet()
       }
       catch(StdException& ex)
       {
-        m_error += "\n" + ex.GetErrorMessage();
+        m_error += _T("\n") + ex.GetErrorMessage();
       }
     }
     while (FindNextFile(hFind,&data) != 0);
@@ -165,7 +165,7 @@ ResetAll::ResetTestSet()
 void
 ResetAll::ResetTestStep()
 {
-  CString path = m_baseDirectory + m_testDirectory + "\\" + m_testStep;
+  CString path = m_baseDirectory + m_testDirectory + _T("\\") + m_testStep;
 
   try
   {
@@ -191,7 +191,7 @@ ResetAll::ResetTestStep()
   }
   catch (StdException& ex)
   {
-    m_error += "\n" + ex.GetErrorMessage();
+    m_error += _T("\n") + ex.GetErrorMessage();
   }
 }
 
@@ -205,7 +205,7 @@ ResetAll::DeleteList()
     {
       if(GetLastError() != ERROR_FILE_NOT_FOUND)
       {
-        m_error += "\nCould not delete file: " + file;
+        m_error += _T("\nCould not delete file: ") + file;
       }
     }
   }

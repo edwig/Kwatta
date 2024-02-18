@@ -137,17 +137,17 @@ StatusDlg::FillCombos()
   m_comboOperator .ResetContent();
   m_comboStatusVar.ResetContent();
 
-  m_comboOperator.AddString("");
-  m_comboOperator.AddString("=    Exactly equal to");
-  m_comboOperator.AddString(">    Greater than");
-  m_comboOperator.AddString(">= Greater than or equal to");
-  m_comboOperator.AddString("<    Smaller than");
-  m_comboOperator.AddString("<= Smaller than or equal to");
-  m_comboOperator.AddString("<> Not equal to");
-  m_comboOperator.AddString("~~ Between two values");
-  m_comboOperator.AddString("[  ] In a range of values");
+  m_comboOperator.AddString(_T(""));
+  m_comboOperator.AddString(_T("=    Exactly equal to"));
+  m_comboOperator.AddString(_T(">    Greater than"));
+  m_comboOperator.AddString(_T(">= Greater than or equal to"));
+  m_comboOperator.AddString(_T("<    Smaller than"));
+  m_comboOperator.AddString(_T("<= Smaller than or equal to"));
+  m_comboOperator.AddString(_T("<> Not equal to"));
+  m_comboOperator.AddString(_T("~~ Between two values"));
+  m_comboOperator.AddString(_T("[  ] In a range of values"));
 
-  m_comboStatusVar.AddString("");
+  m_comboStatusVar.AddString(_T(""));
   for(auto& ret : m_parameters->GetReturns())
   {
     m_comboStatusVar.AddString(ret.first);

@@ -40,56 +40,56 @@ ValidateNET::ReadFromXML(CString p_filename)
   Validate::ReadFromXML(msg,p_filename);
 
   // Status value validation
-  XMLElement* retval = msg.FindElement("CheckStatus");
+  XMLElement* retval = msg.FindElement(_T("CheckStatus"));
   if(retval)
   {
-    m_checkStatus    = msg.GetElementBoolean(retval,"Check");
-    m_statusOperator = StringToReturnOperator(msg.GetElement(retval,"Operator"));
-    m_expectedStatus = msg.GetElement(retval,"Expected");
-    m_statusVariable = msg.GetElement(retval,"StatusVariable");
+    m_checkStatus    = msg.GetElementBoolean(retval,_T("Check"));
+    m_statusOperator = StringToReturnOperator(msg.GetElement(retval,_T("Operator")));
+    m_expectedStatus = msg.GetElement(retval,_T("Expected"));
+    m_statusVariable = msg.GetElement(retval,_T("StatusVariable"));
   }
 
   // Header value validation
-  XMLElement* header = msg.FindElement("CheckHeader");
+  XMLElement* header = msg.FindElement(_T("CheckHeader"));
   if(header)
   {
-    m_checkHeader    = msg.GetElementBoolean(header,"Check");
-    m_headerOperator = StringToBufferOperator(msg.GetElement(header,"Operator"));
-    m_expectedHeader = msg.GetElement(header,"Expected");
-    m_verifyHeader   = msg.GetElement(header,"Header");
-    m_headerVariable = msg.GetElement(header,"HeaderVariable");
+    m_checkHeader    = msg.GetElementBoolean(header,_T("Check"));
+    m_headerOperator = StringToBufferOperator(msg.GetElement(header,_T("Operator")));
+    m_expectedHeader = msg.GetElement(header,_T("Expected"));
+    m_verifyHeader   = msg.GetElement(header,_T("Header"));
+    m_headerVariable = msg.GetElement(header,_T("HeaderVariable"));
   }
 
   // Body validation
-  XMLElement* body = msg.FindElement("CheckBody");
+  XMLElement* body = msg.FindElement(_T("CheckBody"));
   if(body)
   {
-    m_checkBody    = msg.GetElementBoolean(body,"Check");
-    m_bodyOperator = StringToBufferOperator(msg.GetElement(body,"Operator"));
-    m_expectedBody = msg.GetElement(body,"Expected");
-    m_bodyVariable = msg.GetElement(body,"BodyVariable");
+    m_checkBody    = msg.GetElementBoolean(body,_T("Check"));
+    m_bodyOperator = StringToBufferOperator(msg.GetElement(body,_T("Operator")));
+    m_expectedBody = msg.GetElement(body,_T("Expected"));
+    m_bodyVariable = msg.GetElement(body,_T("BodyVariable"));
   }
 
   // Header value validation
-  XMLElement* xml = msg.FindElement("CheckXML");
+  XMLElement* xml = msg.FindElement(_T("CheckXML"));
   if(xml)
   {
-    m_checkXML      = msg.GetElementBoolean(xml,"Check");
-    m_xmlOperator   = StringToBufferOperator(msg.GetElement(xml,"Operator"));
-    m_expectedXML   = msg.GetElement(xml,"Expected");
-    m_verifyXmlPath = msg.GetElement(xml,"XmlPath");
-    m_xmlVariable   = msg.GetElement(xml,"XmlVariable");
+    m_checkXML      = msg.GetElementBoolean(xml,_T("Check"));
+    m_xmlOperator   = StringToBufferOperator(msg.GetElement(xml,_T("Operator")));
+    m_expectedXML   = msg.GetElement(xml,_T("Expected"));
+    m_verifyXmlPath = msg.GetElement(xml,_T("XmlPath"));
+    m_xmlVariable   = msg.GetElement(xml,_T("XmlVariable"));
   }
 
   // Header value validation
-  XMLElement* json = msg.FindElement("CheckJSON");
+  XMLElement* json = msg.FindElement(_T("CheckJSON"));
   if(json)
   {
-    m_checkJSON      = msg.GetElementBoolean(json,"Check");
-    m_jsonOperator   = StringToBufferOperator(msg.GetElement(json,"Operator"));
-    m_expectedJSON   = msg.GetElement(json,"Expected");
-    m_verifyJSONPath = msg.GetElement(json,"JsonPath");
-    m_jsonVariable   = msg.GetElement(json,"JsonVariable");
+    m_checkJSON      = msg.GetElementBoolean(json,_T("Check"));
+    m_jsonOperator   = StringToBufferOperator(msg.GetElement(json,_T("Operator")));
+    m_expectedJSON   = msg.GetElement(json,_T("Expected"));
+    m_verifyJSONPath = msg.GetElement(json,_T("JsonPath"));
+    m_jsonVariable   = msg.GetElement(json,_T("JsonVariable"));
   }
 }
 
@@ -104,42 +104,42 @@ ValidateNET::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Status value
-  XMLElement* elem = msg.AddElement(root,"CheckStatus",XDT_String,"");
-  msg.SetElement(elem,"Check",m_checkStatus);
-  msg.SetElement(elem,"Operator",ReturnOperatorToString(m_statusOperator));
-  msg.SetElement(elem,"StatusVariable",m_statusVariable);
-  msg.AddElement(elem,"Expected",XDT_CDATA,m_expectedStatus);
+  XMLElement* elem = msg.AddElement(root,_T("CheckStatus"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),m_checkStatus);
+  msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_statusOperator));
+  msg.SetElement(elem,_T("StatusVariable"),m_statusVariable);
+  msg.AddElement(elem,_T("Expected"),XDT_CDATA,m_expectedStatus);
 
   // Header value
-  elem = msg.AddElement(root,"CheckHeader",XDT_String,"");
-  msg.SetElement(elem,"Check",m_checkHeader);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_headerOperator));
-  msg.AddElement(elem,"Expected",      XDT_CDATA, m_expectedHeader);
-  msg.AddElement(elem,"Header",        XDT_String,m_verifyHeader);
-  msg.AddElement(elem,"HeaderVariable",XDT_String,m_headerVariable);
+  elem = msg.AddElement(root,_T("CheckHeader"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),m_checkHeader);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_headerOperator));
+  msg.AddElement(elem,_T("Expected"),      XDT_CDATA, m_expectedHeader);
+  msg.AddElement(elem,_T("Header"),        XDT_String,m_verifyHeader);
+  msg.AddElement(elem,_T("HeaderVariable"),XDT_String,m_headerVariable);
 
   // Body value
-  elem = msg.AddElement(root,"CheckBody",XDT_String,"");
-  msg.SetElement(elem,"Check",m_checkBody);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_bodyOperator));
-  msg.AddElement(elem,"Expected",    XDT_CDATA,m_expectedBody);
-  msg.AddElement(elem,"BodyVariable",XDT_String,m_bodyVariable);
+  elem = msg.AddElement(root,_T("CheckBody"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),m_checkBody);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_bodyOperator));
+  msg.AddElement(elem,_T("Expected"),    XDT_CDATA,m_expectedBody);
+  msg.AddElement(elem,_T("BodyVariable"),XDT_String,m_bodyVariable);
 
   // XML node value
-  elem = msg.AddElement(root,"CheckXML",XDT_String,"");
-  msg.SetElement(elem,"Check",m_checkXML);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_xmlOperator));
-  msg.AddElement(elem,"Expected",   XDT_CDATA, m_expectedXML);
-  msg.AddElement(elem,"XmlPath",    XDT_String,m_verifyXmlPath);
-  msg.AddElement(elem,"XmlVariable",XDT_String,m_xmlVariable);
+  elem = msg.AddElement(root,_T("CheckXML"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),m_checkXML);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_xmlOperator));
+  msg.AddElement(elem,_T("Expected"),   XDT_CDATA, m_expectedXML);
+  msg.AddElement(elem,_T("XmlPath"),    XDT_String,m_verifyXmlPath);
+  msg.AddElement(elem,_T("XmlVariable"),XDT_String,m_xmlVariable);
 
   // JSON pair value
-  elem = msg.AddElement(root,"CheckJSON",XDT_String,"");
-  msg.SetElement(elem,"Check",m_checkJSON);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_jsonOperator));
-  msg.AddElement(elem,"Expected",    XDT_CDATA, m_expectedJSON);
-  msg.AddElement(elem,"JsonPath",    XDT_String,m_verifyJSONPath);
-  msg.AddElement(elem,"JsonVariable",XDT_String,m_jsonVariable);
+  elem = msg.AddElement(root,_T("CheckJSON"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),m_checkJSON);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_jsonOperator));
+  msg.AddElement(elem,_T("Expected"),    XDT_CDATA, m_expectedJSON);
+  msg.AddElement(elem,_T("JsonPath"),    XDT_String,m_verifyJSONPath);
+  msg.AddElement(elem,_T("JsonVariable"),XDT_String,m_jsonVariable);
 
   // Now save it
   return msg.SaveFile(m_filename);
@@ -165,13 +165,13 @@ void
 ValidateNET::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_VALIDATE_NET,5))
+  if(_tcsncicmp(extension,EXTENSION_VALIDATE_NET,5))
   {
-    throw StdException("A Validation XML definition file must be saved as a *.IVAL");
+    throw StdException(_T("A Validation XML definition file must be saved as a *.IVAL"));
   }
 }
 
@@ -185,7 +185,7 @@ ValidateNET::ValidateStatusValue(Parameters* p_parameters,int p_status)
   }
 
   // Convert expected result to an int
-  int expected = atoi(m_effectiveStatus);
+  int expected = _ttoi(m_effectiveStatus);
 
   // Check result, depending on the operator
   bool result = false;
@@ -205,7 +205,7 @@ ValidateNET::ValidateStatusValue(Parameters* p_parameters,int p_status)
   if(result && !m_statusVariable.IsEmpty())
   {
     CString status;
-    status.Format("%d", p_status);
+    status.Format(_T("%d"), p_status);
     p_parameters->OverwriteReturnParameter(m_statusVariable,status);
   }
   return result;

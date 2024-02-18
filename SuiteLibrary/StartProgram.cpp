@@ -43,12 +43,12 @@ StartProgram(CString p_program
     CString pad = GetExePath();
     p_program = pad + p_program;
 
-    if(_access(p_program,04) == -1)
+    if(_taccess(p_program,04) == -1)
     {
       // We do not find a program
       CString error;
-      error.Format("Cannot find the program: %s",p_program.GetString());
-      StyleMessageBox(NULL,error,"ERROR",MB_OK|MB_ICONERROR);
+      error.Format(_T("Cannot find the program: %s"),p_program.GetString());
+      StyleMessageBox(NULL,error,_T("ERROR"),MB_OK|MB_ICONERROR);
       return -3;
     }
   }
@@ -61,10 +61,10 @@ StartProgram(CString p_program
   startupInfo.wShowWindow = p_show ? SW_SHOW : SW_HIDE;
 
   // Create a command line 
-  char commandLine[MAX_COMMANDLINE];
-  sprintf_s(commandLine,MAX_COMMANDLINE,"\"%s\" %s",p_program.GetString(),p_arguments.GetString());
+  TCHAR commandLine[MAX_COMMANDLINE];
+  _stprintf_s(commandLine,MAX_COMMANDLINE,_T("\"%s\" %s"),p_program.GetString(),p_arguments.GetString());
   BOOL res = CreateProcess((LPCTSTR)NULL          // Program to start or NULL
-                          ,(LPSTR)  commandLine   // Command line with arguments only
+                          ,(LPTSTR)  commandLine   // Command line with arguments only
                           ,NULL         				  // Security
                           ,NULL  				          // ThreadAttributes
                           ,FALSE                  // Inherit handles
@@ -101,8 +101,8 @@ StartProgram(CString p_program
   {
     // Cannot start! Rights?
     CString error;
-    error.Format("Cannot start the program: %s",p_program.GetString());
-    StyleMessageBox(NULL,error,"ERROR",MB_OK|MB_ICONERROR);
+    error.Format(_T("Cannot start the program: %s"),p_program.GetString());
+    StyleMessageBox(NULL,error,_T("ERROR"),MB_OK|MB_ICONERROR);
     exitCode = (DWORD)-3;
   }
   return exitCode;

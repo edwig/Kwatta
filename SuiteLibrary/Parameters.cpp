@@ -63,7 +63,7 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
   }
 
   // Check if the file even exists
-  if(_access(p_filename,0))
+  if(_taccess(p_filename,0))
   {
     return;
   }
@@ -71,31 +71,31 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
   // Load the file (if any)
   if (msg.LoadFile(p_filename) == false)
   {
-    throw StdException("Could not load the XML file: " + p_filename);
+    throw StdException(_T("Could not load the XML file: ") + p_filename);
   }
 
   // CHeck for XML error
   if (msg.GetInternalError() != XmlError::XE_NoError)
   {
     CString error;
-    error.Format("Internal XML error in XPAR file [%d] %s", msg.GetInternalError(), msg.GetInternalErrorString().GetString());
+    error.Format(_T("Internal XML error in XPAR file [%d] %s"), msg.GetInternalError(), msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
 
   // Check that it is our message type
-  if (msg.GetRootNodeName().Compare("Parameters"))
+  if (msg.GetRootNodeName().Compare(_T("Parameters")))
   {
-    throw StdException("XPAR file is not a parameters definition: " + p_filename);
+    throw StdException(_T("XPAR file is not a parameters definition: ") + p_filename);
   }
 
   // Find names
   XMLElement* root = msg.GetRoot();
 
   // Read all global variables
-  XMLElement* system = msg.FindElement(root,"System",false);
-  if(system)
+  XMLElement* _tsystem = msg.FindElement(root,_T("System"),false);
+  if(_tsystem)
   {
-    XMLElement* var = msg.GetElementFirstChild(system);
+    XMLElement* var = msg.GetElementFirstChild(_tsystem);
     while(var)
     {
       CString name  = var->GetName();
@@ -103,14 +103,14 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
       CheckPasswordProtection(name,value);
       if(AddSystemParameter(name,value) == false)
       {
-        TRACE("Duplicate system parameter found: %s%s\n",name.GetString(),value.GetString());
+        TRACE(_T("Duplicate system parameter found: %s%s\n"),name.GetString(),value.GetString());
       }
       var = msg.GetElementSibling(var);
     }
   }
 
   // Read all global variables
-  XMLElement* globals = msg.FindElement(root,"Globals",false);
+  XMLElement* globals = msg.FindElement(root,_T("Globals"),false);
   if(globals)
   {
     XMLElement* var = msg.GetElementFirstChild(globals);
@@ -120,14 +120,14 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
       CString value = var->GetValue();
       if(AddGlobalParameter(name,value) == false)
       {
-        TRACE("Duplicate global parameter found: %s%s\n",name.GetString(),value.GetString());
+        TRACE(_T("Duplicate global parameter found: %s%s\n"),name.GetString(),value.GetString());
       }
       var = msg.GetElementSibling(var);
     }
   }
 
   // Read all local variables
-  XMLElement* locals = msg.FindElement(root,"Locals",false);
+  XMLElement* locals = msg.FindElement(root,_T("Locals"),false);
   if(locals)
   {
     XMLElement* var = msg.GetElementFirstChild(locals);
@@ -137,14 +137,14 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
       CString value = var->GetValue();
       if(AddLocalParameter(name,value) == false)
       {
-        TRACE("Duplicate local parameter found: %s%s\n",name.GetString(),value.GetString());
+        TRACE(_T("Duplicate local parameter found: %s%s\n"),name.GetString(),value.GetString());
       }
       var = msg.GetElementSibling(var);
     }
   }
 
   // Read all return variables
-  XMLElement* returns = msg.FindElement(root, "Returns", false);
+  XMLElement* returns = msg.FindElement(root, _T("Returns"), false);
   if(returns)
   {
     XMLElement* var = msg.GetElementFirstChild(returns);
@@ -154,14 +154,14 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
       CString value = var->GetValue();
       if(AddReturnParameter(name,value) == false)
       {
-        TRACE("Duplicate return parameter found: %s%s\n",name.GetString(),value.GetString());
+        TRACE(_T("Duplicate return parameter found: %s%s\n"),name.GetString(),value.GetString());
       }
       var = msg.GetElementSibling(var);
     }
   }
 
   // Read all buffer variables
-  XMLElement* buffers = msg.FindElement(root,"Buffers",false);
+  XMLElement* buffers = msg.FindElement(root,_T("Buffers"),false);
   if(buffers)
   {
     XMLElement* var = msg.GetElementFirstChild(buffers);
@@ -171,7 +171,7 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
       CString value = var->GetValue();
       if(AddBufferParameter(name,value) == false)
       {
-        TRACE("Duplicate buffer parameter found: %s%s\n",name.GetString(),value.GetString());
+        TRACE(_T("Duplicate buffer parameter found: %s%s\n"),name.GetString(),value.GetString());
       }
       var = msg.GetElementSibling(var);
     }
@@ -189,24 +189,24 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
   XMLMessage msg;
   int count = 0;
 
-  msg.SetRootNodeName("Parameters");
+  msg.SetRootNodeName(_T("Parameters"));
 
   XMLElement* root = msg.GetRoot();
 
   // Save all globals
   if(p_globals)
   {
-    XMLElement* system = msg.AddElement(root,"System",XDT_String,"");
+    XMLElement* _tsystem = msg.AddElement(root,_T("System"),XDT_String,_T(""));
     for(auto& var : m_system)
     {
       if(!var.first.IsEmpty())
       {
-        msg.AddElement(system,var.first,XDT_CDATA,var.second);
+        msg.AddElement(_tsystem,var.first,XDT_CDATA,var.second);
         ++count;
       }
     }
 
-    XMLElement* globals = msg.AddElement(root,"Globals",XDT_String,"");
+    XMLElement* globals = msg.AddElement(root,_T("Globals"),XDT_String,_T(""));
     for(auto& var : m_globals)
     {
       if(!var.first.IsEmpty())
@@ -221,7 +221,7 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
   if(p_locals)
   {
     // Save all local variables
-    XMLElement* locals = msg.AddElement(root,"Locals",XDT_String,"");
+    XMLElement* locals = msg.AddElement(root,_T("Locals"),XDT_String,_T(""));
     for(auto& var : m_locals)
     {
       if(!var.first.IsEmpty())
@@ -232,7 +232,7 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
     }
 
     // Save all return values
-    XMLElement* returns = msg.AddElement(root,"Returns",XDT_String,"");
+    XMLElement* returns = msg.AddElement(root,_T("Returns"),XDT_String,_T(""));
     for(auto& var : m_returns)
     {
       if(!var.first.IsEmpty())
@@ -243,7 +243,7 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
     }
 
     // Save all buffer values
-    XMLElement* buffers = msg.AddElement(root,"Buffers",XDT_String,"");
+    XMLElement* buffers = msg.AddElement(root,_T("Buffers"),XDT_String,_T(""));
     for(auto& var : m_buffers)
     {
       if(!var.first.IsEmpty())
@@ -290,7 +290,7 @@ bool
 Parameters::ExistsAsGlobalParameter(CString p_name)
 {
   // If we protect our password, the variable exists!
-  if(p_name.CompareNoCase("password") == 0)
+  if(p_name.CompareNoCase(_T("password")) == 0)
   {
     return true;
   }
@@ -356,7 +356,7 @@ Parameters::FindBufferParameter(CString p_name)
   {
     return it->second;
   }
-  return "";
+  return _T("");
 }
 
 CString
@@ -367,34 +367,34 @@ Parameters::FindReturnParameter(CString p_name)
   {
     return it->second;
   }
-  return "";
+  return _T("");
 }
 
 CString
 Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
 {
   // In case we protect our password, it comes from the environment variable
-  if(p_name.CompareNoCase("password") == 0)
+  if(p_name.CompareNoCase(_T("password")) == 0)
   {
     if(p_forDisplay)
     {
-      return "############";
+      return _T("############");
     }
 
     if(m_password)
     {
       CString pwd;
-      if(!pwd.GetEnvironmentVariable(KWATTA_PASSWORD))
+      if(!pwd.GetEnvironmentVariable(_T(KWATTA_PASSWORD)))
       {
-        pwd = GetGlobalEnvironmentVariable(KWATTA_PASSWORD);
+        pwd = GetGlobalEnvironmentVariable(_T(KWATTA_PASSWORD));
       }
       if(!pwd.IsEmpty())
       {
         Crypto crypt;
-        pwd = crypt.Decryption(pwd,KWATTA_ENCRYPT);
+        pwd = crypt.Decryption(pwd,_T(KWATTA_ENCRYPT));
         return pwd;
       }
-      else return "";
+      else return _T("");
     }
   }
 
@@ -403,7 +403,7 @@ Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
   {
     return it->second;
   }
-  return "";
+  return _T("");
 }
 
 CString
@@ -414,7 +414,7 @@ Parameters::FindLocalParameter(CString p_name)
   {
     return it->second;
   }
-  return "";
+  return _T("");
 }
 
 CString
@@ -425,7 +425,7 @@ Parameters::FindSystemParameter(CString p_name)
   {
     return it->second;
   }
-  return "";
+  return _T("");
 }
 
 CString
@@ -435,11 +435,11 @@ Parameters::FindEnvironParameter(CString p_name)
   {
     if(m_environmentValue.IsEmpty())
     {
-      return "";
+      return _T("");
     }
     return m_environmentValue;
   }
-  return "";
+  return _T("");
 }
 
 bool
@@ -494,7 +494,7 @@ bool
 Parameters::AddGlobalParameter(CString p_name,CString p_value)
 {
   // Protected password always succeeds
-  if(m_password && p_value.CompareNoCase("password") == 0)
+  if(m_password && p_value.CompareNoCase(_T("password")) == 0)
   {
     return true;
   }
@@ -557,7 +557,7 @@ void
 Parameters::OverwriteGlobalParameter(CString p_name,CString p_value)
 {
   // Password protection
-  if(m_password && p_name.CompareNoCase("password") == 0)
+  if(m_password && p_name.CompareNoCase(_T("password")) == 0)
   {
     return;
   }
@@ -644,7 +644,7 @@ Parameters::RemoveLocalParameter(CString p_name)
 bool
 Parameters::RemoveGlobalParameter(CString p_name)
 {
-  if(m_password && p_name.CompareNoCase("password") == 0)
+  if(m_password && p_name.CompareNoCase(_T("password")) == 0)
   {
     return true;
   }
@@ -672,11 +672,11 @@ Parameters::Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType 
   int notfound = 0;
 
   // Do all replacements
-  notfound += Replace(p_input,'$','$',ParType::PAR_GLOBAL, p_forDisplay,p_exclude);  // Global variables
-  notfound += Replace(p_input,'[',']',ParType::PAR_RETURN, p_forDisplay,p_exclude);  // Return variables
-  notfound += Replace(p_input,'<','>',ParType::PAR_BUFFER, p_forDisplay,p_exclude);  // Buffer variables
-  notfound += Replace(p_input,'%','%',ParType::PAR_ENVIRON,p_forDisplay,p_exclude);  // Environment variables
-  notfound += Replace(p_input,'#','#',ParType::PAR_LOCAL,  p_forDisplay,p_exclude);  // Environment variables
+  notfound += Replace(p_input,_T('$'),_T('$'),ParType::PAR_GLOBAL, p_forDisplay,p_exclude);  // Global variables
+  notfound += Replace(p_input,_T('['),_T(']'),ParType::PAR_RETURN, p_forDisplay,p_exclude);  // Return variables
+  notfound += Replace(p_input,_T('<'),_T('>'),ParType::PAR_BUFFER, p_forDisplay,p_exclude);  // Buffer variables
+  notfound += Replace(p_input,_T('%'),_T('%'),ParType::PAR_ENVIRON,p_forDisplay,p_exclude);  // Environment variables
+  notfound += Replace(p_input,_T('#'),_T('#'),ParType::PAR_LOCAL,  p_forDisplay,p_exclude);  // Environment variables
 
   // Set the output
   p_output = p_input;
@@ -705,9 +705,9 @@ Parameters::GetUnboundErrors()
 void
 Parameters::CheckPasswordProtection(CString p_name, CString p_value)
 {
-  if(p_name.Compare("HidePassword") == 0)
+  if(p_name.Compare(_T("HidePassword")) == 0)
   {
-    m_password = atoi(p_value) > 0;
+    m_password = _ttoi(p_value) > 0;
   }
 }
 
@@ -715,13 +715,13 @@ void
 Parameters::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename, NULL, 0, NULL, 0, NULL, 0, extension, _MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename, NULL, 0, NULL, 0, NULL, 0, extension, _MAX_EXT);
 
   // Check that we have the right one
-  if (_strnicmp(extension, ".xpar", 5))
+  if (_tcsncicmp(extension, _T(".xpar"), 5))
   {
-    throw StdException("A parameters XML definition file must be saved as a *.XPAR");
+    throw StdException(_T("A parameters XML definition file must be saved as a *.XPAR"));
   }
 }
 
@@ -744,8 +744,8 @@ Parameters::NameNotYetUsed(CString p_name)
 //
 int
 Parameters::Replace(CString& p_string
-                   ,char     p_first
-                   ,char     p_last
+                   ,TCHAR     p_first
+                   ,TCHAR     p_last
                    ,ParType  p_find
                    ,bool     p_forDisplay
                    ,ParType  p_exclude /*= PAR_NONE*/)
@@ -804,7 +804,7 @@ Parameters::Replace(CString& p_string
         else
         {
           // Variable not found
-          AddError(varName,p_first,p_find,"Variable not found as parameter");
+          AddError(varName,p_first,p_find,_T("Variable not found as parameter"));
           replaced += p_first;
           ++notReplaced;
           ind = pos;
@@ -813,7 +813,7 @@ Parameters::Replace(CString& p_string
       else
       {
         // End symbol not found: Stray symbol in the string
-        AddError(varName,p_first,p_find,"Stray symbol in the string without ending symbol.");
+        AddError(varName,p_first,p_find,_T("Stray symbol in the string without ending symbol."));
         replaced += p_first;
         ++notReplaced;
       }
@@ -826,19 +826,19 @@ Parameters::Replace(CString& p_string
       {
         if(meta == p_first || meta == p_last)
         {
-          replaced += (char)meta;
+          replaced += (TCHAR)meta;
         }
         else
         {
-          replaced += (char)ch;
-          replaced += (char)meta;
+          replaced += (TCHAR)ch;
+          replaced += (TCHAR)meta;
         }
       }
     }
     else
     {
       // Normal character
-      replaced += (unsigned char) ch;
+      replaced += (_TUCHAR) ch;
     }
     last = ch;
   }
@@ -850,18 +850,18 @@ Parameters::Replace(CString& p_string
 
 // Add error to the list of errors
 void
-Parameters::AddError(CString p_varname,char p_first,ParType p_find,CString p_errortext)
+Parameters::AddError(CString p_varname,TCHAR p_first,ParType p_find,CString p_errortext)
 {
   CString type;
   switch (p_find)
   {
-    case ParType::PAR_GLOBAL:  type = "$global$"; break;
-    case ParType::PAR_LOCAL:   type = "#local#";  break;
-    case ParType::PAR_RETURN:  type = "[return]"; break;
-    case ParType::PAR_BUFFER:  type = "<buffer>"; break;
-    case ParType::PAR_ENVIRON: type = "%environment%"; break;
+    case ParType::PAR_GLOBAL:  type = _T("$global$"); break;
+    case ParType::PAR_LOCAL:   type = _T("#local#");  break;
+    case ParType::PAR_RETURN:  type = _T("[return]"); break;
+    case ParType::PAR_BUFFER:  type = _T("<buffer>"); break;
+    case ParType::PAR_ENVIRON: type = _T("%environment%"); break;
   }
-  m_errors.AppendFormat("%s. Looking for a %s variable '%s' with character '%c'\n"
+  m_errors.AppendFormat(_T("%s. Looking for a %s variable '%s' with character '%c'\n")
                         ,p_errortext.GetString()
                         ,type.GetString()
                         ,p_varname.GetString()

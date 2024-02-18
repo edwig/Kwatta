@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "TestSet.h"
+#include <WinFile.h>
 
 enum class ReportDepth
 {
@@ -66,7 +67,7 @@ private:
   void  PrintHeader();
   void  PrintFooter();
   void  PrintLine(CString p_text,bool p_next = true);
-  void  PrintLine(CString p_part1,const char* p_part2);
+  void  PrintLine(CString p_part1,const TCHAR* p_part2);
   void  PrintAtEnd(CString p_text);
   void  PrintLastLine();
   void  PrintLine();
@@ -99,7 +100,7 @@ private:
   CString     m_fileName;
   CString     m_name;
   CString     m_timing;
-  FILE*       m_file      { nullptr };
+  WinFile     m_file;
   int         m_page      { 0 };
   int         m_line      { 0 };
   int         m_pos       { 0 };

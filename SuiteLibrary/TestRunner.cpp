@@ -88,7 +88,7 @@ CString
 TestRunner::GetEffectiveStepFilename()
 {
   CString filename(m_baseDirectory);
-  filename += m_global ? CString("Steps\\") : m_testDirectory;
+  filename += m_global ? CString(_T("Steps\\")) : m_testDirectory;
   filename += m_testStepFilename;
 
   return filename;
@@ -98,7 +98,7 @@ void
 TestRunner::ReadParameters()
 {
   // read the global parameters
-  CString filename = m_baseDirectory + "Parameters.xpar";
+  CString filename = m_baseDirectory + _T("Parameters.xpar");
   m_parameters.ReadFromXML(filename);
 
   // read the definition of the test parameters
@@ -109,7 +109,7 @@ TestRunner::ReadParameters()
 int
 TestRunner::GetMaxRunningTime()
 {
-  return atoi(m_testStep->GetEffectiveMaxExecution());
+  return _ttoi(m_testStep->GetEffectiveMaxExecution());
 }
 
 // Perform the next step in the total progress
@@ -125,10 +125,10 @@ TestRunner::PerformStep(CString p_stepName)
 void
 TestRunner::PreCommandWaiting()
 {
-  CString step("Pre-command waiting.");
+  CString step(_T("Pre-command waiting."));
   PerformStep(step);
 
-  int time = atoi(m_testStep->GetEffectiveWaitBeforeRun());
+  int time = _ttoi(m_testStep->GetEffectiveWaitBeforeRun());
   if (time > 0)
   {
     WaitingForATimeout(step, time);
@@ -139,10 +139,10 @@ TestRunner::PreCommandWaiting()
 void
 TestRunner::PostCommandWaiting()
 {
-  CString step("Post-command waiting.");
+  CString step(_T("Post-command waiting."));
   PerformStep(step);
 
-  int time = atoi(m_testStep->GetEffectiveWaitAfterRun());
+  int time = _ttoi(m_testStep->GetEffectiveWaitAfterRun());
   if (time >= 0)
   {
     WaitingForATimeout(step, time);
@@ -153,7 +153,7 @@ void
 TestRunner::WaitingForATimeout(CString p_stepname, int p_milliseconds)
 {
   // Reset the progress step-name and progress-control bar
-  p_stepname.AppendFormat(" %.3f seconds",((double)p_milliseconds / 1000.0));
+  p_stepname.AppendFormat(_T(" %.3f seconds"),((double)p_milliseconds / 1000.0));
   SetStep(p_stepname);
   SetProgress(0);
 
@@ -236,18 +236,18 @@ TestRunner::EndTesting(int p_result)
 
 __declspec(thread) LogAnalysis* runlog = nullptr;
 
-void osputs_stdout(const char* str)
+void osputs_stdout(const TCHAR* str)
 {
   static CString out;
-  int len = (int)strlen(str);
+  int len = (int)_tcslen(str);
   if (len > 0 && str[len - 1] == '\n')
   {
     out += str;
 
     if (runlog)
     {
-      out = out.TrimRight("\n");
-      out.Replace("\r", "");
+      out = out.TrimRight(_T("\n"));
+      out.Replace(_T("\r"), _T(""));
       runlog->BareStringLog(out);
     }
     else
@@ -262,7 +262,7 @@ void osputs_stdout(const char* str)
   }
 }
 
-void osputs_stderr(const char* str)
+void osputs_stderr(const TCHAR* str)
 {
   osputs_stdout(str);
 }
@@ -271,7 +271,7 @@ void osputs_stderr(const char* str)
 void
 TestRunner::CreateQLErrorMessage(CString p_error)
 {
-  CString error("ERROR: ");
+  CString error(_T("ERROR: "));
   error += p_error;
   osputs_stderr(error.GetString());
 }
@@ -301,7 +301,7 @@ TestRunner::PerformQLScript(int p_result)
     int unbound = m_testStep->EffectiveReplacements(&m_parameters,false);
     if (unbound)
     {
-      throw QLException("Parameters not replaced. " + m_parameters.GetUnboundErrors(),unbound);
+      throw QLException(_T("Parameters not replaced. ") + m_parameters.GetUnboundErrors(),unbound);
     }
     CString script = m_testStep->GetEffectiveScriptToRun();
 
@@ -314,18 +314,18 @@ TestRunner::PerformQLScript(int p_result)
       trace_run = m_logfile->GetLogLevel() >= HLL_TRACE;
       trace_cmp = m_logfile->GetLogLevel() >= HLL_TRACEDUMP;
 
-      m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true, "Validation errors: %d",p_result);
-      m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,false,"Running QL Script.");
+      m_logfile->AnalysisLog(_T(__FUNCTION__),LogType::LOG_INFO,true, _T("Validation errors: %d"),p_result);
+      m_logfile->AnalysisLog(_T(__FUNCTION__),LogType::LOG_INFO,false,_T("Running QL Script."));
       if(trace_run)
       {
         if(trace_cmp)
         {
-          osputs_stdout("Script before replacements:\n");
-          osputs_stdout(m_testStep->GetScriptToRun() + "\n");
-          osputs_stdout("Script after replacements:\n");
+          osputs_stdout(_T("Script before replacements:\n"));
+          osputs_stdout(m_testStep->GetScriptToRun() + _T("\n"));
+          osputs_stdout(_T("Script after replacements:\n"));
         }
         osputs_stdout(script);
-        osputs_stdout("\n");
+        osputs_stdout(_T("\n"));
       }
     }
 
@@ -337,7 +337,7 @@ TestRunner::PerformQLScript(int p_result)
     }
     // Set up an interpreter
     QLInterpreter inter(&vm,trace_run);
-    CString entrypoint("main");
+    CString entrypoint(_T("main"));
 
     // Set the latest test status
     inter.SetTestIterations(m_iterations);
@@ -357,7 +357,7 @@ TestRunner::PerformQLScript(int p_result)
     return 1;
   }
   // Flush the log from the script
-  osputs_stdout("\n");
+  osputs_stdout(_T("\n"));
 
   // Combine all the status codes
   switch(status)
@@ -380,8 +380,8 @@ TestRunner::PerformQLScript(int p_result)
   }
   if(m_logfile)
   {
-    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true,"QL Script. Return value: %d",retCode);
-    m_logfile->AnalysisLog(__FUNCTION__,LogType::LOG_INFO,true,"QL Script. Extra iteration: %s",m_running ? "Yes" : "No");
+    m_logfile->AnalysisLog(_T(__FUNCTION__),LogType::LOG_INFO,true,_T("QL Script. Return value: %d"),retCode);
+    m_logfile->AnalysisLog(_T(__FUNCTION__),LogType::LOG_INFO,true,_T("QL Script. Extra iteration: %s"),m_running ? _T("Yes") : _T("No"));
   }
   return p_result;
 }

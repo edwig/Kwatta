@@ -91,7 +91,7 @@ EditStreamInCallback(DWORD_PTR dwCookie,LPBYTE pbBuff,LONG cb,LONG *pcb)
   }
   for(int i=0;i<cb;++i)
   {
-    *(pbBuff+i) = psBuffer->GetAt(i);
+    *(pbBuff+i) = (BYTE) psBuffer->GetAt(i);
   }
   *pcb = cb;
   *psBuffer = psBuffer->Mid(cb);

@@ -78,8 +78,8 @@ SQLDataDlg::InitLijst()
   m_list.SetColumnCount(2);
   m_list.SetRowCount(1);
   m_list.SetFixedRowCount(1);
-  m_list.GetCell(0,0)->SetText("Column");
-  m_list.GetCell(0,1)->SetText("Data");
+  m_list.GetCell(0,0)->SetText(_T("Column"));
+  m_list.GetCell(0,1)->SetText(_T("Data"));
   m_list.SetColumnWidth(0,150);
   m_list.SetColumnWidth(1,500);
   m_list.SetEditable(FALSE);

@@ -89,7 +89,7 @@ ResponseDlg::LoadVariables(StepResultNET* p_result)
   m_status     = p_result->GetStatus();
   m_statusText = GetHTTPStatusText(m_status);
   m_payload    = p_result->GetBody();
-  m_time.Format("%G",p_result->GetTiming());
+  m_time.Format(_T("%G"),p_result->GetTiming());
 
   // In case we had an HTTP OS error!
   if(m_payload.IsEmpty() && !p_result->GetOSErrorString().IsEmpty())
@@ -100,22 +100,22 @@ ResponseDlg::LoadVariables(StepResultNET* p_result)
   {
     FormatPayload(p_result);
   }
-  m_payload.Replace("\n","\r\n");
+  m_payload.Replace(_T("\n"),_T("\r\n"));
   UpdateData(FALSE);
 }
 
 void 
 ResponseDlg::FormatPayload(StepResultNET* p_result)
 {
-  CString content = p_result->GetHeader("content-type");
-  if(content.Find("xml") >= 0)
+  CString content = p_result->GetHeader(_T("content-type"));
+  if(content.Find(_T("xml")) >= 0)
   {
     XMLMessage xml;
     xml.ParseMessage(m_payload);
     xml.SetCondensed(false);
     m_payload = xml.Print();
   }
-  if(content.Find("json") >= 0)
+  if(content.Find(_T("json")) >= 0)
   {
     JSONMessage json(m_payload);
     json.SetWhitespace(true);

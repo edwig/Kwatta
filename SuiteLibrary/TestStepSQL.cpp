@@ -39,28 +39,28 @@ TestStepSQL::ReadFromXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Find type
-  XMLElement* typ = msg.FindElement(root,"Type",false);
+  XMLElement* typ = msg.FindElement(root,_T("Type"),false);
   if(typ)
   {
     CString type = typ->GetValue();
-    if(type.Compare("SQL"))
+    if(type.Compare(_T("SQL")))
     {
-      throw StdException("QRUN file is not a SQL test: " + p_filename);
+      throw StdException(_T("QRUN file is not a SQL test: ") + p_filename);
     }
   }
   else
   {
-    throw StdException("Missing <Type> in QRUN file: " + p_filename);
+    throw StdException(_T("Missing <Type> in QRUN file: ") + p_filename);
   }
-  XMLElement* def = msg.FindElement("Definition");
+  XMLElement* def = msg.FindElement(_T("Definition"));
   if(!def)
   {
-    throw StdException("Missing <Definition> in QRUN file: " + p_filename);
+    throw StdException(_T("Missing <Definition> in QRUN file: ") + p_filename);
   }
-  m_datasource = msg.GetElement(def,"Datasource");
-  m_user       = msg.GetElement(def,"User");
-  m_password   = msg.GetElement(def,"Password");
-  m_sql        = msg.GetElement(def,"SQL");
+  m_datasource = msg.GetElement(def,_T("Datasource"));
+  m_user       = msg.GetElement(def,_T("User"));
+  m_password   = msg.GetElement(def,_T("Password"));
+  m_sql        = msg.GetElement(def,_T("SQL"));
 }
 
 bool
@@ -74,14 +74,14 @@ TestStepSQL::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,"Type",XDT_String,"SQL");
+  msg.AddElement(root,_T("Type"),XDT_String,_T("SQL"));
 
-  XMLElement* def = msg.AddElement(root,"Definition",XDT_String,"");
+  XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
 
-  msg.AddElement(def,"Datasource",XDT_String,m_datasource);
-  msg.AddElement(def,"User",      XDT_String,m_user);
-  msg.AddElement(def,"Password",  XDT_String,m_password);
-  msg.AddElement(def,"SQL",       XDT_String|XDT_CDATA,m_sql);
+  msg.AddElement(def,_T("Datasource"),XDT_String,m_datasource);
+  msg.AddElement(def,_T("User"),      XDT_String,m_user);
+  msg.AddElement(def,_T("Password"),  XDT_String,m_password);
+  msg.AddElement(def,_T("SQL"),       XDT_String|XDT_CDATA,m_sql);
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -106,13 +106,13 @@ void
 TestStepSQL::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_TESTSTEP_SQL,5))
+  if(_tcsncicmp(extension,EXTENSION_TESTSTEP_SQL,5))
   {
-    throw StdException("A StepResult XML definition file must be saved as a *.QRUN");
+    throw StdException(_T("A StepResult XML definition file must be saved as a *.QRUN"));
   }
 }
 

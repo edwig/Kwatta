@@ -71,7 +71,7 @@ BOOL
 MutateNamesDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Change directory or filename");
+  SetWindowText(_T("Change directory or filename"));
 
   m_editOrigDirectory.SetMutable(false);
   m_editOrigDirectory.SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
@@ -93,7 +93,7 @@ MutateNamesDlg::CheckDirectory()
   if(m_newDirectory.IsEmpty())
   {
     m_editNewDirectory.SetErrorState(true);
-    m_editNewDirectory.SetEmpty(true,"Fill in a test sub-directory!");
+    m_editNewDirectory.SetEmpty(true,_T("Fill in a test sub-directory!"));
     return false;
   }
   m_editNewDirectory.SetErrorState(false);
@@ -106,7 +106,7 @@ MutateNamesDlg::CheckFilename()
   if(m_newFilename.IsEmpty())
   {
     m_editNewFilename.SetErrorState(true);
-    m_editNewFilename.SetEmpty(true,"File in a testset name.");
+    m_editNewFilename.SetEmpty(true,_T("File in a testset name."));
     return false;
   }
   m_editNewFilename.SetErrorState(false);
@@ -155,8 +155,8 @@ MutateNamesDlg::OnBnClickedDoDirectory()
   if(CheckDirectory())
   {
     CString ask;
-    ask.Format("Do you want to change the directory for the testset from [%s] to [%s] ?",m_origDirectory.GetString(),m_newDirectory.GetString());
-    if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+    ask.Format(_T("Do you want to change the directory for the testset from [%s] to [%s] ?"),m_origDirectory.GetString(),m_newDirectory.GetString());
+    if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
     {
       return;
     }
@@ -173,8 +173,8 @@ MutateNamesDlg::OnBnClickedDoDirectory()
       UpdateData(FALSE);
 
       CString msg;
-      msg.Format("The directory has been changed to: %s",m_origDirectory.GetString());
-      StyleMessageBox(this,msg,KWATTA,MB_OK|MB_ICONEXCLAMATION);
+      msg.Format(_T("The directory has been changed to: %s"),m_origDirectory.GetString());
+      StyleMessageBox(this,msg,_T(KWATTA),MB_OK|MB_ICONEXCLAMATION);
     }
   }
 }
@@ -185,14 +185,14 @@ MutateNamesDlg::OnBnClickedDoFilename()
   if(CheckFilename())
   {
     CString ask;
-    ask.Format("Do you want to change the file for the testset from [%s] to [%s] ?",m_origFilename.GetString(),m_newFilename.GetString());
-    if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+    ask.Format(_T("Do you want to change the file for the testset from [%s] to [%s] ?"),m_origFilename.GetString(),m_newFilename.GetString());
+    if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
     {
       return;
     }
 
-    CString oldname = theApp.GetBaseDirectory() + m_origDirectory + "\\" + m_origFilename;
-    CString newname = theApp.GetBaseDirectory() + m_origDirectory + "\\" + m_newFilename;
+    CString oldname = theApp.GetBaseDirectory() + m_origDirectory + _T("\\") + m_origFilename;
+    CString newname = theApp.GetBaseDirectory() + m_origDirectory + _T("\\") + m_newFilename;
 
     std::error_code error;
     std::filesystem::rename(oldname.GetString(),newname.GetString(),error);
@@ -210,8 +210,8 @@ MutateNamesDlg::OnBnClickedDoFilename()
       UpdateData(FALSE);
 
       CString msg;
-      msg.Format("The filename has been changed to: %s",m_origFilename.GetString());
-      StyleMessageBox(this,msg,KWATTA,MB_OK|MB_ICONEXCLAMATION);
+      msg.Format(_T("The filename has been changed to: %s"),m_origFilename.GetString());
+      StyleMessageBox(this,msg,_T(KWATTA),MB_OK|MB_ICONEXCLAMATION);
     }
   }
 }

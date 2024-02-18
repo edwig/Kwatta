@@ -86,10 +86,10 @@ ScriptDlg::SetupDynamicLayout()
 void
 ScriptDlg::InitCombo()
 {
-  m_comboStatus.AddString("No QL Script");
-  m_comboStatus.AddString("Success is ZERO");
-  m_comboStatus.AddString("Success is Positive");
-  m_comboStatus.AddString("Success is Negative");
+  m_comboStatus.AddString(_T("No QL Script"));
+  m_comboStatus.AddString(_T("Success is ZERO"));
+  m_comboStatus.AddString(_T("Success is Positive"));
+  m_comboStatus.AddString(_T("Success is Negative"));
 }
 
 void

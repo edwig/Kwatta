@@ -49,40 +49,40 @@ TestSuite::ReadFromXML(CString p_filename)
   // Load the file (if any)
   if(msg.LoadFile(m_filename) == false)
   {
-    throw StdException("Could not load the XML file: " + m_filename);
+    throw StdException(_T("Could not load the XML file: ") + m_filename);
   }
 
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
     CString error;
-    error.Format("Internal XML error in XTEST file [%d] %s",msg.GetInternalError(),msg.GetInternalErrorString().GetString());
+    error.Format(_T("Internal XML error in XTEST file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
 
   // Check that it is our message type
-  if(msg.GetRootNodeName().Compare("TestSuite"))
+  if(msg.GetRootNodeName().Compare(_T("TestSuite")))
   {
-    throw StdException("XTEST file is not a test-suite definition: " + m_filename);
+    throw StdException(_T("XTEST file is not a test-suite definition: ") + m_filename);
   }
 
   // Load identity
   XMLElement* root = msg.GetRoot();
-  m_version     = FindElementString(msg,root,"Version");
-  m_name        = FindElementString(msg,root,"Name");
-  m_description = FindElementString(msg,root,"Description");
+  m_version     = FindElementString(msg,root,_T("Version"));
+  m_name        = FindElementString(msg,root,_T("Name"));
+  m_description = FindElementString(msg,root,_T("Description"));
 
   // Load all global steps
-  XMLElement* steps = msg.FindElement(root,"Steps",false);
+  XMLElement* steps = msg.FindElement(root,_T("Steps"),false);
   if(steps)
   {
-    XMLElement* step = msg.FindElement(steps,"Step",false);
+    XMLElement* step = msg.FindElement(steps,_T("Step"),false);
 
     while(step)
     {
       GlobStep gstep;
-      gstep.m_name     = FindElementString(msg,step,"Name");
-      gstep.m_filename = FindElementString(msg,step,"File");
+      gstep.m_name     = FindElementString(msg,step,_T("Name"));
+      gstep.m_filename = FindElementString(msg,step,_T("File"));
       m_globalSteps.push_back(gstep);
 
       step = msg.GetElementSibling(step);
@@ -90,15 +90,15 @@ TestSuite::ReadFromXML(CString p_filename)
   }
 
   // Load all global validations
-  XMLElement* validations = msg.FindElement(root,"Validations",false);
+  XMLElement* validations = msg.FindElement(root,_T("Validations"),false);
   if(validations)
   {
-    XMLElement* validation = msg.FindElement(validations,"Validation",false);
+    XMLElement* validation = msg.FindElement(validations,_T("Validation"),false);
     while(validation)
     {
       GlobValidation vali;
-      vali.m_name     = FindElementString(msg,validation,"Name");
-      vali.m_filename = FindElementString(msg,validation,"File");
+      vali.m_name     = FindElementString(msg,validation,_T("Name"));
+      vali.m_filename = FindElementString(msg,validation,_T("File"));
       m_globalValidations.push_back(vali);
 
       validation = msg.GetElementSibling(validation);
@@ -107,18 +107,18 @@ TestSuite::ReadFromXML(CString p_filename)
 
   // Load all tests
   int num = 1;
-  XMLElement* tests = msg.FindElement(root,"Tests",false);
+  XMLElement* tests = msg.FindElement(root,_T("Tests"),false);
   if(tests)
   {
-    XMLElement* test = msg.FindElement(tests,"Test",false);
+    XMLElement* test = msg.FindElement(tests,_T("Test"),false);
     while(test)
     {
       Test tst;
-      tst.m_name       = FindElementString (msg,test,"Name");
-      tst.m_directory  = FindElementString (msg,test,"Dir");
-      tst.m_filename   = FindElementString (msg,test,"File");
-      tst.m_active     = FindElementBoolean(msg,test,"Run");
-      tst.m_lastResult = FindElementString (msg,test,"Result");
+      tst.m_name       = FindElementString (msg,test,_T("Name"));
+      tst.m_directory  = FindElementString (msg,test,_T("Dir"));
+      tst.m_filename   = FindElementString (msg,test,_T("File"));
+      tst.m_active     = FindElementBoolean(msg,test,_T("Run"));
+      tst.m_lastResult = FindElementString (msg,test,_T("Result"));
       m_tests.insert(std::make_pair(num++,tst));
 
       test = msg.GetElementSibling(test);
@@ -138,43 +138,43 @@ TestSuite::WriteToXML(bool p_force /*=false*/)
 
   XMLMessage msg;
 
-  msg.SetRootNodeName("TestSuite");
+  msg.SetRootNodeName(_T("TestSuite"));
 
   XMLElement* root = msg.GetRoot();
 
   // Global elements
-  msg.SetElement(root,"Version",m_version);
-  msg.SetElement(root,"Name",   m_name);
-  msg.SetElement(root,"Description",XDT_String|XDT_CDATA,m_description);
+  msg.SetElement(root,_T("Version"),m_version);
+  msg.SetElement(root,_T("Name"),   m_name);
+  msg.SetElement(root,_T("Description"),XDT_String|XDT_CDATA,m_description);
 
   // Add all global steps
-  XMLElement* steps = msg.AddElement(root,"Steps",XDT_String,"");
+  XMLElement* steps = msg.AddElement(root,_T("Steps"),XDT_String,_T(""));
   for(auto& step : m_globalSteps)
   {
-    XMLElement* xstep = msg.AddElement(steps,"Step",XDT_String,"");
-    msg.SetElement(xstep,"Name",step.m_name);
-    msg.SetElement(xstep,"File",step.m_filename);
+    XMLElement* xstep = msg.AddElement(steps,_T("Step"),XDT_String,_T(""));
+    msg.SetElement(xstep,_T("Name"),step.m_name);
+    msg.SetElement(xstep,_T("File"),step.m_filename);
   }
 
   // Add all global validations
-  XMLElement* validations = msg.AddElement(root,"Validations",XDT_String,"");
+  XMLElement* validations = msg.AddElement(root,_T("Validations"),XDT_String,_T(""));
   for(auto& vali : m_globalValidations)
   {
-    XMLElement* xvali = msg.AddElement(validations,"Validation",XDT_String,"");
-    msg.SetElement(xvali,"Name",vali.m_name);
-    msg.SetElement(xvali,"File",vali.m_filename);
+    XMLElement* xvali = msg.AddElement(validations,_T("Validation"),XDT_String,_T(""));
+    msg.SetElement(xvali,_T("Name"),vali.m_name);
+    msg.SetElement(xvali,_T("File"),vali.m_filename);
   }
 
   // Add all TESTS
-  XMLElement* tests = msg.AddElement(root,"Tests",XDT_String,"");
+  XMLElement* tests = msg.AddElement(root,_T("Tests"),XDT_String,_T(""));
   for(auto& test : m_tests)
   {
-    XMLElement* xtest = msg.AddElement(tests,"Test",XDT_String,"");
-    msg.SetElement(xtest,"Dir",   test.second.m_directory);
-    msg.SetElement(xtest,"File",  test.second.m_filename);
-    msg.SetElement(xtest,"Name",  test.second.m_name);
-    msg.SetElement(xtest,"Run",   test.second.m_active);
-    msg.SetElement(xtest,"Result",test.second.m_lastResult);
+    XMLElement* xtest = msg.AddElement(tests,_T("Test"),XDT_String,_T(""));
+    msg.SetElement(xtest,_T("Dir"),   test.second.m_directory);
+    msg.SetElement(xtest,_T("File"),  test.second.m_filename);
+    msg.SetElement(xtest,_T("Name"),  test.second.m_name);
+    msg.SetElement(xtest,_T("Run"),   test.second.m_active);
+    msg.SetElement(xtest,_T("Result"),test.second.m_lastResult);
   }
 
   // Now save it
@@ -310,9 +310,9 @@ TestSuite::CheckFilename(CString p_filename)
   // Split of only the extension
   WinFile file(p_filename);
   CString extension = file.GetFilenamePartExtension();
-  if(extension.CompareNoCase(".xtest") != 0)
+  if(extension.CompareNoCase(_T(".xtest")) != 0)
   {
-    throw StdException("A test suite XML definition file must be saved as a *.XTEST");
+    throw StdException(_T("A test suite XML definition file must be saved as a *.XTEST"));
   }
 }
 
@@ -324,7 +324,7 @@ TestSuite::FindElementString(XMLMessage& p_msg,XMLElement* p_start,CString p_nam
   {
     return elem->GetValue();
   }
-  return "";
+  return _T("");
 }
 
 bool
@@ -333,9 +333,9 @@ TestSuite::FindElementBoolean(XMLMessage& p_msg,XMLElement* p_start,CString p_na
   XMLElement* elem = p_msg.FindElement(p_start,p_name,false);
   if (elem)
   {
-    if(elem->GetValue().CompareNoCase("true") == 0 ||
-       elem->GetValue().CompareNoCase("yes") == 0 ||
-       elem->GetValue().Compare("1") == 0)
+    if(elem->GetValue().CompareNoCase(_T("true")) == 0 ||
+       elem->GetValue().CompareNoCase(_T("yes")) == 0 ||
+       elem->GetValue().Compare(_T("1")) == 0)
     {
       return true;
     }

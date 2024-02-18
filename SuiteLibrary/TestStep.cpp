@@ -121,69 +121,69 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
   // Load the file (if any)
   if(msg.LoadFile(p_filename) == false)
   {
-    throw StdException("Could not load the XML file: " + p_filename);
+    throw StdException(_T("Could not load the XML file: ") + p_filename);
   }
 
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
     CString error;
-    error.Format("Internal XML error in XRUN file [%d] %s",msg.GetInternalError(),msg.GetInternalErrorString().GetString());
+    error.Format(_T("Internal XML error in XRUN file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
 
   // Check that it is our message type
-  if(msg.GetRootNodeName().Compare("TestStep"))
+  if(msg.GetRootNodeName().Compare(_T("TestStep")))
   {
-    throw StdException("XRUN file is not a TestStep definition: " + p_filename);
+    throw StdException(_T("XRUN file is not a TestStep definition: ") + p_filename);
   }
 
   // Find names
   XMLElement* root = msg.GetRoot();
-  m_name           = FindElementString(msg,root,"Name");
-  m_documentation  = FindElementString(msg,root,"Documentation");
+  m_name           = FindElementString(msg,root,_T("Name"));
+  m_documentation  = FindElementString(msg,root,_T("Documentation"));
 
   // Find Parameters
-  XMLElement* param = msg.FindElement(root,"Parameters",false);
+  XMLElement* param = msg.FindElement(root,_T("Parameters"),false);
   if(param)
   {
-    m_killOnTimeout = FindElementBoolean(msg,param,"KillOnTimeout");
-    m_maxExecution  = FindElementString (msg,param,"MaxExecutionTime");
-    m_waitBeforeRun = FindElementString (msg,param,"WaitBeforeRun");
-    m_waitAfterRun  = FindElementString (msg,param,"WaitAfterRun");
+    m_killOnTimeout = FindElementBoolean(msg,param,_T("KillOnTimeout"));
+    m_maxExecution  = FindElementString (msg,param,_T("MaxExecutionTime"));
+    m_waitBeforeRun = FindElementString (msg,param,_T("WaitBeforeRun"));
+    m_waitAfterRun  = FindElementString (msg,param,_T("WaitAfterRun"));
   }
 
   // Find our post-script
-  XMLElement* script = msg.FindElement(root,"Script",false);
+  XMLElement* script = msg.FindElement(root,_T("Script"),false);
   if(script)
   {
-    m_scriptToRun  = FindElementString(msg,script,"QLScript");
-    m_statusOK     = FindElementString(msg,script,"StatusOK");
-    m_scriptStatus = (ScriptStatus) FindElementInteger(msg,script,"ScriptResult");
+    m_scriptToRun  = FindElementString(msg,script,_T("QLScript"));
+    m_statusOK     = FindElementString(msg,script,_T("StatusOK"));
+    m_scriptStatus = (ScriptStatus) FindElementInteger(msg,script,_T("ScriptResult"));
   }
 }
 
 bool
 TestStep::WriteToXML(XMLMessage& msg,CString p_filename)
 {
-  msg.SetRootNodeName("TestStep");
+  msg.SetRootNodeName(_T("TestStep"));
 
   XMLElement* root = msg.GetRoot();
-  msg.AddElement(root, "Name",         XDT_String|XDT_CDATA,m_name);
-  msg.AddElement(root, "Documentation",XDT_String|XDT_CDATA,m_documentation);
+  msg.AddElement(root, _T("Name"),         XDT_String|XDT_CDATA,m_name);
+  msg.AddElement(root, _T("Documentation"),XDT_String|XDT_CDATA,m_documentation);
 
-  XMLElement* parameters = msg.AddElement(root,"Parameters",XDT_String,"");
-  msg.SetElement(parameters,"KillOnTimeout",   m_killOnTimeout);
-  msg.SetElement(parameters,"MaxExecutionTime",m_maxExecution);
-  msg.SetElement(parameters,"WaitBeforeRun",   m_waitBeforeRun);
-  msg.SetElement(parameters,"WaitAfterRun",    m_waitAfterRun);
+  XMLElement* parameters = msg.AddElement(root,_T("Parameters"),XDT_String,_T(""));
+  msg.SetElement(parameters,_T("KillOnTimeout"),   m_killOnTimeout);
+  msg.SetElement(parameters,_T("MaxExecutionTime"),m_maxExecution);
+  msg.SetElement(parameters,_T("WaitBeforeRun"),   m_waitBeforeRun);
+  msg.SetElement(parameters,_T("WaitAfterRun"),    m_waitAfterRun);
 
   if(!m_scriptToRun.IsEmpty())
   {
-    XMLElement* script = msg.AddElement(root,"Script",XDT_String,"");
-    msg.SetElement(script,"ScriptResult",IntegerToString((int)m_scriptStatus));
-    msg.SetElement(script,"QLScript",m_scriptToRun);
-    msg.SetElement(script,"StatusOK",m_statusOK);
+    XMLElement* script = msg.AddElement(root,_T("Script"),XDT_String,_T(""));
+    msg.SetElement(script,_T("ScriptResult"),IntegerToString((int)m_scriptStatus));
+    msg.SetElement(script,_T("QLScript"),m_scriptToRun);
+    msg.SetElement(script,_T("StatusOK"),m_statusOK);
   }
   return true;
 }
@@ -196,7 +196,7 @@ TestStep::FindElementString(XMLMessage& p_msg, XMLElement* p_start, CString p_na
   {
     return elem->GetValue();
   }
-  return "";
+  return _T("");
 }
 
 int
@@ -205,7 +205,7 @@ TestStep::FindElementInteger(XMLMessage& p_msg, XMLElement* p_start, CString p_n
   XMLElement* elem = p_msg.FindElement(p_start, p_name);
   if (elem)
   {
-    return atoi(elem->GetValue());
+    return _ttoi(elem->GetValue());
   }
   return 0;
 }
@@ -216,9 +216,9 @@ TestStep::FindElementBoolean(XMLMessage& p_msg, XMLElement* p_start, CString p_n
   XMLElement* elem = p_msg.FindElement(p_start, p_name);
   if (elem)
   {
-    if(elem->GetValue().CompareNoCase("true") == 0 ||
-       elem->GetValue().CompareNoCase("yes")  == 0 ||
-       elem->GetValue().Compare("1")          == 0)
+    if(elem->GetValue().CompareNoCase(_T("true")) == 0 ||
+       elem->GetValue().CompareNoCase(_T("yes"))  == 0 ||
+       elem->GetValue().Compare(_T("1"))          == 0)
     {
        return true;
     }

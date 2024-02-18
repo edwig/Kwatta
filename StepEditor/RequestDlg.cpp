@@ -71,14 +71,14 @@ RequestDlg::DoDataExchange(CDataExchange* pDX)
   if(pDX->m_bSaveAndValidate == FALSE)
   {
     bool active = false;
-    if(m_mimeType.Find("xml")  >= 0)       active = true;
-    if(m_mimeType.Find("json") >= 0)       active = true;
-    if(m_mimeType.Find("multipart") >= 0)  active = true;
+    if(m_mimeType.Find(_T("xml"))  >= 0)       active = true;
+    if(m_mimeType.Find(_T("json")) >= 0)       active = true;
+    if(m_mimeType.Find(_T("multipart")) >= 0)  active = true;
 
     m_buttonCheck.EnableWindow(active);
 
     bool multi = false;
-    if(m_mimeType.Find("multipart") >= 0)
+    if(m_mimeType.Find(_T("multipart")) >= 0)
     {
       multi = true;
     }
@@ -116,13 +116,13 @@ RequestDlg::OnInitDialog()
 
   m_buttonCheck.SetIconImage(IDI_CHECK);
   m_buttonParam.SetIconImage(IDI_LIST);
-  m_buttonChooseFile.SetStyle("dir");
-  m_buttonSaveFile  .SetStyle("dir");
+  m_buttonChooseFile.SetStyle(_T("dir"));
+  m_buttonSaveFile  .SetStyle(_T("dir"));
   m_buttonShowInfile.SetIconImage(IDI_EXAMPLE);
   m_buttonShowOutfile.SetIconImage(IDI_EXAMPLE);
   EnableToolTips();
-  RegisterTooltip(m_buttonCheck,"Check correctness of the XML/JSON structures.");
-  RegisterTooltip(m_buttonParam,"Choose global/test parameter.");
+  RegisterTooltip(m_buttonCheck,_T("Check correctness of the XML/JSON structures."));
+  RegisterTooltip(m_buttonParam,_T("Choose global/test parameter."));
 
   InitCombo();
   InitPayload();
@@ -158,22 +158,22 @@ RequestDlg::SetupDynamicLayout()
 void
 RequestDlg::InitCombo()
 {
-  m_comboMime.AddString("application/soap+xml");
-  m_comboMime.AddString("application/xml");
-  m_comboMime.AddString("application/json");
-  m_comboMime.AddString("application/octet-stream");
-  m_comboMime.AddString("text/plain");
-  m_comboMime.AddString("text/html");
-  m_comboMime.AddString("text/xml");
-  m_comboMime.AddString("text/javascript");
-  m_comboMime.AddString("multipart/form-data");
-  m_comboMime.AddString("multipart/mixed");
+  m_comboMime.AddString(_T("application/soap+xml"));
+  m_comboMime.AddString(_T("application/xml"));
+  m_comboMime.AddString(_T("application/json"));
+  m_comboMime.AddString(_T("application/octet-stream"));
+  m_comboMime.AddString(_T("text/plain"));
+  m_comboMime.AddString(_T("text/html"));
+  m_comboMime.AddString(_T("text/xml"));
+  m_comboMime.AddString(_T("text/javascript"));
+  m_comboMime.AddString(_T("multipart/form-data"));
+  m_comboMime.AddString(_T("multipart/mixed"));
 }
 
 void
 RequestDlg::InitPayload()
 {
-  m_editPayload.SetFontName("Courier new",100);
+  m_editPayload.SetFontName(_T("Courier new"),100);
 }
 
 void 
@@ -190,7 +190,7 @@ RequestDlg::InitTab(TestStepNET* p_testStep,Parameters* p_parameters)
   m_outputFile = m_testStep->GetFilenameOutput();
   m_saveFile   = m_testStep->GetBodyOutputIsFile();
 
-  m_payload.Replace("\n","\r\n");
+  m_payload.Replace(_T("\n"),_T("\r\n"));
 
   int ind = m_comboMime.FindStringExact(0,m_mimeType);
   if(ind >= 0)
@@ -244,11 +244,11 @@ RequestDlg::CheckXML()
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
     CString warning;
-    warning.Format("BEWARE: Body payload has an XML error in it!\n%s",msg.GetInternalErrorString().GetString());
-    StyleMessageBox(this,warning,"WARNING",MB_OK|MB_ICONERROR);
+    warning.Format(_T("BEWARE: Body payload has an XML error in it!\n%s"),msg.GetInternalErrorString().GetString());
+    StyleMessageBox(this,warning,_T("WARNING"),MB_OK|MB_ICONERROR);
     return;
   }
-  StyleMessageBox(this,"XML Message checks out OK","CHECK",MB_OK);
+  StyleMessageBox(this,_T("XML Message checks out OK"),_T("CHECK"),MB_OK);
 }
 
 void
@@ -260,11 +260,11 @@ RequestDlg::CheckJSON()
   if(msg.GetErrorState())
   {
     CString warning;
-    warning.Format("BEWARE: Body payload has an JSON error in it!\n%s",msg.GetLastError().GetString());
-    StyleMessageBox(this,warning,"WARNING",MB_OK | MB_ICONERROR);
+    warning.Format(_T("BEWARE: Body payload has an JSON error in it!\n%s"),msg.GetLastError().GetString());
+    StyleMessageBox(this,warning,_T("WARNING"),MB_OK | MB_ICONERROR);
     return;
   }
-  StyleMessageBox(this,"JSON Message checks out OK","CHECK",MB_OK);
+  StyleMessageBox(this,_T("JSON Message checks out OK"),_T("CHECK"),MB_OK);
 }
 
 void 
@@ -272,14 +272,14 @@ RequestDlg::UpdateStepHeader(CString p_contentType)
 {
   for(auto& head : m_testStep->GetHeaders())
   {
-    if(head.m_name.CompareNoCase("content-type") == 0)
+    if(head.m_name.CompareNoCase(_T("content-type")) == 0)
     {
       head.m_value = p_contentType;
       break;
     }
   }
 
-  m_testStep->SetHeader("Content-type",p_contentType);
+  m_testStep->SetHeader(_T("Content-type"),p_contentType);
 
   StepInternetDlg* parent = reinterpret_cast<StepInternetDlg*>(GetParent()->GetParent());
   if(parent)
@@ -300,11 +300,11 @@ RequestDlg::OnCbnSelchangeMime()
 void 
 RequestDlg::OnBnClickedCheck()
 {
-  if(m_mimeType.Find("xml") >= 0)
+  if(m_mimeType.Find(_T("xml")) >= 0)
   {
     CheckXML();
   }
-  if(m_mimeType.Find("json") >= 0)
+  if(m_mimeType.Find(_T("json")) >= 0)
   {
     CheckJSON();
   }
@@ -327,7 +327,7 @@ void
 RequestDlg::OnBnClickedMulti()
 {
   //  Get a content type
-  CString content = m_testStep->GetHeader("Content-Type");
+  CString content = m_testStep->GetHeader(_T("Content-Type"));
   if(content.IsEmpty())
   {
     content = m_mimeType;
@@ -378,16 +378,16 @@ void
 RequestDlg::OnBnClickedChooseFile()
 {
   CString filter;
-  filter  = "All files *.*|*.*";
-  filter += "|PNG Image files *.png|*.png";
-  filter += "|JPG Image files *.jpg|*.jpg";
-  filter += "|GIF Image files *.gif|*.gif";
-  filter += "|PDF portable documents *.pdf|*.pdf";
-  filter += "|DOCX MS-Word documents *.docx|*.docx";
-  filter += "|RTF Richt Text Format *.rtf|*.rtf";
+  filter  = _T("All files *.*|*.*");
+  filter += _T("|PNG Image files *.png|*.png");
+  filter += _T("|JPG Image files *.jpg|*.jpg");
+  filter += _T("|GIF Image files *.gif|*.gif");
+  filter += _T("|PDF portable documents *.pdf|*.pdf");
+  filter += _T("|DOCX MS-Word documents *.docx|*.docx");
+  filter += _T("|RTF Richt Text Format *.rtf|*.rtf");
 
   AutoFocus focus;
-  DocFileDialog doc(GetSafeHwnd(),true,"Choose file to input as body","",m_inputFile,0,filter);
+  DocFileDialog doc(GetSafeHwnd(),true,_T("Choose file to input as body"),_T(""),m_inputFile,0,filter);
   if(doc.DoModal() == IDOK)
   {
     CString file = doc.GetChosenFile();
@@ -396,7 +396,7 @@ RequestDlg::OnBnClickedChooseFile()
     CString relative;
     CString basedir = theApp.GetBaseDirectory();
     ens.MakeRelativePathname(basedir,file,relative);
-    relative.Replace("/","\\");
+    relative.Replace(_T("/"),_T("\\"));
     m_inputFile = relative;
     UpdateData(FALSE);
   }
@@ -420,16 +420,16 @@ void
 RequestDlg::OnBnClickedOutputFile()
 {
   CString filter;
-  filter  = "All files *.*|*.*";
-  filter += "|PNG Image files *.png|*.png";
-  filter += "|JPG Image files *.jpg|*.jpg";
-  filter += "|GIF Image files *.gif|*.gif";
-  filter += "|PDF portable documents *.pdf|*.pdf";
-  filter += "|DOCX MS-Word documents *.docx|*.docx";
-  filter += "|RTF Richt Text Format *.rtf|*.rtf";
+  filter  = _T("All files *.*|*.*");
+  filter += _T("|PNG Image files *.png|*.png");
+  filter += _T("|JPG Image files *.jpg|*.jpg");
+  filter += _T("|GIF Image files *.gif|*.gif");
+  filter += _T("|PDF portable documents *.pdf|*.pdf");
+  filter += _T("|DOCX MS-Word documents *.docx|*.docx");
+  filter += _T("|RTF Richt Text Format *.rtf|*.rtf");
 
   AutoFocus focus;
-  DocFileDialog doc(GetSafeHwnd(),false,"Choose file to output the body to","",m_outputFile,0,filter);
+  DocFileDialog doc(GetSafeHwnd(),false,_T("Choose file to output the body to"),_T(""),m_outputFile,0,filter);
   if(doc.DoModal() == IDOK)
   {
     CString file = doc.GetChosenFile();
@@ -438,7 +438,7 @@ RequestDlg::OnBnClickedOutputFile()
     CString relative;
     CString basedir = theApp.GetBaseDirectory();
     ens.MakeRelativePathname(basedir,file,relative);
-    relative.Replace("/","\\");
+    relative.Replace(_T("/"),_T("\\"));
     m_outputFile = relative;
     UpdateData(FALSE);
   }
@@ -452,7 +452,7 @@ RequestDlg::OnBnClickedShowInfile()
   WinFile file(filename);
   if(file.Exists())
   {
-    ExecuteShell("open",filename,"",GetSafeHwnd(),true,&error);
+    ExecuteShell(_T("open"),filename,_T(""),GetSafeHwnd(),true,&error);
   }
 }
 
@@ -464,6 +464,6 @@ RequestDlg::OnBnClickedShowOutfile()
   WinFile file(filename);
   if(file.Exists())
   {
-    ExecuteShell("open",filename,"",NULL,true,&error);
+    ExecuteShell(_T("open"),filename,_T(""),NULL,true,&error);
   }
 }

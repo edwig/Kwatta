@@ -52,10 +52,10 @@ END_MESSAGE_MAP()
 bool
 NewStepTypeDlg::InitStyleTab(void* p_data)
 {
-  m_comboType.AddString("Command (CMD)");
-  m_comboType.AddString("Internet (HTTP)");
-  m_comboType.AddString("Database (SQL)");
-  m_comboType.AddString("Windows (WIN)");
+  m_comboType.AddString(_T("Command (CMD)"));
+  m_comboType.AddString(_T("Internet (HTTP)"));
+  m_comboType.AddString(_T("Database (SQL)"));
+  m_comboType.AddString(_T("Windows (WIN)"));
   m_comboType.SetCurSel(0);
 
   StepType type = *((StepType*)p_data);

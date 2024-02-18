@@ -92,7 +92,7 @@ NewStepNamesDlg::CheckStyleTab(void* p_data)
 {
   if(m_stepName.IsEmpty() || m_stepFile.IsEmpty())
   {
-    CString error("Fill in both a step name and a valid test step file name!");
+    CString error(_T("Fill in both a step name and a valid test step file name!"));
     if(m_stepName.IsEmpty())
     {
       m_editName.SetErrorState(true,error);
@@ -145,9 +145,9 @@ NewStepNamesDlg::CheckFilename()
   }
   path += file;
 
-  if(_access(path,0) == 0)
+  if(_taccess(path,0) == 0)
   {
-    m_editFile.SetErrorState(true,"This file already exists!. Choose another name!");
+    m_editFile.SetErrorState(true,_T("This file already exists!. Choose another name!"));
   }
   else
   {

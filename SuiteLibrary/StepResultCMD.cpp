@@ -37,12 +37,12 @@ StepResultCMD::ReadFromXML(CString p_filename)
 
   // Load result of the step
   CString timing;
-  XMLElement* output = msg.FindElement("Output");
+  XMLElement* output = msg.FindElement(_T("Output"));
   if(output)
   {
-    m_returnValue    = msg.GetElementInteger(output,"ReturnValue");
-    m_standardOutput = msg.GetElement(output,"StandardOutput");
-    m_standardError  = msg.GetElement(output,"StandardError");
+    m_returnValue    = msg.GetElementInteger(output,_T("ReturnValue"));
+    m_standardOutput = msg.GetElement(output,_T("StandardOutput"));
+    m_standardError  = msg.GetElement(output,_T("StandardError"));
   }
 }
 
@@ -56,14 +56,14 @@ StepResultCMD::WriteToXML(CString p_filename)
   }
   XMLElement* root = msg.GetRoot();
 
-  XMLElement* output = msg.AddElement(root,"Output",XDT_String,"");
-  msg.SetElement(output,"ReturnValue",m_returnValue);
+  XMLElement* output = msg.AddElement(root,_T("Output"),XDT_String,_T(""));
+  msg.SetElement(output,_T("ReturnValue"),m_returnValue);
 
   m_standardOutput.Remove('\r');
   m_standardError.Remove('\r');
 
-  msg.AddElement(output,"StandardOutput",XDT_CDATA,m_standardOutput);
-  msg.AddElement(output,"StandardError", XDT_CDATA,m_standardError);
+  msg.AddElement(output,_T("StandardOutput"),XDT_CDATA,m_standardOutput);
+  msg.AddElement(output,_T("StandardError"), XDT_CDATA,m_standardError);
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -73,13 +73,13 @@ void
 StepResultCMD::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_RESULT_CMD,5))
+  if(_tcsncicmp(extension,EXTENSION_RESULT_CMD,5))
   {
-    throw StdException("A StepResult XML definition file must be saved as a *.XRES");
+    throw StdException(_T("A StepResult XML definition file must be saved as a *.XRES"));
   }
 }
 

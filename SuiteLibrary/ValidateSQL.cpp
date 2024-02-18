@@ -38,70 +38,70 @@ ValidateSQL::ReadFromXML(CString p_filename)
   Validate::ReadFromXML(msg, p_filename);
 
   // Check the succeeded status
-  XMLElement* elem = msg.FindElement("CheckSucceeded");
+  XMLElement* elem = msg.FindElement(_T("CheckSucceeded"));
   if(elem)
   {
-    m_checkSucceeded    = msg.GetElementBoolean(elem,"Check");
-    m_succeedOperator   = StringToReturnOperator(msg.GetElement(elem,"Operator"));
-    m_succeeded         = msg.GetElement(elem, "Expected");
-    m_succeededVariable = msg.GetElement(elem,"Variable");
+    m_checkSucceeded    = msg.GetElementBoolean(elem,_T("Check"));
+    m_succeedOperator   = StringToReturnOperator(msg.GetElement(elem,_T("Operator")));
+    m_succeeded         = msg.GetElement(elem, _T("Expected"));
+    m_succeededVariable = msg.GetElement(elem,_T("Variable"));
   }
 
   // Check the number of affected/returned rows
-  elem = msg.FindElement("ReturnedRows");
+  elem = msg.FindElement(_T("ReturnedRows"));
   if(elem)
   {
-    m_checkRows            = msg.GetElementBoolean(elem,"Check");
-    m_rowsOperator         = StringToReturnOperator(msg.GetElement(elem,"Operator"));
-    m_returnedRows         = msg.GetElement(elem,"Expected");
-    m_returnedRowsVariable = msg.GetElement("Variable");
+    m_checkRows            = msg.GetElementBoolean(elem,_T("Check"));
+    m_rowsOperator         = StringToReturnOperator(msg.GetElement(elem,_T("Operator")));
+    m_returnedRows         = msg.GetElement(elem,_T("Expected"));
+    m_returnedRowsVariable = msg.GetElement(_T("Variable"));
   }
 
   // Check the number of affected/returned cols
-  elem = msg.FindElement("ReturnedColumns");
+  elem = msg.FindElement(_T("ReturnedColumns"));
   if(elem)
   {
-    m_checkCols            = msg.GetElementBoolean(elem,"Check");
-    m_colsOperator         = StringToReturnOperator(msg.GetElement(elem,"Operator"));
-    m_returnedCols         = msg.GetElement(elem,"Expected");
-    m_returnedColsVariable = msg.GetElement("Variable");
+    m_checkCols            = msg.GetElementBoolean(elem,_T("Check"));
+    m_colsOperator         = StringToReturnOperator(msg.GetElement(elem,_T("Operator")));
+    m_returnedCols         = msg.GetElement(elem,_T("Expected"));
+    m_returnedColsVariable = msg.GetElement(_T("Variable"));
   }
 
   // ODBC Status
-  elem = msg.FindElement("SQLState");
+  elem = msg.FindElement(_T("SQLState"));
   if(elem)
   {
-    m_checkSQLState      = msg.GetElementBoolean(elem,"Check");
-    m_stateOperator      = StringToBufferOperator(msg.GetElement(elem,"Operator"));
-    m_sqlState           = msg.GetElement(elem,"Expected");
-    m_returnedSQLStateVariable = msg.GetElement("Variable");
+    m_checkSQLState      = msg.GetElementBoolean(elem,_T("Check"));
+    m_stateOperator      = StringToBufferOperator(msg.GetElement(elem,_T("Operator")));
+    m_sqlState           = msg.GetElement(elem,_T("Expected"));
+    m_returnedSQLStateVariable = msg.GetElement(_T("Variable"));
   }
 
   // Native Status
-  elem = msg.FindElement("NativeStatus");
+  elem = msg.FindElement(_T("NativeStatus"));
   if(elem)
   {
-    m_checkNativeStatus      = msg.GetElementBoolean(elem,"Check");
-    m_nativeOperator         = StringToBufferOperator(msg.GetElement(elem,"Operator"));
-    m_nativeStatus           = msg.GetElement(elem,"Expected");
-    m_returnedNativeVariable = msg.GetElement("Variable");
+    m_checkNativeStatus      = msg.GetElementBoolean(elem,_T("Check"));
+    m_nativeOperator         = StringToBufferOperator(msg.GetElement(elem,_T("Operator")));
+    m_nativeStatus           = msg.GetElement(elem,_T("Expected"));
+    m_returnedNativeVariable = msg.GetElement(_T("Variable"));
   }
 
   // Check the returned SQL data
-  elem = msg.FindElement("Data");
+  elem = msg.FindElement(_T("Data"));
   if(elem)
   {
-    m_checkData            = msg.GetElementBoolean(elem,"Check");
-    m_dataOperator         = StringToBufferOperator(msg.GetElement(elem,"Operator"));
-    m_returnedDataVariable = msg.GetElement(elem,"Variable");
-    XMLElement* row = msg.FindElement(elem,"ROW");
+    m_checkData            = msg.GetElementBoolean(elem,_T("Check"));
+    m_dataOperator         = StringToBufferOperator(msg.GetElement(elem,_T("Operator")));
+    m_returnedDataVariable = msg.GetElement(elem,_T("Variable"));
+    XMLElement* row = msg.FindElement(elem,_T("ROW"));
     if(row)
     {
-      XMLElement* column = msg.FindElement(row,"Column");
+      XMLElement* column = msg.FindElement(row,_T("Column"));
       while(column)
       {
-        CString name  = msg.GetElement(column,"Name");
-        CString value = msg.GetElement(column,"Data");
+        CString name  = msg.GetElement(column,_T("Name"));
+        CString value = msg.GetElement(column,_T("Data"));
         // Store this value
         m_data[name] = value;
 
@@ -123,51 +123,51 @@ ValidateSQL::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Check the succeeded status
-  XMLElement* elem = msg.AddElement(root,"CheckSucceeded",XDT_String,"");
-  msg.SetElement(elem,"Check",   m_checkSucceeded);
-  msg.SetElement(elem,"Operator",ReturnOperatorToString(m_succeedOperator));
-  msg.SetElement(elem,"Expected",m_succeeded);
-  msg.SetElement(elem,"Variable",m_succeededVariable);
+  XMLElement* elem = msg.AddElement(root,_T("CheckSucceeded"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),   m_checkSucceeded);
+  msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_succeedOperator));
+  msg.SetElement(elem,_T("Expected"),m_succeeded);
+  msg.SetElement(elem,_T("Variable"),m_succeededVariable);
 
   // Check the number of affected/returned rows
-  elem = msg.AddElement(root,"ReturnedRows",XDT_String,"");
-  msg.SetElement(elem,"Check",   m_checkRows);
-  msg.SetElement(elem,"Operator",ReturnOperatorToString(m_rowsOperator));
-  msg.SetElement(elem,"Expected",m_returnedRows);
-  msg.SetElement(elem,"Variable",m_returnedRowsVariable);
+  elem = msg.AddElement(root,_T("ReturnedRows"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),   m_checkRows);
+  msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_rowsOperator));
+  msg.SetElement(elem,_T("Expected"),m_returnedRows);
+  msg.SetElement(elem,_T("Variable"),m_returnedRowsVariable);
 
   // Check the number of affected/returned cols
-  elem = msg.AddElement(root,"ReturnedColumns",XDT_String,"");
-  msg.SetElement(elem,"Check",   m_checkCols);
-  msg.SetElement(elem,"Operator",ReturnOperatorToString(m_colsOperator));
-  msg.SetElement(elem,"Expected",m_returnedCols);
-  msg.SetElement(elem,"Variable",m_returnedColsVariable);
+  elem = msg.AddElement(root,_T("ReturnedColumns"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),   m_checkCols);
+  msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_colsOperator));
+  msg.SetElement(elem,_T("Expected"),m_returnedCols);
+  msg.SetElement(elem,_T("Variable"),m_returnedColsVariable);
 
   // ODBC Status
-  elem = msg.AddElement(root,"SQLState",XDT_String,"");
-  msg.SetElement(elem,"Check",   m_checkSQLState);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_stateOperator));
-  msg.SetElement(elem,"Expected",m_sqlState);
-  msg.SetElement(elem,"Variable",m_returnedSQLStateVariable);
+  elem = msg.AddElement(root,_T("SQLState"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),   m_checkSQLState);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_stateOperator));
+  msg.SetElement(elem,_T("Expected"),m_sqlState);
+  msg.SetElement(elem,_T("Variable"),m_returnedSQLStateVariable);
 
   // Native Status
-  elem = msg.AddElement(root,"NativeStatus",XDT_String,"");
-  msg.SetElement(elem,"Check",   m_checkNativeStatus);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_nativeOperator));
-  msg.SetElement(elem,"Expected",m_nativeStatus);
-  msg.SetElement(elem,"Variable",m_returnedNativeVariable);
+  elem = msg.AddElement(root,_T("NativeStatus"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),   m_checkNativeStatus);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_nativeOperator));
+  msg.SetElement(elem,_T("Expected"),m_nativeStatus);
+  msg.SetElement(elem,_T("Variable"),m_returnedNativeVariable);
 
   // Check the returned SQL data
-  elem = msg.AddElement(root,"Data",XDT_String,"");
-  msg.SetElement(elem,"Check",m_checkData);
-  msg.SetElement(elem,"Operator",BufferOperatorToString(m_dataOperator));
-  msg.SetElement(elem,"Variable",m_returnedDataVariable);
-  elem = msg.AddElement(elem,"ROW",XDT_String,"");
+  elem = msg.AddElement(root,_T("Data"),XDT_String,_T(""));
+  msg.SetElement(elem,_T("Check"),m_checkData);
+  msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_dataOperator));
+  msg.SetElement(elem,_T("Variable"),m_returnedDataVariable);
+  elem = msg.AddElement(elem,_T("ROW"),XDT_String,_T(""));
   for (auto& coldat : m_data)
   {
-    XMLElement* cell = msg.AddElement(elem,"Column", XDT_String, "");
-    msg.SetElement(cell,"Name",coldat.first);
-    msg.AddElement(cell,"Data",XDT_String|XDT_CDATA,coldat.second);
+    XMLElement* cell = msg.AddElement(elem,_T("Column"), XDT_String, _T(""));
+    msg.SetElement(cell,_T("Name"),coldat.first);
+    msg.AddElement(cell,_T("Data"),XDT_String|XDT_CDATA,coldat.second);
   }
 
   // Now save it
@@ -203,13 +203,13 @@ void
 ValidateSQL::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_VALIDATE_SQL,5))
+  if(_tcsncicmp(extension,EXTENSION_VALIDATE_SQL,5))
   {
-    throw StdException("A Validation XML definition file must be saved as a *.QVAL");
+    throw StdException(_T("A Validation XML definition file must be saved as a *.QVAL"));
   }
 }
 
@@ -223,7 +223,7 @@ ValidateSQL::ValidateSucceeded(Parameters* p_parameters,int p_status)
   }
 
   // Convert expected result to an int
-  int expected = atoi(m_effectiveSucceeded);
+  int expected = _ttoi(m_effectiveSucceeded);
 
   // Check result, depending on the operator
   bool result = false;
@@ -243,7 +243,7 @@ ValidateSQL::ValidateSucceeded(Parameters* p_parameters,int p_status)
   if(result && !m_succeededVariable.IsEmpty())
   {
     CString status;
-    status.Format("%d",p_status);
+    status.Format(_T("%d"),p_status);
     p_parameters->OverwriteReturnParameter(m_succeededVariable,status);
   }
   return result;
@@ -259,7 +259,7 @@ ValidateSQL::ValidateReturnedRows(Parameters* p_parameters,int p_rows)
   }
 
   // Convert expected result to an int
-  int expected = atoi(m_effectiveReturnedRows);
+  int expected = _ttoi(m_effectiveReturnedRows);
 
   // Check result, depending on the operator
   bool result = false;
@@ -279,7 +279,7 @@ ValidateSQL::ValidateReturnedRows(Parameters* p_parameters,int p_rows)
   if(result && !m_returnedRowsVariable.IsEmpty())
   {
     CString status;
-    status.Format("%d",p_rows);
+    status.Format(_T("%d"),p_rows);
     p_parameters->OverwriteReturnParameter(m_returnedRowsVariable,status);
   }
   return result;
@@ -295,7 +295,7 @@ ValidateSQL::ValidateReturnedCols(Parameters* p_parameters,int p_cols)
   }
 
   // Convert expected result to an int
-  int expected = atoi(m_effectiveReturnedCols);
+  int expected = _ttoi(m_effectiveReturnedCols);
 
   // Check result, depending on the operator
   bool result = false;
@@ -315,7 +315,7 @@ ValidateSQL::ValidateReturnedCols(Parameters* p_parameters,int p_cols)
   if(result && !m_returnedColsVariable.IsEmpty())
   {
     CString status;
-    status.Format("%d",p_cols);
+    status.Format(_T("%d"),p_cols);
     p_parameters->OverwriteReturnParameter(m_returnedColsVariable,status);
   }
   return result;

@@ -63,7 +63,7 @@ BOOL
 MutateDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Change filename for: " + m_object);
+  SetWindowText(_T("Change filename for: ") + m_object);
 
   m_editOrgFilename.SetMutable(false);
   m_editOrgFilename.SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
@@ -77,7 +77,7 @@ MutateDlg::CheckFilenames()
   if(m_newFilename.IsEmpty())
   {
     m_editNewFilename.SetErrorState(true);
-    m_editNewFilename.SetEmpty(true,"Fill in a NEW (not existing) filename!");
+    m_editNewFilename.SetEmpty(true,_T("Fill in a NEW (not existing) filename!"));
     return false;
   }
   WinFile file(m_orgFilename);
@@ -87,7 +87,7 @@ MutateDlg::CheckFilenames()
   if(orgExtension.CompareNoCase(newExtension))
   {
     m_editNewFilename.SetErrorState(true);
-    m_editNewFilename.SetEmpty(true,"You cannot change the extension of the new filename!");
+    m_editNewFilename.SetEmpty(true,_T("You cannot change the extension of the new filename!"));
     return false;
   }
   m_editNewFilename.SetErrorState(false);
@@ -129,12 +129,12 @@ MutateDlg::OnBnClickedChange()
   }
   if(m_orgFilename.CompareNoCase(m_newFilename) == 0)
   {
-    StyleMessageBox(this,"Specify a DIFFERENT filename!",KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Specify a DIFFERENT filename!"),_T(KWATTA),MB_OK|MB_ICONERROR);
     return;
   }
   CString ask;
-  ask.Format("Do you want to rename %s [%s] to [%s] ?",m_object.GetString(),m_orgFilename.GetString(),m_newFilename.GetString());
-  if(StyleMessageBox(this,ask,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  ask.Format(_T("Do you want to rename %s [%s] to [%s] ?"),m_object.GetString(),m_orgFilename.GetString(),m_newFilename.GetString());
+  if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
     CString oldfile = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + m_orgFilename;
     CString newfile = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + m_newFilename;
@@ -143,7 +143,7 @@ MutateDlg::OnBnClickedChange()
     std::filesystem::rename(oldfile.GetString(),newfile.GetString(),error);
     if(error.value() == 0)
     {
-      if(m_object.CompareNoCase("testset") == 0)
+      if(m_object.CompareNoCase(_T("testset")) == 0)
       {
         oldfile.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
         oldfile.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);

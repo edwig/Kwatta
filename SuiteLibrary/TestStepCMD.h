@@ -41,6 +41,7 @@ public:
   CString GetDirectoryPath()        { return m_directoryPath;         }
   CString GetRuntimer()             { return m_runtimer;              }
   CString GetCommandLine()          { return m_commandLine;           }
+  CString GetStreamCharset()        { return m_streamCharset;         }
   ParMap& GetEnvironmentVars()      { return m_environment;           }
   bool    GetWaitForIdle()          { return m_waitForIdle;           }
   int     GetStartWindow()          { return m_startWindow;           }
@@ -61,6 +62,7 @@ public:
   void    SetDirectoryPath(CString p_path)  { m_directoryPath     = p_path;     }
   void    SetRuntimer(CString p_runtimer)   { m_runtimer          = p_runtimer; }
   void    SetCommandLine(CString p_line)    { m_commandLine       = p_line;     }
+  void    SetStreamCharset(CString p_chars) { m_streamCharset     = p_chars;    }
   void    SetWaitForIdle(bool p_wait)       { m_waitForIdle       = p_wait;     }
   void    SetStartWindow(int p_start)       { m_startWindow       = p_start;    }
   void    SetHandleEnvironment(int p_handle){ m_handleEnvironment = p_handle;   }
@@ -77,6 +79,7 @@ protected:
   CString       m_directoryPath;
   CString       m_runtimer;
   CString       m_commandLine;
+  CString       m_streamCharset;
   ParMap        m_environment;
   StreamBuffer  m_standardInput;
   // Parameters

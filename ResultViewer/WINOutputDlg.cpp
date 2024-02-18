@@ -77,8 +77,8 @@ WINOutputDlg::LoadVariables(StepResultWIN* p_stepResult)
   m_winLogging  = m_stepResult->GetResultString();
   m_winErrors   = m_stepResult->GetErrorString();
 
-  m_winLogging.Replace("\n","\r\n");
-  m_winErrors .Replace("\n","\r\n");
+  m_winLogging.Replace(_T("\n"),_T("\r\n"));
+  m_winErrors .Replace(_T("\n"),_T("\r\n"));
 
   UpdateData(FALSE);
 }

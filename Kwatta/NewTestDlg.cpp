@@ -65,10 +65,10 @@ BOOL
 NewTestDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Define a new test-set");
+  SetWindowText(_T("Define a new test-set"));
   
-  m_editDirectory.SetEmpty(true,"Fill in a directory name");
-  m_editTestName .SetEmpty(true,"Fill in a test set name");
+  m_editDirectory.SetEmpty(true,_T("Fill in a directory name"));
+  m_editTestName .SetEmpty(true,_T("Fill in a test set name"));
   m_checkActive  .SetCheck(1);
 
   UpdateData(FALSE);
@@ -80,17 +80,17 @@ NewTestDlg::CheckInput()
 {
   if(m_directory.IsEmpty() || m_testName.IsEmpty())
   {
-    StyleMessageBox(this,"Fill in both the directory name and the name of the test.","Kwatta",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Fill in both the directory name and the name of the test."),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return false;
   }
 
   CString path = theApp.GetBaseDirectoryClean();
-  path += "\\";
+  path += _T("\\");
   path += m_directory;
-  if(_access(path,0) == 0)
+  if(_taccess(path,0) == 0)
   {
-    StyleMessageBox(this,"The name of this directory already exists.\n"
-                         "Please choose another directory name.","Kwatta",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("The name of this directory already exists.\n")
+                         _T("Please choose another directory name."),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return false;
   }
 

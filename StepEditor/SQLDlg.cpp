@@ -65,7 +65,7 @@ SQLDlg::OnInitDialog()
 
   m_buttonParam.SetIconImage(IDI_LIST);
   EnableToolTips();
-  RegisterTooltip(m_buttonParam, "Choose global/test parameter.");
+  RegisterTooltip(m_buttonParam, _T("Choose global/test parameter."));
   InitPayload();
   SetCanResize();
   return TRUE;
@@ -88,7 +88,7 @@ SQLDlg::SetupDynamicLayout()
 void
 SQLDlg::InitPayload()
 {
-  m_editPayload.SetFontName("Courier new", 100);
+  m_editPayload.SetFontName(_T("Courier new"), 100);
 }
 
 void
@@ -125,7 +125,7 @@ SQLDlg::StoreVariables()
 {
   UpdateData();
 
-  m_payload.Replace("\r","");
+  m_payload.Replace(_T("\r"),_T(""));
   m_testStep->SetSQL(m_payload);
 }
 

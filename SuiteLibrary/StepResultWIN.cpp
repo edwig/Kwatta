@@ -37,9 +37,9 @@ StepResultWIN::ReadFromXML(CString p_filename)
   XMLMessage msg;
   StepResult::ReadFromXML(msg,p_filename);
 
-  m_lastOSerror   = msg.GetElementInteger("LastOSError");
-  m_errorString   = msg.GetElement("ErrorString");
-  m_resultLogging = msg.GetElement("ResultLogging");
+  m_lastOSerror   = msg.GetElementInteger(_T("LastOSError"));
+  m_errorString   = msg.GetElement(_T("ErrorString"));
+  m_resultLogging = msg.GetElement(_T("ResultLogging"));
 }
 
 bool
@@ -53,11 +53,11 @@ StepResultWIN::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   CString error;
-  error.Format("%u",m_lastOSerror);
+  error.Format(_T("%u"),m_lastOSerror);
 
-  msg.AddElement(root,"LastOSError",  XDT_Integer,error);
-  msg.AddElement(root,"ErrorString",  XDT_String,m_errorString);
-  msg.AddElement(root,"ResultLogging",XDT_String,m_resultLogging);
+  msg.AddElement(root,_T("LastOSError"),  XDT_Integer,error);
+  msg.AddElement(root,_T("ErrorString"),  XDT_String,m_errorString);
+  msg.AddElement(root,_T("ResultLogging"),XDT_String,m_resultLogging);
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -67,13 +67,13 @@ void
 StepResultWIN::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension, EXTENSION_RESULT_WIN,5))
+  if(_tcsncicmp(extension, EXTENSION_RESULT_WIN,5))
   {
-    throw StdException("A StepResult XML definition file must be saved as a *.WRES");
+    throw StdException(_T("A StepResult XML definition file must be saved as a *.WRES"));
   }
 }
 

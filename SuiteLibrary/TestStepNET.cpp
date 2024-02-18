@@ -40,93 +40,93 @@ TestStepNET::ReadFromXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Find type
-  XMLElement* typ = msg.FindElement(root, "Type", false);
+  XMLElement* typ = msg.FindElement(root, _T("Type"), false);
   if (typ)
   {
     CString type = typ->GetValue();
-    if (type.Compare("Internet"))
+    if (type.Compare(_T("Internet")))
     {
-      throw StdException("IRUN file is not an internet test: " + p_filename);
+      throw StdException(_T("IRUN file is not an internet test: ") + p_filename);
     }
   }
   else
   {
-    throw StdException("Missing <Type> in IRUN file: " + p_filename);
+    throw StdException(_T("Missing <Type> in IRUN file: ") + p_filename);
   }
-  XMLElement* def = msg.FindElement("Definition");
+  XMLElement* def = msg.FindElement(_T("Definition"));
   if(!def)
   {
-    throw StdException("Missing <Definition> in IRUN file: " + p_filename);
+    throw StdException(_T("Missing <Definition> in IRUN file: ") + p_filename);
   }
-  m_verb       = msg.GetElement(def,"VERB");
-  m_url        = msg.GetElement(def,"URL");
-  m_anchor     = msg.GetElement(def,"Anchor");
-  m_mimeType   = msg.GetElement(def,"MimeType");
+  m_verb       = msg.GetElement(def,_T("VERB"));
+  m_url        = msg.GetElement(def,_T("URL"));
+  m_anchor     = msg.GetElement(def,_T("Anchor"));
+  m_mimeType   = msg.GetElement(def,_T("MimeType"));
 
-  m_useStatus  = msg.GetElementBoolean(def,"UseStatus");
-  m_useHeaders = msg.GetElementBoolean(def,"UseHeaders");
-  m_useBody    = msg.GetElementBoolean(def,"UseBody");
+  m_useStatus  = msg.GetElementBoolean(def,_T("UseStatus"));
+  m_useHeaders = msg.GetElementBoolean(def,_T("UseHeaders"));
+  m_useBody    = msg.GetElementBoolean(def,_T("UseBody"));
 
-  XMLElement* params = msg.FindElement(def,"Parameters");
+  XMLElement* params = msg.FindElement(def,_T("Parameters"));
   if(params)
   {
-    XMLElement* parameter = msg.FindElement(params,"Parameter");
+    XMLElement* parameter = msg.FindElement(params,_T("Parameter"));
     while(parameter)
     {
       INPair pair;
-      pair.m_name  = msg.GetElement(parameter,"Name");
-      pair.m_value = msg.GetElement(parameter,"Value");
+      pair.m_name  = msg.GetElement(parameter,_T("Name"));
+      pair.m_value = msg.GetElement(parameter,_T("Value"));
       m_parameters.push_back(pair);
 
       parameter = msg.GetElementSibling(parameter);
     }
   }
 
-  XMLElement* allheaders = msg.FindElement(def,"Headers");
+  XMLElement* allheaders = msg.FindElement(def,_T("Headers"));
   if(allheaders)
   {
-    XMLElement* header = msg.FindElement(allheaders,"Header");
+    XMLElement* header = msg.FindElement(allheaders,_T("Header"));
     while(header)
     {
       INPair head;
-      head.m_name  = msg.GetElement(header,"Name");
-      head.m_value = msg.GetElement(header,"Value");
+      head.m_name  = msg.GetElement(header,_T("Name"));
+      head.m_value = msg.GetElement(header,_T("Value"));
       m_headers.push_back(head);
 
       header = msg.GetElementSibling(header);
     }
   }
 
-  XMLElement* auth = msg.FindElement(def,"Authentication");
+  XMLElement* auth = msg.FindElement(def,_T("Authentication"));
   if(auth)
   {
-    m_authType    = msg.GetElement(auth,"Type");
-    m_userName    = msg.GetElement(auth,"Username");
-    m_password    = msg.GetElement(auth,"Password");
-    m_oauthGrant  = msg.GetElement(auth,"OAuthGrant");
-    m_tokenServer = msg.GetElement(auth,"TokenServer");
-    m_clientID    = msg.GetElement(auth,"ClientID");
-    m_clientKey   = msg.GetElement(auth,"ClientKey");
-    m_clientScope = msg.GetElement(auth,"ClientScope");
+    m_authType    = msg.GetElement(auth,_T("Type"));
+    m_userName    = msg.GetElement(auth,_T("Username"));
+    m_password    = msg.GetElement(auth,_T("Password"));
+    m_oauthGrant  = msg.GetElement(auth,_T("OAuthGrant"));
+    m_tokenServer = msg.GetElement(auth,_T("TokenServer"));
+    m_clientID    = msg.GetElement(auth,_T("ClientID"));
+    m_clientKey   = msg.GetElement(auth,_T("ClientKey"));
+    m_clientScope = msg.GetElement(auth,_T("ClientScope"));
   }
 
 
   // Timeouts
-  XMLElement* timeouts = msg.FindElement(def,"Timeouts");
+  XMLElement* timeouts = msg.FindElement(def,_T("Timeouts"));
   if(timeouts)
   {
-    m_timeoutResolve = atoi(msg.GetElement(timeouts,"TimeoutResolve"));
-    m_timeoutConnect = atoi(msg.GetElement(timeouts,"TimeoutConnect"));
-    m_timeoutSend    = atoi(msg.GetElement(timeouts,"TimeoutSend"));
-    m_timeoutReceive = atoi(msg.GetElement(timeouts,"TimeoutReceive"));
+    m_timeoutResolve = _ttoi(msg.GetElement(timeouts,_T("TimeoutResolve")));
+    m_timeoutConnect = _ttoi(msg.GetElement(timeouts,_T("TimeoutConnect")));
+    m_timeoutSend    = _ttoi(msg.GetElement(timeouts,_T("TimeoutSend")));
+    m_timeoutReceive = _ttoi(msg.GetElement(timeouts,_T("TimeoutReceive")));
   }
 
   // Read the body
-  m_body              = msg.GetElement(def, "Body");
-  m_bodyInputIsFile   = msg.GetElementBoolean(def,"BodyInputIsFile");
-  m_bodyOutputIsFile  = msg.GetElementBoolean(def,"BodyOutputIsFile");
-  m_filenameInput     = msg.GetElement(def,"FileInput");
-  m_filenameOutput    = msg.GetElement(def,"FileOutput");
+  m_body              = msg.GetElement(def, _T("Body"));
+  m_bodyInputIsFile   = msg.GetElementBoolean(def,_T("BodyInputIsFile"));
+  m_bodyOutputIsFile  = msg.GetElementBoolean(def,_T("BodyOutputIsFile"));
+  m_filenameInput     = msg.GetElement(def,_T("FileInput"));
+  m_filenameOutput    = msg.GetElement(def,_T("FileOutput"));
 }
 
 bool
@@ -140,62 +140,62 @@ TestStepNET::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,"Type",XDT_String,"Internet");
+  msg.AddElement(root,_T("Type"),XDT_String,_T("Internet"));
 
-  XMLElement* def = msg.AddElement(root,"Definition",XDT_String,"");
+  XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
 
   // Main elements
-  msg.AddElement(def,"VERB",  XDT_String,m_verb);
-  msg.AddElement(def,"URL",   XDT_String |XDT_CDATA,m_url);
-  msg.AddElement(def,"Anchor",XDT_String |XDT_CDATA,m_anchor);
+  msg.AddElement(def,_T("VERB"),  XDT_String,m_verb);
+  msg.AddElement(def,_T("URL"),   XDT_String |XDT_CDATA,m_url);
+  msg.AddElement(def,_T("Anchor"),XDT_String |XDT_CDATA,m_anchor);
 
-  msg.SetElement(def,"UseStatus", m_useStatus);
-  msg.SetElement(def,"UseHeaders",m_useHeaders);
-  msg.SetElement(def,"UseBody",   m_useBody);
+  msg.SetElement(def,_T("UseStatus"), m_useStatus);
+  msg.SetElement(def,_T("UseHeaders"),m_useHeaders);
+  msg.SetElement(def,_T("UseBody"),   m_useBody);
 
   // Parameters
-  XMLElement* params = msg.AddElement(def,"Parameters",XDT_String,"");
+  XMLElement* params = msg.AddElement(def,_T("Parameters"),XDT_String,_T(""));
   for(auto& parm : m_parameters)
   {
-    XMLElement* param = msg.AddElement(params,"Parameter",XDT_String,"");
-    msg.AddElement(param,"Name", XDT_String,          parm.m_name);
-    msg.AddElement(param,"Value",XDT_String|XDT_CDATA,parm.m_value);
+    XMLElement* param = msg.AddElement(params,_T("Parameter"),XDT_String,_T(""));
+    msg.AddElement(param,_T("Name"), XDT_String,          parm.m_name);
+    msg.AddElement(param,_T("Value"),XDT_String|XDT_CDATA,parm.m_value);
   }
 
   // Headers
-  XMLElement* allheaders = msg.AddElement(def,"Headers",XDT_String,"");
+  XMLElement* allheaders = msg.AddElement(def,_T("Headers"),XDT_String,_T(""));
   for(auto& head : m_headers)
   {
-    XMLElement* header = msg.AddElement(allheaders,"Header",XDT_String,"");
-    msg.AddElement(header,"Name",XDT_String,           head.m_name);
-    msg.AddElement(header,"Value",XDT_String|XDT_CDATA,head.m_value);
+    XMLElement* header = msg.AddElement(allheaders,_T("Header"),XDT_String,_T(""));
+    msg.AddElement(header,_T("Name"),XDT_String,           head.m_name);
+    msg.AddElement(header,_T("Value"),XDT_String|XDT_CDATA,head.m_value);
   }
 
   // Authentication
-  XMLElement* auth = msg.AddElement(def,"Authentication",XDT_String,"");
-  msg.AddElement(auth,"Type",       XDT_String,m_authType);
-  msg.AddElement(auth,"Username",   XDT_String,m_userName);
-  msg.AddElement(auth,"Password",   XDT_String,m_password);
-  msg.AddElement(auth,"OAuthGrant", XDT_String,m_oauthGrant);
-  msg.AddElement(auth,"TokenServer",XDT_String,m_tokenServer);
-  msg.AddElement(auth,"ClientID",   XDT_String,m_clientID);
-  msg.AddElement(auth,"ClientKey",  XDT_String,m_clientKey);
-  msg.AddElement(auth,"ClientScope",XDT_String,m_clientScope);
+  XMLElement* auth = msg.AddElement(def,_T("Authentication"),XDT_String,_T(""));
+  msg.AddElement(auth,_T("Type"),       XDT_String,m_authType);
+  msg.AddElement(auth,_T("Username"),   XDT_String,m_userName);
+  msg.AddElement(auth,_T("Password"),   XDT_String,m_password);
+  msg.AddElement(auth,_T("OAuthGrant"), XDT_String,m_oauthGrant);
+  msg.AddElement(auth,_T("TokenServer"),XDT_String,m_tokenServer);
+  msg.AddElement(auth,_T("ClientID"),   XDT_String,m_clientID);
+  msg.AddElement(auth,_T("ClientKey"),  XDT_String,m_clientKey);
+  msg.AddElement(auth,_T("ClientScope"),XDT_String,m_clientScope);
 
   // And our payload body
-  msg.AddElement(def,"MimeType",        XDT_String, m_mimeType);
-  msg.AddElement(def,"BodyInputIsFile", XDT_Boolean,m_bodyInputIsFile  ? "true" : "false" );
-  msg.AddElement(def,"BodyOutputIsFile",XDT_Boolean,m_bodyOutputIsFile ? "true" : "false" );
-  msg.AddElement(def,"FileInput",       XDT_String, m_filenameInput);
-  msg.AddElement(def,"FileOutput",      XDT_String, m_filenameOutput);
-  msg.AddElement(def,"Body",            XDT_String|XDT_CDATA,m_body);
+  msg.AddElement(def,_T("MimeType"),        XDT_String, m_mimeType);
+  msg.AddElement(def,_T("BodyInputIsFile"), XDT_Boolean,m_bodyInputIsFile  ? _T("true") : _T("false") );
+  msg.AddElement(def,_T("BodyOutputIsFile"),XDT_Boolean,m_bodyOutputIsFile ? _T("true") : _T("false") );
+  msg.AddElement(def,_T("FileInput"),       XDT_String, m_filenameInput);
+  msg.AddElement(def,_T("FileOutput"),      XDT_String, m_filenameOutput);
+  msg.AddElement(def,_T("Body"),            XDT_String|XDT_CDATA,m_body);
 
   // Timeouts
-  XMLElement* timeouts = msg.AddElement(def,"Timeouts",XDT_String,"");
-  msg.AddElement(timeouts,"TimeoutResolve", XDT_Integer,IntegerToString(m_timeoutResolve));
-  msg.AddElement(timeouts,"TimeoutConnect", XDT_Integer,IntegerToString(m_timeoutConnect));
-  msg.AddElement(timeouts,"TimeoutSend",    XDT_Integer,IntegerToString(m_timeoutSend));
-  msg.AddElement(timeouts,"TimeoutReceive", XDT_Integer,IntegerToString(m_timeoutReceive));
+  XMLElement* timeouts = msg.AddElement(def,_T("Timeouts"),XDT_String,_T(""));
+  msg.AddElement(timeouts,_T("TimeoutResolve"), XDT_Integer,IntegerToString(m_timeoutResolve));
+  msg.AddElement(timeouts,_T("TimeoutConnect"), XDT_Integer,IntegerToString(m_timeoutConnect));
+  msg.AddElement(timeouts,_T("TimeoutSend"),    XDT_Integer,IntegerToString(m_timeoutSend));
+  msg.AddElement(timeouts,_T("TimeoutReceive"), XDT_Integer,IntegerToString(m_timeoutReceive));
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -239,13 +239,13 @@ void
 TestStepNET::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension, EXTENSION_TESTSTEP_NET, 5))
+  if(_tcsncicmp(extension, EXTENSION_TESTSTEP_NET, 5))
   {
-    throw StdException("A TestStep XML definition file must be saved as a *.XRUN");
+    throw StdException(_T("A TestStep XML definition file must be saved as a *.XRUN"));
   }
 }
 
@@ -328,16 +328,16 @@ TestStepNET::GetEffectiveCombinedURL()
   // Add URL parameters
   if(!m_effectiveParameters.empty())
   {
-    url += "?";
+    url += _T("?");
     bool extra = false;
     for(auto& param : m_effectiveParameters)
     {
       if(extra)
       {
-        url += "&";
+        url += _T("&");
       }
       url += param.m_name;
-      url += "=";
+      url += _T("=");
       url += CrackedURL::EncodeURLChars(param.m_value);
       extra = true;
     }
@@ -346,7 +346,7 @@ TestStepNET::GetEffectiveCombinedURL()
   // Add anchor
   if(!m_effectiveAnchor.IsEmpty())
   {
-    url += "#";
+    url += _T("#");
     url += CrackedURL::EncodeURLChars(m_effectiveAnchor);
   }
  
@@ -359,26 +359,26 @@ CString
 TestStepNET::GetRawRequest()
 {
   CString raw(m_verb);
-  raw += " ";
+  raw += _T(" ");
   raw += GetEffectiveCombinedURL();
 
   // Add protocol version
-  raw += " HTTP/1.1\r\n";
+  raw += _T(" HTTP/1.1\r\n");
 
   // Add all headers
   for(auto& head : m_effectiveHeaders)
   {
     raw += head.m_name;
-    raw += ": ";
+    raw += _T(": ");
     raw += head.m_value;
-    raw += "\r\n";
+    raw += _T("\r\n");
   }
 
   // Header body separator
-  raw += "\r\n";
+  raw += _T("\r\n");
 
   CString body(m_effectiveBody);
-  body.Replace("\n","\r\n");
+  body.Replace(_T("\n"),_T("\r\n"));
   raw += body;
 
   return raw;

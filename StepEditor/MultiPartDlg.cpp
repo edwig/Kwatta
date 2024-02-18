@@ -70,7 +70,7 @@ void MultiPartDlg::DoDataExchange(CDataExchange* pDX)
     m_editData.EnableWindow(!m_isFile);
 
     bool multi = false;
-    if(m_contentType.Find("multipart") >= 0)
+    if(m_contentType.Find(_T("multipart")) >= 0)
     {
       multi = true;
     }
@@ -99,7 +99,7 @@ BOOL
 MultiPartDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("MultiPart");
+  SetWindowText(_T("MultiPart"));
 
   UseMultiPart();
   InitButtons();
@@ -112,34 +112,34 @@ MultiPartDlg::OnInitDialog()
 void
 MultiPartDlg::InitButtons()
 {
-  m_buttonOK    .SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
-  m_buttonFile  .SetStyle("dir");
+  m_buttonOK    .SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
+  m_buttonFile  .SetStyle(_T("dir"));
 }
 
 void
 MultiPartDlg::InitContent()
 {
-  m_comboContent.AddString("application/soap+xml");
-  m_comboContent.AddString("application/xml");
-  m_comboContent.AddString("application/json");
-  m_comboContent.AddString("application/http");
-  m_comboContent.AddString("application/octet-stream");
-  m_comboContent.AddString("text/plain");
-  m_comboContent.AddString("text/html");
-  m_comboContent.AddString("text/xml");
-  m_comboContent.AddString("text/javascript");
-  m_comboContent.AddString("multipart/form-data");
-  m_comboContent.AddString("multipart/mixed");
+  m_comboContent.AddString(_T("application/soap+xml"));
+  m_comboContent.AddString(_T("application/xml"));
+  m_comboContent.AddString(_T("application/json"));
+  m_comboContent.AddString(_T("application/http"));
+  m_comboContent.AddString(_T("application/octet-stream"));
+  m_comboContent.AddString(_T("text/plain"));
+  m_comboContent.AddString(_T("text/html"));
+  m_comboContent.AddString(_T("text/xml"));
+  m_comboContent.AddString(_T("text/javascript"));
+  m_comboContent.AddString(_T("multipart/form-data"));
+  m_comboContent.AddString(_T("multipart/mixed"));
 
   if(m_charset.IsEmpty())
   {
-    m_charset = "utf-8";
+    m_charset = _T("utf-8");
   }
   m_checkIsFile.SetCheck(m_isFile);
   if(m_isFile && m_contentType.IsEmpty())
   {
-    m_contentType = "application/octet-stream";
+    m_contentType = _T("application/octet-stream");
   }
 }
 
@@ -154,9 +154,9 @@ MultiPartDlg::UseMultiPart()
   m_shortFilename =  m_part->GetShortFileName();
   m_LongFilename  =  m_part->GetLongFileName();
   m_data          =  m_part->GetData();
-  m_contentID     =  m_part->GetHeader("Content-ID");
+  m_contentID     =  m_part->GetHeader(_T("Content-ID"));
 
-  m_boundary = FindFieldInHTTPHeader(m_contentType,"boundary");
+  m_boundary = FindFieldInHTTPHeader(m_contentType,_T("boundary"));
   int pos = m_contentType.Find(';');
   if (pos > 0)
   {
@@ -167,7 +167,7 @@ MultiPartDlg::UseMultiPart()
 void
 MultiPartDlg::SaveMultiPart()
 {
-  CString content = m_contentType + "; boundary=" + m_boundary;
+  CString content = m_contentType + _T("; boundary=") + m_boundary;
 
   m_part->SetName(m_name);
   m_part->SetContentType(content);
@@ -183,7 +183,7 @@ MultiPartDlg::SaveMultiPart()
   }
   if(!m_contentID.IsEmpty())
   {
-    m_part->AddHeader("Content-ID",m_contentID);
+    m_part->AddHeader(_T("Content-ID"),m_contentID);
   }
 }
 
@@ -231,7 +231,7 @@ MultiPartDlg::OnBnClickedMulti()
   UpdateData();
 
   CString content = m_contentType;
-  content += "; boundary=";
+  content += _T("; boundary=");
   content += m_boundary;
 
   AutoFocus focus;
@@ -243,7 +243,7 @@ MultiPartDlg::OnBnClickedMulti()
   m_data = msg.GetBody();
   m_contentType = msg.GetContentType();
 
-  m_boundary = FindFieldInHTTPHeader(m_contentType,"boundary");
+  m_boundary = FindFieldInHTTPHeader(m_contentType,_T("boundary"));
   int pos = m_contentType.Find(';');
   if (pos)
   {
@@ -258,7 +258,7 @@ MultiPartDlg::OnEnChangeFullfile()
   UpdateData();
   if(!m_LongFilename.IsEmpty() && m_contentType.IsEmpty())
   {
-    m_contentType = "application/octet-stream";
+    m_contentType = _T("application/octet-stream");
     UpdateData(FALSE);
   }
 }
@@ -266,7 +266,7 @@ MultiPartDlg::OnEnChangeFullfile()
 void MultiPartDlg::OnBnClickedButtFile()
 {
   AutoFocus focus;
-  DocFileDialog dlg(GetSafeHwnd(),true,"Select a file for a MultiPart","",m_LongFilename);
+  DocFileDialog dlg(GetSafeHwnd(),true,_T("Select a file for a MultiPart"),_T(""),m_LongFilename);
   if(dlg.DoModal())
   {
     m_LongFilename = dlg.GetChosenFile();
@@ -274,7 +274,7 @@ void MultiPartDlg::OnBnClickedButtFile()
     m_shortFilename = m_part->GetShortFileName();
     if(m_contentType.IsEmpty())
     {
-      m_contentType = "application/octet-stream";
+      m_contentType = _T("application/octet-stream");
     }
     UpdateData(FALSE);
   }

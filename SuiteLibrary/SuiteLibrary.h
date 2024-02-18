@@ -22,11 +22,11 @@
 
 #define KWATTA_VERSION_MAJOR  1
 #define KWATTA_VERSION_MINOR  3
-#define KWATTA_VERSION_SP     1
-#define KWATTA_VERSION_BUILD  252
+#define KWATTA_VERSION_SP     2
+#define KWATTA_VERSION_BUILD  276
 
 #define KWATTA                "Kwatta"
-#define KWATTA_VERSION        "1.3.1"
+#define KWATTA_VERSION        "1.3.2"
 #define KWATTA_YEAR           "2024"
 
 // Used for environment variables
@@ -38,10 +38,19 @@
 
 // Selecting the right library to link with automatically
 // So we do not need to worry about which library to use in the linker settings
+
+#ifdef _UNICODE
+#if defined _M_IX86
+#define KWATTA_PLATFORM "Ux86"
+#else
+#define KWATTA_PLATFORM "Ux64"
+#endif
+#else // UNICODE
 #if defined _M_IX86
 #define KWATTA_PLATFORM "x86"
 #else
 #define KWATTA_PLATFORM "x64"
+#endif
 #endif
 
 #if defined _DEBUG

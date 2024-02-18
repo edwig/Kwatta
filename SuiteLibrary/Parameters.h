@@ -116,9 +116,9 @@ private:
   // Check if we should do password protection
   void    CheckPasswordProtection(CString p_name,CString p_value);
   // Replacement of values
-  int     Replace(CString& p_string,char p_first,char p_last,ParType p_find,bool p_forDisplay,ParType p_exclude = ParType::PAR_NONE);
+  int     Replace(CString& p_string,TCHAR p_first,TCHAR p_last,ParType p_find,bool p_forDisplay,ParType p_exclude = ParType::PAR_NONE);
   // Add error to the list of errors
-  void    AddError(CString p_varname,char p_first,ParType p_find,CString p_errortext);
+  void    AddError(CString p_varname,TCHAR p_first,ParType p_find,CString p_errortext);
 
   ParMap  m_system;   // System parameters
   ParMap  m_buffers;  // [name]   values

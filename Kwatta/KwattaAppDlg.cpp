@@ -153,7 +153,7 @@ BOOL
 KwattaAppDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Kwatta");
+  SetWindowText(_T("Kwatta"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
   ShowSysMenu();
@@ -227,20 +227,20 @@ KwattaAppDlg::InitButtons()
   m_buttonDN    .SetIconImage(IDI_DOWN);
   m_buttonMutate.SetIconImage(IDI_MUTATE);
 
-  m_buttonChoose.SetStyle("dir");
-  m_buttonOK    .SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonChoose.SetStyle(_T("dir"));
+  m_buttonOK    .SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
 
   EnableToolTips();
 
-  RegisterTooltip(m_buttonRun,    "Run the testset");
-  RegisterTooltip(m_buttonRunAll, "Run all the testsets in the suite");
-  RegisterTooltip(m_buttonNew,    "Add a new testset");
-  RegisterTooltip(m_buttonEdit,   "Edit the testset");
-  RegisterTooltip(m_buttonRemove, "Delete the testset");
-  RegisterTooltip(m_buttonUP,     "Move current testset one row UP");
-  RegisterTooltip(m_buttonDN,     "Move current testset one row DOWN");
-  RegisterTooltip(m_buttonMutate, "Change the directory or filename of the testset.");
+  RegisterTooltip(m_buttonRun,    _T("Run the testset"));
+  RegisterTooltip(m_buttonRunAll, _T("Run all the testsets in the suite"));
+  RegisterTooltip(m_buttonNew,    _T("Add a new testset"));
+  RegisterTooltip(m_buttonEdit,   _T("Edit the testset"));
+  RegisterTooltip(m_buttonRemove, _T("Delete the testset"));
+  RegisterTooltip(m_buttonUP,     _T("Move current testset one row UP"));
+  RegisterTooltip(m_buttonDN,     _T("Move current testset one row DOWN"));
+  RegisterTooltip(m_buttonMutate, _T("Change the directory or filename of the testset."));
 }
 
 void
@@ -296,11 +296,11 @@ KwattaAppDlg::ReadSuite()
   catch(StdException& ex)
   {
     CString error;
-    error.Format("Cannot read the test suite definition file: %s\n"
-                 "Error found: %s"
+    error.Format(_T("Cannot read the test suite definition file: %s\n")
+                 _T("Error found: %s")
                  ,m_testsuite.GetString()
                  ,ex.GetErrorMessage().GetString());
-    StyleMessageBox(this,error,"ERROR",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,error,_T("ERROR"),MB_OK|MB_ICONERROR);
   }
 }
 
@@ -315,10 +315,10 @@ KwattaAppDlg::InitGrid()
   m_list.SetSingleColSelection(TRUE);
   m_list.SetSingleRowSelection(TRUE);
 
-  m_list.GetCell(0,0)->SetText("Testset");
-  m_list.GetCell(0,1)->SetText("Run this testset");
-  m_list.GetCell(0,2)->SetText("Name of the testset");
-  m_list.GetCell(0,3)->SetText("Result of last run");
+  m_list.GetCell(0,0)->SetText(_T("Testset"));
+  m_list.GetCell(0,1)->SetText(_T("Run this testset"));
+  m_list.GetCell(0,2)->SetText(_T("Name of the testset"));
+  m_list.GetCell(0,3)->SetText(_T("Result of last run"));
 
   m_list.SetColumnWidth(0,100);
   m_list.SetColumnWidth(1,120);
@@ -355,15 +355,15 @@ KwattaAppDlg::FillGrid()
 
       switch(col)
       {
-        case 0: item.strText.Format("Test %d", it->first); 
+        case 0: item.strText.Format(_T("Test %d"), it->first); 
                 break;
-        case 1: item.strText.Format("%s", test.m_active ? "Active" : "Inactive");
+        case 1: item.strText.Format(_T("%s"), test.m_active ? _T("Active") : _T("Inactive"));
                 break;
         case 2: item.strText = test.m_name;
                 break;
-        case 3: item.strText = test.m_lastResult.IsEmpty() ? CString("(No result yet)") : test.m_lastResult;
+        case 3: item.strText = test.m_lastResult.IsEmpty() ? CString(_T("(No result yet)")) : test.m_lastResult;
                 item.mask |= GVIF_IMAGE;
-                item.iImage = test.m_lastResult == "OK" ? 1 : 0;
+                item.iImage = test.m_lastResult == _T("OK") ? 1 : 0;
                 break;
       }
       m_list.SetItem(&item);
@@ -406,22 +406,22 @@ bool
 KwattaAppDlg::CreateEmptyTestSet(CString p_directory,CString p_testname)
 {
   CString path = theApp.GetBaseDirectoryClean();
-  path += "\\";
+  path += _T("\\");
   path += p_directory;
 
   if(CreateDirectory(path,nullptr) == FALSE)
   {
-    StyleMessageBox(this,"Failed to create a directory for the new testset!","Kwatta",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Failed to create a directory for the new testset!"),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return false;
   }
   TestSet set;
   set.SetName(p_testname);
-  CString filename = path + "\\" + p_testname + ".xset";
+  CString filename = path + _T("\\") + p_testname + _T(".xset");
   set.SetFilename(filename);
 
   if(!set.WriteToXML())
   {
-    StyleMessageBox(this,"Failed to create a new test-set definition file","Kwatta",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Failed to create a new test-set definition file"),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return false;
   }
   return true;
@@ -430,9 +430,9 @@ KwattaAppDlg::CreateEmptyTestSet(CString p_directory,CString p_testname)
 bool 
 KwattaAppDlg::RemoveTestsetDirectory(CString p_path)
 {
-  char buffer[MAX_PATH];
+  TCHAR buffer[MAX_PATH];
   memset(&buffer,0,MAX_PATH);
-  strcpy_s(buffer,MAX_PATH,p_path.GetString());
+  _tcscpy_s(buffer,MAX_PATH,p_path.GetString());
   buffer[p_path.GetLength() + 1] = 0;
   buffer[p_path.GetLength() + 2] = 0;
 
@@ -441,13 +441,13 @@ KwattaAppDlg::RemoveTestsetDirectory(CString p_path)
   operation.hwnd   = GetSafeHwnd();
   operation.wFunc  = FO_DELETE;
   operation.fFlags = FOF_NO_UI;
-  operation.pFrom  = (PCZZSTR) buffer;
+  operation.pFrom  = (PCZZTSTR) buffer;
   if(SHFileOperation(&operation) != 0 && GetLastError())
   {
     CString reason = GetLastErrorAsString();
     CString warning;
-    warning.Format("Could not remove the test directory: [%s] Reason: %s",p_path.GetString(),reason.GetString());
-    StyleMessageBox(this,warning,"Kwatta",MB_OK|MB_ICONERROR);
+    warning.Format(_T("Could not remove the test directory: [%s] Reason: %s"),p_path.GetString(),reason.GetString());
+    StyleMessageBox(this,warning,_T("Kwatta"),MB_OK|MB_ICONERROR);
     return false;
   }
   return true;
@@ -487,7 +487,7 @@ KwattaAppDlg::SetResult(int p_row, bool p_ok)
   item.mask    = GVIF_TEXT | GVIF_IMAGE;
   item.row     = p_row;
   item.col     = 3;
-  item.strText = p_ok ? "OK" : "ERROR";
+  item.strText = p_ok ? _T("OK") : _T("ERROR");
   item.iImage  = p_ok ? 1 : 0;
   m_list.SetItem(&item);
   m_list.Invalidate();
@@ -501,7 +501,7 @@ KwattaAppDlg::SetActive(int p_row,bool p_active)
   {
     check->SetCheck(p_active);
   }
-  m_list.GetCell(p_row,1)->SetText(p_active ? "Active" : "Inactive");
+  m_list.GetCell(p_row,1)->SetText(p_active ? _T("Active") : _T("Inactive"));
 }
 
 void 
@@ -510,7 +510,7 @@ KwattaAppDlg::LoadParameters()
   if(m_parameters == nullptr)
   {
     m_parameters = new Parameters();
-    CString filename = theApp.GetBaseDirectory() + "Parameters.xpar";
+    CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
     ReadParameters(filename);
   }
@@ -526,7 +526,7 @@ KwattaAppDlg::RunTestset(CString p_testname,int p_index)
     int result = theApp.StartTestRunner(*test,GetSafeHwnd(),p_index);
 
     // Save in the testsuite
-    test->m_lastResult = result ? "OK" : "ERROR";
+    test->m_lastResult = result ? _T("OK") : _T("ERROR");
     m_suite->WriteToXML(true);
 
     // Show on the grid
@@ -534,7 +534,7 @@ KwattaAppDlg::RunTestset(CString p_testname,int p_index)
     item.mask    = GVIF_TEXT | GVIF_IMAGE;
     item.row     = p_index;
     item.col     = 3;
-    item.strText = result ? "OK" : "ERROR";
+    item.strText = result ? _T("OK") : _T("ERROR");
     item.iImage  = result ? 1 : 0;
     m_list.SetItem(&item);
     m_list.Invalidate();
@@ -581,11 +581,11 @@ KwattaAppDlg::OnBnClickedButChoose()
 {
   DocFileDialog dlg(GetSafeHwnd()
                    ,true
-                   ,"Choose a Kwatta test suite"
-                   ,"xtest"
+                   ,_T("Choose a Kwatta test suite")
+                   ,_T("xtest")
                    ,m_testsuite
                    ,0
-                   ,"Kwatta test suite *.xtest|*.xtest|All files|*.*");
+                   ,_T("Kwatta test suite *.xtest|*.xtest|All files|*.*"));
   AutoFocus focus;
   if(dlg.DoModal() == IDOK)
   {
@@ -741,15 +741,15 @@ KwattaAppDlg::OnBnClickedButNew()
   bool    active    = dlg.GetActive();
 
   // Add the test to the display list
-  int row = m_list.InsertRow("Test");
+  int row = m_list.InsertRow(_T("Test"));
   CString testnumber;
-  testnumber.Format("Test %d",row);
-  CString activeTxt = active ? "Active" : "Inactive";
+  testnumber.Format(_T("Test %d"),row);
+  CString activeTxt = active ? _T("Active") : _T("Inactive");
 
   m_list.GetCell(row,0)->SetText(testnumber);
   m_list.GetCell(row,1)->SetText(activeTxt);
   m_list.GetCell(row,2)->SetText(testname);
-  m_list.GetCell(row,3)->SetText("(No result yet)");
+  m_list.GetCell(row,3)->SetText(_T("(No result yet)"));
 
   m_list.SetCellType(row,1,RUNTIME_CLASS(CGridCellCheck));
   CGridCellCheck* check = (CGridCellCheck*)m_list.GetCell(row,1);
@@ -758,7 +758,7 @@ KwattaAppDlg::OnBnClickedButNew()
   // Add the test-set to the test suite
   Test test;
   test.m_directory = directory;
-  test.m_filename  = testname + ".xset";
+  test.m_filename  = testname + _T(".xset");
   test.m_name      = testname;
   test.m_active       = active;
 
@@ -781,8 +781,8 @@ KwattaAppDlg::OnBnClickedButRemove()
   CString testname = m_list.GetCell(id.row,2)->GetText();
 
   CString question;
-  question.Format("Do you wish to completely remove test set [%s] ?",testname.GetString());
-  if(StyleMessageBox(this,question,"Kwatta",MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+  question.Format(_T("Do you wish to completely remove test set [%s] ?"),testname.GetString());
+  if(StyleMessageBox(this,question,_T("Kwatta"),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
     return;
   }
@@ -791,10 +791,10 @@ KwattaAppDlg::OnBnClickedButRemove()
   Test* test = m_suite->FindTest(testname);
   if(!test)
   {
-    StyleMessageBox(this,"Cannot find the test in the test suite","Kwatta",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Cannot find the test in the test suite"),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return;
   }
-  CString path = theApp.GetBaseDirectoryClean() + "\\" + test->m_directory;
+  CString path = theApp.GetBaseDirectoryClean() + _T("\\") + test->m_directory;
   if(!RemoveTestsetDirectory(path))
   {
     return;
@@ -803,7 +803,7 @@ KwattaAppDlg::OnBnClickedButRemove()
   // Remove from the suite
   if(!m_suite->RemoveTest(testname))
   {
-    StyleMessageBox(this,"Could not remove the remove the test set from the test-suite","Kwatta",MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Could not remove the remove the test set from the test-suite"),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return;
   }
 
@@ -844,14 +844,14 @@ KwattaAppDlg::OnBnClickedButUP()
 
     m_list.GetCell(row - 1, 1)->SetText(m_list.GetCell(row, 1)->GetText());
     m_list.GetCell(row - 1, 2)->SetText(m_list.GetCell(row, 2)->GetText());
-    m_list.GetCell(row - 1, 3)->SetText("");
+    m_list.GetCell(row - 1, 3)->SetText(_T(""));
 
     m_list.GetCell(row, 1)->SetText(name);
     m_list.GetCell(row, 2)->SetText(file);
-    m_list.GetCell(row, 3)->SetText("");
+    m_list.GetCell(row, 3)->SetText(_T(""));
 
-    SetResult(row,     set[row - 0].m_lastResult == "OK");
-    SetResult(row - 1, set[row - 1].m_lastResult == "OK");
+    SetResult(row,     set[row - 0].m_lastResult == _T("OK"));
+    SetResult(row - 1, set[row - 1].m_lastResult == _T("OK"));
     SetActive(row,     set[row - 0].m_active);
     SetActive(row - 1, set[row - 1].m_active);
 
@@ -879,14 +879,14 @@ KwattaAppDlg::OnBnClickedButDN()
 
     m_list.GetCell(row + 1, 1)->SetText(m_list.GetCell(row, 1)->GetText());
     m_list.GetCell(row + 1, 2)->SetText(m_list.GetCell(row, 2)->GetText());
-    m_list.GetCell(row + 1, 3)->SetText("");
+    m_list.GetCell(row + 1, 3)->SetText(_T(""));
 
     m_list.GetCell(row, 1)->SetText(name);
     m_list.GetCell(row, 2)->SetText(file);
-    m_list.GetCell(row, 3)->SetText("");
+    m_list.GetCell(row, 3)->SetText(_T(""));
 
-    SetResult(row,     set[row + 0].m_lastResult == "OK");
-    SetResult(row + 1, set[row + 1].m_lastResult == "OK");
+    SetResult(row,     set[row + 0].m_lastResult == _T("OK"));
+    SetResult(row + 1, set[row + 1].m_lastResult == _T("OK"));
     SetActive(row,     set[row + 0].m_active);
     SetActive(row + 1, set[row + 1].m_active);
 
@@ -953,11 +953,11 @@ KwattaAppDlg::OnReadyTest(WPARAM wParam,LPARAM lParam)
     if (test.second.m_name.Compare(testname) == 0)
     {
       // Save in the testsuite
-      test.second.m_lastResult = result ? "OK" : "ERROR";
+      test.second.m_lastResult = result ? _T("OK") : _T("ERROR");
 
       // Show on the grid: Name first
       TestSet set;
-      CString path = theApp.GetBaseDirectory() + test.second.m_directory + "\\" + test.second.m_filename;
+      CString path = theApp.GetBaseDirectory() + test.second.m_directory + _T("\\") + test.second.m_filename;
       set.ReadFromXML(path);
       m_list.GetCell(row, 2)->SetText(set.GetName());
       test.second.m_name = set.GetName();
@@ -967,7 +967,7 @@ KwattaAppDlg::OnReadyTest(WPARAM wParam,LPARAM lParam)
       item.mask    = GVIF_TEXT | GVIF_IMAGE;
       item.row     = row;
       item.col     = 3;
-      item.strText = result ? "OK" : "ERROR";
+      item.strText = result ? _T("OK") : _T("ERROR");
       item.iImage  = result ? 1 : 0;
       m_list.SetItem(&item);
       m_list.Invalidate();
@@ -989,7 +989,7 @@ KwattaAppDlg::OnBnClickedOk()
   {
     if(!m_suite->WriteToXML())
     {
-      StyleMessageBox(this,"Could not write the test suite file!",KWATTA,MB_OK|MB_ICONERROR);
+      StyleMessageBox(this,_T("Could not write the test suite file!"),_T(KWATTA),MB_OK|MB_ICONERROR);
       return;
     }
   }

@@ -75,7 +75,7 @@ WinResultDlg::OnInitDialog()
   m_editLogging.SetMutable(false);
 
   EnableToolTips();
-  RegisterTooltip(m_buttonClear, "Remove test results for Windows UI test!");
+  RegisterTooltip(m_buttonClear, _T("Remove test results for Windows UI test!"));
   m_buttonClear.SetIconImage(IDI_CLEAR);
 
   InitTextFields();
@@ -112,8 +112,8 @@ WinResultDlg::InitTab()
 void
 WinResultDlg::InitTextFields()
 {
-  m_editErrors .SetFontName("Courier new",100);
-  m_editLogging.SetFontName("Courier new",100);
+  m_editErrors .SetFontName(_T("Courier new"),100);
+  m_editLogging.SetFontName(_T("Courier new"),100);
 }
 
 void 
@@ -123,8 +123,8 @@ WinResultDlg::SetResult(StepResultWIN* p_result)
   m_errors  = p_result->GetErrorString();
   m_logging = p_result->GetResultString();
 
-  m_errors .Replace("\n","\r\n");
-  m_logging.Replace("\n","\r\n");
+  m_errors .Replace(_T("\n"),_T("\r\n"));
+  m_logging.Replace(_T("\n"),_T("\r\n"));
   UpdateData(FALSE);
 }
 

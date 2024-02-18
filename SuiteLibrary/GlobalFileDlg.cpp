@@ -61,15 +61,15 @@ GlobalFileDlg::OnInitDialog()
 	StyleDialog::OnInitDialog();
 
   // Setting the title
-  CString title("Choose global: ");
-  title += m_step ? "step" : "validation";
+  CString title(_T("Choose global: "));
+  title += m_step ? _T("step") : _T("validation");
 	SetWindowText(title);
 
 	InitGrid();
 	FillGrid();
 
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
 
 	return FALSE;
 }
@@ -80,8 +80,8 @@ GlobalFileDlg::InitGrid()
   m_grid.SetColumnCount(2);
   m_grid.SetRowCount(1);
   m_grid.SetFixedRowCount(1);
-  m_grid.GetCell(0, 0)->SetText("Number");
-  m_grid.GetCell(0, 1)->SetText(m_step ? "Step filename" : "Validation filename");
+  m_grid.GetCell(0, 0)->SetText(_T("Number"));
+  m_grid.GetCell(0, 1)->SetText(m_step ? _T("Step filename") : _T("Validation filename"));
   m_grid.SetColumnWidth(0, 80);
   m_grid.SetColumnWidth(1, 300);
   m_grid.SetSingleRowSelection();
@@ -92,7 +92,7 @@ void
 GlobalFileDlg::FillGrid()
 {
 	CString path(m_directory);
-  path += m_step ? "Steps\\" : "Validations\\";
+  path += m_step ? _T("Steps\\") : _T("Validations\\");
   CString pattern(path);
   int row = 0;
   CString number;
@@ -101,22 +101,22 @@ GlobalFileDlg::FillGrid()
   {
     if(m_type == StepType::Step_command)
     {
-      pattern += "*.xrun";
+      pattern += _T("*.xrun");
     }
     else
     {
-      pattern += "*.irun";
+      pattern += _T("*.irun");
     }
   }
   else
   {
     if(m_type == StepType::Step_command)
     {
-      pattern += "*.xval";
+      pattern += _T("*.xval");
     }
     else
     {
-      pattern += "*.ival";
+      pattern += _T("*.ival");
     }
   }
 
@@ -129,7 +129,7 @@ GlobalFileDlg::FillGrid()
     {
       if((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
       {
-        number.Format("%d",++row);
+        number.Format(_T("%d"),++row);
         CString filename(data.cFileName);
         m_grid.InsertRow(number);
         m_grid.GetCell(row,1)->SetText(filename);

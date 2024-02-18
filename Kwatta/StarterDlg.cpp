@@ -74,7 +74,7 @@ BOOL
 StarterDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Starter");
+  SetWindowText(_T("Starter"));
   ShowCloseButton();
 
   InitTitle();
@@ -89,7 +89,7 @@ StarterDlg::OnInitDialog()
 void
 StarterDlg::InitTitle()
 {
-  m_title = "Kwatta Test Suite " KWATTA_YEAR;
+  m_title = _T("Kwatta Test Suite ") KWATTA_YEAR;
   m_editTitle.SetBkColor(ThemeColor::GetColor(Colors::AccentColor1));
   m_editTitle.SetTextColor(RGB(255, 255, 255));
   m_editTitle.SetFontSize(240);
@@ -101,14 +101,14 @@ void
 StarterDlg::InitTestSuites()
 {
   RegistryManager reg;
-  reg.SetRegistryKey("EDO","Kwatta");
+  reg.SetRegistryKey(_T("EDO"),_T("Kwatta"));
 
   for(int index = 0; index < MAX_SUITES; ++index)
   {
     CString key;
-    key.Format("TestSuite_%d",index + 1);
+    key.Format(_T("TestSuite_%d"),index + 1);
 
-    CString suite = reg.GetRegistryString("Suites",key,"");
+    CString suite = reg.GetRegistryString(_T("Suites"),key,_T(""));
     if(!suite.IsEmpty())
     {
       m_suites.push_back(suite);
@@ -120,7 +120,7 @@ bool
 StarterDlg::SaveTestSuites()
 {
   RegistryManager reg;
-  reg.SetRegistryKey("EDO","Kwatta");
+  reg.SetRegistryKey(_T("EDO"),_T("Kwatta"));
 
   // Put chosen suite in front
   // So it comes back at the top of the list
@@ -142,13 +142,13 @@ StarterDlg::SaveTestSuites()
   for(int index = 0; index < MAX_SUITES; ++index)
   {
     CString key;
-    key.Format("TestSuite_%d", index + 1);
+    key.Format(_T("TestSuite_%d"), index + 1);
 
     if(index < (int)m_suites.size())
     {
       if(!m_suites[index].IsEmpty())
       {
-        if(!reg.SetRegistryString("Suites",key,m_suites[index]))
+        if(!reg.SetRegistryString(_T("Suites"),key,m_suites[index]))
         {
           return false;
         }
@@ -156,7 +156,7 @@ StarterDlg::SaveTestSuites()
     }
     else
     {
-      reg.SetRegistryString("Suites",key,"");
+      reg.SetRegistryString(_T("Suites"),key,_T(""));
     }
   }
   return true;
@@ -186,7 +186,7 @@ StarterDlg::InitButtons()
     }
     else
     {
-      shorter = "<No test suite yet>";
+      shorter = _T("<No test suite yet>");
     }
 
     switch (index)
@@ -194,31 +194,31 @@ StarterDlg::InitButtons()
       case 0: m_buttonSuite1.SetWindowText(shorter);
               m_buttonSuite1.EnableWindow(active);
               m_buttonSuite1.SetBold(bold);
-              m_buttonSuite1.SetStyle("ok");
+              m_buttonSuite1.SetStyle(_T("ok"));
               RegisterTooltip(m_buttonSuite1,suite);
               break;
       case 1: m_buttonSuite2.SetWindowText(shorter);
               m_buttonSuite2.EnableWindow(active);
               m_buttonSuite2.SetBold(bold);
-              m_buttonSuite2.SetStyle("ok");
+              m_buttonSuite2.SetStyle(_T("ok"));
               RegisterTooltip(m_buttonSuite2,suite);
               break;
       case 2: m_buttonSuite3.SetWindowText(shorter);
               m_buttonSuite3.EnableWindow(active);
               m_buttonSuite3.SetBold(bold);
-              m_buttonSuite3.SetStyle("ok");
+              m_buttonSuite3.SetStyle(_T("ok"));
               RegisterTooltip(m_buttonSuite3,suite);
               break;
       case 3: m_buttonSuite4.SetWindowText(shorter);
               m_buttonSuite4.EnableWindow(active);
               m_buttonSuite4.SetBold(bold);
-              m_buttonSuite4.SetStyle("ok");
+              m_buttonSuite4.SetStyle(_T("ok"));
               RegisterTooltip(m_buttonSuite4,suite);
               break;
       case 4: m_buttonSuite5.SetWindowText(shorter);
               m_buttonSuite5.EnableWindow(active);
               m_buttonSuite5.SetBold(bold);
-              m_buttonSuite5.SetStyle("ok");
+              m_buttonSuite5.SetStyle(_T("ok"));
               RegisterTooltip(m_buttonSuite5,suite);
               break;
     }
@@ -226,13 +226,13 @@ StarterDlg::InitButtons()
 
   // Do the starter buttons
   m_buttonSearch.SetBold(true);
-  RegisterTooltip(m_buttonSearch,"Search for an existing test suite in the filesystem.");
+  RegisterTooltip(m_buttonSearch,_T("Search for an existing test suite in the filesystem."));
   m_buttonNewSuite.SetBold(true);
-  RegisterTooltip(m_buttonNewSuite,"Start a new test suite in a new empty directory from scratch.");
-  RegisterTooltip(m_buttonCancel,"Create a test suite totally from scratch.");
+  RegisterTooltip(m_buttonNewSuite,_T("Start a new test suite in a new empty directory from scratch."));
+  RegisterTooltip(m_buttonCancel,_T("Create a test suite totally from scratch."));
   m_buttonStop.SetBold(true);
-  m_buttonStop.SetStyle("can");
-  RegisterTooltip(m_buttonStop,"Close-down the Kwatta application");
+  m_buttonStop.SetStyle(_T("can"));
+  RegisterTooltip(m_buttonStop,_T("Close-down the Kwatta application"));
 }
 
 // Service for our callers
@@ -248,7 +248,7 @@ StarterDlg::CheckExists(int p_num)
   CString path = m_suites[p_num];
   if(!std::filesystem::exists(path.GetString()))
   {
-    if(StyleMessageBox(this,"This test suite does no longer exists. Remove from this list?",KWATTA,MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
+    if(StyleMessageBox(this,_T("This test suite does no longer exists. Remove from this list?"),_T(KWATTA),MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
     {
       m_suites.erase(m_suites.begin() + p_num);
       InitButtons();
@@ -277,11 +277,11 @@ StarterDlg::OnBnClickedSearch()
   AutoFocus focus;
   DocFileDialog dlg(GetSafeHwnd()
                    ,true
-                   ,"Choose a Kwatta test suite"
-                   ,"xtest"
-                   ,""
+                   ,_T("Choose a Kwatta test suite")
+                   ,_T("xtest")
+                   ,_T("")
                    ,0
-                   ,"Kwatta test suite *.xtest|*.xtest|All files|*.*");
+                   ,_T("Kwatta test suite *.xtest|*.xtest|All files|*.*"));
   if(dlg.DoModal() == IDOK)
   {
     m_chosenSuite = dlg.GetChosenFile();

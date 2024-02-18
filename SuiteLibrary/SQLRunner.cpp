@@ -119,7 +119,7 @@ SQLRunner::PerformTest()
   catch(StdException& ex)
   {
     // WHOA: Something went wrong
-    StyleMessageBox(NULL,ex.GetErrorMessage(),"Kwatta",MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
+    StyleMessageBox(NULL,ex.GetErrorMessage(),_T("Kwatta"),MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
     // Test did went WRONG!!
     result = 0;
   }
@@ -152,8 +152,8 @@ void
 SQLRunner::InitRunner()
 {
   // Reset the dialog
-  SetTest("Initializing");
-  SetStep("");
+  SetTest(_T("Initializing"));
+  SetStep(_T(""));
   SetProgress(0);
 
   // Calculate the number of steps
@@ -178,8 +178,8 @@ SQLRunner::InitRunner()
 void
 SQLRunner::ReadingAllFiles()
 {
-  SetTest("Reading all definition files");
-  PerformStep("XML files...");
+  SetTest(_T("Reading all definition files"));
+  PerformStep(_T("XML files..."));
 
   ReadTestStep();
   ReadParameters();
@@ -193,7 +193,7 @@ void
 SQLRunner::ParameterProcessing()
 {
   int unbound = 0;
-  PerformStep("Parameter processing...");
+  PerformStep(_T("Parameter processing..."));
 
   // Effectuate the parameters for the step
   unbound = m_testStep->EffectiveReplacements(&m_parameters,false);
@@ -208,7 +208,7 @@ SQLRunner::ParameterProcessing()
   if(unbound)
   {
     CString error;
-    error.Format("Cannot perform test. Existing unbound parameters: %d",unbound);
+    error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
 }
@@ -216,7 +216,7 @@ SQLRunner::ParameterProcessing()
 void
 SQLRunner::PerformCommand()
 {
-  PerformStep("RUN THE SQL...");
+  PerformStep(_T("RUN THE SQL..."));
   TestStepSQL*   step   = dynamic_cast<TestStepSQL*>(m_testStep);
   StepResultSQL* result = dynamic_cast<StepResultSQL*>(m_result);
 
@@ -232,7 +232,7 @@ SQLRunner::PerformCommand()
   // See if we must set a boobytrap
   if(m_testStep->GetKillOnTimeout())
   {
-    int maxtime = atoi(m_testStep->GetEffectiveMaxExecution());
+    int maxtime = _ttoi(m_testStep->GetEffectiveMaxExecution());
     if (maxtime > 0)
     {
       SetBoobytrap();
@@ -257,7 +257,7 @@ SQLRunner::PerformCommand()
     if(m_database->IsOpen())
     {
       m_query = new SQLQuery(m_database);
-      SQLTransaction trans(m_database,"Test");
+      SQLTransaction trans(m_database,_T("Test"));
 
       counter.Start();
       m_query->DoSQLStatement(step->GetEffectiveSQL());
@@ -339,7 +339,7 @@ SQLRunner::PerformAllValidations()
   for(auto& vali : m_validations)
   {
     ValidateSQL* validate = dynamic_cast<ValidateSQL*>(vali);
-    PerformStep("Validation: " + validate->GetName());
+    PerformStep(_T("Validation: ") + validate->GetName());
 
     // Do the validations
     bool totalresult = true;
@@ -359,7 +359,7 @@ SQLRunner::PerformAllValidations()
 void
 SQLRunner::SaveTestResults()
 {
-  PerformStep("Saving the test results");
+  PerformStep(_T("Saving the test results"));
   StepResultSQL* result = dynamic_cast<StepResultSQL*>(m_result);
 
   CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
@@ -369,7 +369,7 @@ SQLRunner::SaveTestResults()
   if(result->WriteToXML(filename) == false)
   {
     CString error;
-    error.Format("Cannot save results file: %s",filename.GetString());
+    error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
 
@@ -381,7 +381,7 @@ SQLRunner::SaveTestResults()
 void
 SQLRunner::SaveResultParameters()
 {
-  PerformStep("Saving result parameters");
+  PerformStep(_T("Saving result parameters"));
   // Write back local parameters (return + stream)
   m_parameters.WriteToXML();
 }
@@ -390,7 +390,7 @@ SQLRunner::SaveResultParameters()
 int
 SQLRunner::ReadTotalResult()
 {
-  PerformStep("Getting total result...");
+  PerformStep(_T("Getting total result..."));
   StepResultSQL* result = dynamic_cast<StepResultSQL*>(m_result);
   return result->GetTotalResult();
 }
@@ -429,7 +429,7 @@ SQLRunner::ReadValidations()
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateSQL();
-    CString file = m_baseDirectory + "Validations\\" + filename;
+    CString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -439,7 +439,7 @@ SQLRunner::ReadValidations()
 int
 SQLRunner::CheckStatusOK(int p_returnCode)
 {
-  int statusOK = atoi(m_testStep->GetEffectiveStatusOK());
+  int statusOK = _ttoi(m_testStep->GetEffectiveStatusOK());
   if (statusOK != 0 && (p_returnCode != statusOK))
   {
     return 0;
@@ -453,7 +453,7 @@ SQLRunner::CreateQLErrorMessage(CString p_error)
 {
   StepResultSQL* result = reinterpret_cast<StepResultSQL*>(m_result);
 
-  result->AddResult("QL-ERROR",p_error);
+  result->AddResult(_T("QL-ERROR"),p_error);
 }
 
 /*static*/ unsigned

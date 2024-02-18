@@ -122,17 +122,17 @@ SQLRowsDlg::FillCombos()
   m_comboOperator.ResetContent();
   m_comboVariable.ResetContent();
 
-  m_comboOperator.AddString("");
-  m_comboOperator.AddString("=    Exactly equal to");
-  m_comboOperator.AddString(">    Greater than");
-  m_comboOperator.AddString(">= Greater than or equal to");
-  m_comboOperator.AddString("<    Smaller than");
-  m_comboOperator.AddString("<= Smaller than or equal to");
-  m_comboOperator.AddString("<> Not equal to");
-  m_comboOperator.AddString("~~ Between two values");
-  m_comboOperator.AddString("[  ] In a range of values");
+  m_comboOperator.AddString(_T(""));
+  m_comboOperator.AddString(_T("=    Exactly equal to"));
+  m_comboOperator.AddString(_T(">    Greater than"));
+  m_comboOperator.AddString(_T(">= Greater than or equal to"));
+  m_comboOperator.AddString(_T("<    Smaller than"));
+  m_comboOperator.AddString(_T("<= Smaller than or equal to"));
+  m_comboOperator.AddString(_T("<> Not equal to"));
+  m_comboOperator.AddString(_T("~~ Between two values"));
+  m_comboOperator.AddString(_T("[  ] In a range of values"));
 
-  m_comboVariable.AddString("");
+  m_comboVariable.AddString(_T(""));
   for(auto& ret : m_parameters->GetReturns())
   {
     m_comboVariable.AddString(ret.first);

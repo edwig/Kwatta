@@ -37,21 +37,21 @@ StepResultSQL::ReadFromXML(CString p_filename)
   XMLMessage msg;
   StepResult::ReadFromXML(msg, p_filename);
 
-  m_succeeded    = msg.GetElementBoolean("Succeeded");
-  m_resultRows   = msg.GetElementInteger("ResultRows");
-  m_resultCols   = msg.GetElementInteger("ResultColumns");
-  m_sqlState     = msg.GetElement("SQLState");
-  m_nativeStatus = msg.GetElement("NativeStatus");
+  m_succeeded    = msg.GetElementBoolean(_T("Succeeded"));
+  m_resultRows   = msg.GetElementInteger(_T("ResultRows"));
+  m_resultCols   = msg.GetElementInteger(_T("ResultColumns"));
+  m_sqlState     = msg.GetElement(_T("SQLState"));
+  m_nativeStatus = msg.GetElement(_T("NativeStatus"));
 
   m_data.clear();
-  XMLElement* data = msg.FindElement("Data");
+  XMLElement* data = msg.FindElement(_T("Data"));
   if(data)
   {
-    XMLElement* column = msg.FindElement(data,"Column");
+    XMLElement* column = msg.FindElement(data,_T("Column"));
     while(column)
     {
-      CString name  = msg.GetElement(column,"Name");
-      CString value = msg.GetElement(column,"Value");
+      CString name  = msg.GetElement(column,_T("Name"));
+      CString value = msg.GetElement(column,_T("Value"));
       m_data[name] = value;
 
       // Next column
@@ -73,25 +73,25 @@ StepResultSQL::WriteToXML(CString p_filename)
   CString rows;
   CString cols;
   CString speed;
-  rows.Format("%d",m_resultRows);
-  cols.Format("%d",m_resultCols);
+  rows.Format(_T("%d"),m_resultRows);
+  cols.Format(_T("%d"),m_resultCols);
 
-  msg.AddElement(root,"Succeeded",    XDT_Boolean,m_succeeded ? "true" : false);
-  msg.AddElement(root,"ResultRows",   XDT_Integer,rows);
-  msg.AddElement(root,"ResultColumns",XDT_Integer,cols);
-  msg.AddElement(root,"SQLState",     XDT_String, m_sqlState);
-  msg.AddElement(root,"NativeStatus", XDT_String, m_nativeStatus);
-  msg.AddElement(root,"NativeStatus", XDT_String, m_nativeStatus);
+  msg.AddElement(root,_T("Succeeded"),    XDT_Boolean,m_succeeded ? _T("true") : false);
+  msg.AddElement(root,_T("ResultRows"),   XDT_Integer,rows);
+  msg.AddElement(root,_T("ResultColumns"),XDT_Integer,cols);
+  msg.AddElement(root,_T("SQLState"),     XDT_String, m_sqlState);
+  msg.AddElement(root,_T("NativeStatus"), XDT_String, m_nativeStatus);
+  msg.AddElement(root,_T("NativeStatus"), XDT_String, m_nativeStatus);
 
   // Add the result data set
   if(!m_data.empty())
   {
-    XMLElement* data = msg.AddElement(root,"Data",XDT_String,"");
+    XMLElement* data = msg.AddElement(root,_T("Data"),XDT_String,_T(""));
     for(auto& value : m_data)
     {
-      XMLElement* column = msg.AddElement(data,"Column",XDT_String,"");
-      msg.AddElement(column,"Name",XDT_String,           value.first);
-      msg.AddElement(column,"Value",XDT_String|XDT_CDATA,value.second);
+      XMLElement* column = msg.AddElement(data,_T("Column"),XDT_String,_T(""));
+      msg.AddElement(column,_T("Name"),XDT_String,           value.first);
+      msg.AddElement(column,_T("Value"),XDT_String|XDT_CDATA,value.second);
     }
   }
 
@@ -103,13 +103,13 @@ void
 StepResultSQL::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if(_strnicmp(extension,EXTENSION_RESULT_SQL,5))
+  if(_tcsncicmp(extension,EXTENSION_RESULT_SQL,5))
   {
-    throw StdException("A StepResult XML definition file must be saved as a *.QRES");
+    throw StdException(_T("A StepResult XML definition file must be saved as a *.QRES"));
   }
 }
 

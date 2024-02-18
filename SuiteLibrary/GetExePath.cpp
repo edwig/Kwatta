@@ -27,11 +27,11 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-static char g_staticAddress;
+static TCHAR g_staticAddress;
 
 CString GetExePath()
 {
-  char buffer[_MAX_PATH + 1];
+  TCHAR buffer[_MAX_PATH + 1];
 
   // Getting the module handle, if any
   // If it fails, the process names will be retrieved
@@ -50,7 +50,7 @@ CString GetExePath()
   int slashPositie = applicatiePlusPad.ReverseFind('\\');
   if (slashPositie == 0)
   {
-    return "";
+    return _T("");
   }
   return applicatiePlusPad.Left(slashPositie + 1);
 }

@@ -111,7 +111,7 @@ CMDRunner::PerformTest()
   catch(StdException& ex)
   {
     // WHOA: Something went wrong
-    StyleMessageBox(NULL,ex.GetErrorMessage(),"Kwatta",MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
+    StyleMessageBox(NULL,ex.GetErrorMessage(),_T("Kwatta"),MB_OK|MB_ICONERROR|MB_SETFOREGROUND);
     // Test did went WRONG!!
     result = 0;
   }
@@ -137,8 +137,8 @@ void
 CMDRunner::InitRunner()
 {
   // Reset the dialog
-  SetTest("Initializing");
-  SetStep("");
+  SetTest(_T("Initializing"));
+  SetStep(_T(""));
   SetProgress(0);
 
   // Calculate the number of steps
@@ -162,8 +162,8 @@ CMDRunner::InitRunner()
 void
 CMDRunner::ReadingAllFiles()
 {
-  SetTest("Reading all definition files");
-  PerformStep("XML files...");
+  SetTest(_T("Reading all definition files"));
+  PerformStep(_T("XML files..."));
 
   ReadTestStep();
   ReadParameters();
@@ -177,7 +177,7 @@ void
 CMDRunner::ParameterProcessing()
 {
   int unbound = 0;
-  PerformStep("Parameter processing...");
+  PerformStep(_T("Parameter processing..."));
 
   // Effectuate the parameters for the step
   unbound = m_testStep->EffectiveReplacements(&m_parameters,false);
@@ -192,7 +192,7 @@ CMDRunner::ParameterProcessing()
   if(unbound)
   {
     CString error;
-    error.Format("Cannot perform test. Existing unbound parameters: %d",unbound);
+    error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
 }
@@ -201,7 +201,7 @@ CMDRunner::ParameterProcessing()
 void
 CMDRunner::SetExtraEnvironmentStrings()
 {
-  PerformStep("Extra environment strings");
+  PerformStep(_T("Extra environment strings"));
 
   TestStepCMD* step = reinterpret_cast<TestStepCMD*>(m_testStep);
   int handle = step->GetHandleEnvironment();
@@ -242,7 +242,7 @@ CMDRunner::SetExtraEnvironmentStrings()
 void
 CMDRunner::PerformCommand()
 {
-  PerformStep("RUN THE COMMAND...");
+  PerformStep(_T("RUN THE COMMAND..."));
 
   TestStepCMD*   step   = reinterpret_cast<TestStepCMD*>(m_testStep);
   StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
@@ -258,7 +258,7 @@ CMDRunner::PerformCommand()
   // See if we must set a boobytrap
   if(m_testStep->GetKillOnTimeout())
   {
-    int maxtime = atoi(m_testStep->GetEffectiveMaxExecution());
+    int maxtime = _ttoi(m_testStep->GetEffectiveMaxExecution());
     if (maxtime > 0)
     {
       SetBoobytrap();
@@ -269,13 +269,14 @@ CMDRunner::PerformCommand()
   int retval = PosixCallProgram(step->GetEffectiveDirectory()
                                ,step->GetEffectiveRuntimer()
                                ,step->GetEffectiveCommandLine()
+                               ,step->GetStreamCharset()
                                ,step->GetEffectiveInput()
                                ,standardout
                                ,standarderr
                                ,m_consoleHNWD
                                ,step->GetStartWindow()
                                ,step->GetWaitForIdle()
-                               ,atoi(step->GetMaxExecution())
+                               ,_ttoi(step->GetMaxExecution())
                                ,&m_redirect);
   // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,FALSE,0);
 
@@ -294,7 +295,7 @@ CMDRunner::PerformCommand()
     if(!var.IsEmpty())
     {
       CString retvalstring;
-      retvalstring.Format("%d",retval);
+      retvalstring.Format(_T("%d"),retval);
       m_parameters.OverwriteReturnParameter(var,retvalstring);
     }
   }
@@ -336,7 +337,7 @@ CMDRunner::PerformAllValidations()
   for(auto& vali : m_validations)
   {
     ValidateCMD* validate = reinterpret_cast<ValidateCMD*>(vali);
-    PerformStep("Validation: " + validate->GetName());
+    PerformStep(_T("Validation: ") + validate->GetName());
 
     // Do the validations
     bool totalresult = true;
@@ -353,17 +354,17 @@ CMDRunner::PerformAllValidations()
 void
 CMDRunner::SaveTestResults()
 {
-  PerformStep("Saving the test results");
+  PerformStep(_T("Saving the test results"));
 
   CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
-  filename.Replace(".xrun",".xres");
+  filename.Replace(_T(".xrun"),_T(".xres"));
 
   StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
   if(result->WriteToXML(filename) == false)
   {
     CString error;
-    error.Format("Cannot save results file: %s",filename.GetString());
+    error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
 
@@ -375,7 +376,7 @@ CMDRunner::SaveTestResults()
 void
 CMDRunner::SaveResultParameters()
 {
-  PerformStep("Saving result parameters");
+  PerformStep(_T("Saving result parameters"));
   bool saved(false);
 
   TestStepCMD*   step   = reinterpret_cast<TestStepCMD*>(m_testStep);
@@ -384,7 +385,7 @@ CMDRunner::SaveResultParameters()
   if(step->GetUseReturnValue() && !step->GetReturnVariable().IsEmpty())
   {
     CString value;
-    value.Format("%d",result->GetReturnValue());
+    value.Format(_T("%d"),result->GetReturnValue());
     m_parameters.OverwriteReturnParameter(step->GetReturnVariable(),value);
     saved = true;
   }
@@ -410,7 +411,7 @@ CMDRunner::SaveResultParameters()
 int
 CMDRunner::ReadTotalResult()
 {
-  PerformStep("Getting total result...");
+  PerformStep(_T("Getting total result..."));
   return m_result->GetTotalResult();
 }
 
@@ -443,7 +444,7 @@ CMDRunner::ReadValidations()
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateCMD();
-    CString file = m_baseDirectory + "Validations\\" + filename;
+    CString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -463,7 +464,7 @@ CMDRunner::CreateQLErrorMessage(CString p_error)
 int
 CMDRunner::CheckStatusOK(int p_returnCode)
 {
-  int statusOK = atoi(m_testStep->GetEffectiveStatusOK());
+  int statusOK = _ttoi(m_testStep->GetEffectiveStatusOK());
   if (statusOK != 0 && (p_returnCode != statusOK))
   {
     return 0;

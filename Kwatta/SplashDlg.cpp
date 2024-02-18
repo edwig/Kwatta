@@ -62,13 +62,13 @@ SplashDlg::OnInitDialog()
   StyleDialog::OnInitDialog();
   ShowCloseButton(false);
 
-  m_title = "KWATTA";
+  m_title = _T("KWATTA");
 
   m_editTitle.SetBorderSize(2);
   m_editTitle.SetBorderColor(RGB(0,255,0));
   m_editTitle.SetBkColor(RGB(200,255,100));
   m_editTitle.SetMutable(false);
-  m_editTitle.SetFontName("Verdana",420);
+  m_editTitle.SetFontName(_T("Verdana"),420);
   m_editTitle.SetFontStyle(true);
 
   UpdateData(FALSE);

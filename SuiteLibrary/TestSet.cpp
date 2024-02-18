@@ -40,54 +40,54 @@ TestSet::ReadFromXML(CString p_filename)
   // Load the file (if any)
   if(msg.LoadFile(p_filename) == false)
   {
-    throw StdException("Could not load the XML file: " + p_filename);
+    throw StdException(_T("Could not load the XML file: ") + p_filename);
   }
 
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
     CString error;
-    error.Format("Internal XML error in XSET file [%d] %s",msg.GetInternalError(),msg.GetInternalErrorString().GetString());
+    error.Format(_T("Internal XML error in XSET file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
 
   // Check that it is our message type
-  if(msg.GetRootNodeName().Compare("Test"))
+  if(msg.GetRootNodeName().Compare(_T("Test")))
   {
-    throw StdException("XSET file is not a TestSet definition: " + p_filename);
+    throw StdException(_T("XSET file is not a TestSet definition: ") + p_filename);
   }
 
   // Find names
   XMLElement* root = msg.GetRoot();
-  m_name           = FindElementString(msg,root,"Name");
-  m_documentation  = FindElementString(msg,root,"Documentation");
+  m_name           = FindElementString(msg,root,_T("Name"));
+  m_documentation  = FindElementString(msg,root,_T("Documentation"));
 
-  XMLElement* steps = msg.FindElement("Steps");
+  XMLElement* steps = msg.FindElement(_T("Steps"));
   if(steps)
   {
-    XMLElement* step = msg.FindElement(steps,"Step",false);
+    XMLElement* step = msg.FindElement(steps,_T("Step"),false);
     while(step)
     {
       TRun run;
-      XMLElement* xrun = msg.FindElement(step,"xrun",false);
+      XMLElement* xrun = msg.FindElement(step,_T("xrun"),false);
       if(xrun)
       {
         run.m_filename = xrun->GetValue();
-        run.m_global   = msg.GetAttributeBoolean(xrun,"global");
-        run.m_name     = msg.GetAttribute(xrun,"name");
+        run.m_global   = msg.GetAttributeBoolean(xrun,_T("global"));
+        run.m_name     = msg.GetAttribute(xrun,_T("name"));
       }
-      run.m_lastResult = FindElementString(msg,step,"LastResult");
+      run.m_lastResult = FindElementString(msg,step,_T("LastResult"));
 
-      XMLElement* validations = msg.FindElement(step,"Validations",false);
+      XMLElement* validations = msg.FindElement(step,_T("Validations"),false);
       if(validations)
       {
-        XMLElement* validation = msg.FindElement(validations,"Validation",false);
+        XMLElement* validation = msg.FindElement(validations,_T("Validation"),false);
         while(validation)
         {
           TRValidation vali;
           vali.m_filename = validation->GetValue();
-          vali.m_global   = msg.GetAttributeBoolean(validation,"global");
-          vali.m_name     = msg.GetAttribute(validation,"name");
+          vali.m_global   = msg.GetAttributeBoolean(validation,_T("global"));
+          vali.m_name     = msg.GetAttribute(validation,_T("name"));
           // Store validation and find next
           run.m_validations.push_back(vali);
           validation = msg.GetElementSibling(validation);
@@ -106,46 +106,46 @@ TestSet::WriteToXML()
 {
   XMLMessage msg;
 
-  msg.SetRootNodeName("Test");
+  msg.SetRootNodeName(_T("Test"));
 
   XMLElement* root = msg.GetRoot();
-  msg.AddElement(root, "Name",          XDT_String, m_name);
-  msg.AddElement(root, "Documentation", XDT_String, m_documentation);
+  msg.AddElement(root, _T("Name"),          XDT_String, m_name);
+  msg.AddElement(root, _T("Documentation"), XDT_String, m_documentation);
 
-  XMLElement* steps = msg.AddElement(root,"Steps",XDT_String,"");
+  XMLElement* steps = msg.AddElement(root,_T("Steps"),XDT_String,_T(""));
   for(auto& run : m_testruns)
   {
     // Add the step
-    XMLElement* step = msg.AddElement(steps,"Step",XDT_String,"");
-    XMLElement* xrun = msg.AddElement(step, "xrun",XDT_String,run.m_filename);
+    XMLElement* step = msg.AddElement(steps,_T("Step"),XDT_String,_T(""));
+    XMLElement* xrun = msg.AddElement(step, _T("xrun"),XDT_String,run.m_filename);
     if(run.m_global)
     {
-      msg.SetAttribute(xrun,"global","true");
+      msg.SetAttribute(xrun,_T("global"),_T("true"));
     }
     if(!run.m_name.IsEmpty())
     {
-      msg.SetAttribute(xrun,"name",run.m_name);
+      msg.SetAttribute(xrun,_T("name"),run.m_name);
     }
 
     // Add all validation steps of the run
-    XMLElement* validations = msg.AddElement(step,"Validations",XDT_String,"");
+    XMLElement* validations = msg.AddElement(step,_T("Validations"),XDT_String,_T(""));
     for(auto& vali : run.m_validations)
     {
-      XMLElement* validation = msg.AddElement(validations,"Validation",XDT_String,vali.m_filename);
+      XMLElement* validation = msg.AddElement(validations,_T("Validation"),XDT_String,vali.m_filename);
       if(vali.m_global)
       {
-        msg.SetAttribute(validation,"global","true");
+        msg.SetAttribute(validation,_T("global"),_T("true"));
       }
       if(!vali.m_name.IsEmpty())
       {
-        msg.SetAttribute(validation,"name",vali.m_name);
+        msg.SetAttribute(validation,_T("name"),vali.m_name);
       }
     }
 
     // Add any last result of the run
     if(!run.m_lastResult.IsEmpty())
     {
-      msg.AddElement(step,"LastResult",XDT_String,run.m_lastResult);
+      msg.AddElement(step,_T("LastResult"),XDT_String,run.m_lastResult);
     }
   }
 
@@ -164,7 +164,7 @@ TestSet::GetTotalResult()
   bool result = true;
   for(auto& run : m_testruns)
   {
-    if (run.m_lastResult.CompareNoCase("OK"))
+    if (run.m_lastResult.CompareNoCase(_T("OK")))
     {
       result = false;
       break;
@@ -245,7 +245,7 @@ TestSet::GetTestRun(int p_run)
   {
     return m_testruns[p_run];
   }
-  throw StdException("Internal error");
+  throw StdException(_T("Internal error"));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -258,13 +258,13 @@ void
 TestSet::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename, NULL, 0, NULL, 0, NULL, 0, extension, _MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename, NULL, 0, NULL, 0, NULL, 0, extension, _MAX_EXT);
 
   // Check that we have the right one
-  if (_strnicmp(extension, ".xset", 5))
+  if (_tcsncicmp(extension, _T(".xset"), 5))
   {
-    throw StdException("A TestSet XML definition file must be saved as a *.XSET");
+    throw StdException(_T("A TestSet XML definition file must be saved as a *.XSET"));
   }
 }
 
@@ -276,6 +276,6 @@ TestSet::FindElementString(XMLMessage& p_msg, XMLElement* p_start, CString p_nam
   {
     return elem->GetValue();
   }
-  return "";
+  return _T("");
 }
 

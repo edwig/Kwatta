@@ -113,7 +113,7 @@ protected:
   bool            ValueIn(CString p_effecitve,int p_value);
   bool            FileMatch(CString p_file1,CString p_file2);
   bool            FileExist(CString p_file);
-  char*           ReadFileInBuffer(CString p_filename,ULONG& p_size);
+  TCHAR*           ReadFileInBuffer(CString p_filename,ULONG& p_size);
 
   // Identity
   CString         m_name;

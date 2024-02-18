@@ -77,7 +77,7 @@ BOOL
 FormDataDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Multipart/Form-data buffer");
+  SetWindowText(_T("Multipart/Form-data buffer"));
   ShowMinMaxButton(false);
 
   InitButtons();
@@ -122,8 +122,8 @@ FormDataDlg::InitButtons()
   m_buttonDelete.SetIconImage(IDI_DELETE);
   m_buttonEdit.  SetIconImage(IDI_LIST);
 
-  m_buttonOK    .SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK    .SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
 }
 
 void
@@ -132,11 +132,11 @@ FormDataDlg::InitGrid()
   m_grid.SetColumnCount(5);
   m_grid.SetRowCount(1);
   m_grid.SetFixedRowCount(1);
-  m_grid.GetCell(0, 0)->SetText("Part");
-  m_grid.GetCell(0, 1)->SetText("Name");
-  m_grid.GetCell(0, 2)->SetText("ContentType");
-  m_grid.GetCell(0, 3)->SetText("File");
-  m_grid.GetCell(0, 4)->SetText("Size");
+  m_grid.GetCell(0, 0)->SetText(_T("Part"));
+  m_grid.GetCell(0, 1)->SetText(_T("Name"));
+  m_grid.GetCell(0, 2)->SetText(_T("ContentType"));
+  m_grid.GetCell(0, 3)->SetText(_T("File"));
+  m_grid.GetCell(0, 4)->SetText(_T("Size"));
   m_grid.SetColumnWidth(0, 80);
   m_grid.SetColumnWidth(1, 150);
   m_grid.SetColumnWidth(2, 150);
@@ -156,22 +156,22 @@ FormDataDlg::ParsePayload()
   }
 
   // In order to parse, it must be exactly as we receive it from the HTTP internet endpoint
-  m_orignalBody.Replace("\r\n","\n");
-  m_orignalBody.Replace("\n","\r\n");
+  m_orignalBody.Replace(_T("\r\n"),_T("\n"));
+  m_orignalBody.Replace(_T("\n"),_T("\r\n"));
 
   FileBuffer file;
   file.SetBuffer((uchar*)m_orignalBody.GetString(), m_orignalBody.GetLength());
   m_buffer.SetFileExtensions(m_useExtensions);
   if(!m_buffer.ParseBuffer(m_contentType,&file))
   {
-    StyleMessageBox(this,"ALARM: Cannot parse body into a MultiPart/Form-data buffer!",KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("ALARM: Cannot parse body into a MultiPart/Form-data buffer!"),_T(KWATTA),MB_OK|MB_ICONERROR);
     OnCancel();
   }
   m_boundary = m_buffer.GetBoundary();
 
   if(m_inCharset.IsEmpty())
   {
-    m_inCharset = "utf-8";
+    m_inCharset = _T("utf-8");
   }
 }
 
@@ -192,12 +192,12 @@ void
 FormDataDlg::FillRow(MultiPart* p_part,int p_row,bool p_new /*=true*/)
 {
   CString size;
-  size.Format("%d",(int)p_part->GetSize());
+  size.Format(_T("%d"),(int)p_part->GetSize());
 
   if(p_new)
   {
     CString heading;
-    heading.Format("%d", p_row);
+    heading.Format(_T("%d"), p_row);
     int row = m_grid.InsertRow(heading);
   }
   CString content = FindMimeTypeInContentType(p_part->GetContentType());
@@ -217,13 +217,15 @@ FormDataDlg::OnEnChangeBoundary()
   UpdateData();
   if(m_buffer.SetBoundary(m_boundary) == false)
   {
-    StyleMessageBox(this,"This boundary already exists in one of the parts!\n"
-                         "Choose a different boundary or generate one!",KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("This boundary already exists in one of the parts!\n")
+                         _T("Choose a different boundary or generate one!")
+                        ,_T(KWATTA),MB_OK|MB_ICONERROR);
   }
-  if(m_boundary.FindOneOf("$[<%#") >= 0)
+  if(m_boundary.FindOneOf(_T("$[<%#")) >= 0)
   {
-    StyleMessageBox(this,"This boundary contains one of the Kwatta parameter substitution characters!\n"
-                         "Remove all the characters '$[]<>%#' from the boundary!",KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("This boundary contains one of the Kwatta parameter substitution characters!\n")
+                         _T("Remove all the characters '$[]<>%#' from the boundary!")
+                        ,_T(KWATTA),MB_OK|MB_ICONERROR);
   }
 }
 
@@ -236,7 +238,7 @@ FormDataDlg::OnEnChangeCharset()
 void 
 FormDataDlg::OnBnClickedGenerate()
 {
-  m_buffer.CalculateBoundary("@@");
+  m_buffer.CalculateBoundary(_T("@@"));
   m_boundary = m_buffer.GetBoundary();
   UpdateData(FALSE);
 }
@@ -263,7 +265,7 @@ FormDataDlg::OnGridDblClick(NMHDR* pNMHDR,LRESULT* pResult)
 void 
 FormDataDlg::OnBnClickedNew()
 {
-  MultiPart* part = m_buffer.AddPart("part","","");
+  MultiPart* part = m_buffer.AddPart(_T("part"),_T(""),_T(""));
   int row = m_grid.GetRowCount();
   FillRow(part,row);
 
@@ -285,8 +287,8 @@ FormDataDlg::OnBnClickedDelete()
     if(part)
     {
       CString question;
-      question.Format("Do you want to delete the buffer part [%s]",part->GetName().GetString());
-      if(StyleMessageBox(this,question,KWATTA,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+      question.Format(_T("Do you want to delete the buffer part [%s]"),part->GetName().GetString());
+      if(StyleMessageBox(this,question,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
       {
         return;
       }
@@ -297,7 +299,7 @@ FormDataDlg::OnBnClickedDelete()
       CString heading;
       for(int index = 1;index < m_grid.GetRowCount();++index)
       {
-        heading.Format("%d",index);
+        heading.Format(_T("%d"),index);
         m_grid.GetCell(index,0)->SetText(heading);
       }
       m_grid.Invalidate();

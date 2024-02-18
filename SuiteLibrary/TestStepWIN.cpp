@@ -45,36 +45,36 @@ TestStepWIN::ReadFromXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Find type
-  XMLElement* typ = msg.FindElement(root,"Type",false);
+  XMLElement* typ = msg.FindElement(root,_T("Type"),false);
   if (typ)
   {
     CString type = typ->GetValue();
-    if (type.Compare("WIN"))
+    if (type.Compare(_T("WIN")))
     {
-      throw StdException("QRUN file is not a WIN test: " + p_filename);
+      throw StdException(_T("QRUN file is not a WIN test: ") + p_filename);
     }
   }
   else
   {
-    throw StdException("Missing <Type> in QRUN file: " + p_filename);
+    throw StdException(_T("Missing <Type> in QRUN file: ") + p_filename);
   }
-  XMLElement* def = msg.FindElement("Definition");
+  XMLElement* def = msg.FindElement(_T("Definition"));
   if (!def)
   {
-    throw StdException("Missing <Definition> in QRUN file: " + p_filename);
+    throw StdException(_T("Missing <Definition> in QRUN file: ") + p_filename);
   }
   // Fill in
-  XMLElement* line = msg.FindElement(def,"Line",false);
+  XMLElement* line = msg.FindElement(def,_T("Line"),false);
   while (line)
   {
     WinAction* action = new WinAction();
     // Fill in
-    action->m_action    = StringToWinUIAction(msg.GetElement(line,"Action"));
-    action->m_pattern   = msg.GetElement(line,"Pattern");
-    action->m_argument1 = msg.GetElement(line,"Argument1");
-    action->m_argument2 = msg.GetElement(line,"Argument2");
-    action->m_argument3 = msg.GetElement(line,"Argument3");
-    action->m_wait      = msg.GetElement(line,"Wait");
+    action->m_action    = StringToWinUIAction(msg.GetElement(line,_T("Action")));
+    action->m_pattern   = msg.GetElement(line,_T("Pattern"));
+    action->m_argument1 = msg.GetElement(line,_T("Argument1"));
+    action->m_argument2 = msg.GetElement(line,_T("Argument2"));
+    action->m_argument3 = msg.GetElement(line,_T("Argument3"));
+    action->m_wait      = msg.GetElement(line,_T("Wait"));
     // Keep
     m_actions.push_back(action);
 
@@ -94,20 +94,20 @@ TestStepWIN::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,"Type",XDT_String,"WIN");
+  msg.AddElement(root,_T("Type"),XDT_String,_T("WIN"));
 
   // FILL IN
-  XMLElement* def = msg.AddElement(root,"Definition",XDT_String,"");
+  XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
   for (auto& action : m_actions)
   {
-    XMLElement* act = msg.AddElement(def,"Line",XDT_String,"");
+    XMLElement* act = msg.AddElement(def,_T("Line"),XDT_String,_T(""));
 
-    msg.AddElement(act,"Action",   XDT_String,WinUIActionToString(action->m_action));
-    msg.AddElement(act,"Pattern",  XDT_String,action->m_pattern);
-    msg.AddElement(act,"Argument1",XDT_String,action->m_argument1);
-    msg.AddElement(act,"Argument2",XDT_String,action->m_argument2);
-    msg.AddElement(act,"Argument3",XDT_String,action->m_argument3);
-    msg.AddElement(act,"Wait",     XDT_String,action->m_wait);
+    msg.AddElement(act,_T("Action"),   XDT_String,WinUIActionToString(action->m_action));
+    msg.AddElement(act,_T("Pattern"),  XDT_String,action->m_pattern);
+    msg.AddElement(act,_T("Argument1"),XDT_String,action->m_argument1);
+    msg.AddElement(act,_T("Argument2"),XDT_String,action->m_argument2);
+    msg.AddElement(act,_T("Argument3"),XDT_String,action->m_argument3);
+    msg.AddElement(act,_T("Wait"),     XDT_String,action->m_wait);
   }
   // Now save it
   return msg.SaveFile(p_filename);
@@ -136,13 +136,13 @@ void
 TestStepWIN::CheckFilename(CString p_filename)
 {
   // Split of only the extension
-  char extension[_MAX_EXT];
-  _splitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
+  TCHAR extension[_MAX_EXT];
+  _tsplitpath_s(p_filename,NULL,0,NULL,0,NULL,0,extension,_MAX_EXT);
 
   // Check that we have the right one
-  if (_strnicmp(extension, EXTENSION_TESTSTEP_WIN, 5))
+  if (_tcsncicmp(extension, EXTENSION_TESTSTEP_WIN, 5))
   {
-    throw StdException("A StepResult XML definition file must be saved as a *.WRUN");
+    throw StdException(_T("A StepResult XML definition file must be saved as a *.WRUN"));
   }
 }
 
@@ -167,19 +167,19 @@ TestStepWIN::WinUIActionToString(WinUIAction p_action)
   CString action;
   switch (p_action)
   {
-    case WinUIAction::WA_Start:       action = "Start";               break;
-    case WinUIAction::WA_Close:       action = "Close";               break;
-    case WinUIAction::WA_CaretPos:    action = "Caret position";      break;
-    case WinUIAction::WA_Click:       action = "Mouse click";         break;
-    case WinUIAction::WA_DblClick:    action = "Mouse double click";  break;
-    case WinUIAction::WA_RClick:      action = "Mouse right click";   break;
-    case WinUIAction::WA_Char:        action = "Character";           break;
-    case WinUIAction::WA_String:      action = "String";              break;
-    case WinUIAction::WA_Present:     action = "Present";             break;
-    case WinUIAction::WA_Activate:    action = "Activate";            break;
-    case WinUIAction::WA_Focus:       action = "Focus";               break;
-    case WinUIAction::WA_TextArea:    action = "Text area";           break;
-    case WinUIAction::WA_Nothing:     action = "Nothing";             break;
+    case WinUIAction::WA_Start:       action = _T("Start");               break;
+    case WinUIAction::WA_Close:       action = _T("Close");               break;
+    case WinUIAction::WA_CaretPos:    action = _T("Caret position");      break;
+    case WinUIAction::WA_Click:       action = _T("Mouse click");         break;
+    case WinUIAction::WA_DblClick:    action = _T("Mouse double click");  break;
+    case WinUIAction::WA_RClick:      action = _T("Mouse right click");   break;
+    case WinUIAction::WA_Char:        action = _T("Character");           break;
+    case WinUIAction::WA_String:      action = _T("String");              break;
+    case WinUIAction::WA_Present:     action = _T("Present");             break;
+    case WinUIAction::WA_Activate:    action = _T("Activate");            break;
+    case WinUIAction::WA_Focus:       action = _T("Focus");               break;
+    case WinUIAction::WA_TextArea:    action = _T("Text area");           break;
+    case WinUIAction::WA_Nothing:     action = _T("Nothing");             break;
     default:                          break;
 
   }
@@ -189,19 +189,19 @@ TestStepWIN::WinUIActionToString(WinUIAction p_action)
 WinUIAction
 TestStepWIN::StringToWinUIAction(CString p_action)
 {
-  if(p_action.CompareNoCase("start")              == 0) return WinUIAction::WA_Start;
-  if(p_action.CompareNoCase("close")              == 0) return WinUIAction::WA_Close;
-  if(p_action.CompareNoCase("present")            == 0) return WinUIAction::WA_Present;
-  if(p_action.CompareNoCase("activate")           == 0) return WinUIAction::WA_Activate;
-  if(p_action.CompareNoCase("focus")              == 0) return WinUIAction::WA_Focus;
-  if(p_action.CompareNoCase("caret position")     == 0) return WinUIAction::WA_CaretPos;
-  if(p_action.CompareNoCase("mouse click")        == 0) return WinUIAction::WA_Click;
-  if(p_action.CompareNoCase("mouse double click") == 0) return WinUIAction::WA_DblClick;
-  if(p_action.CompareNoCase("mouse right click")  == 0) return WinUIAction::WA_RClick;
-  if(p_action.CompareNoCase("character")          == 0) return WinUIAction::WA_Char;
-  if(p_action.CompareNoCase("string")             == 0) return WinUIAction::WA_String;
-  if(p_action.CompareNoCase("text area")          == 0) return WinUIAction::WA_TextArea;
-  if(p_action.CompareNoCase("nothing")            == 0) return WinUIAction::WA_Nothing;
+  if(p_action.CompareNoCase(_T("start"))              == 0) return WinUIAction::WA_Start;
+  if(p_action.CompareNoCase(_T("close"))              == 0) return WinUIAction::WA_Close;
+  if(p_action.CompareNoCase(_T("present"))            == 0) return WinUIAction::WA_Present;
+  if(p_action.CompareNoCase(_T("activate"))           == 0) return WinUIAction::WA_Activate;
+  if(p_action.CompareNoCase(_T("focus"))              == 0) return WinUIAction::WA_Focus;
+  if(p_action.CompareNoCase(_T("caret position"))     == 0) return WinUIAction::WA_CaretPos;
+  if(p_action.CompareNoCase(_T("mouse click"))        == 0) return WinUIAction::WA_Click;
+  if(p_action.CompareNoCase(_T("mouse double click")) == 0) return WinUIAction::WA_DblClick;
+  if(p_action.CompareNoCase(_T("mouse right click"))  == 0) return WinUIAction::WA_RClick;
+  if(p_action.CompareNoCase(_T("character"))          == 0) return WinUIAction::WA_Char;
+  if(p_action.CompareNoCase(_T("string"))             == 0) return WinUIAction::WA_String;
+  if(p_action.CompareNoCase(_T("text area"))          == 0) return WinUIAction::WA_TextArea;
+  if(p_action.CompareNoCase(_T("nothing"))            == 0) return WinUIAction::WA_Nothing;
 
   return WinUIAction::WA_Nothing;
 }

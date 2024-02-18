@@ -76,7 +76,7 @@ BOOL
 SystemDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("System parameters");
+  SetWindowText(_T("System parameters"));
 
   InitButtons();
   InitParameters();
@@ -87,31 +87,31 @@ SystemDlg::OnInitDialog()
 void
 SystemDlg::InitButtons()
 {
-  m_buttonLogfile.SetStyle("dir");
-  m_buttonOK     .SetStyle("ok");
-  m_buttonCancel .SetStyle("can");
+  m_buttonLogfile.SetStyle(_T("dir"));
+  m_buttonOK     .SetStyle(_T("ok"));
+  m_buttonCancel .SetStyle(_T("can"));
 
   m_editPassword.SetMutable(false);
   m_editPassword.SetBkColor(ThemeColor::GetColor(Colors::AccentColor2));
 
-  m_comboLoglevel.AddString("No logging");                                          // HLL_NOLOG      0       // No logging is ever done
-  m_comboLoglevel.AddString("Error logging only");                                  // HLL_ERRORS     1       // Only errors are logged
-  m_comboLoglevel.AddString("Logging of HTTP actions");                             // HLL_LOGGING    2       // 1 + Logging of actions
-  m_comboLoglevel.AddString("HTTP actions and SOAP bodies");                        // HLL_LOGBODY    3       // 2 + Logging of actions and soap bodies
-  m_comboLoglevel.AddString("HTTP actions, SOAP bodies and tracing");               // HLL_TRACE      4       // 3 + Tracing of settings
-  m_comboLoglevel.AddString("HTTP actions, SOAP bodies, tracing and HEX dumping");  // HLL_TRACEDUMP  5       // 4 + Tracing and HEX dumping of objects
+  m_comboLoglevel.AddString(_T("No logging"));                                          // HLL_NOLOG      0       // No logging is ever done
+  m_comboLoglevel.AddString(_T("Error logging only"));                                  // HLL_ERRORS     1       // Only errors are logged
+  m_comboLoglevel.AddString(_T("Logging of HTTP actions"));                             // HLL_LOGGING    2       // 1 + Logging of actions
+  m_comboLoglevel.AddString(_T("HTTP actions and SOAP bodies"));                        // HLL_LOGBODY    3       // 2 + Logging of actions and soap bodies
+  m_comboLoglevel.AddString(_T("HTTP actions, SOAP bodies and tracing"));               // HLL_TRACE      4       // 3 + Tracing of settings
+  m_comboLoglevel.AddString(_T("HTTP actions, SOAP bodies, tracing and HEX dumping"));  // HLL_TRACEDUMP  5       // 4 + Tracing and HEX dumping of objects
 
-  m_help.SetURL("https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx");
+  m_help.SetURL(_T("https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/setx"));
   m_help.SetColours(ThemeColor::GetColor(Colors::AccentColor1),RGB(0,0,255));
-  m_help.SetTipText("Use to set the KWATTA_PASSWORD variable with the 'setx /m' command!");
+  m_help.SetTipText(_T("Use to set the KWATTA_PASSWORD variable with the 'setx /m' command!"));
 }
 
 void
 SystemDlg::InitParameters()
 {
-  m_loglevel     = atoi(m_parameters->FindSystemParameter("Loglevel"));
-  m_logfile      =      m_parameters->FindSystemParameter("Logfile");
-  m_hidePassword = atoi(m_parameters->FindSystemParameter("HidePassword"));
+  m_loglevel     = _ttoi(m_parameters->FindSystemParameter(_T("Loglevel")));
+  m_logfile      =      m_parameters->FindSystemParameter(_T("Logfile"));
+  m_hidePassword = _ttoi(m_parameters->FindSystemParameter(_T("HidePassword")));
 
   UpdateData(FALSE);
   m_comboLoglevel.SetCurSel(m_loglevel);
@@ -123,12 +123,12 @@ SystemDlg::SaveParameters()
 {
   CString level;
   CString hide;
-  level.Format("%d",m_loglevel);
-  hide .Format("%d",m_hidePassword);
+  level.Format(_T("%d"),m_loglevel);
+  hide .Format(_T("%d"),m_hidePassword);
 
-  m_parameters->OverwriteSystemParameter("Loglevel",    level);
-  m_parameters->OverwriteSystemParameter("Logfile",     m_logfile);
-  m_parameters->OverwriteSystemParameter("HidePassword",hide);
+  m_parameters->OverwriteSystemParameter(_T("Loglevel"),    level);
+  m_parameters->OverwriteSystemParameter(_T("Logfile"),     m_logfile);
+  m_parameters->OverwriteSystemParameter(_T("HidePassword"),hide);
 
   m_parameters->WriteToXML(false,true);
 }
@@ -138,7 +138,7 @@ SystemDlg::Check()
 {
   if(m_loglevel > 0 && m_logfile.IsEmpty())
   {
-    StyleMessageBox(this,"Provide a logfile if you choose a loglevel > 'No logging'",KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Provide a logfile if you choose a loglevel > 'No logging'"),_T(KWATTA),MB_OK|MB_ICONERROR);
     m_editLogfile.SetErrorState(true);
     return false;
   }
@@ -154,7 +154,7 @@ SystemDlg::ChangePassword()
   CString variable(KWATTA_PASSWORD);
 
   Crypto crypt;
-  CString password = crypt.Encryption(m_password,KWATTA_ENCRYPT);
+  CString password = crypt.Encryption(m_password,_T(KWATTA_ENCRYPT));
 
   // Try to change
   localChange  = SetEnvironmentVariable      (variable,password);
@@ -162,17 +162,17 @@ SystemDlg::ChangePassword()
 
   if(localChange && globalChange)
   {
-    StyleMessageBox(this,"Password has been changed!",KWATTA,MB_OK|MB_ICONINFORMATION);
+    StyleMessageBox(this,_T("Password has been changed!"),_T(KWATTA),MB_OK|MB_ICONINFORMATION);
   }
   else if(localChange)
   {
-    StyleMessageBox(this,"BEWARE: Password could only be changed for this program!\n"
-                         "Try running this program as local administrator!"
-                        ,KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("BEWARE: Password could only be changed for this program!\n")
+                         _T("Try running this program as local administrator!")
+                        ,_T(KWATTA),MB_OK|MB_ICONERROR);
   }
   else
   {
-    StyleMessageBox(this,"Password could NOT be changed!",KWATTA,MB_OK|MB_ICONERROR);
+    StyleMessageBox(this,_T("Password could NOT be changed!"),_T(KWATTA),MB_OK|MB_ICONERROR);
   }
 }
 
@@ -216,7 +216,7 @@ void
 SystemDlg::OnBnClickedLogfile()
 {
   AutoFocus focus;
-  DocFileDialog dlg(GetSafeHwnd(),false,"Choose a logfile for HTTP actions","txt","",0,"Logfiles *.txt|*.txt|All files *.*|*.*");
+  DocFileDialog dlg(GetSafeHwnd(),false,_T("Choose a logfile for HTTP actions"),_T("txt"),_T(""),0,_T("Logfiles *.txt|*.txt|All files *.*|*.*"));
   if(dlg.DoModal())
   {
     m_logfile = dlg.GetChosenFile();
@@ -249,14 +249,14 @@ SystemDlg::OnEnChangeHidden()
 void
 SystemDlg::OnBnClickedShow()
 {
-  if(!m_password.GetEnvironmentVariable(KWATTA_PASSWORD))
+  if(!m_password.GetEnvironmentVariable(_T(KWATTA_PASSWORD)))
   {
-    m_password = GetGlobalEnvironmentVariable(KWATTA_PASSWORD);
+    m_password = GetGlobalEnvironmentVariable(_T(KWATTA_PASSWORD));
   }
   if(!m_password.IsEmpty())
   {
     Crypto crypt;
-    m_password = crypt.Decryption(m_password,KWATTA_ENCRYPT);
+    m_password = crypt.Decryption(m_password,_T(KWATTA_ENCRYPT));
   }
   UpdateData(FALSE);
   SetTimer(1,3000,nullptr);
@@ -290,7 +290,7 @@ SystemDlg::OnBnClickedCancel()
 {
   if(m_changed)
   {
-    if(StyleMessageBox(this,"You have made changes. Save the changes?",KWATTA,MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
+    if(StyleMessageBox(this,_T("You have made changes. Save the changes?"),_T(KWATTA),MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
     {
       SaveParameters();
     }

@@ -98,7 +98,7 @@ END_MESSAGE_MAP()
 BOOL ValidateInternetDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Validate Editor (Internet)");
+  SetWindowText(_T("Validate Editor (Internet)"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
   SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
@@ -162,11 +162,11 @@ ValidateInternetDlg::InitTabs()
    m_tab4->Create(IDD_XML_NODE, &m_tabs);
    m_tab5->Create(IDD_JSON_PAIR,&m_tabs);
  
-   m_tabs.InsertItem(0,m_tab1,"Status");
-   m_tabs.InsertItem(1,m_tab2,"Header");
-   m_tabs.InsertItem(2,m_tab3,"Body");
-   m_tabs.InsertItem(3,m_tab4,"XML Node");
-   m_tabs.InsertItem(4,m_tab5,"JSON Pair");
+   m_tabs.InsertItem(0,m_tab1,_T("Status"));
+   m_tabs.InsertItem(1,m_tab2,_T("Header"));
+   m_tabs.InsertItem(2,m_tab3,_T("Body"));
+   m_tabs.InsertItem(3,m_tab4,_T("XML Node"));
+   m_tabs.InsertItem(4,m_tab5,_T("JSON Pair"));
 
   m_tabs.Init();
 }
@@ -175,11 +175,11 @@ void
 ValidateInternetDlg::InitButtons()
 {
   m_buttonGlobal.SetIconImage(IDI_EARTH);
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
 
   EnableToolTips();
-  RegisterTooltip(m_buttonGlobal,"Promote validation to a global validation");
+  RegisterTooltip(m_buttonGlobal,_T("Promote validation to a global validation"));
 }
 
 void
@@ -202,7 +202,7 @@ ValidateInternetDlg::InitValidation()
 void
 ValidateInternetDlg::InitParameters()
 {
-  CString global = theApp.GetBaseDirectory() + "Parameters.xpar";
+  CString global = theApp.GetBaseDirectory() + _T("Parameters.xpar");
   CString local = theApp.GetParameterFilename();
 
   // read the definition of the parameters
@@ -225,13 +225,13 @@ ValidateInternetDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    m_bound = "Parameters: OK";
+    m_bound = _T("Parameters: OK");
     // Effectuate the parameters
     m_unbound = m_validate.EffectiveReplacements(&m_parameters,true);
 
     if(m_unbound > 0)
     {
-      m_bound.Format("Unbound parameters: %d",m_unbound);
+      m_bound.Format(_T("Unbound parameters: %d"),m_unbound);
     }
 
     m_editBound.SetTextColor  (m_unbound > 0 ? RGB(255,0,0) : RGB(0,255,0));
@@ -382,7 +382,7 @@ ValidateInternetDlg::OnEnChangeName()
 void 
 ValidateInternetDlg::OnBnClckedGlobal()
 {
-  if(StyleMessageBox(this,"Promote this validation to a global validation?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  if(StyleMessageBox(this,_T("Promote this validation to a global validation?"),PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
     theApp.PromoteValidation(this);
   }

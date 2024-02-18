@@ -81,7 +81,7 @@ RawResponseDlg::SetupDynamicLayout()
 void
 RawResponseDlg::InitPayload()
 {
-  m_editPayload.SetFontName("Courier new",90);
+  m_editPayload.SetFontName(_T("Courier new"),90);
   m_editPayload.SetMutable(false);
 }
 
@@ -93,7 +93,7 @@ RawResponseDlg::LoadVariables(StepResultNET* p_result)
     m_result = p_result;
   }
   m_payload = m_result->GetRawResponse();
-  m_payload.Replace("\n","\r\n");
+  m_payload.Replace(_T("\n"),_T("\r\n"));
   UpdateData(FALSE);
 }
 

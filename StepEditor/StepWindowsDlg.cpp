@@ -109,7 +109,7 @@ BOOL
 StepWindowsDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("StepEditor Windows UI");
+  SetWindowText(_T("StepEditor Windows UI"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
 
@@ -147,8 +147,8 @@ StepWindowsDlg::OnInitDialog()
   LoadVariables();
   LoadVariablesTabs();
 
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
   m_editBound.SetMutable(false);
   m_editBound.SetBorderColor(RGB(0, 255, 0));
   m_buttonGO.SetIconImage(IDI_RUN);
@@ -161,7 +161,7 @@ StepWindowsDlg::OnInitDialog()
   }
 
   EnableToolTips();
-  RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
+  RegisterTooltip(m_buttonGlobal, _T("Promote teststep to a global teststep"));
 
   EffectiveParameters();
 
@@ -199,10 +199,10 @@ StepWindowsDlg::InitTabs()
   m_page3->Create(IDD_SCRIPT,     &m_tabs);
   m_page4->Create(IDD_WINRESULT,  &m_tabs);
  
-  m_tabs.InsertItem(1,m_page1,"Win UI Actions");
-  m_tabs.InsertItem(2,m_page2,"Timing");
-  m_tabs.InsertItem(3,m_page3,"Script");
-  m_tabs.InsertItem(4,m_page4,"Result");
+  m_tabs.InsertItem(1,m_page1,_T("Win UI Actions"));
+  m_tabs.InsertItem(2,m_page2,_T("Timing"));
+  m_tabs.InsertItem(3,m_page3,_T("Script"));
+  m_tabs.InsertItem(4,m_page4,_T("Result"));
 
   m_tabs.Init();
 }
@@ -228,7 +228,7 @@ StepWindowsDlg::InitStep()
 void
 StepWindowsDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + "Parameters.xpar";
+  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -268,7 +268,7 @@ StepWindowsDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound("Parameters: OK");
+    CString bound(_T("Parameters: OK"));
 
     // Effectuate the parameters
     StoreVariables();
@@ -276,7 +276,7 @@ StepWindowsDlg::EffectiveParameters()
 
     if(m_unbound > 0)
     {
-      bound.Format("Unbound parameters: %d", m_unbound);
+      bound.Format(_T("Unbound parameters: %d"), m_unbound);
     }
     m_bound = bound;
 
@@ -342,7 +342,7 @@ StepWindowsDlg::SaveStep()
 
     if(!res1 || !res2)
     {
-      StyleMessageBox(this,"Could not save the test step",PRODUCT_NAME,MB_OK|MB_ICONWARNING);
+      StyleMessageBox(this,_T("Could not save the test step"),PRODUCT_NAME,MB_OK|MB_ICONWARNING);
       return false;
     }
     return true;
@@ -386,7 +386,7 @@ StepWindowsDlg::OnEnChangeStepname()
 void
 StepWindowsDlg::OnBnClickedGlobal()
 {
-  if(StyleMessageBox(this,"Promote this test step to a global teststep?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  if(StyleMessageBox(this,_T("Promote this test step to a global teststep?"),PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
     theApp.PromoteTestStep(this);
   }

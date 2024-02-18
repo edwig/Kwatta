@@ -67,17 +67,17 @@ BOOL
 NewSuiteDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("Create a new test suite");
+  SetWindowText(_T("Create a new test suite"));
 
-  m_buttonChooseDir.SetStyle("dir");
+  m_buttonChooseDir.SetStyle(_T("dir"));
   m_buttonChooseFile.SetIconImage(IDI_NEW);
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
-  m_editDirectory.SetEmpty(true,"Choose a new directory");
-  m_editSuiteName.SetEmpty(true,"Choose a new test suite name");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
+  m_editDirectory.SetEmpty(true,_T("Choose a new directory"));
+  m_editSuiteName.SetEmpty(true,_T("Choose a new test suite name"));
 
-  m_explain = "Create a new test suite by creating a new empty directory.\r\n"
-              "The directory will only contain your <testsuite name>.xtest file.";
+  m_explain = _T("Create a new test suite by creating a new empty directory.\r\n")
+              _T("The directory will only contain your <testsuite name>.xtest file.");
   UpdateData(FALSE);
   m_editDirectory.SetFocus();
   m_init = true;
@@ -87,7 +87,7 @@ NewSuiteDlg::OnInitDialog()
 CString 
 NewSuiteDlg::GetNewTestsuiteFile()
 {
-  return m_directory + "\\" + m_suiteName;
+  return m_directory + _T("\\") + m_suiteName;
 }
 
 bool 
@@ -95,7 +95,7 @@ NewSuiteDlg::CheckDirectory()
 {
   if(m_directory.IsEmpty())
   {
-    m_editDirectory.SetErrorState(true,"Choose a new directory!");
+    m_editDirectory.SetErrorState(true,_T("Choose a new directory!"));
     return false;
   }
   m_editDirectory.SetErrorState(false);
@@ -106,7 +106,7 @@ NewSuiteDlg::CheckDirectory()
     {
       return true;
     }
-    m_editDirectory.SetErrorState(true,"You must choose/create an empty directory!");
+    m_editDirectory.SetErrorState(true,_T("You must choose/create an empty directory!"));
     return false;
   }
   return true;
@@ -178,7 +178,7 @@ void
 NewSuiteDlg::OnBnClickedChooseDir()
 {
   MapDialog dlg;
-  if(dlg.Browse(GetSafeHwnd(),"Choose a new (empty) test suite directory","","",false,true))
+  if(dlg.Browse(GetSafeHwnd(),_T("Choose a new (empty) test suite directory"),_T(""),_T(""),false,true))
   {
     m_directory = dlg.GetPath();
     UpdateData(FALSE);
@@ -190,7 +190,7 @@ void
 NewSuiteDlg::OnBnClickedChooseFile()
 {
   AutoFocus focus;
-  DocFileDialog dlg(GetSafeHwnd(),false,"Choose a new test suite filename",EXTENSION_SUITE,"",0,"Kwatta test suite *.xtest|*.xtest");
+  DocFileDialog dlg(GetSafeHwnd(),false,_T("Choose a new test suite filename"),EXTENSION_SUITE,_T(""),0,_T("Kwatta test suite *.xtest|*.xtest"));
   if(dlg.DoModal())
   {
     CString filename = dlg.GetChosenFile();
@@ -216,7 +216,7 @@ NewSuiteDlg::OnBnClickedOK()
       return;
     }
   }
-  StyleMessageBox(this,"You must supply both a directory name and a testsuite name!",KWATTA,MB_OK|MB_ICONERROR);
+  StyleMessageBox(this,_T("You must supply both a directory name and a testsuite name!"),_T(KWATTA),MB_OK|MB_ICONERROR);
 }
 
 void 

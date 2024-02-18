@@ -120,7 +120,7 @@ BOOL
 StepDatabaseDlg::OnInitDialog()
 {
   StyleDialog::OnInitDialog();
-  SetWindowText("StepEditor SQL");
+  SetWindowText(_T("StepEditor SQL"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
 
@@ -158,8 +158,8 @@ StepDatabaseDlg::OnInitDialog()
   LoadVariables();
   LoadVariablesTabs();
 
-  m_buttonOK.SetStyle("ok");
-  m_buttonCancel.SetStyle("can");
+  m_buttonOK.SetStyle(_T("ok"));
+  m_buttonCancel.SetStyle(_T("can"));
   m_editBound.SetMutable(false);
   m_editBound.SetBorderColor(RGB(0, 255, 0));
   m_buttonGO.SetIconImage(IDI_RUN);
@@ -172,7 +172,7 @@ StepDatabaseDlg::OnInitDialog()
   }
 
   EnableToolTips();
-  RegisterTooltip(m_buttonGlobal, "Promote teststep to a global teststep");
+  RegisterTooltip(m_buttonGlobal, _T("Promote teststep to a global teststep"));
 
   EffectiveParameters();
 
@@ -212,19 +212,19 @@ StepDatabaseDlg::InitTabs()
   m_page4->Create(IDD_RAW_SQL,  &m_tabsRequest);
   m_page5->Create(IDD_SCRIPT,   &m_tabsRequest);
  
-  m_tabsRequest.InsertItem(0,m_page1,"SQL");
-  m_tabsRequest.InsertItem(1,m_page2,"Database");
-  m_tabsRequest.InsertItem(2,m_page3,"Timing");
-  m_tabsRequest.InsertItem(3,m_page4,"Raw SQL");
-  m_tabsRequest.InsertItem(4,m_page5,"Script");
+  m_tabsRequest.InsertItem(0,m_page1,_T("SQL"));
+  m_tabsRequest.InsertItem(1,m_page2,_T("Database"));
+  m_tabsRequest.InsertItem(2,m_page3,_T("Timing"));
+  m_tabsRequest.InsertItem(3,m_page4,_T("Raw SQL"));
+  m_tabsRequest.InsertItem(4,m_page5,_T("Script"));
 
   m_tabsRequest.Init();
  
   m_page10->Create(IDD_SQLRESULT,&m_tabsResponse);
   m_page11->Create(IDD_SQLOUTPUT,&m_tabsResponse);
 
-  m_tabsResponse.InsertItem(0,m_page10,"SQL Result");
-  m_tabsResponse.InsertItem(1,m_page11,"Output parameters");
+  m_tabsResponse.InsertItem(0,m_page10,_T("SQL Result"));
+  m_tabsResponse.InsertItem(1,m_page11,_T("Output parameters"));
 
   m_tabsResponse.Init();
 }
@@ -242,7 +242,7 @@ StepDatabaseDlg::InitStep()
   }
   catch (StdException& ex)
   {
-    StyleMessageBox(this, ex.GetErrorMessage(), PRODUCT_NAME, MB_OK | MB_ICONERROR);
+    StyleMessageBox(this, ex.GetErrorMessage(),PRODUCT_NAME, MB_OK | MB_ICONERROR);
     theApp.GetMainWnd()->PostMessage(WM_QUIT, 0, 0);
   }
 }
@@ -250,7 +250,7 @@ StepDatabaseDlg::InitStep()
 void
 StepDatabaseDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + "Parameters.xpar";
+  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -290,7 +290,7 @@ StepDatabaseDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound("Parameters: OK");
+    CString bound(_T("Parameters: OK"));
 
     // Effectuate the parameters
     StoreVariables();
@@ -298,7 +298,7 @@ StepDatabaseDlg::EffectiveParameters()
 
     if(m_unbound > 0)
     {
-      bound.Format("Unbound parameters: %d", m_unbound);
+      bound.Format(_T("Unbound parameters: %d"), m_unbound);
     }
     m_bound = bound;
 
@@ -368,14 +368,14 @@ StepDatabaseDlg::SaveStep()
 
     if(!res1 || !res2)
     {
-      StyleMessageBox(this,"Could not save the test step",PRODUCT_NAME,MB_OK|MB_ICONWARNING);
+      StyleMessageBox(this,_T("Could not save the test step"),PRODUCT_NAME,MB_OK|MB_ICONWARNING);
       return false;
     }
     return true;
   }
   catch (StdException& ex)
   {
-    StyleMessageBox(this, ex.GetErrorMessage(), PRODUCT_NAME, MB_OK | MB_ICONERROR);
+    StyleMessageBox(this, ex.GetErrorMessage(),PRODUCT_NAME, MB_OK | MB_ICONERROR);
   }
   return false;
 }
@@ -414,7 +414,7 @@ StepDatabaseDlg::OnEnChangeStepname()
 void
 StepDatabaseDlg::OnBnClickedGlobal()
 {
-  if(StyleMessageBox(this,"Promote this test step to a global teststep?",PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+  if(StyleMessageBox(this,_T("Promote this test step to a global teststep?"),PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
     theApp.PromoteTestStep(this);
   }

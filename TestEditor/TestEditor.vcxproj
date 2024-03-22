@@ -217,6 +217,7 @@
   <ItemGroup>
     <ClInclude Include="CombiEditorDlg.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="LoadTestDlg.h" />
     <ClInclude Include="MutateDlg.h" />
     <ClInclude Include="NewStepNamesDlg.h" />
     <ClInclude Include="NewStepTypeDlg.h" />
@@ -229,6 +230,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CombiEditorDlg.cpp" />
+    <ClCompile Include="LoadTestDlg.cpp" />
     <ClCompile Include="MutateDlg.cpp" />
     <ClCompile Include="NewStepNamesDlg.cpp" />
     <ClCompile Include="NewStepTypeDlg.cpp" />
@@ -268,6 +270,7 @@
     <Image Include="res\icon1.ico" />
     <Image Include="res\icon2.ico" />
     <Image Include="res\Kopieren.ico" />
+    <Image Include="res\Loadtest.ico" />
     <Image Include="res\Mutate.ico" />
     <Image Include="res\mval.ico" />
     <Image Include="res\new.ico" />

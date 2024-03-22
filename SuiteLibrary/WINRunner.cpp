@@ -58,7 +58,8 @@ WINRunner::WINRunner(CString      p_baseDirectory
                       ,p_reportHWND
                       ,p_callingHWND
                       ,p_callingROW
-                      ,p_global)
+                      ,p_global
+                      ,false)
 {
   m_testStep = new TestStepWIN();
   m_result   = new StepResultWIN();

@@ -239,7 +239,8 @@ StepEditorApp::StartTheInetRunner(StepInternetDlg* p_caller)
                      ,GetOAuth2Cache()
                      ,0
                      ,0
-                     ,theApp.GetGlobal());
+                     ,theApp.GetGlobal()
+                     ,false);
 
     // PERFORM OUR TEST
     result = runner.PerformTest();

@@ -52,7 +52,8 @@ public:
            ,OAuth2Cache* p_cache
            ,HWND         p_callingHWND
            ,int          p_callingROW
-           ,bool         p_global);
+           ,bool         p_global
+           ,bool         p_loadtest);
   virtual ~NETRunner();
 
   // General interface

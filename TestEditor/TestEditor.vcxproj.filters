@@ -51,6 +51,9 @@
     <ClInclude Include="NewStepValiDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LoadTestDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TestEditor.cpp">
@@ -75,6 +78,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="NewStepValiDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadTestDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -144,6 +150,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\icon2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Loadtest.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

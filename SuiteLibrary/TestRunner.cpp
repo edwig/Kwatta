@@ -45,20 +45,20 @@ TestRunner::TestRunner(CString    p_baseDirectory
                       ,HWND       p_reportHWND
                       ,HWND       p_callingHWND
                       ,int        p_callingROW
-                      ,bool       p_global)
-
+                      ,bool       p_global
+                      ,bool       p_loadtest)
            :m_baseDirectory     (p_baseDirectory)
            ,m_testDirectory     (p_testDirectory)
            ,m_testStepFilename  (p_testStepFilename)
            ,m_parametersFilename(p_parametersFilename)
            ,m_localValidations  (p_localValidations)
            ,m_globalValidations (p_globalValidations)
-
            ,m_consoleHNWD       (p_consoleHWND)
            ,m_reportHWND        (p_reportHWND)
            ,m_callingHWND       (p_callingHWND)
            ,m_callingROW        (p_callingROW)
            ,m_global            (p_global)
+           ,m_loadtest          (p_loadtest)
 {
 }
 

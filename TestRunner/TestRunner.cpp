@@ -130,17 +130,21 @@ TestRunnerApp::InitInstance()
   }
 
   // Go run the test
-	TestRunnerDlg dlg;
-	m_pMainWnd = &dlg;
-	dlg.DoModal();
-
-#if !defined(_AFXDLL) && !defined(_AFX_NO_MFC_CONTROLS_IN_DIALOGS)
-	ControlBarCleanUp();
-#endif
-
-	// Since the dialog has been closed, return FALSE so that we exit the
-	//  application, rather than start the application's message pump.
-	return FALSE;
+  if(!m_loadtest)
+  {
+    TestRunnerDlg dlg;
+    m_pMainWnd = &dlg;
+    dlg.DoModal();
+    // Since the dialog has been closed, return FALSE so that we exit the
+    // application, rather than start the application's message pump.
+    return FALSE;
+  }
+  else
+  {
+    StartRunner();
+    // Test must run, sow e start the message pump
+    return TRUE;
+  }
 }
 
 int
@@ -211,6 +215,13 @@ TestRunnerApp::CreateTestBed()
   // Find the type of test to run
   if(DeduceTestType() == RunTestType::RunTest_Unknown)
   {
+    return false;
+  }
+
+  if(m_loadtest && !(m_type == RunTestType::RunTest_TestStep_Internet ||
+                     m_type == RunTestType::RunTest_TestStep_Database ))
+  {
+    MessageBeep(MB_ICONERROR);
     return false;
   }
 
@@ -314,7 +325,8 @@ __stdcall StartTheNETRunner(void* p_data)
                   ,theApp.GetOauth2Cache()
                   ,(HWND)theApp.GetCallingHandle()
                   ,theApp.GetCallingRow()
-                  ,theApp.GetGlobal());
+                  ,theApp.GetGlobal()
+                  ,theApp.GetLoadtest());
 
   int result = runner.PerformTest();
   theApp.ResetHTTPClient();
@@ -503,6 +515,7 @@ TestRunnerApp::ParseStartParameters()
       else if (_tcsnicmp(&lpszParam[1], _T("VALI:"),  5) == 0) m_validations.push_back(CString(&lpszParam[6]));
       else if (_tcsnicmp(&lpszParam[1], _T("GLVAL:"), 6) == 0) m_globalValid.push_back(CString(&lpszParam[7]));
       else if (_tcsnicmp(&lpszParam[1], _T("GLOBAL"), 6) == 0) m_global        = true;
+      else if (_tcsnicmp(&lpszParam[1], _T("LOAD"),   4) == 0) m_loadtest      = true;
       else if (_tcsnicmp(&lpszParam[1], _T("SCRIPT"), 6) == 0) 
       {
         // No check after this. Use the rest for our QL script

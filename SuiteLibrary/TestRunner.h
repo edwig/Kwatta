@@ -51,7 +51,8 @@ public:
             ,HWND       p_reportHWND
             ,HWND       p_callingHWND
             ,int        p_callingROW
-            ,bool       p_global);
+            ,bool       p_global
+            ,bool       p_loadtest);
 
   virtual ~TestRunner();
 
@@ -99,6 +100,7 @@ protected:
   int         m_stepSize   {    12 };
   int         m_progress   {     0 };
   bool        m_global     { false };
+  bool        m_loadtest   { false };
   Parameters  m_parameters;
   Validations m_validations;
   // The test and result of the test

@@ -82,6 +82,7 @@ public:
   int           GetCallingRow()         { return m_callingROW;    }
   bool          GetLastTest()           { return m_last;          }
   bool          GetGlobal()             { return m_global;        }
+  bool          GetLoadtest()           { return m_loadtest;      }
 
   // SETTERS
 
@@ -116,6 +117,7 @@ private:
   OAuth2Cache*  m_cache       { nullptr };
   SQLDatabase*  m_database    { nullptr };
   bool          m_last        { true    };
+  bool          m_loadtest    { false   };
   // Results
   int           m_totalResult { 0     };
   UINT64        m_callingHWND { NULL  };

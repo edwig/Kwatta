@@ -46,7 +46,8 @@ NETRunner::NETRunner(CString      p_baseDirectory
                     ,OAuth2Cache* p_cache
                     ,HWND         p_callingHWND
                     ,int          p_callingROW
-                    ,bool         p_global)
+                    ,bool         p_global
+                    ,bool         p_loadtest)
           :TestRunner(p_baseDirectory
                      ,p_testDirectory
                      ,p_testStepFilename
@@ -57,7 +58,8 @@ NETRunner::NETRunner(CString      p_baseDirectory
                      ,p_reportHWND
                      ,p_callingHWND
                      ,p_callingROW
-                     ,p_global)
+                     ,p_global
+                     ,p_loadtest)
           ,m_client(p_client)
           ,m_oauth(p_cache)
 {
@@ -469,6 +471,10 @@ NETRunner::PerformAllValidations()
 void
 NETRunner::SaveTestResults()
 {
+  if(m_loadtest)
+  {
+    return;
+  }
   PerformStep(_T("Saving the test results"));
   StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
 
@@ -491,6 +497,10 @@ NETRunner::SaveTestResults()
 void
 NETRunner::SaveResultParameters()
 {
+  if(m_loadtest)
+  {
+    return;
+  }
   // Write back local parameters (return + stream)
   // Parameters already changed in "PerformAllValidations" !!
   m_parameters.WriteToXML();

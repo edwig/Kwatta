@@ -721,10 +721,14 @@ TestEditorDlg::ReParseValidate(int p_run)
   TRValidation& validation = valis->front();
   CString valiname = validation.m_name;
   CString valifile = validation.m_filename;
+    // Combined filename
+  CString validationFilename = theApp.GetBaseDirectory() + 
+                               (validation.m_global ? _T("Validations\\") : theApp.GetTestDirectory()) +
+                               valifile;
   Validate* vali = nullptr;
   try
   {
-    vali = ReadValidate(theApp.GetBaseDirectory() + theApp.GetTestDirectory() + valifile);
+    vali = ReadValidate(validationFilename);
   }
   catch(StdException& ex)
   {

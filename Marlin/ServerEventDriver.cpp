@@ -270,7 +270,7 @@ ServerEventDriver::UnRegisterChannel(XString p_cookie,XString p_token,bool p_flu
     {
       // If flushing is unsuccessful, the channel remains for later polling
       return UnRegisterChannel(session->GetChannel(),p_flush);
-  }
+    }
   }
   return false;
 }
@@ -415,6 +415,14 @@ ServerEventDriver::IncomingLongPoll(SOAPMessage* p_message)
   return true;
 }
 
+// GENERAL POSTING OF AN EVENT TO ONE OR ALL CLIENTS
+//
+// p_session        -> The registered session from the server application
+// p_payload        -> The payload (body) of the event message
+// p_returnToSender -> Send only to this client "S<ip-address>:D<desktop>"
+// p_type           -> Normal message or a special type of message
+// p_typeName       -> Special message name if "p_type == EV_Message"
+// 
 int
 ServerEventDriver::PostEvent(int     p_session
                             ,XString p_payload
@@ -704,20 +712,18 @@ ServerEventDriver::FindChannel(const Routing& p_routing,XString p_base)
 }
 
 // Brute force attack detection
-// Sender must include: <server> <desktop> <user> in some fashion
+// Sender is the CRC32 of the socket/stream registration
 bool
-ServerEventDriver::CheckBruteForceAttack(XString p_sender)
+ServerEventDriver::CheckBruteForceAttack(unsigned p_sender)
 {
-  p_sender.MakeLower();
-
   SenderMap::iterator it = m_senders.find(p_sender);
   if(it != m_senders.end())
   {
     // Less than <interval> seconds ago.
     // Cannot make a connection again.
-    if ((clock() - (clock_t)it->second) < m_interval)
+    if ((clock() - it->second) < m_interval)
     {
-      m_server->DetailLogV(_T(__FUNCTION__),LogType::LOG_ERROR,_T("BRUTE FORCE ATTACK FROM: %s"),p_sender.GetString());
+      m_server->DetailLog(_T(__FUNCTION__),LogType::LOG_ERROR,_T("BRUTE FORCE ATTACK FROM ATTACHING SOCKET/STREAM"));
       return true;
     }
     // Longer than <interval> seconds ago. Reset sender.
@@ -828,35 +834,55 @@ ServerEventDriver::RecalculateInterval(int p_sent)
   DETAILLOGV(_T("ServerEventDriver monitor going to sleep. Back in [%d] milliseconds"),m_interval);
 }
 
-
 void
 ServerEventDriver::SendChannels()
 {
   DETAILLOG1(_T("ServerEventDriver monitor waking up. Sending/Receiving client channels."));
   int sent = 0;
 
+  ChannelMap channels;
+  // Create copy of the channels to be sending to.
+  // This makes it possible to halfway through let channels be added or removed.
+  // Added channels will be processed next time through (and if filled)
+  {
+    AutoCritSec lock(&m_lock);
+    for(auto& chan : m_channels)
+    {
+      if(chan.second->GetQueueCount())
+      {
+        channels[chan.first] = chan.second;
+      }
+    }
+  }
+
   try
   {
-    ChannelMap channels;
-    // Create copy of the channels to be sending to.
-    // This makes it possible to halfway through let channels be added or removed.
-    {
-      AutoCritSec lock(&m_lock);
-      channels = m_channels;
-    }
-
     // Check all channels 
     for(auto& channel : channels)
     {
       channel.second->CheckChannel();
     }
+  }
+  catch(StdException& ex)
+  {
+    ERRORLOG(ERROR_UNHANDLED_EXCEPTION, _T("ServerEventDriver error while checking channels: ") + ex.GetErrorMessage());
+  }
 
+  try
+  {
     // All outbound traffic
     for(auto& channel : channels)
     {
       sent += channel.second->SendChannel();
     }
+  }
+  catch(StdException& ex)
+  {
+    ERRORLOG(ERROR_UNHANDLED_EXCEPTION, _T("ServerEventDriver error while sending to channels: ") + ex.GetErrorMessage());
+  }
 
+  try
+  {
     // All inbound traffic
     for(auto& channel : channels)
     {
@@ -865,7 +891,12 @@ ServerEventDriver::SendChannels()
   }
   catch(StdException& ex)
   {
-    ERRORLOG(ERROR_UNHANDLED_EXCEPTION,_T("ServerEventDriver error: ") + ex.GetErrorMessage());
+    ERRORLOG(ERROR_UNHANDLED_EXCEPTION, _T("ServerEventDriver error while receiving from channels: ") + ex.GetErrorMessage());
   }
+
+  // When will we be back?
   RecalculateInterval(sent);
+
+  // Yield time to other processing
+  Sleep(MONITOR_INTERVAL_MIN);
 }

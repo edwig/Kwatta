@@ -20,6 +20,7 @@
 
   DYNAMIC_CRC_TABLE and MAKECRCH can be #defined to write out crc32.h.
  */
+
 #include "pch.h"
 
 #ifdef MAKECRCH

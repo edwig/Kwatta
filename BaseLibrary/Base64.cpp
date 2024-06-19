@@ -141,8 +141,8 @@ Base64::Decrypt(XString p_encrypted,BYTE* p_buffer,int p_length)
   return false;
 }
 
-// ANSI ONLY implementation. E.G. for UTF-8 traffic or HTTP headers
-bool
+// ANSI ONLY implementation. Binary buffer output
+int
 Base64::Decrypt(BYTE* p_buffer,int p_blen,BYTE* p_output,int p_olen)
 {
   if(p_blen <= 0 || p_olen <= 0)
@@ -155,10 +155,9 @@ Base64::Decrypt(BYTE* p_buffer,int p_blen,BYTE* p_output,int p_olen)
   if((DWORD) p_olen >= length)
   {
     CryptStringToBinaryA((LPCSTR)p_buffer,p_blen,m_method,p_output,&length,0,NULL);
-    p_output[length] = 0;
-    return true;
+    return length;
   }
-  return false;
+  return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////

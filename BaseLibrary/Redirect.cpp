@@ -495,11 +495,12 @@ Redirect::StdOutThread8Bits(HANDLE hStdOutRead)
         writeResidu  = true;
       }
       m_eof_input = 1;
-      break;
     }
     // Add to line
-    *linePointer++ = lpszBuffer[0];
-
+    if(lpszBuffer[0] != EOT)
+    {
+      *linePointer++ = lpszBuffer[0];
+    }
     // Add end-of-line or line overflow, write to listener
     if(writeResidu || lpszBuffer[0] == '\n' || ((linePointer - lineBuffer) > BUFFER_SIZE))
     {
@@ -567,11 +568,12 @@ Redirect::StdOutThreadUnicode(HANDLE hStdOutRead)
         writeResidu  = true;
       }
       m_eof_input = 1;
-      break;
     }
     // Add to line
-    *linePointer++ = lpszBuffer[0];
-
+    if(lpszBuffer[0] != EOT)
+    {
+      *linePointer++ = lpszBuffer[0];
+    }
     // Add end-of-line or line overflow, write to listener
     if(writeResidu || lpszBuffer[0] == '\n' || ((linePointer - lineBuffer) > BUFFER_SIZE))
     {
@@ -646,11 +648,12 @@ Redirect::StdErrThread8Bits(HANDLE hStdErrRead)
         writeResidu = true;
       }
       m_eof_error = 1;
-      break;
     }
     // Add to line
-    *linePointer++ = lpszBuffer[0];
-
+    if(lpszBuffer[0] != EOT)
+    {
+      *linePointer++ = lpszBuffer[0];
+    }
     // Add end-of-line or line overflow, write to listener
     if(writeResidu || lpszBuffer[0] == '\n' || ((linePointer - lineBuffer) > BUFFER_SIZE))
     {
@@ -718,11 +721,12 @@ Redirect::StdErrThreadUnicode(HANDLE hStdErrRead)
         writeResidu = true;
       }
       m_eof_error = 1;
-      break;
     }
     // Add to line
-    *linePointer++ = lpszBuffer[0];
-
+    if(lpszBuffer[0] != EOT)
+    {
+      *linePointer++ = lpszBuffer[0];
+    }
     // Add end-of-line or line overflow, write to listener
     if(writeResidu || lpszBuffer[0] == '\n' || ((linePointer - lineBuffer) > BUFFER_SIZE))
     {
@@ -910,6 +914,12 @@ Redirect::ProcessThread()
   // Application must call TerminateChildProcess() but not direcly from this thread!
   OnChildTerminate();
   
+  // Wait till the output has drained
+  while(m_hStdOutThread || m_hStdErrThread)
+  {
+    Sleep(DRAIN_STDOUT_INTERVAL);
+  }
+
   // We are ready running
   m_bRunThread = NULL;
   return returnValue;

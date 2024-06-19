@@ -1836,7 +1836,7 @@ HTTPClient::ReceiveResponseDataBuffer()
 
 // Process a chunked response to the 'normal' form
 // Normally WinHTTP already decodes the chunking
-// but cases exist where chunked input still comes in the input buffers
+// But some frameworks will need to have the header transformed
 void
 HTTPClient::ProcessChunkedEncoding()
 {
@@ -1847,63 +1847,19 @@ HTTPClient::ProcessChunkedEncoding()
   {
     return;
   }
-
-  unsigned totalSize = 0;
-  unsigned chunkSize = 0;
-  uchar* writing = m_response;
-  uchar* reading = m_response;
-
-  reading = GetChunkSize(reading,chunkSize);
-  while(chunkSize)
+  if(m_resolveChunked)
   {
-    totalSize += chunkSize;
-    // Check that we do not process past the end of the buffer
-    if(totalSize > m_responseLength)
-    {
-      break;
-    }
+    // Caller opts-in for removing the transfer-encoding
+    XString length;
+    length.Format(_T("%u"),m_responseLength);
 
-    // Getting the chunk
-    while(chunkSize--)
+    HeaderMap::iterator it = m_responseHeaders.find(_T("Transfer-Encoding"));
+    if(it != m_responseHeaders.end())
     {
-      *writing++ = *reading++;
+      m_responseHeaders.erase(it);
     }
-    *writing = 0;
-    if (*reading == '\r') ++reading;
-    if (*reading == '\n') ++reading;
-
-    reading = GetChunkSize(reading,chunkSize);
+    m_responseHeaders.insert(std::make_pair(_T("Content-Length"),length));
   }
-
-  if(totalSize)
-  {
-    m_responseLength = totalSize;
-  }
-}
-
-// Determine next chunk size in chunked response
-uchar*
-HTTPClient::GetChunkSize(uchar* p_reading,unsigned& p_size)
-{
-  p_size = 0;
-  while(_istxdigit(*p_reading))
-  {
-    p_size *= 16;
-    int ch = _totupper(*p_reading);
-    if(ch >= 'A')
-    {
-      p_size += (10 + ch - 'A');
-    }
-    else
-    {
-      p_size += (ch - '0');
-    }
-    ++p_reading;
-  }
-  if(*p_reading == '\r') ++p_reading;
-  if(*p_reading == '\n') ++p_reading;
-
-  return p_reading;
 }
 
 void
@@ -2249,6 +2205,7 @@ HTTPClient::Send(HTTPMessage* p_msg)
   p_msg->Reset();
 
   // Keep response as new body. Might contain an error!!
+  p_msg->SetContentType(m_contentType);
   p_msg->SetBody(m_response,m_responseLength);
   p_msg->SetCookies(m_resultCookies);
   // Getting all headers from the answer
@@ -2359,25 +2316,25 @@ HTTPClient::Send(SOAPMessage* p_msg)
   }
   else
   {
-    Encoding encoding = p_msg->SetEncoding(Encoding::Default);
+    Encoding encoding = p_msg->GetEncoding();
     soap = p_msg->GetSoapMessage();
-    p_msg->SetEncoding(encoding);
-    m_contentType = p_msg->GetContentType();
 
+    // Getting the content type
+    m_contentType = p_msg->GetContentType();
     XString charset = FindCharsetInContentType(m_contentType);
     if(charset.IsEmpty())
     {
       // Take care of character encoding
-      int acp = -1;
       switch(encoding)
       {
-        case Encoding::Default:   acp = 0;     break; // Find Active Code Page
-        case Encoding::UTF8:      acp = 65001; break; // See ConvertWideString.cpp
-        case Encoding::LE_UTF16:  acp = 1200;  break; // See ConvertWideString.cpp
-        case Encoding::BE_UTF16:  acp = 1201;  break; // See ConvertWideString.cpp
-        default:                               break;
+        case Encoding::Default:   charset = CodepageToCharset(GetACP());
+                                  break;
+        case Encoding::LE_UTF16:  charset = "utf-16";
+                                  break;
+        default:                  [[fallthrough]];
+        case Encoding::UTF8:      charset = "utf-8";
+                                  break;
       }
-      charset = CodepageToCharset(acp);
       m_contentType = SetFieldInHTTPHeader(m_contentType,_T("charset"),charset);
     }
     SetBody(soap,charset);
@@ -2433,6 +2390,8 @@ HTTPClient::Send(SOAPMessage* p_msg)
   p_msg->SetStatus(m_status);
 
   XString answer;
+  bool decoded(false);
+
   if(charset.Left(6).CompareNoCase(_T("utf-16")) == 0)
   {
 #ifdef UNICODE
@@ -2454,6 +2413,7 @@ HTTPClient::Send(SOAPMessage* p_msg)
       answer.Empty();
     }
 #endif
+    decoded = true;
   }
   else if(nosniff.CompareNoCase(_T("nosniff")))
   {
@@ -2475,31 +2435,34 @@ HTTPClient::Send(SOAPMessage* p_msg)
         answer.Empty();
         result = false;
       }
-#endif
-    }
-    else
-    {
-#ifdef UNICODE
-      if(charset.CompareNoCase(_T("utf-16")) == 0)
-      {
-        answer = (LPCTSTR) m_response;
-      }
-      else
-      {
-        bool foundBom = false;
-        TryConvertNarrowString(m_response,m_responseLength,charset,answer,foundBom);
-      }
-#else
-      // Otherwise assume MBCS plain text in current codepage or UTF-8
-      answer = reinterpret_cast<const char*>(m_response);
+      decoded = true;
 #endif
     }
   }
-  else
+  if(!decoded)
   {
     // Sender forces to not sniffing
-    // So assume the standard codepages are used (ACP=1252, UTF-8 or ISO-8859-1)
-    answer = reinterpret_cast<const TCHAR*>(m_response);
+#ifdef _UNICODE
+    if(charset.CompareNoCase(_T("utf-16")) == 0)
+    {
+      answer = (LPCTSTR)m_response;
+    }
+    else
+    {
+      bool foundBom = false;
+      TryConvertNarrowString(m_response,m_responseLength,charset,answer,foundBom);
+    }
+#else
+    if(charset.CompareNoCase(CodepageToCharset(GetACP())) == 0)
+    {
+      answer = reinterpret_cast<const TCHAR*>(m_response);
+    }
+    else
+    {
+      XString response(reinterpret_cast<const char*>(m_response));
+      answer = DecodeStringFromTheWire(response, charset);
+    }
+#endif
   }
 
   // Keep response as new body. Might contain an error!!
@@ -2695,14 +2658,13 @@ HTTPClient::ProcessJSONResult(JSONMessage* p_msg,bool& p_result)
   {
 #ifdef UNICODE
     answer   = (LPCTSTR) m_response;
-    p_result = true;
 #else
-    // Works for "UTF-16", "UTF-16LE" and "UTF-16BE" as of RFC 2781
+    // Works for "UTF-16" and "UTF-16LE" as of RFC 2781
     bool doBom = false;
     if(TryConvertWideString(m_response,m_responseLength,_T(""),answer,doBom))
     {
-      p_result = true;
       p_msg->SetSendBOM(doBom);
+      p_msg->SetSendUnicode(true);
     }
     else
     {
@@ -2725,7 +2687,17 @@ HTTPClient::ProcessJSONResult(JSONMessage* p_msg,bool& p_result)
     if(TryConvertNarrowString(m_response,m_responseLength,charset,answer,doBom))
     {
       p_msg->SetSendBOM(doBom);
-      p_result = true;
+      p_msg->SetSendUnicode(false);
+    }
+    else
+    {
+      // SET ERROR STATE
+      XString message;
+      message.Format(_T("Cannot convert UTF-16 message"));
+      p_msg->SetLastError(message);
+      p_msg->SetErrorstate(true);
+      p_result = false;
+      answer.Empty();
     }
 #else
     // Answer is the raw response
@@ -2734,7 +2706,6 @@ HTTPClient::ProcessJSONResult(JSONMessage* p_msg,bool& p_result)
     {
       answer = DecodeStringFromTheWire(answer,charset);
     }
-    p_result = true;
 #endif
   }
 
@@ -3715,8 +3686,8 @@ HTTPClient::ReadAllResponseHeaders()
           int namepos = header.Find(':');
           if(namepos > 0)
           {
-            XString hname   = header.Left(namepos).Trim();
-            XString hvalue  = header.Mid(namepos + 1).Trim();
+            XString hname  = header.Left(namepos).Trim();
+            XString hvalue = header.Mid(namepos + 1).Trim();
             m_responseHeaders.insert(std::make_pair(hname,hvalue));
           }
           // Find next

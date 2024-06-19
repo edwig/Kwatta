@@ -33,7 +33,7 @@ public:
   int     GetCallingRow()    { return m_callingROW;        }
 
   void    StartStepEditor    (CString p_stepname,  bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row);
-  int     StartTestRunner    (CString p_stepname,  bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row);
+  int     StartTestRunner    (CString p_stepname,  bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row,bool p_wait = true);
   void    StartValidateEditor(CString p_validation,bool p_global,HWND p_wnd,int p_row);
   void    StartResultViewer  (CString p_stepname,  HWND p_wnd,int p_row);
 

@@ -26,6 +26,7 @@
 #include "NewStepNamesDlg.h"
 #include "NewStepValiDlg.h"
 #include "MutateDlg.h"
+#include "LoadTestDlg.h"
 #include <AboutDlg.h>
 #include "afxdialogex.h"
 #include <StdException.h>
@@ -76,6 +77,7 @@ void TestEditorDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX,IDC_BUT_UP,        m_buttonUp);
   DDX_Control(pDX,IDC_BUT_DOWN,      m_buttonDn);
   DDX_Control(pDX,IDC_BUT_MUTATE,    m_buttonMutate);
+  DDX_Control(pDX,IDC_BUT_LOADTEST,  m_buttonLoadtest);
   DDX_Control(pDX,IDOK,              m_buttonOK);
   DDX_Control(pDX,IDCANCEL,          m_buttonCancel);
 }
@@ -100,6 +102,7 @@ BEGIN_MESSAGE_MAP(TestEditorDlg, StyleDialog)
   ON_BN_CLICKED  (IDC_BUT_UP,         OnBnClickedUp)
   ON_BN_CLICKED  (IDC_BUT_DOWN,       OnBnClickedDown)
   ON_BN_CLICKED  (IDC_BUT_MUTATE,     OnBnClickedMutate)
+  ON_BN_CLICKED  (IDC_BUT_LOADTEST,   OnBnClickedLoadtest)
   ON_BN_CLICKED  (IDOK,               OnOK)
   ON_BN_CLICKED  (IDCANCEL,           OnCancel)
 
@@ -173,6 +176,7 @@ TestEditorDlg::SetupDynamicLayout()
   manager.AddItem(IDC_BUT_UP,       CMFCDynamicLayout::MoveVertical(100),                 CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_BUT_DOWN,     CMFCDynamicLayout::MoveVertical(100),                 CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_BUT_MUTATE,   CMFCDynamicLayout::MoveVertical(100),                 CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_BUT_LOADTEST, CMFCDynamicLayout::MoveVertical(100),                 CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDOK,             CMFCDynamicLayout::MoveHorizontalAndVertical(100,100),CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDCANCEL,         CMFCDynamicLayout::MoveHorizontalAndVertical(100,100),CMFCDynamicLayout::SizeNone());
 }
@@ -189,29 +193,31 @@ TestEditorDlg::SetResult()
 void
 TestEditorDlg::InitButtons()
 {
-  m_buttonRun   .SetIconImage(IDI_RUN);
-  m_buttonRunAll.SetIconImage(IDI_RUNALL);
-  m_buttonEdit  .SetIconImage(IDI_EDIT);
-  m_buttonCopy  .SetIconImage(IDI_COPY);
-  m_buttonNew   .SetIconImage(IDI_NEW);
-  m_buttonMVal  .SetIconImage(IDI_MULVAL);
-  m_buttonDelete.SetIconImage(IDI_DELETE);
-  m_buttonUp    .SetIconImage(IDI_UP);
-  m_buttonDn    .SetIconImage(IDI_DOWN);
-  m_buttonMutate.SetIconImage(IDI_MUTATE);
+  m_buttonRun     .SetIconImage(IDI_RUN);
+  m_buttonRunAll  .SetIconImage(IDI_RUNALL);
+  m_buttonEdit    .SetIconImage(IDI_EDIT);
+  m_buttonCopy    .SetIconImage(IDI_COPY);
+  m_buttonNew     .SetIconImage(IDI_NEW);
+  m_buttonMVal    .SetIconImage(IDI_MULVAL);
+  m_buttonDelete  .SetIconImage(IDI_DELETE);
+  m_buttonUp      .SetIconImage(IDI_UP);
+  m_buttonDn      .SetIconImage(IDI_DOWN);
+  m_buttonMutate  .SetIconImage(IDI_MUTATE);
+  m_buttonLoadtest.SetIconImage(IDI_LOADTEST);
 
   EnableToolTips();
 
-  RegisterTooltip(IDC_BUT_RUN,    _T("Run the test step"));
-  RegisterTooltip(IDC_BUT_ALL,    _T("Run all the test steps"));
-  RegisterTooltip(IDC_BUT_EDIT,   _T("Edit the test step"));
-  RegisterTooltip(IDC_BUT_COPY,   _T("Copy the test step to a new step"));
-  RegisterTooltip(IDC_BUT_NEW,    _T("Create a new test step"));
-  RegisterTooltip(IDC_BUT_MULVAL, _T("Edit multiple validation steps"));
-  RegisterTooltip(IDC_BUT_DELETE, _T("Delete the test step"));
-  RegisterTooltip(IDC_BUT_UP,     _T("Move current test step one row UP"));
-  RegisterTooltip(IDC_BUT_DOWN,   _T("Move current test step one row DOWN"));
-  RegisterTooltip(IDC_BUT_MUTATE, _T("Change the filename of a teststep or validation."));
+  RegisterTooltip(IDC_BUT_RUN,     _T("Run the test step"));
+  RegisterTooltip(IDC_BUT_ALL,     _T("Run all the test steps"));
+  RegisterTooltip(IDC_BUT_EDIT,    _T("Edit the test step"));
+  RegisterTooltip(IDC_BUT_COPY,    _T("Copy the test step to a new step"));
+  RegisterTooltip(IDC_BUT_NEW,     _T("Create a new test step"));
+  RegisterTooltip(IDC_BUT_MULVAL,  _T("Edit multiple validation steps"));
+  RegisterTooltip(IDC_BUT_DELETE,  _T("Delete the test step"));
+  RegisterTooltip(IDC_BUT_UP,      _T("Move current test step one row UP"));
+  RegisterTooltip(IDC_BUT_DOWN,    _T("Move current test step one row DOWN"));
+  RegisterTooltip(IDC_BUT_MUTATE,  _T("Change the filename of a teststep or validation."));
+  RegisterTooltip(IDC_BUT_LOADTEST,_T("Perform a load balancing test."));
 }
 
 void
@@ -1348,6 +1354,26 @@ TestEditorDlg::OnBnClickedMutate()
         StyleMessageBox(this,_T("Change the filename by choosing the combined-validation editor first (use the edit button)."),_T(KWATTA),MB_OK|MB_ICONEXCLAMATION);
       }
     }
+  }
+}
+
+void
+TestEditorDlg::OnBnClickedLoadtest()
+{
+  CCellID id = m_grid.GetFocusCell();
+  int row = id.row;
+  if(row >= 1)
+  {
+    TRun& run = m_testset.GetTestRuns()[row - 1];
+
+    CString   name     = run.m_name;
+    CString   filename = run.m_filename;
+    bool      global   = run.m_global;
+    TSValSet* valset   = m_testset.GetValidationsByFile(filename);
+    HWND      report   = GetSafeHwnd();
+
+    LoadTestDlg dlg(this,name,filename,global,valset,report,row);
+    dlg.DoModal();
   }
 }
 

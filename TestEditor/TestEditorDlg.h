@@ -100,6 +100,7 @@ protected:
   StyleButton     m_buttonUp;
   StyleButton     m_buttonDn;
   StyleButton     m_buttonMutate;
+  StyleButton     m_buttonLoadtest;
   StyleButton     m_buttonOK;
   StyleButton     m_buttonCancel;
 
@@ -130,6 +131,7 @@ protected:
   afx_msg void OnBnClickedUp();
   afx_msg void OnBnClickedDown();
   afx_msg void OnBnClickedMutate();
+  afx_msg void OnBnClickedLoadtest();
   afx_msg void OnOK();
   afx_msg void OnCancel();
   afx_msg void OnExit();

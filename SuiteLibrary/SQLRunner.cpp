@@ -57,7 +57,8 @@ SQLRunner::SQLRunner(SQLDatabase* p_database
                       ,p_reportHWND
                       ,p_callingHWND
                       ,p_callingROW
-                      ,p_global)
+                      ,p_global
+                      ,false)
            ,m_database(p_database)
 {
   m_testStep = new TestStepSQL();

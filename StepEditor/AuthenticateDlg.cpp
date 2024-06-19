@@ -119,6 +119,7 @@ AuthenticateDlg::OnInitDialog()
   StyleTab::OnInitDialog();
 
   m_editBearerToken.SetMutable(false);
+  m_editPassword.SetPassword(true);
 
   InitButtons();
   InitCombos();

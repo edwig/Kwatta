@@ -1,6 +1,17 @@
 KWATTA RELEASENOTES
 ===================
 
+Version 1.3.3 Release date 22-03-2024
+-------------------------------------
+1) Kwatta now has a load testing feature in the testeditor.
+   HTTP and SQL tests can be load tested with the load-testing button
+   In the load testing dialog you need to enter the following information
+   - Number of calls per second
+   - Number of paralllel processes per call
+   - Number of seconds to run.
+   Press the "OK" button to run the test
+   Press the "Cancel" button to leave the dialog (and/or stop the load test)
+
 Version 1.3.2 Release date 18-02-2024
 -------------------------------------
 1) Kwatta now can compile in Unicode mode

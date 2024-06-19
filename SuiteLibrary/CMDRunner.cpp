@@ -54,7 +54,8 @@ CMDRunner::CMDRunner(CString    p_baseDirectory
                      ,p_reportHWND
                      ,p_callingHWND
                      ,p_callingROW
-                     ,p_global)
+                     ,p_global
+                     ,false)
 {
   m_testStep = new TestStepCMD();
   m_result   = new StepResultCMD();

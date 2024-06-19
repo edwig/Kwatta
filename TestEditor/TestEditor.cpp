@@ -373,7 +373,7 @@ TestEditorApp::StartResultViewer(CString p_stepname,HWND p_wnd,int p_row)
 }
 
 int
-TestEditorApp::StartTestRunner(CString p_stepname,bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row)
+TestEditorApp::StartTestRunner(CString p_stepname,bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row,bool p_wait /*=true*/)
 {
   // Construct program name
   CString program = GetExePath() + _T("TestRunner.exe");
@@ -383,6 +383,11 @@ TestEditorApp::StartTestRunner(CString p_stepname,bool p_global,TSValSet* p_vali
   parameters.AppendFormat(_T(" /TDIR:\"%s\""), GetTestDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetParamFilenameClean().GetString());
   parameters.AppendFormat(_T(" /STEP:\"%s\""), p_stepname.GetString());
+  // Eventually loadtesting
+  if(!p_wait)
+  {
+    parameters += _T(" /LOAD");
+  }
 
   if(p_validations)
   {
@@ -392,7 +397,7 @@ TestEditorApp::StartTestRunner(CString p_stepname,bool p_global,TSValSet* p_vali
     }
   }
 
-  // Call program and WAIT FOR EXIT!
+  // Call program and possibly WAIT FOR EXIT!
   TRACE(_T("Start test runner: %s %s\n"),program,parameters);
-  return StartProgram(program,parameters,false,false,true);
+  return StartProgram(program,parameters,false,false,p_wait);
 }

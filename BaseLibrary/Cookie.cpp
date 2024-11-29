@@ -32,10 +32,12 @@
 #include "HTTPTime.h"
 #include "ConvertWideString.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // XTOR: Empty cookie
@@ -153,7 +155,7 @@ Cookie::GetSetCookieText()
       error.Format(_T("Error %ul in WinHttpTimeFromSystemTime.\n"),GetLastError());
       throw StdException(error.GetString());
     }
-#ifdef UNICODE
+#ifdef _UNICODE
     cookie.AppendFormat(_T("; Expires=%s"),pwszTimeStr);
 #else
     XString time;

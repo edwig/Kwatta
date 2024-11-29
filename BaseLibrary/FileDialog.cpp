@@ -27,13 +27,15 @@
 #include "FileDialog.h"
 #include <dlgs.h>
 
-#pragma warning (disable:4312)
-
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+#endif
+
+#pragma warning (disable:4312)
 
 DocFileDialog::DocFileDialog(HWND    p_owner
                             ,bool    p_open        // true = open, false = SaveAs
@@ -45,6 +47,9 @@ DocFileDialog::DocFileDialog(HWND    p_owner
                             ,XString p_direct)     
               :m_open(p_open)
 {
+  // Init OPENFILENAME structure  
+  memset(&m_ofn,0,sizeof(OPENFILENAME));
+
   if(p_filter.IsEmpty())
   {
     p_filter = _T("Text files (*.txt)|*.txt|");

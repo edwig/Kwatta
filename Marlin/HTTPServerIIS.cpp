@@ -47,10 +47,12 @@
 #pragma warning (error:4091)
 #pragma warning (disable:6387)
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging macro's
@@ -465,19 +467,22 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
                                               ,p_request->Headers.pUnknownHeaders);
 
   // Log earliest as possible
-  DETAILLOGV(_T("Received HTTP call from [%s] with length: %s")
+  DETAILLOGV(_T("Received HTTP %s call from [%s] with length: %s for: %s")
+             ,GetHTTPVerb(p_request->Verb,p_request->pUnknownVerb).GetString()
              ,SocketToServer((PSOCKADDR_IN6)sender).GetString()
-             ,contentLength.GetString());
-
-  // Log incoming request
-  DETAILLOGS(_T("Got a request for: "),rawUrl);
+             ,contentLength.GetString()
+             ,rawUrl.GetString());
 
   // Find our charset
+  Encoding encoding = Encoding::EN_ACP;
   XString charset = FindCharsetInContentType(contentType);
-  bool utf16 = charset.CompareNoCase(_T("utf-16")) == 0;
+  if(!charset.IsEmpty())
+  {
+    encoding = (Encoding)CharsetToCodepage(charset);
+  }
 
   // Trace the request in full
-  LogTraceRequest(p_request,nullptr,utf16);
+  LogTraceRequest(p_request,nullptr,encoding);
 
   // See if we must substitute for a sub-site
   if(m_hasSubsites)
@@ -546,7 +551,7 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
   message->SetContentLength((size_t)_ttoll(contentLength));
   message->SetAllHeaders(&p_request->Headers);
   message->SetUnknownHeaders(&p_request->Headers);
-  message->SetSendUnicode(utf16);
+  message->SetEncoding(encoding);
 
   // Finding the impersonation access token (if any)
   FindingAccessToken(p_context,message);
@@ -588,7 +593,7 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
     // No more are coming, we already have everything for a HTTPMessage
     if(p_request->EntityChunkCount)
     {
-      ReadEntityChunks(message,p_request,utf16);
+      ReadEntityChunks(message,p_request,encoding);
     }
   }
   // This is the result
@@ -597,7 +602,7 @@ HTTPServerIIS::GetHTTPMessageFromRequest(IHttpContext* p_context
 
 // Reading the first chunks directly from the request handle from IIS
 void
-HTTPServerIIS::ReadEntityChunks(HTTPMessage* p_message,PHTTP_REQUEST p_request,bool p_utf16)
+HTTPServerIIS::ReadEntityChunks(HTTPMessage* p_message,PHTTP_REQUEST p_request,Encoding p_encoding)
 {
   unsigned count = p_request->EntityChunkCount;
   FileBuffer* buffer = p_message->GetFileBuffer();
@@ -620,13 +625,13 @@ HTTPServerIIS::ReadEntityChunks(HTTPMessage* p_message,PHTTP_REQUEST p_request,b
     }
   }
   // Log & Trace the chunks that we just read 
-  LogTraceRequestBody(buffer,p_utf16);
+  LogTraceRequestBody(p_message,p_encoding);
 }
 
 // Receive incoming HTTP request (p_request->Flags > 0)
 // But only reading extra buffer parts into an already partially filled buffer
 bool
-HTTPServerIIS::ReceiveIncomingRequest(HTTPMessage* p_message,bool p_utf16)
+HTTPServerIIS::ReceiveIncomingRequest(HTTPMessage* p_message,Encoding p_encoding)
 {
   UNREFERENCED_PARAMETER(p_message);
   IHttpContext* context     = reinterpret_cast<IHttpContext*>(p_message->GetRequestHandle());
@@ -668,7 +673,7 @@ HTTPServerIIS::ReceiveIncomingRequest(HTTPMessage* p_message,bool p_utf16)
   }
 
   // Now also trace the request body of the message
-  LogTraceRequestBody(fbuffer,p_utf16);
+  LogTraceRequestBody(p_message,p_encoding);
 
   // Now everything has been read for this message
   p_message->SetReadBuffer(false,0);
@@ -682,7 +687,7 @@ HTTPServerIIS::CreateWebSocket(XString p_uri)
 {
   WebSocketServerIIS* socket = new WebSocketServerIIS(p_uri);
 
-  // Connect the server logfile, and loglevel
+  // Connect the server logfile, and logging level
   socket->SetLogfile(m_log);
   socket->SetLogLevel(m_logLevel);
 
@@ -696,7 +701,7 @@ HTTPServerIIS::ReceiveWebSocket(WebSocket* p_socket,HTTP_OPAQUE_ID /*p_request*/
   WebSocketServerIIS* socket = reinterpret_cast<WebSocketServerIIS*>(p_socket);
   if(socket)
   {
-    // Enter the ASYNC listener loop of the websocket
+    // Enter the ASYNC listener loop of the WebSocket
     socket->SocketListener();
   }
 }
@@ -795,7 +800,7 @@ HTTPServerIIS::InitEventStream(EventStream& p_stream)
 
     DETAILLOGV(_T("WriteEntityChunks for event stream sent [%d] bytes"),bytesSent);
     // Possibly log and trace what we just sent
-    LogTraceResponse(response->GetRawHttpResponse(),reinterpret_cast<uchar*>(init),length,false);
+    LogTraceResponse(response->GetRawHttpResponse(),reinterpret_cast<uchar*>(init),length);
 
     hr = response->Flush(false,true,&bytesSent);
   }
@@ -805,7 +810,7 @@ HTTPServerIIS::InitEventStream(EventStream& p_stream)
 void
 HTTPServerIIS::SetResponseHeader(IHttpResponse* p_response,XString p_name,XString p_value,bool p_replace)
 {
-#ifdef UNICODE
+#ifdef _UNICODE
   AutoCSTR name(p_name);
   AutoCSTR value(p_value);
   HRESULT hr = p_response->SetHeader(name.cstr(),value.cstr(),(USHORT)value.size(),p_replace);
@@ -823,7 +828,7 @@ HTTPServerIIS::SetResponseHeader(IHttpResponse* p_response,XString p_name,XStrin
 void 
 HTTPServerIIS::SetResponseHeader(IHttpResponse* p_response,HTTP_HEADER_ID p_id,XString p_value,bool p_replace)
 {
-#ifdef UNICODE
+#ifdef _UNICODE
   AutoCSTR value(p_value);
   HRESULT hr = p_response->SetHeader(p_id,value.cstr(),(USHORT)value.size(),p_replace);
 #else
@@ -856,7 +861,7 @@ void
 HTTPServerIIS::SetResponseStatus(IHttpResponse* p_response,USHORT p_status,XString p_statusMessage)
 {
   DETAILLOGV(_T("HTTP Response: %u %s"),p_status,p_statusMessage.GetString());
-#ifdef UNICODE
+#ifdef _UNICODE
   AutoCSTR message(p_statusMessage);
   p_response->SetStatus(p_status,message.cstr());
 #else
@@ -902,7 +907,7 @@ HTTPServerIIS::SendAsChunk(HTTPMessage* p_message,bool p_final /*= false*/)
       // Send the response
       SendResponseBuffer(response,buffer,buffer->GetLength(),!p_final);
       // Possibly log and trace what we just sent
-      LogTraceResponse(response->GetRawHttpResponse(),buffer,p_message->GetSendUnicode());
+      LogTraceResponse(response->GetRawHttpResponse(),p_message,p_message->GetEncoding());
     }
   }
   if(p_final)
@@ -1163,7 +1168,7 @@ HTTPServerIIS::SendResponse(HTTPMessage* p_message)
     }
   }
   // Possibly log and trace what we just sent
-  LogTraceResponse(response->GetRawHttpResponse(),buffer,p_message->GetSendUnicode());
+  LogTraceResponse(response->GetRawHttpResponse(),p_message,p_message->GetEncoding());
 
   if(!p_message->GetChunkNumber())
   {
@@ -1203,7 +1208,7 @@ HTTPServerIIS::SendResponseBuffer(IHttpResponse*  p_response
     HRESULT hr = p_response->WriteEntityChunks(&dataChunk,1,false,p_more,&sent,&completion);
     if(SUCCEEDED(hr))
     {
-      DETAILLOGV(_T("ResponseBuffer [%u] bytes sent"),entityLength);
+      DETAILLOGV(_T("ResponseBuffer [%u] bytes sent"),(ULONG)entityLength);
     }
     else
     {
@@ -1355,7 +1360,7 @@ HTTPServerIIS::SendResponseError(IHttpResponse* p_response
       ERRORLOG(ERROR_INVALID_FUNCTION,_T("ResponseFileHandle: But IIS does not expect to deliver the contents!!"));
     }
     // Possibly log and trace what we just sent
-    LogTraceResponse(p_response->GetRawHttpResponse(),reinterpret_cast<uchar*>(const_cast<TCHAR*>(sending.GetString())),sending.GetLength(),false);
+    LogTraceResponse(p_response->GetRawHttpResponse(),reinterpret_cast<uchar*>(const_cast<TCHAR*>(sending.GetString())),sending.GetLength());
   }
   else
   {
@@ -1413,7 +1418,7 @@ HTTPServerIIS::SendResponseEventBuffer(HTTP_OPAQUE_ID     p_response
     else
     {
       // Possibly log and trace what we just sent
-      LogTraceResponse(nullptr,*p_buffer,(unsigned)p_length,false);
+      LogTraceResponse(nullptr,*p_buffer,(unsigned)p_length);
     }
   }
   // Final closing of the connection

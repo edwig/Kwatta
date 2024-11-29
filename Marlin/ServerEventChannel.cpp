@@ -35,10 +35,12 @@
 #include "Base64.h"
 #include "CRC32.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging via the server
@@ -175,9 +177,15 @@ ServerEventChannel::PostEvent(XString p_payload
   }
 
   // Place in the queue (Shortest possible lock)
-  AutoCritSec lock(&m_lock);
-  m_outQueue.push_back(ltevent);
-
+  {
+    AutoCritSec lock(&m_lock);
+    m_outQueue.push_back(ltevent);
+  }
+  if(m_driver->GetActive() == false)
+  {
+    // Directly send all pending events for this channel
+    SendChannel();
+  }
   return m_maxNumber;
 }
 
@@ -191,6 +199,7 @@ ServerEventChannel::PlaceInLongPollingQueue(LTEvent* p_event)
   {
     m_minNumber = p_event->m_number;
   }
+  m_usePolling = true;
 }
 
 bool
@@ -269,7 +278,7 @@ int
 ServerEventChannel::GetQueueCount()
 {
   AutoCritSec lock(&m_lock);
-  return (int) m_outQueue.size();
+  return (int) (m_outQueue.size() + m_inQueue.size());
 }
 
 // Count all 'opened' sockets and all SSE-streams
@@ -296,6 +305,16 @@ ServerEventChannel::GetClientCount()
 bool 
 ServerEventChannel::RegisterNewSocket(HTTPMessage* p_message,WebSocket* p_socket,bool p_check /*=false*/)
 {
+  if(m_policy != EVChannelPolicy::DP_Binary         &&
+     m_policy != EVChannelPolicy::DP_Immediate_S2C  &&
+     m_policy != EVChannelPolicy::DP_TwoWayMessages &&
+     m_policy != EVChannelPolicy::DP_SureDelivery)
+  {
+    // Policy breach!
+    WARNINGLOG(_T("Tried to start WebSocket without proper policy on channel: %s"),m_name.GetString());
+    return false;
+  }
+
   // Getting the senders URL + Citrix desktop
   XString registration;
   XString address = SocketToServer(p_message->GetSender());
@@ -350,6 +369,13 @@ ServerEventChannel::RegisterNewSocket(HTTPMessage* p_message,WebSocket* p_socket
 
   // We now do sockets
   m_current = (EventDriverType)(m_current | EDT_Sockets);
+
+  // Reset close seen
+  m_closeSeen = false;
+
+  // Make sure we have an opening event
+  OnOpen(XString(_T("Started: ")) + p_message->GetURL().GetString());
+
   return true;
 }
 
@@ -372,9 +398,23 @@ ServerEventChannel::OnOpenSocket(const WebSocket* p_socket)
 void
 ServerEventChannel::OnCloseSocket(const WebSocket* p_socket)
 {
-  // NO LOCK HERE ON m_sockets
-  // Just register the new state
-  if(m_sockets.size() == 1 && p_socket == m_sockets.front().m_socket)
+  AutoCritSec lock(&m_lock);
+
+  for(AllSockets::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
+  {
+    if(it->m_socket == p_socket)
+    {
+      // Close and remove the socket
+      CloseSocket(it->m_socket);
+      it = m_sockets.erase(it);
+
+      // Push "OnClose" for web application to handle
+      OnClose(_T(""));
+      break;
+    }
+  }
+  // Register the new state
+  if(m_sockets.empty())
   {
     m_closeSeen = true;
   }
@@ -403,6 +443,16 @@ ServerEventChannel::RegisterNewStream(HTTPMessage* p_message,EventStream* p_stre
     }
   }
 
+  if(m_policy != EVChannelPolicy::DP_HighSecurity   &&
+     m_policy != EVChannelPolicy::DP_Immediate_S2C  &&
+     m_policy != EVChannelPolicy::DP_NoSockets      &&
+     m_policy != EVChannelPolicy::DP_SureDelivery)
+  {
+    // Policy breach!
+    WARNINGLOG(_T("Tried to start SSE stream without proper policy on channel: %s"),m_name.GetString());
+    return false;
+  }
+
   // Getting the senders URL + Citrix desktop
   XString registration;
   XString address = SocketToServer(p_message->GetSender());
@@ -426,8 +476,12 @@ ServerEventChannel::RegisterNewStream(HTTPMessage* p_message,EventStream* p_stre
   // We now do streams
   m_current = (EventDriverType)(m_current | EDT_ServerEvents);
 
-  // SSE Channels have no client messages, so we generate one ourselves
+  // Reset close seen
+  m_closeSeen = false;
+
+  // Make sure we have an opening event
   OnOpen(XString(_T("Started: ")) + p_message->GetURL().GetString());
+
   return true;
 }
 
@@ -441,7 +495,7 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
     for(auto& cookie : cookies.GetCookies())
     {
       if(m_cookie.CompareNoCase(cookie.GetName()) == 0 &&
-        m_token.CompareNoCase(cookie.GetValue()) == 0)
+          m_token.CompareNoCase(cookie.GetValue()) == 0)
       {
         found = true;
       }
@@ -453,6 +507,18 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
       return false;
     }
   }
+  if(m_policy != EVChannelPolicy::DP_Disconnected   &&
+     m_policy != EVChannelPolicy::DP_TwoWayMessages &&
+     m_policy != EVChannelPolicy::DP_NoSockets      &&
+     m_policy != EVChannelPolicy::DP_SureDelivery)
+  {
+    // Policy breach!
+    WARNINGLOG(_T("Tried to send a LongPolling SOAP message without proper policy on channel: %s"), m_name.GetString());
+    return false;
+  }
+  // Long polling now in use
+  m_usePolling = true;
+
   bool    close   = p_message->GetParameterBoolean(_T("CloseChannel"));
   int     acknl   = p_message->GetParameterInteger(_T("Acknowledged"));
   XString message = p_message->GetParameter(_T("Message"));
@@ -496,6 +562,11 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
     }
     return true;
   }
+  else
+  {
+    // Reset close seen
+    m_closeSeen = false;
+  }
 
   // We are now doing long-polling
   m_current = (EventDriverType)(m_current | EDT_LongPolling);
@@ -503,21 +574,38 @@ ServerEventChannel::HandleLongPolling(SOAPMessage* p_message,bool p_check /*=fal
   // Make sure channel is now open on the server side and 'in-use'
   if(!m_openSeen)
   {
-    OnOpen(_T(""));
+    // Make sure we have an opening event
+    OnOpen(XString(_T("Started: ")) + p_message->GetURL().GetString());
+    m_openSeen = true;
   }
 
   // Return 'empty' or the oldest event
   AutoCritSec lock(&m_lock);
+  EventQueue* queue = nullptr;
+  LTEvent*  ltevent = nullptr;
+
   if(m_polQueue.empty())
   {
-    p_message->SetParameter(_T("Empty"),true);
+    if(!GetNextOutgoingEvent(ltevent))
+    {
+      p_message->SetParameter(_T("Empty"),true);
+    }
   }
   else
   {
-    LTEvent* ltevent = m_polQueue.front();
+    queue = &m_polQueue;
+    ltevent = m_polQueue.front();
+  }
+  if(ltevent)
+  {
     p_message->SetParameter(_T("Number"), ltevent->m_number);
     p_message->SetParameter(_T("Message"),ltevent->m_payload);
     p_message->SetParameter(_T("Type"), LTEvent::EventTypeToString(ltevent->m_type));
+  } 
+  if(queue)
+  {
+    // Remove from the polling queue only
+    queue->pop_front();
   }
   return true;
 }
@@ -540,6 +628,7 @@ ServerEventChannel::SendChannel()
     if(m_current == EDT_NotConnected)
     {
       LogNotConnected();
+      return 0;
     }
 
     // Process the outgoing long-term event queue
@@ -548,6 +637,8 @@ ServerEventChannel::SendChannel()
     {
       if(m_current & EDT_Sockets)
       {
+        // See if websocket channel still sane
+        CheckChannel();
         sent += SendEventToSockets(ltevent);
       }
       if(m_current & EDT_ServerEvents)
@@ -599,15 +690,23 @@ ServerEventChannel::SendEventToSockets(LTEvent* p_event)
         // Check that we are addressed
         if(p_event->m_sent && (p_event->m_sent != it->m_sender))
         {
+          ++it; // Next socket
           continue;
         }
+        // Check if the socket was closed on the other side
+        USHORT  code = 0;
+        XString reason;
+        it->m_socket->GetCloseSocket(code,reason);
+
         // See if it was closed by the client side
-        if(!it->m_socket->IsOpenForWriting())
+        if(code > 0 || !it->m_socket->IsOpenForWriting())
         {
           CloseSocket(it->m_socket);
 
           AutoCritSec lock(&m_lock);
           it = m_sockets.erase(it);
+          // Push "OnClose" for web application to handle
+          OnClose(_T(""));
           continue;
         }
         // Make sure channel is now open on the server side and 'in-use'
@@ -672,6 +771,17 @@ ServerEventChannel::SendEventToStreams(LTEvent* p_event)
       // Check that we are addressed
       if(p_event->m_sent && (p_event->m_sent != it->m_sender))
       {
+        ++it; // Next stream
+        continue;
+      }
+
+      // Check if the stream is still open
+      // Could be closed by the server heartbeat
+      if (!m_server->HasEventStream(it->m_stream))
+      {
+        it = m_streams.erase(it);
+        // Push "OnClose" for web application to handle
+        OnClose(_T(""));
         continue;
       }
 
@@ -866,7 +976,7 @@ ServerEventChannel::CloseStream(const EventStream* p_stream)
   }
   catch(StdException& ex)
   {
-    ERRORLOG(ERROR_INVALID_HANDLE,"Server event driver cannot close EventStream: " + ex.GetErrorMessage());
+    ERRORLOG(ERROR_INVALID_HANDLE,_T("Server event driver cannot close EventStream: ") + ex.GetErrorMessage());
   }
   m_server->AbortEventStream(const_cast<EventStream*>(p_stream));
 }
@@ -912,10 +1022,18 @@ ServerEventChannel::OnOpen(XString p_message)
   ltevent->m_type    = EvtType::EV_Open;
   ltevent->m_number  = 0;
   ltevent->m_sent    = m_appData;
-
-  AutoCritSec lock(&m_lock);
-  m_inQueue.push_back(ltevent);
-  m_driver->IncomingEvent();
+  {
+    AutoCritSec lock(&m_lock);
+    m_inQueue.push_back(ltevent);
+  }
+  if(m_driver->GetActive())
+  {
+  	m_driver->IncomingEvent();
+  }
+  else
+  {
+  	Receiving();
+  }
 }
 
 // Called by socket handler and long-polling handler
@@ -927,10 +1045,18 @@ ServerEventChannel::OnMessage(XString p_message)
   ltevent->m_type    = EvtType::EV_Message;
   ltevent->m_number  = 0;
   ltevent->m_sent    = m_appData;
-
-  AutoCritSec lock(&m_lock);
-  m_inQueue.push_back(ltevent);
-  m_driver->IncomingEvent();
+  {
+    AutoCritSec lock(&m_lock);
+    m_inQueue.push_back(ltevent);
+  }
+  if(m_driver->GetActive())
+  {
+  	m_driver->IncomingEvent();
+  }
+  else
+  {
+  	Receiving();
+  }
 }
 
 void
@@ -941,10 +1067,18 @@ ServerEventChannel::OnError(XString p_message)
   ltevent->m_type    = EvtType::EV_Error;
   ltevent->m_number  = 0;
   ltevent->m_sent    = m_appData;
-
-  AutoCritSec lock(&m_lock);
-  m_inQueue.push_back(ltevent);
-  m_driver->IncomingEvent();
+  {
+    AutoCritSec lock(&m_lock);
+    m_inQueue.push_back(ltevent);
+  }
+  if(m_driver->GetActive())
+  {
+  	m_driver->IncomingEvent();
+  }
+  else
+  {
+  	Receiving();
+  }
 }
 
 void
@@ -955,10 +1089,18 @@ ServerEventChannel::OnClose(XString p_message)
   ltevent->m_type    = EvtType::EV_Close;
   ltevent->m_number  = 0;
   ltevent->m_sent    = m_appData;
-
-  // AutoCritSec lock(&m_lock);
-  m_inQueue.push_back(ltevent);
-  m_driver->IncomingEvent();
+  {
+    AutoCritSec lock(&m_lock);
+    m_inQueue.push_back(ltevent);
+  }
+  if(m_driver->GetActive())
+  {
+  	m_driver->IncomingEvent();
+  }
+  else
+  {
+  	Receiving();
+  }
 }
 
 void
@@ -976,10 +1118,18 @@ ServerEventChannel::OnBinary(void* p_data,DWORD p_length)
   TCHAR* buffer = ltevent->m_payload.GetBufferSetLength(p_length);
   _tcscpy_s(buffer,p_length,reinterpret_cast<TCHAR*>(p_data));
   ltevent->m_payload.ReleaseBufferSetLength(p_length);
-
-  AutoCritSec lock(&m_lock);
-  m_inQueue.push_back(ltevent);
-  m_driver->IncomingEvent();
+  {
+    AutoCritSec lock(&m_lock);
+    m_inQueue.push_back(ltevent);
+  }
+  if(m_driver->GetActive())
+  {
+  	m_driver->IncomingEvent();
+  }
+  else
+  {
+  	Receiving();
+  }
 }
 
 // Process the receiving part of the queue
@@ -1016,15 +1166,11 @@ ServerEventChannel::Receiving()
   return received;
 }
 
-// Sanity check on websocket channel
+// Sanity check on the channel
 void 
 ServerEventChannel::CheckChannel()
 {
-  // Only check if we do sockets
-  if(((m_current & EDT_Sockets) == 0) || m_outQueue.empty())
-  {
-    return;
-  }
+  AutoCritSec lock(&m_lock);
 
   // See if we must close sockets
   AllSockets::iterator it = m_sockets.begin();
@@ -1032,12 +1178,15 @@ ServerEventChannel::CheckChannel()
   {
     try
     {
+      USHORT code = 0;
+      XString reason;
+      it->m_socket->GetCloseSocket(code,reason);
+
       // See if it was closed by the client side
-      if(it->m_open == false || !it->m_socket->IsOpenForWriting())
+      if(it->m_open == false || code > 0 || !it->m_socket->IsOpenForWriting())
       {
         CloseSocket(it->m_socket);
 
-        AutoCritSec lock(&m_lock);
         it = m_sockets.erase(it);
         // Push "OnClose" for web application to handle
         OnClose(_T(""));
@@ -1053,4 +1202,71 @@ ServerEventChannel::CheckChannel()
     // Next socket
     ++it;
   }
+
+  // See if we must close streams
+  AllStreams::iterator st = m_streams.begin();
+  while(st != m_streams.end())
+  {
+    try
+    {
+      // Check if the stream is still open
+      // Could be closed by the server heartbeat
+      if(!m_server->HasEventStream(st->m_stream))
+      {
+        st = m_streams.erase(st);
+        // Push "OnClose" for web application to handle
+        OnClose(_T(""));
+        continue;
+      }
+    }
+    catch (StdException& ex)
+    {
+      ERRORLOG(ERROR_INVALID_HANDLE, _T("Invalid SSE stream registration: " + ex.GetErrorMessage()));
+      st = m_streams.erase(st);
+      continue;
+    }
+    // Next stream
+    ++st;
+  }
+}
+
+// Sanity check on channel
+bool
+ServerEventChannel::CheckChannelPolicy()
+{
+  bool result = false;
+
+  __try
+  { 
+    // Overdue closing of streams and sockets
+    CheckChannel();
+
+    switch(m_policy)
+    {
+      default:                                  [[fallthrough]];
+      case EVChannelPolicy::DP_NoPolicy:        break;                                              // Wrong! Must have a policy to work
+      case EVChannelPolicy::DP_Binary:          result = !m_sockets.empty();                        // Must have sockets to work
+                                                break;
+      case EVChannelPolicy::DP_HighSecurity:    result = !m_streams.empty();                        // Must have streams to work
+                                                break;
+      case EVChannelPolicy::DP_Disconnected:    result = m_sockets.empty() && m_streams.empty();    // Disconnected messages only (polling)
+                                                break;
+      case EVChannelPolicy::DP_Immediate_S2C:   result = !m_sockets.empty() || !m_streams.empty();  // Must have sockets or streams to work
+                                                break;
+      case EVChannelPolicy::DP_TwoWayMessages:  result = !m_sockets.empty() || m_usePolling;        // Must have socckets or polling to work
+                                                break;
+      case EVChannelPolicy::DP_NoSockets:       result = !m_streams.empty() || m_usePolling;        // Must have streams or polling to work
+                                                break;
+      case EVChannelPolicy::DP_SureDelivery:    result = !m_sockets.empty() ||                      // Must have sockets or streams or polling to work
+                                                         !m_streams.empty() || m_usePolling;         
+                                                break;
+    };
+  }
+  __finally
+  {
+    // Currently not possible to check this, assume it to be OK.
+    // Ignore any locking and memory problems
+    result = true;
+  }
+  return result;
 }

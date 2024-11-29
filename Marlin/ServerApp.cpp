@@ -32,22 +32,25 @@
 #include "Version.h"
 #include "ServiceReporting.h"
 #include <WinFile.h>
+#include <assert.h>
 #include <string>
 #include <set>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 #define DETAILLOGV(text,...)    m_httpServer->DetailLogV(_T(__FUNCTION__),LogType::LOG_INFO,text,__VA_ARGS__)
 #define WARNINGLOG(text,...)    m_httpServer->DetailLogV(_T(__FUNCTION__),LogType::LOG_WARN,text,__VA_ARGS__)
 #define ERRORLOG(code,text)     m_httpServer->ErrorLog  (_T(__FUNCTION__),code,text)
 
-IHttpServer*  g_iisServer   = nullptr;
 LogAnalysis*  g_analysisLog = nullptr;
 ErrorReport*  g_report      = nullptr;
+IHttpServer*  g_iisServer   = nullptr;
 
 // IIS calls as a C program (no function decoration in object and linker)
 extern "C"
@@ -67,6 +70,58 @@ ServerApp* _stdcall CreateServerApp(IHttpServer* p_server
                                    ,LPCTSTR     p_appName)
 {
   return appFactory->CreateServerApp(p_server,p_webroot,p_appName);
+}
+
+__declspec(dllexport)
+bool _stdcall InitServerApp(ServerApp* p_application,IHttpApplication* p_httpapp,XString p_physical)
+{
+  if(p_application)
+  {
+    _set_se_translator(SeTranslator);
+    try
+    {
+      // Call the initialization
+      p_application->InitInstance();
+
+      // Try loading the sites from IIS in the application
+      p_application->LoadSites(p_httpapp,p_physical);
+
+      // Ready, so stop the timer
+      p_application->StopCounter();
+
+      // Check if everything went well
+      return p_application->CorrectlyStarted();
+    }
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while initializing the server application: ") + ex.GetErrorMessage());
+    }
+  }
+  return false;
+}
+
+__declspec(dllexport)
+void _stdcall ExitServerApp(ServerApp* p_application)
+{
+  if(p_application)
+  {
+    _set_se_translator(SeTranslator);
+    try
+    {
+      // STOP!!
+      p_application->UnloadSites();
+
+      // Let the application stop itself 
+      p_application->ExitInstance();
+
+      // Free the application
+      delete p_application;
+    }
+    catch(StdException& ex)
+    {
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while stopping the server application: ") + ex.GetErrorMessage());
+    }
+  }
 }
 
 __declspec(dllexport)
@@ -340,8 +395,15 @@ ServerApp::StartLogging()
 {
   if(m_logfile == nullptr)
   {
+    // Getting the base of the logfile path
+    XString logpath = m_config.GetLogfilePath();
+    if(logpath.IsEmpty())
+    {
+      logpath = m_webroot;
+    }
+
     // Create the directory for the logfile
-    XString logfile = m_config.GetLogfilePath() + _T("\\") + m_applicationName + _T("\\Logfile.txt");
+    XString logfile = logpath + _T("\\") + m_applicationName + _T("\\Logfile.txt");
     WinFile ensure(logfile);
     ensure.CreateDirectory();
 
@@ -421,7 +483,7 @@ ServerApp::MinMarlinVersion(int p_version)
                        ,_T("This application was compiled for: %d.%d.%d")
                        ,p_version / 10000,(p_version % 10000)/100,p_version % 100
                        ,MARLIN_VERSION_MAJOR,MARLIN_VERSION_MINOR,MARLIN_VERSION_SP);
-    return 0;
+    return false;
   }
   // We have done our version check
   m_versionCheck = true;
@@ -792,8 +854,8 @@ ServerAppFactory::ServerAppFactory()
 {
   if(appFactory)
   {
-    TRACE(_T("You can only have ONE singleton ServerAppFactory in your program logic"));
-    ASSERT(FALSE);
+    OutputDebugString(_T("You can only have ONE singleton ServerAppFactory in your program logic"));
+    assert(FALSE);
   }
   else
   {

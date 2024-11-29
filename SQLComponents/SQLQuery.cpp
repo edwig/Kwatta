@@ -372,6 +372,7 @@ SQLQuery::ReportQuerySpeed(LARGE_INTEGER p_start)
 void
 SQLQuery::InternalSetParameter(int p_num,SQLVariant* p_param,SQLParamType p_type /*=P_SQL_PARAM_INPUT*/)
 {
+  p_param->SetColumnNumber(p_num);
   p_param->SetParameterType(p_type);
   VarMap::iterator it = m_parameters.find(p_num);
   if(it == m_parameters.end())
@@ -1053,7 +1054,7 @@ SQLQuery::BindParameters()
     }
 
     // Fix max length parameters for some database types
-    m_database->GetSQLInfoDB()->DoBindParameterFixup(sqlDatatype,columnSize,scale,bufferSize,indicator);
+    m_database->GetSQLInfoDB()->DoBindParameterFixup(dataType,sqlDatatype,columnSize,scale,bufferSize,indicator);
 
     // Log what we bind here
     if(logging)
@@ -1069,7 +1070,7 @@ SQLQuery::BindParameters()
 //     TRACE("Scale     : %d\n", scale);
 //     TRACE("Buffersize: %d\n", bufferSize);
 //     TRACE("Indicator : %d\n", (int)*indicator);
-//     TRACE("DATA      : %s\n", var->GetAsChar());
+//     TRACE("DATA      : %s\n", var->GetAsString());
 
     // Do the bindings
     m_retCode = SqlBindParameter(m_hstmt        // Statement handle
@@ -1144,8 +1145,9 @@ SQLQuery::LogParameter(int p_column,const SQLVariant* p_parameter)
   }
   XString text,name,value;
   p_parameter->GetAsString(value);
-  text.Format(_T("Parameter %d: %s"),p_column,value.GetString());
-  GetColumnName(p_parameter->GetColumnNumber(),name);
+  int column = p_parameter->GetColumnNumber();
+  text.Format(_T("Parameter %d: %s"),column,value.GetString());
+  GetColumnName(column,name);
   if(!name.IsEmpty())
   {
     text += _T(" name: ") + name;
@@ -2085,7 +2087,7 @@ SQLQuery::DoSQLCall(XString p_schema,XString p_procedure,bool p_hasReturn /*=fal
     {
       return DoSQLCallODBCNamedParameters(p_schema,p_procedure,p_hasReturn);
     }
-    return m_database->GetSQLInfoDB()->DoSQLCallNamedParameters(this,p_schema,p_procedure);
+    return m_database->GetSQLInfoDB()->DoSQLCallNamedParameters(this,p_schema,p_procedure,p_hasReturn);
   }
 
   // Is we support standard ODBC, do that call

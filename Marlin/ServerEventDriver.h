@@ -134,6 +134,8 @@ public:
   bool  StartEventDriver();
   // Stopping the event driver
   bool  StopEventDriver();
+  // Check the event channel for proper working
+  bool  CheckChannelPolicy(int m_channel);
 
   // Flush messages as much as possible for a channel
   bool  FlushChannel(XString p_cookie,XString p_token);
@@ -194,17 +196,17 @@ private:
   void RecalculateInterval(int p_sent);
 
   // DATA
-  HTTPServer*     m_server { nullptr };
-  HTTPSite*       m_site   { nullptr };
+  HTTPServer*     m_server { nullptr };     // Our HTTP server
+  HTTPSite*       m_site   { nullptr };     // Our Events site
   // Sessions
-  bool            m_active { false };
-  bool            m_force  { false };
-  int             m_nextSession { 0 };
-  ChannelMap      m_channels;   // All channels (by channel number)
-  ChanNameMap     m_names;      // Extra redundant lookup in the channels for speed by session-name
-  ChanNameMap     m_cookies;    // Extra redundant lookup in the channels for speed by cookie:value
+  bool            m_active { false   };     // Central queue is active
+  bool            m_force  { false   };     // Force the authenticaiton
+  int             m_nextSession  { 0 };     // Next session number
+  ChannelMap      m_channels;               // All channels (by channel number)
+  ChanNameMap     m_names;                  // Extra redundant lookup in the channels for speed by session-name
+  ChanNameMap     m_cookies;                // Extra redundant lookup in the channels for speed by cookie:value
   // Brute force attack on the event channels
-  SenderMap       m_senders;
+  SenderMap       m_senders;                // Last time of sender attach
   int             m_interval { 10 * CLOCKS_PER_SEC };
   // The worker bee
   HANDLE          m_thread { NULL };

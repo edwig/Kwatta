@@ -32,10 +32,12 @@
 #include "HTTPURLGroup.h"
 #include <WinFile.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging via the server
@@ -136,7 +138,12 @@ HTTPSiteMarlin::StartSite()
       wstring uniURL = StringToWString(m_prefixURL);
       HTTP_URL_GROUP_ID group = m_group->GetUrlGroupID();
       ULONG retCode = HttpAddUrlToUrlGroup(group,uniURL.c_str(),(HTTP_URL_CONTEXT)this,0);
-      if(retCode != NO_ERROR && retCode != ERROR_ALREADY_EXISTS)
+      if(retCode == ERROR_ACCESS_DENIED && m_site.Compare(_T("/")) == 0)
+      {
+        DETAILLOG1(_T("Root URL '/' referentie toegevoegd."));
+        result = true;
+      }
+      else if(retCode != NO_ERROR && retCode != ERROR_ALREADY_EXISTS)
       {
         XString error;
         error.Format(_T("Cannot add URL to the URL-Group: %s"),m_prefixURL.GetString());

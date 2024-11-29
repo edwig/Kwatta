@@ -29,10 +29,12 @@
 #include "GenerateGUID.h"
 #include <combaseapi.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Caller **MUST** do the COM+ (un)initialize with
@@ -43,7 +45,7 @@ _Check_return_ WINOLEAPI CoCreateGuid(_Out_ GUID* pguid);
 
 XString GenerateGUID()
 {
-#ifdef UNICODE
+#ifdef _UNICODE
   RPC_WSTR guidStr = nullptr;
 #else
   RPC_CSTR guidStr = nullptr;

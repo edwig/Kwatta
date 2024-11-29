@@ -29,10 +29,12 @@
 #include "JSONPointer.h"
 #include "CrackURL.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Global value to reference non-existing array or object members
@@ -208,7 +210,7 @@ JSONPointer::GetResultForceToString(bool p_whitespace /*=false*/)
   }
   if(value)
   {
-    result = value->GetAsJsonString(p_whitespace,Encoding::Default,0);
+    result = value->GetAsJsonString(p_whitespace,0);
   }
   return result;
 }

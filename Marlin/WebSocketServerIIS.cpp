@@ -36,10 +36,12 @@
 #include <iiswebsocket.h>
 #include <ServiceReporting.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 #define DETAILLOG1(text)          if(MUSTLOG(HLL_LOGGING) && m_logfile) { DetailLog (_T(__FUNCTION__),LogType::LOG_INFO,text); }
@@ -273,6 +275,19 @@ ServerReadCompletionIIS(HRESULT p_error,
     {
       if(!IsBadReadPtr(socket,sizeof(WebSocketServerIIS)))
       {
+        if(p_error == S_OK && p_bytes == 0 && !p_final)
+        {
+          // Empty frame, but not final. Just ignore it
+          return;
+        }
+        if(p_error == S_OK && p_bytes == 0 && p_final && p_close)
+        {
+          // Empty frame, final closing frame. Just ignore it
+          // Chances are that the socket is already closed and gone.
+          socket->SetClosingStatus(WS_CLOSE_GOINGAWAY);
+          return;
+        }
+        // Read this frame part into the socket
         socket->SocketReader(p_error,p_bytes,p_utf8,p_final,p_close);
       }
     }
@@ -439,7 +454,7 @@ WebSocketServerIIS::SendCloseSocket(USHORT p_code,XString p_reason)
     return true;
   }
 
-#ifdef UNICODE
+#ifdef _UNICODE
   pointer = p_reason.GetString();
 #else
   if(TryCreateWideString(p_reason,_T(""),false,&buffer,length))
@@ -497,7 +512,7 @@ WebSocketServerIIS::ReceiveCloseSocket()
   if(SUCCEEDED(hr))
   {
     XString encoded;
-#ifdef UNICODE
+#ifdef _UNICODE
     encoded = pointer;
 #else
     bool foundBom = false;
@@ -653,3 +668,53 @@ WebSocketServerIIS::CloseSocket()
   return closed;
 }
 
+// DETECT and decoded close connection (use in 'OnClose')
+bool 
+WebSocketServerIIS::GetCloseSocket(USHORT& p_code,XString& p_reason)
+{
+  if(m_iis_socket)
+  {
+    USHORT  statusCode = 0;
+    LPCWSTR reason = nullptr;
+    USHORT  length = 0;
+    if(m_iis_socket->GetCloseStatus(&statusCode,&reason,&length) == S_OK)
+    {
+      m_closingError = statusCode;
+      if(length)
+      {
+#ifdef _UNICODE
+        m_closing = reason;
+#else
+        bool foundBom = false;
+        if(!TryConvertWideString(reinterpret_cast<const uchar*>(reason),length,_T(""),m_closing,foundBom))
+        {
+          m_closing.Empty();
+        }
+#endif
+      }
+    }
+  }
+
+  // Result from IIS
+  p_code   = m_closingError;
+  p_reason = m_closing;
+  return p_code > 0;
+}
+
+// Detected a closing status on read-completion
+void
+WebSocketServerIIS::SetClosingStatus(USHORT p_code)
+{
+  // Reset the closing status
+  if(p_code == 0)
+  {
+    m_closingError = p_code;
+    return;
+  }
+  // Normal closing status
+  if(p_code >= WS_CLOSE_NORMAL && p_code <= WS_CLOSE_MAX_PRIVATE)
+  {
+    m_closingError = p_code;
+    OnClose();
+  }
+}

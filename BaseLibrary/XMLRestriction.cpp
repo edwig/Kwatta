@@ -30,10 +30,12 @@
 #include <stdint.h>
 #include <regex>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 XMLRestriction::XMLRestriction(XString p_name)
@@ -1713,7 +1715,7 @@ XMLRestriction::CheckRestriction(XmlDataType p_type,XString p_value)
   // Pattern matching, if any
   if(!m_pattern.IsEmpty())
   {
-#ifdef UNICODE
+#ifdef _UNICODE
     std::wstring str(p_value);
     std::wregex  reg(m_pattern);
 #else

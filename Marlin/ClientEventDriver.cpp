@@ -34,10 +34,12 @@
 #include "LogAnalysis.h"
 #include "Base64.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging via the client
@@ -143,7 +145,7 @@ ClientEventDriver::StopEventsForSession()
     LTEvent* event = new LTEvent(EvtType::EV_Close);
     try
     {
-    (*m_callback)(m_object,event);
+      (*m_callback)(m_object,event);
     }
     catch(StdException& ex)
     {
@@ -599,6 +601,7 @@ bool
 ClientEventDriver::StartEventsChannel()
 {
   XString url = m_serverURL + _T("Events/") + m_session;
+  m_client.SetTerminalServices(true);
   m_source = m_client.CreateEventSource(url);
 
   // Until server tells us otherwise, wait 2 seconds before each reconnect

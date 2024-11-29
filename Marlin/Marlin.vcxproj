@@ -214,6 +214,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
+    <Lib>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|x64'">
     <ClCompile>
@@ -250,6 +253,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -272,6 +276,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExceptionHandling>Async</ExceptionHandling>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -332,6 +337,7 @@
     <ClCompile Include="AppConfig.cpp" />
     <ClCompile Include="ClientEventDriver.cpp" />
     <ClCompile Include="CommandBus.cpp" />
+    <ClCompile Include="CPULoad.cpp" />
     <ClCompile Include="HostedWebCore.cpp" />
     <ClCompile Include="HTTPCertificate.cpp" />
     <ClCompile Include="CreateURLPrefix.cpp" />
@@ -391,16 +397,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUnicode|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ThreadPool.cpp" />
-    <ClCompile Include="ThreadPoolED.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseUnicode|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ReleaseUnicode|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='DebugUnicode|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="MarlinConfig.cpp" />
     <ClCompile Include="WebConfigIIS.cpp" />
     <ClCompile Include="WebServiceClient.cpp" />
@@ -412,7 +408,6 @@
       </ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="WebSocketClient.cpp" />
-    <ClCompile Include="WebSocketContext.cpp" />
     <ClCompile Include="WebSocketServer.cpp" />
     <ClCompile Include="WebSocketServerIIS.cpp" />
     <ClCompile Include="WebSocketServerSync.cpp" />
@@ -443,6 +438,7 @@
     <ClInclude Include="HTTPSite.h" />
     <ClInclude Include="HTTPSiteIIS.h" />
     <ClInclude Include="HTTPSiteMarlin.h" />
+    <ClInclude Include="HTTPSYS_Websocket.h" />
     <ClInclude Include="HTTPURLGroup.h" />
     <ClInclude Include="IISDebug.h" />
     <ClInclude Include="IISSiteConfig.h" />
@@ -480,7 +476,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ThreadPool.h" />
-    <ClInclude Include="ThreadPoolED.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="MarlinConfig.h" />
     <ClInclude Include="WebConfigIIS.h" />
@@ -488,7 +483,6 @@
     <ClInclude Include="WebServiceServer.h" />
     <ClInclude Include="WebSocket.h" />
     <ClInclude Include="WebSocketClient.h" />
-    <ClInclude Include="WebSocketContext.h" />
     <ClInclude Include="WebSocketServer.h" />
     <ClInclude Include="WebSocketServerIIS.h" />
     <ClInclude Include="WebSocketServerSync.h" />

@@ -55,10 +55,12 @@
 // And of course, as always, check for errors, session == 0 etc :-)
 //
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 OAuth2Cache::OAuth2Cache()
@@ -70,6 +72,8 @@ OAuth2Cache::~OAuth2Cache()
 {
   if(m_client)
   {
+    // Disconnet any logging
+    m_client->SetLogging(nullptr);
     delete m_client;
     m_client = nullptr;
   }
@@ -280,6 +284,7 @@ OAuth2Cache::GetClient()
     if(m_logfile)
     {
       m_client->SetLogging(m_logfile);
+      m_client->SetLogLevel(m_logfile->GetLogLevel());
     }
     if(m_development)
     {

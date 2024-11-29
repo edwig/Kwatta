@@ -28,6 +28,14 @@
 #include "pch.h"
 #include "StringUtilities.h"
 
+#ifdef _AFX
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+#endif
+
 XString AsString(int p_number,int p_radix /*=10*/)
 {
   XString string;
@@ -93,7 +101,7 @@ void NormalizeLineEndings(XString& p_string)
 #define RETURNSTR   _T("\r")
 #define LINEFEEDSTR _T("\n")
 
-#ifdef UNICODE
+#ifdef _UNICODE
   std::wstring tempStr(p_string.GetString());
 #else
   std::string tempStr(p_string.GetString());
@@ -233,7 +241,7 @@ bool SplitArgument(int& p_pos,const CString& p_data,TCHAR p_splitter,CString& p_
 
 XString GetStringFromClipboard(HWND p_wnd /*=NULL*/)
 {
-#ifdef UNICODE
+#ifdef _UNICODE
   UINT format = CF_UNICODETEXT;
 #else
   UINT format = CF_TEXT;
@@ -258,7 +266,7 @@ XString GetStringFromClipboard(HWND p_wnd /*=NULL*/)
 bool PutStringToClipboard(XString p_string,HWND p_wnd /*=NULL*/,bool p_append /*=false*/)
 {
   bool result = false;
-#ifdef UNICODE
+#ifdef _UNICODE
   UINT format = CF_UNICODETEXT;
 #else
   UINT format = CF_TEXT;

@@ -32,10 +32,12 @@
 #include "WebSocket.h"
 #include "AutoCritical.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging via the server
@@ -128,7 +130,7 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
 
     // Tell site we handle SSE streams
     eventsSite->SetIsEventStream(true);
-    eventsSite->AddContentType(_T("txt"),_T("text/event-stream"));
+    eventsSite->AddContentType(true,_T("txt"),_T("text/event-stream"));
 
     // Server must now do keep-alive jobs for SSE streams
     server->SetEventKeepAlive(5000);
@@ -148,7 +150,7 @@ ServerEventDriver::RegisterSites(HTTPServer* p_server,HTTPSite* p_site)
     SiteHandler* handler = new SiteHandlerPolling(this);
     pollingSite->SetHandler(HTTPCommand::http_post,handler);
     pollingSite->SetHandler(HTTPCommand::http_options,new SiteHandlerOptions());
-    pollingSite->AddContentType(_T("xml"),_T("application/soap+xml"));
+    pollingSite->AddContentType(true,_T("xml"),_T("application/soap+xml"));
 
     // And start the site
     if(pollingSite->StartSite()) ++started;
@@ -228,6 +230,20 @@ ServerEventDriver::SetChannelPolicy(int              p_channel
   {
     return it->second->ChangeEventPolicy(p_policy,p_application,p_data);
   }
+  return false;
+}
+
+// Check the event channel for proper working
+bool
+ServerEventDriver::CheckChannelPolicy(int m_channel)
+{
+  ChannelMap::iterator it = m_channels.find(m_channel);
+
+  if(it != m_channels.end())
+  {
+    return it->second->CheckChannelPolicy();
+  }
+  // No channel found -> Error
   return false;
 }
 
@@ -395,7 +411,10 @@ ServerEventDriver::IncomingNewStream(HTTPMessage* p_message,EventStream* p_strea
     }
   }
   // Possibly sent messages to newfound channel right away
-  SetEvent(m_event);
+  if(m_active)
+  {
+    SetEvent(m_event);
+  }
   return true;
 }
 
@@ -431,14 +450,12 @@ ServerEventDriver::PostEvent(int     p_session
                             ,XString p_typeName       /*= "" */)
 {
   int number = 0;
-  if(m_active)
+  ServerEventChannel* session = session = FindSession(p_session);
+  if(session)
   {
-    AutoCritSec lock(&m_lock);
-
-    ServerEventChannel* session = FindSession(p_session);
-    if(session)
+    number = session->PostEvent(p_payload,p_returnToSender,p_type,p_typeName);
+    if(m_active)
     {
-      number = session->PostEvent(p_payload,p_returnToSender,p_type,p_typeName);
       // Kick the worker bee to start sending
       ::SetEvent(m_event);
     }
@@ -853,19 +870,6 @@ ServerEventDriver::SendChannels()
         channels[chan.first] = chan.second;
       }
     }
-  }
-
-  try
-  {
-    // Check all channels 
-    for(auto& channel : channels)
-    {
-      channel.second->CheckChannel();
-    }
-  }
-  catch(StdException& ex)
-  {
-    ERRORLOG(ERROR_UNHANDLED_EXCEPTION, _T("ServerEventDriver error while checking channels: ") + ex.GetErrorMessage());
   }
 
   try

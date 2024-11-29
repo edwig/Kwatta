@@ -29,10 +29,12 @@
 #include "XMLRestriction.h"
 #include "Namespace.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Defined in FileBuffer
@@ -246,7 +248,7 @@ XMLMessage::LoadFile(const XString& p_fileName)
     return false;
   }
 
-  if(file.Open(winfile_read | open_trans_text))
+  if(file.Open(winfile_read | open_trans_text | open_shared_read))
   {
     // Reading in the contents
     XString contents;
@@ -258,14 +260,13 @@ XMLMessage::LoadFile(const XString& p_fileName)
 
     // Record the found encodings
     m_encoding = file.GetEncoding();
-    if(m_encoding != Encoding::Default)
+    m_sendBOM  = file.GetFoundBOM();
+
+    // No encoding in the file: presume it is a file from our OS
+    // XML is always UTF-8 by default
+    if(!m_sendBOM && m_encoding == Encoding::EN_ACP)
     {
-      m_sendBOM = true;
-      if(m_encoding == Encoding::LE_UTF16 ||
-         m_encoding == Encoding::BE_UTF16)
-      {
-        m_sendUnicode = true;
-      }
+      m_encoding = Encoding::UTF8;
     }
 
     // Close the file
@@ -385,13 +386,12 @@ XMLMessage::Print()
 XString
 XMLMessage::PrintHeader()
 {
-  XString header(_T("<?xml"));
-
   // Check what we should do
-  if(m_version.IsEmpty() && m_encoding == Encoding::Default && m_standalone.IsEmpty())
+  if(m_version.IsEmpty() && m_encoding == Encoding::EN_ACP && m_standalone.IsEmpty())
   {
     return _T("");
   }
+  XString header(_T("<?xml"));
 
   // Construct the header
   if(!m_version.IsEmpty())
@@ -399,17 +399,7 @@ XMLMessage::PrintHeader()
     header.AppendFormat(_T(" version=\"%s\""),m_version.GetString());
   }
   // Take care of character encoding
-  XString charset;
-  switch(m_encoding)
-  {
-    default:                   [[fallthrough]];
-    case Encoding::UTF8:       charset = "utf-8";
-                               break;
-    case Encoding::LE_UTF16:   charset = "utf-16";
-                               break;
-    case Encoding::Default:    charset = CodepageToCharset(GetACP());
-                               break;
-  }
+  XString charset = CodepageToCharset((int)m_encoding);
   header.AppendFormat(_T(" encoding=\"%s\""),charset.GetString());
 
   // Add standalone?
@@ -602,7 +592,7 @@ XMLMessage::PrintWSDLComment(XMLElement* p_element)
 XString 
 XMLMessage::PrintJson(bool p_attributes)
 {
-  XString message = PrintElementsJson(m_root,p_attributes,m_encoding);
+  XString message = PrintElementsJson(m_root,p_attributes);
   if(m_condensed)
   {
     message += _T("\n");
@@ -614,8 +604,7 @@ XMLMessage::PrintJson(bool p_attributes)
 XString
 XMLMessage::PrintElementsJson(XMLElement* p_element
                              ,bool        p_attributes
-                             ,Encoding    p_encoding /*= Encoding = UTF8 */
-                             ,int         p_level    /* = 0*/)
+                             ,int         p_level /* = 0*/)
 {
   XString temp;
   XString spaces;
@@ -664,7 +653,7 @@ XMLMessage::PrintElementsJson(XMLElement* p_element
     case XDT_CDATA:             [[fallthrough]];
     case XDT_String:            [[fallthrough]];
     case XDT_AnyURI:            [[fallthrough]];
-    case XDT_NormalizedString:  temp = XMLParser::PrintJsonString(value,m_encoding);
+    case XDT_NormalizedString:  temp = XMLParser::PrintJsonString(value);
                                 break;
   }
   message += temp + newline;
@@ -685,7 +674,7 @@ XMLMessage::PrintElementsJson(XMLElement* p_element
     message += newline;
     for(auto& elem : p_element->GetChildren())
     {
-      PrintElementsJson(elem,p_attributes,p_encoding,p_level + 1);
+      PrintElementsJson(elem,p_attributes,p_level + 1);
     }
     message += spaces;
     message += _T("}");
@@ -715,7 +704,7 @@ XMLMessage::EncryptMessage(XString& /*p_message*/)
 
 // General add a parameter (always adds, so multiple parameters of same name can be added)
 XMLElement*
-XMLMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type,XString p_value,bool p_front /*=false*/)
+XMLMessage::AddElement(XMLElement* p_base,XString p_name,XmlDataType p_type /*=XDT_String*/, XString p_value /*=""*/, bool p_front /*=false*/)
 {
   // Removing the namespace from the name
   XString namesp = SplitNamespace(p_name);
@@ -1373,25 +1362,8 @@ Encoding
 XMLMessage::SetEncoding(Encoding p_encoding)
 {
   Encoding previous = m_encoding;
-  m_encoding    = p_encoding;
-  m_sendUnicode = (p_encoding == Encoding::LE_UTF16);
+  m_encoding = p_encoding;
   return previous;
-}
-
-// Set sending in Unicode
-void
-XMLMessage::SetSendUnicode(bool p_unicode)
-{
-  m_sendUnicode = p_unicode;
-  if(p_unicode)
-  {
-    m_encoding = Encoding::LE_UTF16;
-  }
-  else if(m_encoding == Encoding::LE_UTF16)
-  {
-    // Reset/Degrade to UTF-8 (Default encoding)
-    m_encoding = Encoding::UTF8;
-  }
 }
 
 #pragma endregion Operations

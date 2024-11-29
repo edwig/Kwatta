@@ -30,10 +30,12 @@
 #include "HTTPMessage.h"
 #include "GetLastErrorAsString.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 StoreMessage::StoreMessage()
@@ -45,7 +47,6 @@ StoreMessage::StoreMessage(XString p_filename)
 {
   // Use file with UTF-8 encoding for strings
   m_file.SetFilename(m_filename);
-  m_file.SetEncoding(Encoding::UTF8);
 }
 
 StoreMessage::~StoreMessage()
@@ -107,7 +108,7 @@ bool
 StoreMessage::StoreResponseMessage(HTTPMessage* p_message)
 {
   bool result = false;
-  if(m_file.Open(winfile_read | open_trans_binary | open_random_access))
+  if(!m_file.Open(winfile_read | open_trans_binary | open_random_access))
   {
     m_error = m_file.GetLastError();
     return result;

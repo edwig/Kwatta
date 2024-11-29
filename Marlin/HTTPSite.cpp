@@ -38,10 +38,12 @@
 #include <winerror.h>
 #include <sddl.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging via the server
@@ -138,7 +140,7 @@ HTTPSite::CleanupThrotteling()
 
 // OPTIONAL: Set one or more text-based content types
 void
-HTTPSite::AddContentType(XString p_extension,XString p_contentType)
+HTTPSite::AddContentType(bool p_logging,XString p_extension,XString p_contentType)
 {
   // Mapping is on lower case
   p_extension.MakeLower();
@@ -149,7 +151,7 @@ HTTPSite::AddContentType(XString p_extension,XString p_contentType)
   if(it == m_contentTypes.end())
   {
     // Insert a new one
-    m_contentTypes.insert(std::make_pair(p_extension, MediaType(p_extension,p_contentType)));
+    m_contentTypes.insert(std::make_pair(p_extension,MediaType(p_logging,p_extension,p_contentType)));
   }
   else
   {
@@ -564,7 +566,12 @@ HTTPSite::RemoveSiteFromGroup()
     if(m_isSubsite == false)
     {
       retCode = HttpRemoveUrlFromUrlGroup(group,uniURL.c_str(),0);
-      if(retCode != NO_ERROR)
+      if(m_site.Compare(_T("/")) == 0 && retCode == ERROR_FILE_NOT_FOUND)
+      {
+        // Ignore for the base site
+        retCode = NO_ERROR;
+      }
+      else if(retCode != NO_ERROR)
       {
         ERRORLOG(retCode,_T("Cannot remove site from URL group: ") + m_prefixURL);
       }
@@ -650,7 +657,7 @@ HTTPSite::HandleHTTPMessage(HTTPMessage* p_message)
     // Try to read the body / rest of the message
     // This is now done by the threadpool thread, so the central
     // server has more time to handle the incoming requests.
-    if(p_message->GetReadBuffer() && m_server->ReceiveIncomingRequest(p_message,p_message->GetSendUnicode()) == false)
+    if(p_message->GetReadBuffer() && m_server->ReceiveIncomingRequest(p_message,p_message->GetEncoding()) == false)
     {
       // Error already report to log, EOF or stream not read
       p_message->Reset();

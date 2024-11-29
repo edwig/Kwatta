@@ -62,7 +62,7 @@ public:
   XString              GetErrorMessage() const;
   bool                 GetErrorMessage(PTCHAR p_error,unsigned p_maxSize,unsigned* p_helpContext = NULL) const;
 
-private:
+protected:
   unsigned             m_safeExceptionCode { 0 };
   _EXCEPTION_POINTERS* m_exceptionPointers { nullptr };
   unsigned             m_applicationCode   { 0 };
@@ -70,7 +70,7 @@ private:
 };
 
 void SeTranslator(unsigned p_safe,_EXCEPTION_POINTERS* p_exceptionPointers);
-#ifdef _ATL
+#ifdef _AFX 
 // Translate CException to XString
 XString MessageFromException(CException& p_exception);
 #endif

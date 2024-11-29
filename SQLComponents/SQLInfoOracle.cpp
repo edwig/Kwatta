@@ -96,7 +96,7 @@ SQLInfoOracle::GetRDBMSPhysicalDatabaseName() const
   qry.DoSQLStatement(query);
   if(qry.GetRecord())
   {
-    return qry.GetColumn(1)->GetAsChar();
+    return qry.GetColumn(1)->GetAsString();
   }
   return XString(_T(""));
 }
@@ -454,6 +454,12 @@ SQLInfoOracle::GetSQLGenerateSerial(XString p_table) const
   return _T("SELECT ") + p_table + _T("_seq.nextval FROM DUAL");
 }
 
+XString
+SQLInfoOracle::GetSQLGenerateSequence(XString p_sequence) const
+{
+  return _T("SELECT ") + p_sequence + _T(".nextval FROM DUAL");
+}
+
 // Gets the construction / select for the resulting effective generated serial
 XString
 SQLInfoOracle::GetSQLEffectiveSerial(XString p_identity) const
@@ -651,8 +657,17 @@ SQLInfoOracle::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool /*
 
 // Changes to parameters before binding to an ODBC HSTMT handle
 void
-SQLInfoOracle::DoBindParameterFixup(SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+SQLInfoOracle::DoBindParameterFixup(SQLSMALLINT& p_dataType,SQLSMALLINT& p_sqlDatatype,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
 {
+  // Oracle driver can only bind to SQL_DECIMAL
+  if(p_dataType == SQL_DECIMAL)
+  {
+    p_dataType = SQL_NUMERIC;
+  }
+  if(p_sqlDatatype == SQL_DECIMAL)
+  {
+    p_sqlDatatype = SQL_NUMERIC;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -2287,15 +2302,16 @@ SQLInfoOracle::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*
 //////////////////////////////////////////////////////////////////////////
 
 XString
-SQLInfoOracle::GetPSMProcedureExists(XString p_schema, XString p_procedure) const
+SQLInfoOracle::GetPSMProcedureExists(XString p_schema,XString p_procedure) const
 {
   p_schema.MakeUpper();
   p_procedure.MakeUpper();
   return _T("SELECT COUNT(*)\n")
          _T("  FROM all_procedures\n")
-         _T(" WHERE owner       = '") + p_schema + _T("'\n")
-         _T("   AND object_name = '") + p_procedure + _T("'\n")
-         _T("   AND object_type IN ('PROCEDURE','FUNCTION')");
+         _T(" WHERE object_type IN ('PACKAGE','PROCEDURE','FUNCTION')\n")
+         _T("   AND owner            = '") + p_schema + _T("'\n")
+         _T("   AND ( object_name    = '") + p_procedure + _T("'\n")
+         _T("      OR procedure_name = '") + p_procedure + _T("')");
 }
 
 XString
@@ -2304,18 +2320,38 @@ SQLInfoOracle::GetPSMProcedureList(XString& p_schema) const
   p_schema.MakeUpper();
   XString sql;
 
-  sql = _T("SELECT sys_context('USERENV','DB_NAME') AS procedure_catalog\n")
-        _T("      ,owner             AS procedure_schema\n")
-        _T("      ,object_name       AS procedure_name\n")
-        _T("      ,CASE object_type \n")
-        _T("            WHEN 'PROCEDURE' THEN 1\n")
-        _T("            WHEN 'FUNCTION'  THEN 2\n")
-        _T("                             ELSE 3\n")
-        _T("       END AS procedure_type\n")
-        _T("  FROM all_procedures\n");
+  sql  = _T("SELECT sys_context('USERENV','DB_NAME') AS procedure_catalog\n")
+         _T("      ,owner       as procedure_schema\n")
+         _T("      ,object_name as procedure_name\n")
+         _T("      ,1           as procedure_type\n")
+         _T("  FROM all_procedures\n")
+         _T(" WHERE object_type = 'PROCEDURE'\n");
   if(!p_schema.IsEmpty())
   {
-    sql += _T(" WHERE owner = ?\n");
+    sql += _T("   AND owner = '" + p_schema + "'\n");
+  }
+  sql += _T("UNION\n")
+         _T("SELECT sys_context('USERENV','DB_NAME')\n")
+         _T("      ,owner\n")
+         _T("      ,object_name || '.' || procedure_name\n")
+         _T("      ,1\n")
+         _T("  FROM all_procedures\n")
+         _T(" WHERE object_type = 'PACKAGE'\n")
+         _T("   AND procedure_name IS NOT NULL\n");
+  if(!p_schema.IsEmpty())
+  {
+    sql += _T("   AND owner = '" + p_schema + "'\n");
+  }
+  sql += _T("UNION\n")
+         _T("SELECT sys_context('USERENV','DB_NAME')\n")
+         _T("      ,owner\n")
+         _T("      ,object_name\n")
+         _T("      ,2\n")
+         _T(" FROM all_procedures\n")
+         _T("WHERE object_type = 'FUNCTION'\n");
+  if(!p_schema.IsEmpty())
+  {
+    sql += _T("   AND owner = ?\n");
   }
   sql += _T(" ORDER BY 1,2,3");
   return sql;
@@ -2324,8 +2360,16 @@ SQLInfoOracle::GetPSMProcedureList(XString& p_schema) const
 XString
 SQLInfoOracle::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure) const
 {
-  p_schema.MakeUpper();
   p_procedure.MakeUpper();
+  CString package;
+
+  int pos = p_procedure.Find('.');
+  if(pos > 0)
+  {
+    package     = p_procedure.Left(pos);
+    p_procedure = p_procedure.Mid(pos+1);
+  }
+
   XString sql;
   sql = _T("SELECT sys_context('USERENV','DB_NAME') AS procedure_catalog\n")
         _T("      ,owner             AS procedure_schema\n")
@@ -2333,34 +2377,47 @@ SQLInfoOracle::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure)
         _T("      ,(SELECT COUNT(*)\n")
         _T("           FROM all_arguments par\n")
         _T("         WHERE par.owner       = pro.owner\n")
-        _T("           AND par.object_name = pro.object_name\n")
         _T("           AND par.object_id   = pro.object_id\n")
+        _T("           AND ( par.object_name = pro.object_name\n")
+        _T("             OR (par.object_name = pro.procedure_name AND par.package_name = pro.object_name))\n")
         _T("           AND par.in_out IN ('IN','IN/OUT')) as input_params\n")
         _T("      ,(SELECT COUNT(*)\n")
         _T("          FROM all_arguments par\n")
         _T("         WHERE par.owner       = pro.owner\n")
-        _T("           AND par.object_name = pro.object_name\n")
         _T("           AND par.object_id   = pro.object_id\n")
+        _T("           AND ( par.object_name = pro.object_name\n")
+        _T("             OR (par.object_name = pro.procedure_name AND par.package_name = pro.object_name))\n")
         _T("           AND par.in_out IN ('OUT','IN/OUT')) as output_params\n")
         _T("      ,0   AS result_sets\n")
         _T("      ,''  AS remarks\n")
         _T("      ,CASE object_type \n")
+        _T("            WHEN 'PACKAGE'   THEN 1\n")
         _T("            WHEN 'PROCEDURE' THEN 1\n")
         _T("            WHEN 'FUNCTION'  THEN 2\n")
         _T("                             ELSE 3\n")
         _T("       END AS procedure_type\n")
         _T("      ,'<@>' as source\n")
         _T("  FROM all_procedures pro\n")
-        _T(" WHERE object_type IN ('PROCEDURE','FUNCTION')\n");
+        _T(" WHERE object_type IN ('PACKAGE','PROCEDURE','FUNCTION')\n");
   if(!p_schema.IsEmpty())
   {
     sql += _T("   AND owner = ?\n");
   }
-  if(!p_procedure.IsEmpty())
+  if(!package.IsEmpty())
   {
-    sql += _T("   AND object_name ");
+    sql += _T("   AND object_name = '" + package + "'\n");
+    sql += _T("   AND procedure_name ");
     sql += p_procedure.Find('%') >= 0 ? _T("LIKE") : _T("=");
     sql += _T(" ?\n");
+  }
+  else if(!p_procedure.IsEmpty())
+  {
+    sql += _T("   AND ( object_name ");
+    sql += p_procedure.Find('%') >= 0 ? _T("LIKE '") : _T("= '");
+    sql += p_procedure + _T("'\n");
+    sql += _T("      OR procedure_name ");
+    sql += p_procedure.Find('%') >= 0 ? _T("LIKE") : _T("=");
+    sql += _T(" ?)\n");
   }
   sql += _T("ORDER BY 1,2,3");
   return sql;
@@ -2421,16 +2478,17 @@ SQLInfoOracle::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
 
   while (qry1.GetRecord())
   {
-    XString s = qry1.GetColumn(3)->GetAsChar();
+    XString s = qry1.GetColumn(3)->GetAsString();
     if(s.Find(_T("Statement ignored")) < 0) 
     {
+      XString error = qry1.GetColumn(3)->GetAsString();
       s.Format(_T("Error in line %d, column %d: %s\n"),qry1.GetColumn(1)->GetAsSLong()
-	                                              ,qry1.GetColumn(2)->GetAsSLong()
-                                                  ,qry1.GetColumn(3)->GetAsChar());
+	                                                    ,qry1.GetColumn(2)->GetAsSLong()
+                                                      ,error.GetString());
       errorText += s;
       query.Format( _T("SELECT text\n")
                     _T("  FROM all_source\n")
-                    _T(" WHERE type = 'FUNCTION'\n")
+                    _T(" WHERE type IN ('PACKAGE','PROCEDURE','FUNCTION')\n")
                     _T("   AND name = '%s'\n")
                     _T("   AND line = %d")
                    ,p_procedure.GetString()
@@ -2438,9 +2496,10 @@ SQLInfoOracle::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
       qry2.DoSQLStatement(query);
       while(qry2.GetRecord())
       {
+        XString code = qry2.GetColumn(1)->GetAsString();
         s.Format(_T("Line %d: %s\n")
                  ,qry1.GetColumn(1)->GetAsSLong()
-                 ,qry2.GetColumn(1)->GetAsChar());
+                 ,code.GetString());
         errorText += s;
       }
     }
@@ -2756,9 +2815,19 @@ SQLInfoOracle::DoSQLCall(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*
 
 // Calling a stored function with named parameters, returning a value
 SQLVariant*
-SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,XString& p_schema,XString& p_procedure)
+SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,XString& p_schema,XString& p_procedure,bool p_function /*= true*/)
 {
-  XString sql = _T("BEGIN DECLARE x NUMBER; BEGIN ? := ");
+  XString sql;
+  
+  if(p_function)
+  {
+    sql = _T("BEGIN\n  DECLARE x NUMBER;\n  BEGIN\n    ? := ");
+  }
+  else
+  {
+    // Nope: it's a procedure
+    sql = _T("BEGIN\n  ");
+  }
   if(!p_schema.IsEmpty())
   {
     sql += p_schema;
@@ -2783,11 +2852,18 @@ SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,XString& p_schema,XStr
       sql += _T(" => ? ");
     }
   }
-  sql += _T("); END; END;");
+  sql += _T(");\n  END;");
+  if(!p_procedure)
+  {
+    sql += _T("\nEND;");
+  }
 
   // Add parameter 0 as result parameter
-  p_query->SetParameter(0,0);
-
+  if(p_function && p_query->GetParameter(0) == nullptr)
+  {
+    SQLVariant ret((int)0);
+    p_query->SetParameter(0,&ret);
+  }
   // Now find the result
   p_query->DoSQLStatement(sql);
   return p_query->GetParameter(0);

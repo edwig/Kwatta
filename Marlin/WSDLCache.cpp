@@ -41,10 +41,12 @@
 #include "ErrorReport.h"
 #include <WinFile.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
-static CHAR THIS_FILE[] = __FILE__;
+static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 #ifdef CRASHLOG
@@ -187,6 +189,7 @@ WSDLCache::GenerateWSDL()
 
   // Open file;
   WinFile file(m_filename);
+  file.CreateDirectory();
   if(file.Open(winfile_write | open_trans_text,FAttributes::attrib_none,Encoding::UTF8))
   {
     XString wsdlcontent;

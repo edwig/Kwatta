@@ -38,10 +38,12 @@
 #include "WebSocketServerSync.h"
 #include <ServiceReporting.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging macro's
@@ -405,7 +407,7 @@ HTTPServerSync::RunHTTPServer()
                                           NULL);              // LPOVERLAPPED
     
     // See if server was aborted by the closing of the request queue
-    if(result == ERROR_OPERATION_ABORTED)
+    if(result == ERROR_OPERATION_ABORTED || result == ERROR_HANDLE_EOF)
     {
       DETAILLOG1(_T("Operation on the HTTP server aborted!"));
       m_running = false;
@@ -430,25 +432,27 @@ HTTPServerSync::RunHTTPServer()
                                                 ,request->Headers.pUnknownHeaders);
     // Our charset
     XString charset;
-    bool utf16(false);
+    Encoding encoding = Encoding::EN_ACP;
 
     // If positive request ID received
     if(request->RequestId)
     {
       // Log earliest as possible
-      DETAILLOGV(_T("Received HTTP call from [%s] with length: %I64u")
+      DETAILLOGV(_T("Received HTTP %s call from [%s] with length: %I64u for: %s")
+                 ,GetHTTPVerb(request->Verb,request->pUnknownVerb).GetString()
                  ,SocketToServer((PSOCKADDR_IN6) sender).GetString()
-                 ,request->BytesReceived);
-
-       // Log incoming request
-      DETAILLOGS(_T("Got a request for: "),rawUrl);
+                 ,request->BytesReceived
+                 ,rawUrl.GetString());
 
       // Find our charset
       charset = FindCharsetInContentType(contentType);
-      utf16   = charset.CompareNoCase(_T("utf-16")) == 0;
+      if(!charset.IsEmpty())
+      {
+        encoding = (Encoding)CharsetToCodepage(charset);
+      }
 
       // Trace the request in full
-      LogTraceRequest(request,nullptr,utf16);
+      LogTraceRequest(request,nullptr,encoding);
     }
 
     // Test if server already stopped, and we are here because of the stopping
@@ -576,6 +580,7 @@ HTTPServerSync::RunHTTPServer()
       message->SetContentLength((size_t)_ttoll(contentLength));
       message->SetAllHeaders(&request->Headers);
       message->SetUnknownHeaders(&request->Headers);
+      message->SetEncoding(encoding);
 
       // Handle modified-since 
       // Rest of the request is then not needed any more
@@ -778,7 +783,13 @@ HTTPServerSync::StopServer()
 WebSocket*
 HTTPServerSync::CreateWebSocket(XString p_uri)
 {
-  return new WebSocketServerSync(p_uri);
+  WebSocketServer* socket = new WebSocketServerSync(p_uri);
+
+  // Connect the server logfile, and logging level
+  socket->SetLogfile(m_log);
+  socket->SetLogLevel(m_logLevel);
+
+  return socket;
 }
 
 void
@@ -810,7 +821,7 @@ HTTPServerSync::CancelRequestStream(HTTP_OPAQUE_ID p_response,bool /*p_reset*/)
 
 // Receive incoming HTTP request
 bool
-HTTPServerSync::ReceiveIncomingRequest(HTTPMessage* p_message,bool p_utf16)
+HTTPServerSync::ReceiveIncomingRequest(HTTPMessage* p_message,Encoding p_encoding /*=Encoding::EN_ACP*/)
 {
   bool   retval    = true;
   bool   reading   = true;
@@ -850,6 +861,11 @@ HTTPServerSync::ReceiveIncomingRequest(HTTPMessage* p_message,bool p_utf16)
     switch(result)
     {
       case NO_ERROR:          // Regular incoming body part
+                              if(bytesRead == 0)
+                              {
+                                reading = false;
+                                break;
+                              }
                               entityBuffer[bytesRead] = 0;
                               p_message->AddBody(entityBuffer,bytesRead);
                               DETAILLOGV(_T("ReceiveRequestEntityBody [%d] bytes"),bytesRead);
@@ -894,7 +910,7 @@ HTTPServerSync::ReceiveIncomingRequest(HTTPMessage* p_message,bool p_utf16)
   p_message->SetReadBuffer(false);
 
   // Now also trace the request body of the message
-  LogTraceRequestBody(p_message->GetFileBuffer(),p_utf16);
+  LogTraceRequestBody(p_message,p_encoding);
 
   // Receiving succeeded?
   return retval;
@@ -920,16 +936,19 @@ HTTPServerSync::AddUnknownHeaders(UKHeaders& p_headers)
   PHTTP_UNKNOWN_HEADER unknown = new HTTP_UNKNOWN_HEADER[p_headers.size()];
 
   unsigned ind = 0;
+  unsigned len = 0;
   for(auto& header : p_headers)
   {
     AutoCSTR name(header.m_name);
+    len = name.size();
     header.m_nameStr = name.grab();
-    unknown[ind].NameLength = (USHORT)name.size();
+    unknown[ind].NameLength = (USHORT)len;
     unknown[ind].pName      = header.m_nameStr;
 
     AutoCSTR value(header.m_value);
+    len = value.size();
     header.m_valueStr = value.grab();
-    unknown[ind].RawValueLength = (USHORT)value.size();
+    unknown[ind].RawValueLength = (USHORT)len;
     unknown[ind].pRawValue      = header.m_valueStr;
 
     // next header
@@ -953,6 +972,7 @@ HTTPServerSync::SendAsChunk(HTTPMessage* p_message,bool p_final /*= false*/)
   if(!buffer->ChunkedEncoding(p_final))
   {
     ERRORLOG(ERROR_NOT_ENOUGH_MEMORY,_T("Cannot chunk-encode the message for transfer-encoding!"));
+    return;
   }
 
   // If we want to send a (g)zipped buffer, that should have been done already by now
@@ -981,7 +1001,7 @@ HTTPServerSync::SendAsChunk(HTTPMessage* p_message,bool p_final /*= false*/)
   }
   if(p_final)
   {
-    // Do **NOT** send an answer twice
+    // Do **NOT** send an another chunk
     p_message->SetHasBeenAnswered();
   }
 }
@@ -1190,13 +1210,20 @@ HTTPServerSync::SendResponse(HTTPMessage* p_message)
   // Sync server providing our own error page
   if(totalLength == 0 && status >= HTTP_STATUS_BAD_REQUEST)
   {
+    CString page;
+    CString reason = GetHTTPStatusText(status);
+
     if(status >= HTTP_STATUS_SERVER_ERROR)
     {
-      buffer->SetBuffer(reinterpret_cast<uchar*>(const_cast<TCHAR*>(m_serverErrorPage.GetString())),m_serverErrorPage.GetLength());
+      page.Format(m_serverErrorPage,status,reason.GetString());
+      AutoCSTR cpage(page);
+      buffer->SetBuffer((uchar*)cpage.cstr(),cpage.size());
     }
     else
     {
-      buffer->SetBuffer(reinterpret_cast<uchar*>(const_cast<TCHAR*>(m_clientErrorPage.GetString())),m_clientErrorPage.GetLength());
+      page.Format(m_clientErrorPage,status,reason.GetString());
+      AutoCSTR cpage(page);
+      buffer->SetBuffer((uchar*)cpage.cstr(), cpage.size());
     }
     totalLength = buffer->GetLength();
   }
@@ -1240,7 +1267,7 @@ HTTPServerSync::SendResponse(HTTPMessage* p_message)
   }
 
   // Possibly log and trace what we just sent
-  LogTraceResponse(&response,buffer,p_message->GetSendUnicode());
+  LogTraceResponse(&response,p_message,p_message->GetEncoding());
 
   // Remove unknown header information
   delete [] unknown;
@@ -1288,7 +1315,7 @@ HTTPServerSync::SendResponseBuffer(PHTTP_RESPONSE p_response
   policy.Policy        = m_policy;
   policy.SecondsToLive = m_secondsToLive;
 
-  ULONG flags = p_moreData ? HTTP_SEND_RESPONSE_FLAG_MORE_DATA : 0;
+  ULONG flags = p_moreData ? HTTP_SEND_RESPONSE_FLAG_MORE_DATA : HTTP_SEND_RESPONSE_FLAG_DISCONNECT;
 
   // Because the entity body is sent in one call, it is not
   // required to specify the Content-Length.
@@ -1309,7 +1336,7 @@ HTTPServerSync::SendResponseBuffer(PHTTP_RESPONSE p_response
   }
   else
   {
-    DETAILLOGV(_T("SendHttpResponseBuffer [%d] bytes sent"),bytesSent);
+    DETAILLOGV(_T("SendHttpResponseBuffer [%u] bytes sent"),bytesSent);
   }
   return (result == NO_ERROR);
 }
@@ -1340,7 +1367,7 @@ HTTPServerSync::SendResponseBufferParts(PHTTP_RESPONSE  p_response
       p_response->pEntityChunks         = &dataChunk;
     }
     // Flag to calculate the last sending part
-    ULONG flags = (totalSent + entityLength) < p_totalLength ? HTTP_SEND_RESPONSE_FLAG_MORE_DATA : 0;
+    ULONG flags = (totalSent + entityLength) < p_totalLength ? HTTP_SEND_RESPONSE_FLAG_MORE_DATA : HTTP_SEND_RESPONSE_FLAG_DISCONNECT;
     DWORD  result = 0;
 
     if(transmitPart == 0)
@@ -1458,12 +1485,13 @@ HTTPServerSync::SendResponseFileHandle(PHTTP_RESPONSE p_response
   dataChunk.FromFileHandle.ByteRange.Length.QuadPart = fileSize; // HTTP_BYTE_RANGE_TO_EOF
   dataChunk.FromFileHandle.FileHandle = file;
 
+  ULONG bytes;
   result = HttpSendResponseEntityBody(m_requestQueue,
                                       p_request,
-                                      0,           // This is the last send.
-                                      1,           // Entity Chunk Count.
+                                      HTTP_SEND_RESPONSE_FLAG_DISCONNECT, // This is the last send.
+                                      1,                                  // Entity Chunk Count.
                                       &dataChunk,
-                                      NULL,
+                                      &bytes,
                                       NULL,
                                       0,
                                       NULL,
@@ -1558,7 +1586,7 @@ HTTPServerSync::SendResponseError(PHTTP_RESPONSE p_response
   // required to specify the Content-Length.
   result = HttpSendHttpResponse(m_requestQueue,      // ReqQueueHandle
                                 p_request,           // Request ID
-                                0,                   // Flags
+                                HTTP_SEND_RESPONSE_FLAG_DISCONNECT, // Flags
                                 p_response,          // HTTP response
                                 &policy,             // Cache policy
                                 &bytesSent,          // bytes sent  (OPTIONAL)
@@ -1575,7 +1603,7 @@ HTTPServerSync::SendResponseError(PHTTP_RESPONSE p_response
   {
     DETAILLOGV(_T("SendHttpResponse (serverpage) Bytes sent: %d"),bytesSent);
     // Possibly log & trace what we just sent
-    LogTraceResponse(p_response,reinterpret_cast<uchar*>(const_cast<TCHAR*>(sending.GetString())),sending.GetLength(),false);
+    LogTraceResponse(p_response,reinterpret_cast<uchar*>(const_cast<TCHAR*>(sending.GetString())),sending.GetLength());
   }
 }
 
@@ -1648,7 +1676,7 @@ HTTPServerSync::InitEventStream(EventStream& p_stream)
   else
   {
     // Log & Trace what we just sent
-    LogTraceResponse(&p_stream.m_response,reinterpret_cast<uchar*>(init),length,false);
+    LogTraceResponse(&p_stream.m_response,reinterpret_cast<uchar*>(init),length);
   }
   return (result == NO_ERROR);
 }
@@ -1693,7 +1721,7 @@ HTTPServerSync::SendResponseEventBuffer(HTTP_OPAQUE_ID    p_requestID
   else
   {
     DETAILLOGV(_T("HttpSendResponseEntityBody [%d] bytes sent"),p_length);
-    LogTraceResponse(nullptr,reinterpret_cast<uchar*>(*p_buffer),static_cast<unsigned>(p_length),false);
+    LogTraceResponse(nullptr,reinterpret_cast<uchar*>(*p_buffer),static_cast<unsigned>(p_length));
 
     // Final closing of the connection
     if(p_continue == false)

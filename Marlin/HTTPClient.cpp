@@ -55,10 +55,12 @@
 #endif
 #include <Security.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // Logging macro's
@@ -107,7 +109,8 @@ HTTPClient::Reset()
   }
 
   // Stopping the queue
-  StopClient();
+  // And do not call 'Reset' again
+  StopClient(true);
 
   m_url.Empty();
   m_user.Empty();
@@ -144,9 +147,7 @@ HTTPClient::Reset()
   m_securityLevel   = XMLEncryption::XENC_NoInit;
   m_certPreset      = false;
   m_certStore       = _T("MY");
-  m_sendUnicode     = false;
   m_sniffCharset    = true;
-  m_sendBOM         = false;
   m_pushEvents      = false;
   m_onCloseSeen     = false;
   // Timeouts
@@ -267,9 +268,13 @@ HTTPClient::TestReconnect()
 int    
 HTTPClient::GetError(XString* p_message /*=NULL*/)
 {
-  if(p_message && m_lastError)
+  if(p_message)
   {
-    p_message->Format(_T("[%d] %s"),m_lastError,GetLastErrorAsString(m_lastError).GetString());
+    p_message->Format(_T("HTTP status [%u]"),m_status);
+    if(m_lastError)
+    {
+      p_message->AppendFormat(_T(" [%d] %s"),m_lastError,GetLastErrorAsString(m_lastError).GetString());
+    }
   }
   return m_lastError;
 }
@@ -554,8 +559,6 @@ HTTPClient::InitSettings()
   m_timeoutReceive =             m_marlinConfig.GetParameterInteger(_T("Client"),_T("TimeoutReceive"),   m_timeoutReceive);
   m_soapCompress   =             m_marlinConfig.GetParameterBoolean(_T("Client"),_T("SOAPCompress"),     m_soapCompress);
   m_httpCompression=             m_marlinConfig.GetParameterBoolean(_T("Client"),_T("HTTPCompression"),  m_httpCompression);
-  m_sendUnicode    =             m_marlinConfig.GetParameterBoolean(_T("Client"),_T("SendUnicode"),      m_sendUnicode);
-  m_sendBOM        =             m_marlinConfig.GetParameterBoolean(_T("Client"),_T("SendBOM"),          m_sendBOM);
   m_verbTunneling  =             m_marlinConfig.GetParameterBoolean(_T("Client"),_T("VerbTunneling"),    m_verbTunneling);
   m_certPreset     =             m_marlinConfig.GetParameterBoolean(_T("Client"),_T("CertificatePreset"),m_certPreset);
   m_certStore      =             m_marlinConfig.GetParameterString (_T("Client"),_T("CertificateStore"), m_certStore);
@@ -669,8 +672,6 @@ HTTPClient::InitSettings()
     }
   }
   DETAILLOG(_T("Client single-sign-on NT-LanManager  : %s"),m_sso           ? _T("yes") : _T("no"));
-  DETAILLOG(_T("Client forces sending in UTF-16      : %s"),m_sendUnicode   ? _T("yes") : _T("no"));
-  DETAILLOG(_T("Client forces sending of Unicode BOM : %s"),m_sendBOM       ? _T("yes") : _T("no"));
   DETAILLOG(_T("Client forces HTTP VERB Tunneling    : %s"),m_verbTunneling ? _T("yes") : _T("no"));
   DETAILLOG(_T("Client will use CORS origin header   : %s"),m_corsOrigin.GetString());
 }
@@ -828,7 +829,7 @@ HTTPClient::SetBody(const XString& p_body,const XString p_charset /*=_T("utf-8")
 {
   ResetBody();
 
-#ifdef UNICODE
+#ifdef _UNICODE
   if(p_charset.Compare(_T("utf-16")) == 0)
   {
     m_bodyLength = p_body.GetLength() * sizeof(TCHAR);
@@ -860,7 +861,7 @@ HTTPClient::SetBody(const XString& p_body,const XString p_charset /*=_T("utf-8")
   {
     if(p_charset.Compare(_T("utf-16")) == 0)
     {
-      return TryCreateWideString(p_body,p_charset,false,&m_requestBody,(int&)m_bodyLength);
+      return TryCreateWideString(p_body,_T(""), false, &m_requestBody, (int&)m_bodyLength);
     }
     body = EncodeStringForTheWire(p_body.GetString(),p_charset);
   }
@@ -918,42 +919,42 @@ HTTPClient::GetWebsocketHandle()
 bool
 HTTPClient::GetDetailLogging()
 {
-  TRACE(_T("WARNING: Rewrite your program with GetLogLevel()\n"));
+  OutputDebugString(_T("WARNING: Rewrite your program with GetLogLevel()\n"));
   return (m_logLevel > HLL_ERRORS);
 }
 
 bool
 HTTPClient::GetTraceRequest()
 {
-  TRACE(_T("WARNING: Rewrite your program with GetLogLevel()\n"));
+  OutputDebugString(_T("WARNING: Rewrite your program with GetLogLevel()\n"));
   return (m_logLevel >= HLL_TRACE);
 }
 
 bool
 HTTPClient::GetTraceData()
 {
-  TRACE(_T("WARNING: Rewrite your program with GetLogLevel()\n"));
+  OutputDebugString(_T("WARNING: Rewrite your program with GetLogLevel()\n"));
   return (m_logLevel >= HLL_TRACEDUMP);
 }
 
 void 
 HTTPClient::SetDetailLogging(bool p_detail)
 {
-  TRACE(_T("WARNING: Rewrite your program with SetLogLevel()\n"));
+  OutputDebugString(_T("WARNING: Rewrite your program with SetLogLevel()\n"));
   m_logLevel = p_detail ? HLL_LOGGING : HLL_NOLOG;
 }
 
 void 
 HTTPClient::SetTraceRequest(bool p_trace)
 {
-  TRACE(_T("WARNING: Rewrite your program with SetLogLevel()\n"));
+  OutputDebugString(_T("WARNING: Rewrite your program with SetLogLevel()\n"));
   m_logLevel = p_trace ? HLL_TRACE : HLL_LOGGING;
 }
 
 void
 HTTPClient::SetTraceData(bool p_trace)
 {
-  TRACE(_T("WARNING: Rewrite your program with SetLogLevel()\n"));
+  OutputDebugString(_T("WARNING: Rewrite your program with SetLogLevel()\n"));
   m_logLevel = p_trace ? HLL_TRACEDUMP : HLL_LOGGING;
 }
 
@@ -2281,73 +2282,35 @@ HTTPClient::Send(SOAPMessage* p_msg)
     p_msg->SetCondensed(true);
   }
 
-  // Test sending of a Unicode posting
-  // Place soap message on the stack and set it as a body
-  XString soap;
-  uchar* buffer = nullptr;
-
-  if(m_sendBOM)
+  // Getting the content type
+  m_contentType = p_msg->GetContentType();
+  if(m_contentType.IsEmpty())
   {
-    p_msg->SetSendBOM(true);
+    // Default content type for SOAP
+    m_contentType = _T("text/xml");
   }
 
-  if(m_sendUnicode || p_msg->GetSendUnicode())
-  {
-    p_msg->SetSendUnicode(true);
-    soap = p_msg->GetSoapMessage();
-
-    XString charset(_T("utf-16"));
-    m_contentType = SetFieldInHTTPHeader(p_msg->GetContentType(),_T("charset"),charset);
-
-#ifdef UNICODE
-    SetBody(soap,charset);
-#else
-    int length = 0;
-    if(TryCreateWideString(soap,_T(""),p_msg->GetSendBOM(),&buffer,length))
-    {
-      SetBody(buffer,length);
-    }
-    else
-    {
-      m_lastError = ERROR_INVALID_PARAMETER;
-      return false;
-    }
-#endif
-  }
-  else
+  // Getting the charset
+  XString charset = FindCharsetInContentType(m_contentType);
+  if(charset.IsEmpty())
   {
     Encoding encoding = p_msg->GetEncoding();
-    soap = p_msg->GetSoapMessage();
-
-    // Getting the content type
-    m_contentType = p_msg->GetContentType();
-    XString charset = FindCharsetInContentType(m_contentType);
-    if(charset.IsEmpty())
-    {
-      // Take care of character encoding
-      switch(encoding)
-      {
-        case Encoding::Default:   charset = CodepageToCharset(GetACP());
-                                  break;
-        case Encoding::LE_UTF16:  charset = "utf-16";
-                                  break;
-        default:                  [[fallthrough]];
-        case Encoding::UTF8:      charset = "utf-8";
-                                  break;
-      }
-      m_contentType = SetFieldInHTTPHeader(m_contentType,_T("charset"),charset);
-    }
-    SetBody(soap,charset);
+    charset = CodepageToCharset((int)encoding);
+    m_contentType = SetFieldInHTTPHeader(m_contentType,_T("charset"),charset);
   }
+
+  // Now setting the body to send in the correct charset
+  XString soap = p_msg->GetSoapMessage();
+  SetBody(soap,charset);
 
   // Transfer all headers to the client
   AddMessageHeaders(p_msg);
 
   // Apply the SOAPAction header value to the appropriate HTTP header
+  XString soapAction(m_soapAction.IsEmpty() ? p_msg->GetSoapAction() : m_soapAction);
   if(p_msg->GetSoapVersion() < SoapVersion::SOAP_12)
   {
     // Create a version 1.1 SOAPAction header value
-    XString soapAction(m_soapAction);
     if(soapAction.IsEmpty())
     {
       soapAction += p_msg->GetSoapAction();
@@ -2369,106 +2332,40 @@ HTTPClient::Send(SOAPMessage* p_msg)
   }
   else // SOAP 1.2
   {
-    m_contentType = SetFieldInHTTPHeader(m_contentType,_T("action"),m_soapAction);
+    m_contentType = SetFieldInHTTPHeader(m_contentType,_T("action"),soapAction);
   }
 
   // Set cookies
   m_cookies = p_msg->GetCookies();
-  
+
+  // Keep original SOAP version from the sent message
+  SoapVersion oldVersion = p_msg->GetSoapVersion();
+
   // Put in logfile
   DETAILLOG(_T("Outgoing SOAP message: %s"),p_msg->GetSoapAction().GetString());
 
+  // GO AND SEND
   // Now go send our XML (Never redirected)
   bool result = Send();
-
-  // Headers from the answer
-  XString nosniff     = FindHeader(_T("X-Content-Type-Options"));
-  XString charset     = FindCharsetInContentType(m_contentType);
 
   // Process our answer
   p_msg->Reset();
   p_msg->SetStatus(m_status);
 
-  XString answer;
-  bool decoded(false);
-
-  if(charset.Left(6).CompareNoCase(_T("utf-16")) == 0)
+  // Getting the SOAP as a full string
+  bool doBom(false);
+  bool parsed(true);
+  XString answer = GetStringFromResult(parsed,doBom);
+  if(parsed)
   {
-#ifdef UNICODE
-    answer = (LPCTSTR)m_response;
-#else
-    bool sendBom = false;
-    // Works for "UTF-16", "UTF-16LE" and "UTF-16BE" as of RFC 2781
-    if(TryConvertWideString(m_response,m_responseLength,_T(""),answer,sendBom))
-    {
-      p_msg->SetSendBOM(sendBom);
-    }
-    else
-    {
-      // SET SOAP FAULT
-      XString message;
-      message.Format(_T("Cannot convert UTF-16 message"));
-      p_msg->SetFault(_T("Server"),_T("Charset"),message,_T("Possibly unknown UNICODE charset, or non-standard machine charset"));
-      result = false;
-      answer.Empty();
-    }
-#endif
-    decoded = true;
+    p_msg->ParseMessage(answer);
   }
-  else if(nosniff.CompareNoCase(_T("nosniff")))
+  else
   {
-    int uni = IS_TEXT_UNICODE_UNICODE_MASK;
-    if(IsTextUnicode(m_response,m_responseLength,&uni))
-    {
-#ifdef UNICODE
-      answer = (LPCTSTR)m_response;
-      result = true;
-#else
-      bool sendBom = false;
-      // Find specific code page and try to convert
-      if(!TryConvertWideString(m_response,m_responseLength,_T(""),answer,sendBom))
-      {
-        // SET SOAP FAULT
-        XString message;
-        message.Format(_T("Unknown charset from server: %s"),charset.GetString());
-        p_msg->SetFault(_T("Server"),_T("Charset"),message,_T("Possibly unknown UNICODE charset, or non-standard machine charset"));
-        answer.Empty();
-        result = false;
-      }
-      decoded = true;
-#endif
-    }
-  }
-  if(!decoded)
-  {
-    // Sender forces to not sniffing
-#ifdef _UNICODE
-    if(charset.CompareNoCase(_T("utf-16")) == 0)
-    {
-      answer = (LPCTSTR)m_response;
-    }
-    else
-    {
-      bool foundBom = false;
-      TryConvertNarrowString(m_response,m_responseLength,charset,answer,foundBom);
-    }
-#else
-    if(charset.CompareNoCase(CodepageToCharset(GetACP())) == 0)
-    {
-      answer = reinterpret_cast<const TCHAR*>(m_response);
-    }
-    else
-    {
-      XString response(reinterpret_cast<const char*>(m_response));
-      answer = DecodeStringFromTheWire(response, charset);
-    }
-#endif
+    p_msg->SetFault(_T("Server"),_T("Charset"),answer,_T("Possibly unknown UNICODE charset, or non-standard machine charset"));
   }
 
-  // Keep response as new body. Might contain an error!!
-  SoapVersion oldVersion = p_msg->GetSoapVersion();
-  p_msg->ParseMessage(answer);
-
+  // Process the SOAP action
   XString incomingAction = p_msg->GetSoapAction();
   if(!incomingAction.IsEmpty())
   {
@@ -2512,12 +2409,6 @@ HTTPClient::Send(SOAPMessage* p_msg)
     }
   }
 
-  // Freeing Unicode UTF-16 buffer
-  if(buffer)
-  {
-    delete [] buffer;
-  }
-
   return result;
 }
 
@@ -2553,61 +2444,25 @@ HTTPClient::Send(JSONMessage* p_msg)
 
   // Set the client properties before Send()
   // String and buffer must be on the stack until after the call
-  XString json;
-  uchar* buffer = nullptr;
-
-  if(m_sendBOM)
+  m_contentType = p_msg->GetContentType();
+  if(m_contentType.IsEmpty())
   {
-    p_msg->SetSendBOM(true);
+    // Default content type for JSON
+    m_contentType = _T("application/json");
   }
 
-  // Preparing the body of the transmission
-  if(m_sendUnicode || 
-     p_msg->GetSendUnicode() || 
-     p_msg->GetEncoding() == Encoding::LE_UTF16)
+  // Getting the charset
+  XString charset = FindCharsetInContentType(m_contentType);
+  if(charset.IsEmpty())
   {
-    // SEND AS 16 BITS UTF MESSAGE
-    p_msg->SetSendUnicode(true);
-    json = p_msg->GetJsonMessage(Encoding::Default);
-    m_contentType = SetFieldInHTTPHeader(p_msg->GetContentType(),_T("charset"),_T("utf-16"));
-#ifdef UNICODE
-    SetBody((const void*)json.GetString(),json.GetLength() * sizeof(TCHAR));
-#else
-    int length = 0;
-    if(TryCreateWideString(json,_T(""),p_msg->GetSendBOM(),&buffer,length))
-    {
-      SetBody(buffer,length);
-    }
-    else
-    {
-      m_lastError = ERROR_INVALID_PARAMETER;
-      return false;
-    }
-#endif
-  }
-  else
-  {
-    // SEND IN OTHER ENCODINGS
-    m_contentType = p_msg->GetContentType();
     Encoding encoding = p_msg->GetEncoding();
-    json = p_msg->GetJsonMessageWithBOM(encoding);
-
-    // Take care of character encoding
-    int acp = -1;
-    switch(encoding)
-    {
-      case Encoding::Default: acp = GetACP(); break; // Find Active Code Page
-      case Encoding::UTF8:    acp =    65001; break; // See ConvertWideString.cpp
-      default:                                break;
-    }
-    XString charset = CodepageToCharset(acp);
-    if(acp != (int)GetACP())
-    {
-      json = EncodeStringForTheWire(json,charset);
-    }
-    m_contentType = SetFieldInHTTPHeader(m_contentType,_T("charset"),charset);
-    SetBody(json);
+    charset = CodepageToCharset((int)encoding);
+    m_contentType = SetFieldInHTTPHeader(m_contentType, _T("charset"), charset);
   }
+
+  // Setting the message
+  XString json = p_msg->GetJsonMessage();
+  SetBody(json,charset);
 
   if(m_verbTunneling)
   {
@@ -2627,102 +2482,100 @@ HTTPClient::Send(JSONMessage* p_msg)
   // NOW GO SEND IT (Never redirected)
   result = Send();
 
-  ProcessJSONResult(p_msg,result);
+  ProcessJSONResult(p_msg);
 
-  // Free Unicode UTF-16 buffer
-  if(buffer)
+  // Keep cookies
+  p_msg->SetCookies(m_resultCookies);
+
+  // Getting all headers from the answer
+  for (HeaderMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
   {
-    delete [] buffer;
+    p_msg->AddHeader(it->first, it->second);
   }
+  // Reset our input buffer
+  ResetBody();
+
+  // Keep the status
+  p_msg->SetStatus(m_status);
+
   return result;
 }
 
 void
-HTTPClient::ProcessJSONResult(JSONMessage* p_msg,bool& p_result)
+HTTPClient::ProcessJSONResult(JSONMessage* p_msg)
+{
+  // Process our answer, Forget what we did send
+  p_msg->Reset();
+
+  // Keep response as new body. Might contain an error!!
+  DETAILLOG(_T("Incoming JSON answer"));
+
+  // Getting the JSON as a full string
+  bool doBom(false);
+  bool parsed(true);
+  XString answer = GetStringFromResult(parsed,doBom);
+  if(parsed)
+  {
+    p_msg->ParseMessage(answer);
+  }
+  else
+  {
+    p_msg->SetLastError(_T("Possibly unknown UNICODE charset, or non-standard machine charset"));
+    p_msg->SetErrorstate(true);
+  }
+}
+
+XString
+HTTPClient::GetStringFromResult(bool& p_result,bool& p_doBom)
 {
   // Headers from the answer
   XString nosniff = FindHeader(_T("X-Content-Type-Options"));
   XString charset = FindCharsetInContentType(m_contentType);
 
-  // Process our answer, Forget what we did send
-  p_msg->Reset();
-
   // Prepare the answer
   XString answer;
   int uni = IS_TEXT_UNICODE_UNICODE_MASK;  // Intel/AMD processors
 
-  // Do the following case
-  if((charset.Left(6).CompareNoCase(_T("utf-16")) == 0) ||
+  // Do the following case where we may 'sniff' the contents
+  if((charset.CompareNoCase(_T("utf-16")) == 0) ||
      (nosniff.CompareNoCase(_T("nosniff")) &&
      IsTextUnicode(m_response,m_responseLength,&uni)))
   {
-#ifdef UNICODE
-    answer   = (LPCTSTR) m_response;
+#ifdef _UNICODE
+    Encoding bom = Encoding::EN_ACP;
+    unsigned int skipBytes = 0;
+    BOMOpenResult bomfound = WinFile::DefuseBOM(m_response,bom,skipBytes);
+    answer  = (LPCTSTR)(m_response + skipBytes);
+    p_doBom = (bomfound == BOMOpenResult::BOM);
 #else
     // Works for "UTF-16" and "UTF-16LE" as of RFC 2781
-    bool doBom = false;
-    if(TryConvertWideString(m_response,m_responseLength,_T(""),answer,doBom))
-    {
-      p_msg->SetSendBOM(doBom);
-      p_msg->SetSendUnicode(true);
-    }
-    else
+    if(TryConvertWideString(m_response,m_responseLength,_T(""),answer,p_doBom) == false)
     {
       // SET ERROR STATE
-      XString message;
-      message.Format(_T("Cannot convert UTF-16 message"));
-      p_msg->SetLastError(message);
-      p_msg->SetErrorstate(true);
+      answer   = _T("Cannot convert UTF-16 message to an MBCS string");
       p_result = false;
-      answer.Empty();
     }
 #endif
+    return answer;
   }
-  else
+  // Sender forces to not sniffing or different charset or NO charset
+  // So assume the standard codepages are used (ACP=1252, UTF-8 or ISO-8859-1)
+#ifdef _UNICODE
+  if(TryConvertNarrowString(m_response,m_responseLength,charset,answer,p_doBom) == false)
   {
-    // Sender forces to not sniffing or different charset or NO charset
-    // So assume the standard codepages are used (ACP=1252, UTF-8 or ISO-8859-1)
-#ifdef UNICODE
-    bool doBom = false;
-    if(TryConvertNarrowString(m_response,m_responseLength,charset,answer,doBom))
-    {
-      p_msg->SetSendBOM(doBom);
-      p_msg->SetSendUnicode(false);
-    }
-    else
-    {
-      // SET ERROR STATE
-      XString message;
-      message.Format(_T("Cannot convert UTF-16 message"));
-      p_msg->SetLastError(message);
-      p_msg->SetErrorstate(true);
-      p_result = false;
-      answer.Empty();
-    }
+    // SET ERROR STATE
+    answer   = _T("Cannot convert to a UTF-16 string");
+    p_result = false;
+  }
 #else
-    // Answer is the raw response
-    answer = reinterpret_cast<const char*>(m_response);
-    if(charset != CodepageToCharset(GetACP()))
-    {
-      answer = DecodeStringFromTheWire(answer,charset);
-    }
-#endif
-  }
-
-  // Keep response as new body. Might contain an error!!
-  DETAILLOG(_T("Incoming JSON answer"));
-  p_msg->ParseMessage(answer);
-
-  // Keep cookies
-  p_msg->SetCookies(m_resultCookies);
-  
-  // Getting all headers from the answer
-  for(HeaderMap::iterator it = m_responseHeaders.begin(); it != m_responseHeaders.end(); ++it)
+  // Answer is the raw response
+  answer = reinterpret_cast<const char*>(m_response);
+  if(charset != CodepageToCharset(GetACP()))
   {
-    p_msg->AddHeader(it->first,it->second);
+    answer = DecodeStringFromTheWire(answer,charset,&p_doBom);
   }
-  // Reset our input buffer
-  ResetBody();
+#endif
+  return answer;
 }
 
 // Translate SOAP to JSON, send/receive and translate back
@@ -2778,7 +2631,7 @@ HTTPClient::SendAsJSON(SOAPMessage* p_msg)
   {
     // Translate our result back to JSON
     JSONMessage json;
-    ProcessJSONResult(&json,result);
+    ProcessJSONResult(&json);
 
     // Translate our JSON back to SOAP
     *p_msg = json;
@@ -3138,7 +2991,7 @@ HTTPClient::Send()
                                   // Get the content type header
                                   m_contentType = ReadHeaderField(WINHTTP_QUERY_CONTENT_TYPE);
                                   break;
-          case HTTP_STATUS_FORBIDDEN: [[fallthrough]];
+          case HTTP_STATUS_FORBIDDEN:[[fallthrough]];
           case HTTP_STATUS_DENIED:if(lastStatus == m_status)
                                   {
                                     // Cannot do this twice!
@@ -3435,8 +3288,9 @@ HTTPClient::TraceTheSend()
     {
       DETAILLOG(_T("SENDING FILE: %s"),m_buffer->GetFileName().GetString());
     }
-    else
+    else if(m_buffer->GetHasBufferParts())
     {
+      // Show bufferparts without a copy from each part
       int    part   = 0;
       uchar* buffer = nullptr;
       size_t length = 0;
@@ -3451,6 +3305,21 @@ HTTPClient::TraceTheSend()
         while(m_buffer->GetBufferPart(part++,buffer,length))
         {
           m_log->AnalysisHex(_T("TraceHTTP"),_T("Outgoing"),buffer,static_cast<unsigned>(length));
+        }
+      }
+    }
+    else
+    {
+      // Show buffer (without a buffer copy)
+      uchar* buffer = nullptr;
+      size_t length = 0;
+      m_buffer->GetBuffer(buffer,length);
+      if(length)
+      {
+        m_log->BareBufferLog(buffer,(unsigned)length);
+        if(MUSTLOG(HLL_TRACEDUMP))
+        {
+          m_log->AnalysisHex(_T("TraceHTTP"),_T("Outgoing"),buffer,(unsigned)length);
         }
       }
     }
@@ -4463,7 +4332,7 @@ HTTPClient::OnCloseSeen()
 
 // Stopping the client queue
 void
-HTTPClient::StopClient()
+HTTPClient::StopClient(bool p_fromReset /*=false*/)
 {
   // Only stop client if in initialized state
   if(!m_initialized)
@@ -4471,7 +4340,6 @@ HTTPClient::StopClient()
     return;
   }
   DETAILLOG(_T("Stopping the HTTPClient"));
-  bool stopping = false;
 
   // Cleaning out the event source
   if(m_eventSource)
@@ -4480,31 +4348,23 @@ HTTPClient::StopClient()
     if(m_request)
     {
       OnCloseSeen();
-    }
-    for (int i = 0; i < 10; ++i)
-    {
-      Sleep(100);
-      if(m_queueThread == 0)
+      // Allow time for the EventSource to disconnect
+      for(int ind = 0; ind < 10; ++ind)
       {
-        break;
+        Sleep(100);
+        if(m_eventSource->GetReadyState() != OPEN)
+        {
+          break;
+        }
       }
-    }
-    if(m_queueThread)
-    {
-      // Only way to cancel from NTDLL.DLL on the HTTP Stack
-      // Do not complain about "TermnateThread". It is the only way. We know!
-#pragma warning(disable:6258)
-      TerminateThread(m_queueThread,0);
-      m_queueThread = NULL;
-      m_running = false;
-      ERRORLOG(_T("Forced stopping of the event-source listner"));
     }
     delete m_eventSource;
     m_eventSource = nullptr;
     DETAILLOG(_T("Stopped the push-events EventSource"));
-    stopping = true;
   }
-  if(m_queueThread && m_queueEvent)
+
+  // Cleaning out the asynchronous queue
+  if(m_queueThread || m_queueEvent)
   {
     // Stop the queue by resetting the thread
     DETAILLOG(_T("Stopping the send queue"));
@@ -4516,28 +4376,28 @@ HTTPClient::StopClient()
     for(int ind = 0; ind < CLOSING_INTERVALS; ++ind)
     {
       Sleep(CLOSING_WAITTIME);
-      // Wait until the mainloop ends
+      // Wait until the main loop ends
       if(m_queueThread == NULL)
       {
         break;
       }
     }
-    // IF not kill the queue thread
+    // IF not stopped, kill the queue thread
     // Do not complain about "TermnateThread". It is the only way. We know!
     if(m_queueThread)
     {
 #pragma warning(disable:6258)
       TerminateThread(m_queueThread,3);
       ErrorLog(_T(__FUNCTION__),_T("Killed the HTTPClient queue thread. Error [%d] %s"));
+      m_queueThread = NULL;
     }
     // Now free the event
     CloseHandle(m_queueEvent);
     m_queueEvent = NULL;
     DETAILLOG(_T("Closed the client HTTP queue"));
-    stopping = true;
   }
-  // We are now stopped. Reset also
-  if(stopping)
+  // We are now stopped. Reset also if not called from 'Reset()'
+  if(!p_fromReset)
   {
     Reset();
   }

@@ -105,6 +105,10 @@ public:
   HTTP_OPAQUE_ID    GetRequest()    { return m_requestID; }
   // OPAQUE Response
   PHTTP_RESPONSE    GetResponse()   { return m_response;  }
+
+  // SETTERS
+  void SetChunkEvent(HANDLE p_event){ m_chunkEvent = p_event; }
+
 private:
   // Ready with the response
   void Finalize();
@@ -135,7 +139,7 @@ private:
   // Reset outstanding OVERLAPPED
   void ResetOutstanding(OutstandingIO& p_outstanding);
   // Add a request string for a header
-  void AddRequestString(XString p_string,LPCSTR& p_buffer,USHORT& p_size);
+  void AddRequestString(XString p_string,LPSTR& p_buffer,USHORT& p_size);
   // Change response & unknown headers in one protocol string
   XString ResponseToString();
 
@@ -160,6 +164,7 @@ private:
   HTTP_DATA_CHUNK   m_sendChunk;                // Send buffer as a chunked info
   RequestStrings    m_strings;                  // Strings for headers and such
   HANDLE            m_file       { NULL    };   // File handle for sending a file
+  HANDLE            m_chunkEvent { NULL    };   // Event for first chunk
   int               m_bufferpart { 0       };   // Buffer part being sent
   PHTTP_UNKNOWN_HEADER m_unknown { nullptr };   // Send unknown headers
   CRITICAL_SECTION  m_critical;                 // Locking section

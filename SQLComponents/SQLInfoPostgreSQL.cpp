@@ -86,7 +86,7 @@ SQLInfoPostgreSQL::GetRDBMSPhysicalDatabaseName() const
   sql.DoSQLStatement(query);
   if(sql.GetRecord())
   {
-    return sql.GetColumn(1)->GetAsChar();
+    return sql.GetColumn(1)->GetAsString();
   }
   return _T("");
 }
@@ -349,6 +349,12 @@ SQLInfoPostgreSQL::GetSQLGenerateSerial(XString p_table) const
   return _T("SELECT ") + p_table + _T("_seq.nextval FROM DUAL");
 }
 
+XString
+SQLInfoPostgreSQL::GetSQLGenerateSequence(XString p_sequence) const
+{
+  return _T("SELECT ") + p_sequence + _T(".nextval FROM DUAL");
+}
+
 // Gets the construction / select for the resulting effective generated serial
 XString
 SQLInfoPostgreSQL::GetSQLEffectiveSerial(XString p_identity) const
@@ -517,7 +523,7 @@ SQLInfoPostgreSQL::GetTempTablename(XString /*p_schema*/,XString p_tablename,boo
 
 // Changes to parameters before binding to an ODBC HSTMT handle
 void
-SQLInfoPostgreSQL::DoBindParameterFixup(SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+SQLInfoPostgreSQL::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
 {
 }
 
@@ -2262,7 +2268,7 @@ SQLInfoPostgreSQL::DoSQLCall(SQLQuery* p_query,XString& p_schema,XString& p_proc
       if(result->GetDataType() == SQL_C_CHAR ||
          result->GetDataType() == SQL_C_WCHAR)
       {
-        XString resstring = result->GetAsChar();
+        XString resstring = result->GetAsString();
         if(!resstring.IsEmpty() && resstring.GetAt(0) == _T('(') && numReturn)
         {
           var = GetVarFromRecord(dataType,(LPTSTR)resstring.GetString(),recIndex++,ready);
@@ -2288,7 +2294,7 @@ SQLInfoPostgreSQL::DoSQLCall(SQLQuery* p_query,XString& p_schema,XString& p_proc
 
 // Calling a stored function with named parameters, returning a value
 SQLVariant*
-SQLInfoPostgreSQL::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/)
+SQLInfoPostgreSQL::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_function = true*/)
 {
   return nullptr;
 }

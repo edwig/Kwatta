@@ -38,10 +38,12 @@
 #include <ServiceReporting.h>
 #include <WebSocket.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 #define DETAILLOG1(text)          if(MUSTLOG(HLL_LOGGING) && m_server) { m_server->DetailLog (_T(__FUNCTION__),LogType::LOG_INFO,text); }
@@ -86,13 +88,13 @@ HTTPRequest::HTTPRequest(HTTPServer* p_server)
 
   InitializeCriticalSection(&m_critical);
 
-  TRACE0("CTOR request\n");
+  OutputDebugString(_T("CTOR request\n"));
 }
 
 // DTOR
 HTTPRequest::~HTTPRequest()
 {
-  TRACE0("XTOR request\n");
+  OutputDebugString(_T("XTOR request\n"));
   ClearMemory();
   DeleteCriticalSection(&m_critical);
 }
@@ -144,10 +146,10 @@ HTTPRequest::ClearMemory()
 /*static*/ void
 HandleAsynchroneousIO(OVERLAPPED* p_overlapped)
 {
-  TRACE0("Handle ASYNC I/O\n");
+  OutputDebugString(_T("Handle ASYNC I/O\n"));
 
   OutstandingIO* outstanding = reinterpret_cast<OutstandingIO*>(p_overlapped);
-  HTTPRequest* request = outstanding->m_request;
+  HTTPRequest* request = dynamic_cast<HTTPRequest*>(outstanding->m_request);
   if(request)
   {
     request->HandleAsynchroneousIO(outstanding->m_action);
@@ -158,7 +160,7 @@ HandleAsynchroneousIO(OVERLAPPED* p_overlapped)
 void
 HTTPRequest::HandleAsynchroneousIO(IOAction p_action)
 {
-  TRACE0("Handle I/O Action\n");
+  OutputDebugString(_T("Handle I/O Action\n"));
 
   switch(p_action)
   {
@@ -178,7 +180,7 @@ HTTPRequest::HandleAsynchroneousIO(IOAction p_action)
 void 
 HTTPRequest::StartRequest()
 {
-  TRACE0("Start request\n");
+  OutputDebugString(_T("Start request\n"));
 
   // Buffer size for a new request
   DWORD size = INIT_HTTP_BUFFERSIZE;
@@ -227,7 +229,7 @@ HTTPRequest::StartRequest()
 void
 HTTPRequest::StartResponse(HTTPMessage* p_message)
 {
-  TRACE0("Start response\n");
+  OutputDebugString(_T("Start response\n"));
 
   // CHECK if we send the same message!!
   if(p_message && p_message != m_message)
@@ -248,7 +250,7 @@ HTTPRequest::StartResponse(HTTPMessage* p_message)
 void
 HTTPRequest::ReceivedRequest()
 {
-  TRACE0("Received request\n");
+  OutputDebugString(_T("Received request\n"));
 
   // Check server pointer
   if(m_server == nullptr)
@@ -299,27 +301,29 @@ HTTPRequest::ReceivedRequest()
 
   // Our charset
   XString charset;
-  bool utf16(false);
+  Encoding encoding = Encoding::EN_ACP;
 
   // If positive request ID received
   if(m_requestID)
   {
     // Log earliest as possible
-    DETAILLOGV(_T("Received HTTP call from [%s] with length: %I64u")
-               ,SocketToServer((PSOCKADDR_IN6) sender).GetString()
-               ,m_request->BytesReceived);
-
-    // Log incoming request
-    DETAILLOGS(_T("Got a request for: "),rawUrl);
+    DETAILLOGV(_T("Received HTTP %s call from [%s] with length: %I64u for: %s")
+               ,GetHTTPVerb(m_request->Verb,m_request->pUnknownVerb).GetString()
+               ,SocketToServer((PSOCKADDR_IN6)sender).GetString()
+               ,m_request->BytesReceived
+               ,rawUrl.GetString());
 
     // Find our charset
     charset = FindCharsetInContentType(contentType);
-    utf16   = charset.CompareNoCase(_T("utf-16")) == 0;
+    if(!charset.IsEmpty())
+    {
+      encoding = (Encoding)CharsetToCodepage(charset);
+    }
 
     // Trace the request in full
     if(m_server)
     {
-      m_server->LogTraceRequest(m_request,nullptr,utf16);
+      m_server->LogTraceRequest(m_request,nullptr,encoding);
     }
   }
 
@@ -357,6 +361,10 @@ HTTPRequest::ReceivedRequest()
   // Remember the context: easy in API 2.0
   if(callback == nullptr && m_site == nullptr)
   {
+    if(m_message)
+    {
+      m_message->DropReference();
+    }
     m_message = new HTTPMessage(HTTPCommand::http_response,HTTP_STATUS_NOT_FOUND);
     m_message->AddReference();
     m_message->SetRequestHandle((HTTP_OPAQUE_ID)this);
@@ -389,6 +397,10 @@ HTTPRequest::ReceivedRequest()
                             if(type == HTTPCommand::http_no_command)
                             {
                               // Non implemented like HttpVerbTRACK or other non-known verbs
+                              if(m_message)
+                              {
+                                m_message->DropReference();
+                              }
                               m_message = new HTTPMessage(HTTPCommand::http_response,HTTP_STATUS_NOT_SUPPORTED);
                               m_message->AddReference();
                               m_message->SetRequestHandle((HTTP_OPAQUE_ID)this);
@@ -418,6 +430,10 @@ HTTPRequest::ReceivedRequest()
   }
 
   // For all types of requests: Create the HTTPMessage
+  if(m_message)
+  {
+    m_message->DropReference();
+  }
   m_message = new HTTPMessage(type,m_site);
   m_message->SetRequestHandle((HTTP_OPAQUE_ID)this);
   m_message->AddReference();
@@ -436,6 +452,7 @@ HTTPRequest::ReceivedRequest()
   m_message->SetAcceptEncoding(acceptEncoding);
   m_message->SetAllHeaders(&m_request->Headers);
   m_message->SetUnknownHeaders(&m_request->Headers);
+  m_message->SetEncoding(encoding);
 
   // Handle modified-since 
   // Rest of the request is then not needed any more
@@ -483,14 +500,13 @@ HTTPRequest::ReceivedRequest()
   {
     // Go straight on to the handling of the message
     PostReceive();
-    // m_site->HandleHTTPMessage(m_message);
   }
 }
 
 void 
 HTTPRequest::StartReceiveRequest()
 {
-  TRACE0("Start received request\n");
+  OutputDebugString(_T("Start received request\n"));
 
   // Make sure we have a buffer
   if(!m_readBuffer)
@@ -530,7 +546,7 @@ HTTPRequest::StartReceiveRequest()
 void 
 HTTPRequest::ReceivedBodyPart()
 {
-  TRACE0("Receive body part\n");
+  OutputDebugString(_T("Receive body part\n"));
 
   DWORD result = (DWORD)(m_reading.Internal & 0x0FFFF);
   if(result == ERROR_HANDLE_EOF || result == NO_ERROR)
@@ -569,10 +585,10 @@ HTTPRequest::ReceivedBodyPart()
 void
 HTTPRequest::PostReceive()
 {
-  TRACE0("Post Receive\n");
+  OutputDebugString(_T("Post Receive\n"));
 
   // Now also trace the request body of the message
-  m_server->LogTraceRequestBody(m_message->GetFileBuffer(),m_message->GetSendUnicode());
+  m_server->LogTraceRequestBody(m_message);
 
   // In case of a POST, try to convert character set before submitting to site
   if(m_message->GetCommand() == HTTPCommand::http_post)
@@ -595,7 +611,7 @@ HTTPRequest::PostReceive()
 void
 HTTPRequest::StartSendResponse()
 {
-  TRACE0("Start SendResponse\n");
+  OutputDebugString(_T("Start SendResponse\n"));
 
   // Mark the fact that we begin responding
   m_responding = true;
@@ -604,8 +620,17 @@ HTTPRequest::StartSendResponse()
   m_writing.m_action = IO_Response;
 
   // We promise to always call HttpSendResponseEntityBody
-  ULONG flags = HTTP_SEND_RESPONSE_FLAG_MORE_DATA;
-
+  ULONG flags = HTTP_SEND_RESPONSE_FLAG_DISCONNECT;
+  
+  if(m_message->GetFileBuffer()->GetLength() > 0 || 
+     m_message->GetChunkNumber())
+  {
+    flags = HTTP_SEND_RESPONSE_FLAG_MORE_DATA;
+  }
+  else
+  {
+    m_writing.m_action = IO_Writing;
+  }
   // Place HTTPMessage in the response structure
   FillResponse(m_message->GetStatus());
 
@@ -617,7 +642,10 @@ HTTPRequest::StartSendResponse()
   OutstandingIO* overlapped = &m_writing;
   if (m_response->StatusCode == HTTP_STATUS_SWITCH_PROTOCOLS)
   {
-    flags |= HTTP_SEND_RESPONSE_FLAG_OPAQUE | HTTP_SEND_RESPONSE_FLAG_BUFFER_DATA;
+    // Keep the request/socket open
+    flags = HTTP_SEND_RESPONSE_FLAG_MORE_DATA |
+            HTTP_SEND_RESPONSE_FLAG_OPAQUE    |
+            HTTP_SEND_RESPONSE_FLAG_BUFFER_DATA;
     m_writing.m_action     = IO_Nothing;
     m_policy.Policy        = HttpCachePolicyNocache;
     m_policy.SecondsToLive = 0;
@@ -627,7 +655,7 @@ HTTPRequest::StartSendResponse()
 
   // Trace the principal response, before sending
   // Sometimes the async is so quick, we cannot trace it after the sending
-  m_server->LogTraceResponse(m_response,nullptr,m_message->GetSendUnicode());
+  m_server->LogTraceResponse(m_response,nullptr,m_message->GetEncoding());
 
   // Send the response
   ULONG result = HttpSendHttpResponse(m_server->GetRequestQueue(),    // ReqQueueHandle
@@ -640,8 +668,6 @@ HTTPRequest::StartSendResponse()
                                       0,                 // Reserved3   (must be 0)
                                       overlapped,        // LPOVERLAPPED(OPTIONAL)
                                       nullptr);          // LogData     (must be NULL)
-
-  TRACE1("Result of HttpSendHttpResponse: %d\n", result);
 
   // Check for error
   if(result != ERROR_IO_PENDING && result != NO_ERROR)
@@ -658,7 +684,7 @@ HTTPRequest::StartSendResponse()
 void
 HTTPRequest::SendResponseBody()
 {
-  TRACE0("Send ResponseBody\n");
+  OutputDebugString(_T("Send ResponseBody\n"));
 
   DWORD error = m_writing.Internal & 0x0FFFF;
   if(error)
@@ -729,6 +755,12 @@ HTTPRequest::SendResponseBody()
     chunks = nullptr;
   }
 
+  // See if it is the first chunk for a 'chunked' transfer
+  if(m_message->GetChunkNumber())
+  {
+    flags = HTTP_SEND_RESPONSE_FLAG_MORE_DATA;
+  }
+
   ULONG result = HttpSendResponseEntityBody(m_server->GetRequestQueue(),
                                             m_requestID,    // Our request
                                             flags,          // More/Last data
@@ -758,7 +790,7 @@ HTTPRequest::SendResponseBody()
 void
 HTTPRequest::SendBodyPart()
 {
-  TRACE0("Send BodyPart\n");
+  OutputDebugString(_T("Send BodyPart\n"));
 
   // Check status of the OVERLAPPED structure
   DWORD error = m_writing.Internal & 0x0FFFF;
@@ -780,7 +812,7 @@ HTTPRequest::SendBodyPart()
 
     if(m_responding)
     {
-      // See if we need to send another chunk
+      // See if we need to send another chunk to send
       if(filebuf->GetHasBufferParts() &&
         (m_bufferpart < filebuf->GetNumberOfParts()))
       {
@@ -789,17 +821,26 @@ HTTPRequest::SendBodyPart()
       }
     }
     // Possibly log and trace what we just sent
-    m_server->LogTraceResponse(nullptr,filebuf,m_message->GetSendUnicode());
+    m_server->LogTraceResponse(m_response,m_message);
   }
-
-  // Message is done. Break the connection with the HTTPRequest
-  m_message->SetHasBeenAnswered();
 
   FlushFileBuffers(m_server->GetRequestQueue());
 
-  // End of the line for the whole request
-  // We did send everything as an answer
-  Finalize();
+  if(m_message->GetChunkNumber() == 0)
+  {
+    // Message is done. Break the connection with the HTTPRequest
+    m_message->SetHasBeenAnswered();
+
+    // End of the line for the whole request
+    // We did send everything as an answer
+    Finalize();
+  }
+  else if(m_chunkEvent)
+  {
+    // First chunk is sent, continue with "SendChunk"
+    ::SetEvent(m_chunkEvent);
+    m_chunkEvent = NULL;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -812,7 +853,7 @@ HTTPRequest::SendBodyPart()
 void 
 HTTPRequest::StartEventStreamResponse()
 {
-  TRACE0("Start EventStream Response\n");
+  OutputDebugString(_T("Start EventStream Response\n"));
 
   // First comment to push to the stream (not an event!)
   // Always UTF-8 compatible, so simple ANSI string
@@ -875,13 +916,13 @@ HTTPRequest::StartEventStreamResponse()
   }
 
   // Log&Trace what we just send
-  m_server->LogTraceResponse(m_response,m_sendBuffer,length,false);
+  m_server->LogTraceResponse(m_response,m_sendBuffer,length);
 }
 
 void
 HTTPRequest::StartedStream()
 {
-  TRACE0("Started stream\n");
+  OutputDebugString(_T("Started stream\n"));
 
   // Check status of the OVERLAPPED structure
   DWORD error = m_writing.Internal & 0x0FFFF;
@@ -903,7 +944,7 @@ HTTPRequest::SendResponseStream(BYTE*    p_buffer
                                ,size_t   p_length
                                ,bool     p_continue /*=true*/)
 {
-  TRACE0("Send Response stream\n");
+  OutputDebugString(_T("Send Response stream\n"));
 
   // Check server pointer
   if(m_server == nullptr)
@@ -941,43 +982,64 @@ HTTPRequest::SendResponseStream(BYTE*    p_buffer
   if(m_server)
   {
     USHORT chunkcount = 1;
-    m_server->LogTraceResponse(nullptr,m_sendBuffer,(int) p_length,false);
+    ULONG bytes = 0;
+    m_server->LogTraceResponse(nullptr,m_sendBuffer,(int) p_length);
     ULONG result = HttpSendResponseEntityBody(m_server->GetRequestQueue(),
                                               m_requestID,    // Our request
                                               flags,          // More/Last data
                                               chunkcount,     // Entity Chunk Count.
                                               chunks,         // CHUNCK
-                                              nullptr,        // Bytes
+                                              &bytes,         // Bytes
                                               nullptr,        // Reserved1
                                               0,              // Reserved2
-                                              &m_writing,     // OVERLAPPED
+                                              nullptr,        // OVERLAPPED. Was: &m_writing
                                               nullptr);       // LOGDATA
 
     // Check for error
-    if(result != ERROR_IO_PENDING && result != NO_ERROR)
+//     if(result != ERROR_IO_PENDING && result != NO_ERROR)
+//     {
+//       ERRORLOG(result,_T("Sending stream part"));
+//       m_responding = false;
+//       CancelRequest();
+//       return;
+//     }
+//     else
+//     {
+//       // Final closing of the connection
+//       if(p_continue == false)
+//       {
+//         DETAILLOG1(_T("Stream connection closed"));
+//       }
+//     }
+    if(result != NO_ERROR)
     {
-      ERRORLOG(result,_T("Sending stream part"));
-      m_responding = false;
+      ERRORLOG(result,_T("While sending HTTP stream part"));
       CancelRequest();
-      return;
     }
     else
     {
-      // Final closing of the connection
-      if(p_continue == false)
+      // Free the last send buffer and continue to send
+      if(m_sendBuffer)
       {
-        DETAILLOG1(_T("Stream connection closed"));
+        delete[] m_sendBuffer;
+        m_sendBuffer = nullptr;
       }
+    }
+    if(!p_continue)
+    {
+      Finalize();
     }
   }
   // Still responding or done?
   m_responding = p_continue;
 }
 
+// Only come her if OVERLAPPED parameter in "SendResponseStream" was used !!
+// Currently not used!
 void
 HTTPRequest::SendStreamPart()
 {
-  TRACE0("Send stream part\n");
+  OutputDebugString(_T("Send stream part\n"));
 
   // Check status of the OVERLAPPED structure
   DWORD error = m_writing.Internal & 0x0FFFF;
@@ -995,6 +1057,10 @@ HTTPRequest::SendStreamPart()
       m_sendBuffer = nullptr;
     }
   }
+  if(!m_responding)
+  {
+    Finalize();
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1007,7 +1073,7 @@ HTTPRequest::SendStreamPart()
 void
 HTTPRequest::Finalize()
 {
-  TRACE0("Finalize\n");
+  OutputDebugString(_T("Finalize\n"));
 
   AutoCritSec lock(&m_critical);
 
@@ -1020,7 +1086,8 @@ HTTPRequest::Finalize()
   }
 
   // Reset th request id 
-  HTTP_SET_NULL_ID(&m_requestID);
+  // Retain the request ID for cancellation purposes!!
+  // HTTP_SET_NULL_ID(&m_requestID);
 
   // Free the request memory
   if(m_request)
@@ -1060,8 +1127,10 @@ HTTPRequest::Finalize()
   // Free the message
   if(m_message)
   {
-    m_message->DropReference();
-    m_message = nullptr;
+    if(m_message->DropReference())
+    {
+      m_message = nullptr;
+    }
   }
 
   // Remove header strings
@@ -1083,18 +1152,21 @@ HTTPRequest::Finalize()
 
 // Add a request string for a header
 void 
-HTTPRequest::AddRequestString(XString p_string,LPCSTR& p_buffer,USHORT& p_size)
+HTTPRequest::AddRequestString(XString p_string,LPSTR& p_buffer,USHORT& p_size)
 {
-  p_size   = (USHORT) p_string.GetLength();
-  p_buffer = new char[p_size + 1];
+  AutoCSTR str(p_string);
+  int size = str.size();
+  p_buffer = new char[size + 1];
+  strncpy_s(p_buffer,size+1,str.cstr(),size);
   m_strings.push_back(p_buffer);
+  p_size = (USHORT) size;
 }
 
 // Add a well known HTTP header to the response structure
 void
 HTTPRequest::AddKnownHeader(HTTP_HEADER_ID p_header,LPCTSTR p_value)
 {
-  LPCSTR str  = nullptr;
+  LPSTR  str  = nullptr;
   USHORT size = 0;
 
   AddRequestString(p_value,str,size);
@@ -1105,7 +1177,7 @@ HTTPRequest::AddKnownHeader(HTTP_HEADER_ID p_header,LPCTSTR p_value)
 void
 HTTPRequest::AddUnknownHeaders(UKHeaders& p_headers)
 {
-  TRACE0("Add Unknown Headers\n");
+  OutputDebugString(_T("Add Unknown Headers\n"));
 
   // Something to do?
   if(p_headers.empty())
@@ -1121,15 +1193,16 @@ HTTPRequest::AddUnknownHeaders(UKHeaders& p_headers)
   unsigned ind = 0;
   for(auto& header : p_headers)
   {
-    AutoCSTR name(header.m_name);
-    header.m_nameStr = name.grab();
-    m_unknown[ind].NameLength = (USHORT) name.size();
-    m_unknown[ind].pName      = header.m_nameStr;
+    LPSTR  buffer = nullptr;
+    USHORT size   = 0;
 
-    AutoCSTR value(header.m_value);
-    header.m_valueStr = value.grab();
-    m_unknown[ind].RawValueLength = (USHORT) value.size();
-    m_unknown[ind].pRawValue      = header.m_valueStr;
+    AddRequestString(header.m_name,buffer,size);
+    m_unknown[ind].NameLength = size;
+    m_unknown[ind].pName      = buffer;
+
+    AddRequestString(header.m_value,buffer,size);
+    m_unknown[ind].RawValueLength = size;
+    m_unknown[ind].pRawValue      = buffer;
 
     // next header
     ++ind;
@@ -1139,7 +1212,7 @@ HTTPRequest::AddUnknownHeaders(UKHeaders& p_headers)
 void
 HTTPRequest::FillResponse(int p_status,bool p_responseOnly /*=false*/)
 {
-  TRACE0("Fill Response\n");
+  OutputDebugString(_T("Fill Response\n"));
 
   // Check site pointer
   if(m_site == nullptr)
@@ -1156,7 +1229,7 @@ HTTPRequest::FillResponse(int p_status,bool p_responseOnly /*=false*/)
   RtlZeroMemory(m_response,sizeof(HTTP_RESPONSE));
   XString text = GetHTTPStatusText(p_status);
 
-  PCSTR stext = nullptr;
+  PSTR  stext = nullptr;
   USHORT size = 0;
   AddRequestString(text,stext,size);
 
@@ -1387,7 +1460,7 @@ void
 HTTPRequest::FillResponseWebSocketHeaders(UKHeaders& p_headers)
 {
   USHORT size = 0;
-  PCSTR text = nullptr;
+  PSTR   text = nullptr;
 
   XString orgstring = m_message->GetHeader(_T("Connection"));
   AddRequestString(orgstring,text,size);
@@ -1412,7 +1485,7 @@ HTTPRequest::FillResponseWebSocketHeaders(UKHeaders& p_headers)
 void 
 HTTPRequest::ResetOutstanding(OutstandingIO& p_outstanding)
 {
-  TRACE0("Reset Outstanding overlapped I/O\n");
+  OutputDebugString(_T("Reset Outstanding overlapped I/O\n"));
 
   p_outstanding.Internal     = 0;
   p_outstanding.InternalHigh = 0;
@@ -1423,7 +1496,7 @@ HTTPRequest::ResetOutstanding(OutstandingIO& p_outstanding)
 void
 HTTPRequest::CancelRequest()
 {
-  TRACE0("Cancel Request\n");
+  OutputDebugString(_T("Cancel Request\n"));
 
   if(m_requestID)
   {

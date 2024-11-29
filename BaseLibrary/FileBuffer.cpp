@@ -30,10 +30,12 @@
 #include "ConvertWideString.h"
 #include "gzip.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 unsigned long g_streaming_limit = STREAMING_LIMIT;
@@ -230,7 +232,7 @@ FileBuffer::AddStringToBuffer(XString p_string,XString p_charset,bool p_crlf/*=t
   {
     p_string += _T("\r\n");
   }
-#ifdef UNICODE
+#ifdef _UNICODE
   BYTE* buffer = nullptr;
   int   length = 0;
   if(TryCreateNarrowString(p_string,p_charset,false,&buffer,length))

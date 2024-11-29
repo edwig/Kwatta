@@ -36,10 +36,12 @@
 #include <wincrypt.h>
 #include <vadefs.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 #define DETAILLOG1(text)          if(MUSTLOG(HLL_LOGGING) && m_logfile) { DetailLog (_T(__FUNCTION__),LogType::LOG_INFO,text); }
@@ -501,15 +503,9 @@ WebSocket::WriteString(XString p_string)
   DWORD total  = 0;
   DWORD toSend = 0;
 
-  DETAILLOGV(_T("Outgoing message on WebSocket [%s] on [%s]"),m_key.GetString(),m_uri.GetString());
-  if(MUSTLOG(HLL_LOGBODY))
-  {
-    DETAILLOG1(p_string);
-  }
-
   try
   {
-#ifdef UNICODE
+#ifdef _UNICODE
     AutoCSTR string(p_string);
     BYTE* pointer = (BYTE*) string.cstr();
     toSend = string.size();
@@ -518,9 +514,17 @@ WebSocket::WriteString(XString p_string)
     BYTE* pointer   = (BYTE*) encoded.GetString();
     toSend = encoded.GetLength();
 #endif
-    if(MUSTLOG(HLL_TRACEDUMP))
+    if(MUSTLOG(HLL_LOGGING))
     {
-      m_logfile->AnalysisHex(_T(__FUNCTION__),m_key,(void*)pointer,toSend);
+      DETAILLOGV(_T("Outgoing message on WebSocket [%s] on [%s] Bytes sent [%u]"),m_key.GetString(),m_uri.GetString(),toSend);
+      if(MUSTLOG(HLL_LOGBODY))
+      {
+        DETAILLOG1(p_string);
+        if(MUSTLOG(HLL_TRACEDUMP))
+        {
+          m_logfile->AnalysisHex(_T(__FUNCTION__),m_key,(void*)pointer,toSend);
+        }
+      }
     }
 
     // Go send it in fragments
@@ -645,7 +649,7 @@ WebSocket::ConvertWSFrameToMBCS(WSFrame* p_frame)
   }
 
   // Convert UTF-8 back to MBCS/Unicode
-#ifdef UNICODE
+#ifdef _UNICODE
   XString encoded;
   bool foundBom(false);
   TryConvertNarrowString(p_frame->m_data,p_frame->m_length,_T("utf-8"),encoded,foundBom);
@@ -702,7 +706,7 @@ WebSocket::ServerAcceptKey(XString p_clientKey)
   // Step 1: Append WebSocket GUID. See RFC 6455. It's hard coded!!
   XString key = p_clientKey + _T("258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
 
-#ifdef UNICODE
+#ifdef _UNICODE
   BYTE* buffer = nullptr;
   int   length = 0;
   TryCreateNarrowString(key,_T(""),false,&buffer,length);

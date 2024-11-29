@@ -31,10 +31,12 @@
 #include "CPULoad.h"
 #include "AutoCritical.h"
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 // A means to be free to debug the ThreadPool in debug mode
@@ -169,15 +171,15 @@ ThreadPool::InitThreadPool()
   if(m_processors > 0)
   {
     // Adjust maximum of threads for the number of processors
-    if(m_minThreads < 2 * m_processors)
+    if(m_minThreads < m_processors)
     {
-      m_minThreads = 2 * m_processors;
+      m_minThreads = m_processors;
     }
 
     // Adjust maximum of threads for the number of processors
-    if(m_maxThreads > 4 * m_processors)
+    if(m_maxThreads > ((4 * m_processors)/6))
     {
-      m_maxThreads = 4 * m_processors;
+      m_maxThreads = ((4 * m_processors)/6);
     }
   }
   // Create IO Completion Port

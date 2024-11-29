@@ -57,14 +57,15 @@
 //
 #include "pch.h"
 #include "CrackURL.h"
-#include "Encoding.h"
 #include "ConvertWideString.h"
 #include <winhttp.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 LPCTSTR CrackedURL::m_unsafeString   = _T(" \"@<>#{}|\\^~[]`");
@@ -274,6 +275,12 @@ CrackedURL::CrackURL(XString p_url)
   if(posp >= 0 && posp > poss)
   {
     m_extension = m_path.Mid(posp + 1);
+    // Most possibly part of an embedded string in the URL
+    // and not file extension of some sort
+    if(m_extension.Find('\'') >= 0 || m_extension.Find('\"') >= 0)
+    {
+      m_extension.Empty();
+    }
   }
 
   // Now a valid URL
@@ -301,7 +308,7 @@ CrackedURL::EncodeURLChars(XString p_text,bool p_queryValue /*=false*/)
   uchar*  buffer = nullptr;
   int     length = 0;
 
-#ifdef UNICODE
+#ifdef _UNICODE
   if(!TryCreateNarrowString(p_text,_T("utf-8"),false,&buffer,length))
   {
     return p_text;
@@ -370,7 +377,7 @@ CrackedURL::DecodeURLChars(XString p_text,bool p_queryValue /*=false*/)
       convertUTF = true;
     }
   }
-#ifdef UNICODE
+#ifdef _UNICODE
   if(convertUTF)
   {
     // Compress to real UTF-8

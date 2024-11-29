@@ -33,10 +33,12 @@
 #include <http.h>
 #include <io.h>
 
+#ifdef _AFX
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
+#endif
 #endif
 
 WebConfigIIS::WebConfigIIS(XString p_application /*=""*/)
@@ -53,22 +55,25 @@ WebConfigIIS::ReadConfig()
 {
   // Reads the central IIS application host configuration file first
   // this file contains the defaults for IIS.
-  if(ReadConfig(_T("%windir%\\system32\\inetsrv\\config\\ApplicationHost.Config"),nullptr) == false)
+  // It can be locked for short periods of time by the WAS service or the IIS service
+  for(int tries = 0;tries < APPHOST_CONFIG_RETRIES;++tries)
   {
-    SvcReportErrorEvent(0,false,__FUNCTION__,_T("Cannot read the standard IIS 'ApplicationHost.Config'!"));
-    return false;
+    if(ReadConfig(_T("%windir%\\system32\\inetsrv\\config\\ApplicationHost.Config"),nullptr))
+    {
+      return true;
+    }
+    Sleep(100);
   }
-  return true;
+  SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("Cannot read the standard IIS 'ApplicationHost.Config'!"));
+  return false;
 }
 
 bool
 WebConfigIIS::ReadConfig(XString p_application,XString p_extraWebConfig /*= ""*/)
 {
   // Reads the central IIS application host configuration file first
-  // this file contains the defaults for IIS.
-  if(ReadConfig(_T("%windir%\\system32\\inetsrv\\config\\ApplicationHost.Config"),nullptr) == false)
+  if(!ReadConfig())
   {
-    SvcReportErrorEvent(0,false,__FUNCTION__,_T("Cannot read the standard IIS 'ApplicationHost.Config'!"));
     return false;
   }
   if(!p_application.IsEmpty())
@@ -79,7 +84,7 @@ WebConfigIIS::ReadConfig(XString p_application,XString p_extraWebConfig /*= ""*/
   {
     if(ReadConfig(p_extraWebConfig,nullptr) == false)
     {
-      SvcReportErrorEvent(0,false,__FUNCTION__,_T("Cannot read the extra Web.Config file: ") + p_extraWebConfig);
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("Cannot read the extra Web.Config file: ") + p_extraWebConfig);
       return false;
     }
   }
@@ -102,7 +107,7 @@ WebConfigIIS::SetApplication(XString p_application)
     }
     else
     {
-      SvcReportErrorEvent(0,false,__FUNCTION__,_T("Cannot read the standard Web.Config file!"));
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("Cannot read the standard Web.Config file!"));
     }
   }
   // Store the application
@@ -394,8 +399,16 @@ WebConfigIIS::ReadConfig(XString p_configFile,IISSite* p_site /*=nullptr*/)
 
   // Parse the incoming file
   XMLMessage msg;
-  msg.LoadFile(p_configFile);
-
+  if(!msg.LoadFile(p_configFile))
+  {
+    SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("Cannot read the application host file: ") + p_configFile);
+    return false;
+  }
+  if(msg.GetInternalError() != XmlError::XE_NoError)
+  {
+    SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("XML Error in the application host file: ") + p_configFile);
+    return false;
+  }
   ReadLogPath(msg);
   ReadAppPools(msg);
   ReadSites(msg);

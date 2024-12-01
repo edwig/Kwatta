@@ -50,17 +50,20 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
 {
 	StyleTab::DoDataExchange(pDX);
 
+  DDX_CBString(pDX,IDC_IDENTIFIER,  m_comboIdentifier,m_identifier);
   DDX_CBString(pDX,IDC_AUTH_TYPE,   m_comboType,      m_authType);
+  DDX_Control (pDX,IDC_AUTHSAVE,    m_buttonSave);
+  DDX_Control (pDX,IDC_AUTHDELETE,  m_buttonDelete);
   DDX_Control (pDX,IDC_USERNAME,    m_editUsername,   m_userName);
   DDX_Control (pDX,IDC_PASSWORD,    m_editPassword,   m_password);
   DDX_CBString(pDX,IDC_GRANT,       m_comboGrant,     m_oauthGrant);
+  DDX_Control (pDX,IDC_REFRESH,     m_buttonRefresh);
+
   DDX_Control (pDX,IDC_TOKENSERVER, m_editTokenServer,m_tokenServer);
   DDX_Control (pDX,IDC_CLIENTID,    m_editClientID,   m_clientID);
   DDX_Control (pDX,IDC_CLIENTKEY,   m_editClientKey,  m_clientKey);
   DDX_Control (pDX,IDC_CLIENTSCOPE, m_editClientScope,m_clientScope);
   DDX_Control (pDX,IDC_BEARERTOKEN, m_editBearerToken,m_bearerToken);
-
-  DDX_Control (pDX,IDC_REFRESH,     m_buttonRefresh);
 
   DDX_Control (pDX,IDC_USER_PARM,   m_buttonUsernameParm);
   DDX_Control (pDX,IDC_PWD_PARM,    m_buttonPasswordParm);
@@ -71,29 +74,33 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
 
   if(pDX->m_bSaveAndValidate == FALSE)
   {
-    int auth = CalcAuthenticationType();
+    CredType auth = CalcAuthenticationType();
 
-    m_editUsername   .EnableWindow(auth == AUTH_BASIC || auth == AUTH_NTLM);
-    m_editPassword   .EnableWindow(auth == AUTH_BASIC || auth == AUTH_NTLM);
-    m_comboGrant     .EnableWindow(auth == AUTH_OAUTH);
-    m_editTokenServer.EnableWindow(auth == AUTH_OAUTH);
-    m_editClientID   .EnableWindow(auth == AUTH_OAUTH);
-    m_editClientKey  .EnableWindow(auth == AUTH_OAUTH);
-    m_editClientScope.EnableWindow(auth == AUTH_OAUTH);
-    m_editBearerToken.EnableWindow(auth == AUTH_OAUTH);
-    m_buttonRefresh  .EnableWindow(auth == AUTH_OAUTH);
+    m_editUsername   .EnableWindow(auth == CredType::BASIC || auth == CredType::NTLM);
+    m_editPassword   .EnableWindow(auth == CredType::BASIC || auth == CredType::NTLM);
+    m_comboGrant     .EnableWindow(auth == CredType::OAUTH2);
+    m_editTokenServer.EnableWindow(auth == CredType::OAUTH2);
+    m_editClientID   .EnableWindow(auth == CredType::OAUTH2);
+    m_editClientKey  .EnableWindow(auth == CredType::OAUTH2);
+    m_editClientScope.EnableWindow(auth == CredType::OAUTH2);
+    m_editBearerToken.EnableWindow(auth == CredType::OAUTH2);
+    m_buttonRefresh  .EnableWindow(auth == CredType::OAUTH2);
 
-    m_buttonUsernameParm   .EnableWindow(auth == AUTH_BASIC || auth == AUTH_NTLM);
-    m_buttonPasswordParm   .EnableWindow(auth == AUTH_BASIC || auth == AUTH_NTLM);
-    m_buttonTokenServerParm.EnableWindow(auth == AUTH_OAUTH);
-    m_buttonClientIDParm   .EnableWindow(auth == AUTH_OAUTH);
-    m_buttonClientKeyParm  .EnableWindow(auth == AUTH_OAUTH);
-    m_buttonClientScopeParm.EnableWindow(auth == AUTH_OAUTH);
+    m_buttonUsernameParm   .EnableWindow(auth == CredType::BASIC || auth == CredType::NTLM);
+    m_buttonPasswordParm   .EnableWindow(auth == CredType::BASIC || auth == CredType::NTLM);
+    m_buttonTokenServerParm.EnableWindow(auth == CredType::OAUTH2);
+    m_buttonClientIDParm   .EnableWindow(auth == CredType::OAUTH2);
+    m_buttonClientKeyParm  .EnableWindow(auth == CredType::OAUTH2);
+    m_buttonClientScopeParm.EnableWindow(auth == CredType::OAUTH2);
+
+    m_buttonSave  .EnableWindow(!m_identifier.IsEmpty());
+    m_buttonDelete.EnableWindow(!m_identifier.IsEmpty());
   }
 }
 
 BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleTab)
   ON_WM_TIMER()
+  ON_CBN_SELCHANGE(IDC_IDENTIFIER,  &AuthenticateDlg::OnCbnSelchangeIdentifier)
   ON_CBN_SELCHANGE(IDC_AUTH_TYPE,   &AuthenticateDlg::OnCbnSelchangeAuthType)
   ON_EN_KILLFOCUS (IDC_USERNAME,    &AuthenticateDlg::OnEnChangeUsername)
   ON_EN_KILLFOCUS (IDC_PASSWORD,    &AuthenticateDlg::OnEnChangePassword)
@@ -104,6 +111,8 @@ BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleTab)
   ON_EN_KILLFOCUS (IDC_CLIENTSCOPE, &AuthenticateDlg::OnEnChangeClientscope)
   ON_EN_KILLFOCUS (IDC_BEARERTOKEN, &AuthenticateDlg::OnEnChangeBearertoken)
   
+  ON_BN_CLICKED   (IDC_AUTHSAVE,    &AuthenticateDlg::OnBnClickedSave)
+  ON_BN_CLICKED   (IDC_AUTHDELETE,  &AuthenticateDlg::OnBnClickedDelete)
   ON_BN_CLICKED   (IDC_REFRESH,     &AuthenticateDlg::OnBnClickedRefresh)
   ON_BN_CLICKED   (IDC_USER_PARM,   &AuthenticateDlg::OnBnClickedUsernameParm)
   ON_BN_CLICKED   (IDC_PWD_PARM,    &AuthenticateDlg::OnBnClickedPasswordParm)
@@ -181,21 +190,37 @@ AuthenticateDlg::InitButtons()
 void
 AuthenticateDlg::InitCombos()
 {
+  m_comboType.ResetContent();
   m_comboType.AddString(_T("Anonymous"));
   m_comboType.AddString(_T("Basic authentication"));
   m_comboType.AddString(_T("NTLM Single-signon"));
-  m_comboType.AddString(_T("NTLM"));
+  m_comboType.AddString(_T("NTLM Logon"));
   m_comboType.AddString(_T("OAuth2"));
 
   m_comboGrant.AddString(_T("Client credentials grant"));
   m_comboGrant.AddString(_T("User credentials grant"));
+
+  // Add all named credential sets
+  if(m_credentials)
+  {
+    CredentialMap& map = m_credentials->GetAllCredentials();
+    m_comboIdentifier.ResetContent();
+    m_comboIdentifier.AddString(_T(""));
+    for(auto& cred : map)
+    {
+      m_comboIdentifier.AddString(cred.first);
+    }
+  }
 }
 
 void 
-AuthenticateDlg::InitTab(TestStepNET* p_step,Parameters* p_parameters)
+AuthenticateDlg::InitTab(TestStepNET* p_step
+                        ,Parameters*  p_parameters
+                        ,Credentials* p_credentials)
 {
-  m_testStep   = p_step;
-  m_parameters = p_parameters;
+  m_testStep    = p_step;
+  m_parameters  = p_parameters;
+  m_credentials = p_credentials;
 
   m_authType    = m_testStep->GetAuthType();
   m_userName    = m_testStep->GetAuthUser();
@@ -207,11 +232,18 @@ AuthenticateDlg::InitTab(TestStepNET* p_step,Parameters* p_parameters)
   m_clientScope = m_testStep->GetAuthClientScope();
   m_bearerToken = m_testStep->GetAuthBearerToken();
 
+  InitCombos();
+
   int ind = m_comboType.FindStringExact(0,m_authType);
   if(ind >= 0) m_comboType.SetCurSel(ind);
   ind = m_comboGrant.FindStringExact(0,m_oauthGrant);
   if(ind >= 0) m_comboGrant.SetCurSel(ind);
 
+  m_identifier = m_testStep->GetCredential();
+  if(!m_identifier.IsEmpty())
+  {
+    SetCredentials();
+  }
   UpdateData(FALSE);
 }
 
@@ -272,32 +304,32 @@ AuthenticateDlg::EffectiveParameters()
   }
 }
 
-int  
+CredType
 AuthenticateDlg::CalcAuthenticationType()
 {
-  if(m_authType.CompareNoCase(_T("Anonymous"))            == 0) return AUTH_ANONYMOUS;
-  if(m_authType.CompareNoCase(_T("Basic authentication")) == 0) return AUTH_BASIC;
-  if(m_authType.CompareNoCase(_T("NTLM Single-signon"))   == 0) return AUTH_NTLM_SSO;
-  if(m_authType.CompareNoCase(_T("NTLM"))                 == 0) return AUTH_NTLM;
-  if(m_authType.CompareNoCase(_T("OAuth2"))               == 0) return AUTH_OAUTH;
+  if(m_authType.CompareNoCase(_T("Anonymous"))            == 0) return CredType::ANONYMOUS;
+  if(m_authType.CompareNoCase(_T("Basic authentication")) == 0) return CredType::BASIC;
+  if(m_authType.CompareNoCase(_T("NTLM Single-signon"))   == 0) return CredType::NTLM_SSO;
+  if(m_authType.CompareNoCase(_T("NTLM Logon"))           == 0) return CredType::NTLM;
+  if(m_authType.CompareNoCase(_T("OAuth2"))               == 0) return CredType::OAUTH2;
  
-  return 0;
+  return CredType::ANONYMOUS;
 }
 
 void 
 AuthenticateDlg::AdjustAuthentication()
 {
-  int type = CalcAuthenticationType();
+  CredType type = CalcAuthenticationType();
   switch (type)
   {
-    case AUTH_NTLM_SSO:   // Fall through
-    case AUTH_OAUTH:      // Fall through
-    case AUTH_ANONYMOUS:  m_userName.Empty();
-                          m_password.Empty();
-                          break;
-    case AUTH_BASIC:      PresetBasicAuthentication();
-                          break;
-    case AUTH_NTLM:       break;
+    case CredType::NTLM_SSO:  // Fall through
+    case CredType::OAUTH2:    // Fall through
+    case CredType::ANONYMOUS: m_userName.Empty();
+                              m_password.Empty();
+                              break;
+    case CredType::BASIC:     PresetBasicAuthentication();
+                              break;
+    case CredType::NTLM:      break;
   }
 }
 
@@ -327,7 +359,130 @@ AuthenticateDlg::ChooseVariable(StyleEdit& p_edit)
   }
 }
 
+void
+AuthenticateDlg::SaveCredentials()
+{
+  UpdateData();
+  if(m_identifier.IsEmpty())
+  {
+    return;
+  }
+  if(StyleMessageBox(this,_T("Do you want to save the current credentials to: ") + m_identifier,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
+  {
+    return;
+  }
+  Credential* cred = m_credentials->FindCredential(m_identifier);
+  if(cred)
+  {
+    m_credentials->DeleteCredentials(m_identifier);
+  }
+
+  CredType type = CalcAuthenticationType();
+  switch(type)
+  {
+    case CredType::BASIC:    m_credentials->SetBasicCredential(m_identifier,m_userName,m_password);
+                             break;
+    case CredType::NTLM:     [[fallthrough]];
+    case CredType::NTLM_SSO: m_credentials->SetWNTLMCredential(m_identifier,m_userName,m_password);
+                             break;
+    case CredType::OAUTH2:   m_credentials->SetOAuthCredential(m_identifier,m_oauthGrant,m_tokenServer,m_clientID,m_clientKey,m_clientScope);
+                             break;
+  }
+}
+
+void
+AuthenticateDlg::DeleteCredentials()
+{
+  if(m_identifier.IsEmpty())
+  {
+    return;
+  }
+  Credential* cred = m_credentials->FindCredential(m_identifier);
+  if(cred)
+  {
+    if(StyleMessageBox(this,_T("Do you want to delete the credential set: ") + m_identifier,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
+    {
+      m_credentials->DeleteCredentials(m_identifier);
+      int ind = m_comboIdentifier.FindStringExact(0,m_identifier);
+      if(ind >= 0)
+      {
+        m_comboIdentifier.DeleteString(ind);
+      }
+      // Reset the type
+      m_authType.Empty();
+      m_comboType.SetCurSel(0);
+      // Reset all fields
+      m_userName.Empty();
+      m_password.Empty();
+      m_oauthGrant.Empty();
+      m_tokenServer.Empty();
+      m_clientID.Empty();
+      m_clientKey.Empty();
+      m_clientScope.Empty();
+      m_bearerToken.Empty();
+      UpdateData(FALSE);
+    }
+  }
+}
+
+void
+AuthenticateDlg::SetCredentials()
+{
+  Credential* cred = m_credentials->FindCredential(m_identifier);
+  if(cred == nullptr)
+  {
+    return;
+  }
+  // Forget last bearer token
+  m_bearerToken.Empty();
+
+  // Replace these
+  m_userName    = cred->m_username;
+  m_password    = cred->m_password;
+  m_oauthGrant  = cred->m_oauthGrant;
+  m_tokenServer = cred->m_tokenServer;
+  m_clientID    = cred->m_clientID;
+  m_clientKey   = cred->m_clientKey;
+  m_clientScope = cred->m_clientScope;
+
+  int ind = m_comboType.FindString(0,cred->m_typeName);
+  if(ind >= 0)
+  {
+    m_comboType.SetCurSel(ind);
+    m_comboType.GetLBText(ind,m_authType);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // AuthenticateDlg message handlers
+//
+//////////////////////////////////////////////////////////////////////////
+
+void
+AuthenticateDlg::OnCbnSelchangeIdentifier()
+{
+  CString identifier(m_identifier);
+  UpdateData();
+
+  if(identifier.IsEmpty() && !m_identifier.IsEmpty() &&
+    (!m_userName.IsEmpty() || !m_password.IsEmpty()  || !m_oauthGrant.IsEmpty() || !m_tokenServer.IsEmpty() ||
+     !m_clientID.IsEmpty() || !m_clientKey.IsEmpty() || !m_clientScope.IsEmpty()))
+  {
+    if(StyleMessageBox(this,_T("Current credentials are not stored\n")
+                            _T("Would you like to store them first, before selecting another set?")
+                           ,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)
+    {
+      return;
+    }
+  }
+  // Remember it in the test step
+  m_testStep->SetCredential(m_identifier);
+
+  // Show the new set
+  SetCredentials();
+  UpdateData(FALSE);
+}
 
 void 
 AuthenticateDlg::OnCbnSelchangeAuthType()
@@ -335,6 +490,18 @@ AuthenticateDlg::OnCbnSelchangeAuthType()
   UpdateData();
   AdjustAuthentication();
   UpdateData(FALSE);
+}
+
+void
+AuthenticateDlg::OnBnClickedSave()
+{
+  SaveCredentials();
+}
+
+void 
+AuthenticateDlg::OnBnClickedDelete()
+{
+  DeleteCredentials();
 }
 
 void

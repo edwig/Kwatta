@@ -71,7 +71,7 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
   // Load the file (if any)
   if (msg.LoadFile(p_filename) == false)
   {
-    throw StdException(_T("Could not load the XML file: ") + p_filename);
+    throw StdException(_T("Could not load the parameters XML file: ") + p_filename);
   }
 
   // CHeck for XML error

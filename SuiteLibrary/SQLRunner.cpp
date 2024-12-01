@@ -184,6 +184,7 @@ SQLRunner::ReadingAllFiles()
 
   ReadTestStep();
   ReadParameters();
+  ReadCredentials();
   ReadValidations();
 
   // Now set the name proper to the given test step
@@ -195,6 +196,15 @@ SQLRunner::ParameterProcessing()
 {
   int unbound = 0;
   PerformStep(_T("Parameter processing..."));
+
+  TestStepSQL* step = dynamic_cast<TestStepSQL*>(m_testStep);
+  DBSConnect* conn = m_credentials.FindConnection(step->GetCredential());
+  if(conn)
+  {
+    step->SetDatasource(conn->m_datasource);
+    step->SetUser      (conn->m_username);
+    step->SetPassword  (conn->m_password);
+  }
 
   // Effectuate the parameters for the step
   unbound = m_testStep->EffectiveReplacements(&m_parameters,false);

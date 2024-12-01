@@ -106,6 +106,14 @@ TestRunner::ReadParameters()
   m_parameters.ReadFromXML(filename, false);
 }
 
+void
+TestRunner::ReadCredentials()
+{
+  // read the global credentials
+  CString filename = m_baseDirectory + _T("Credentials.cred");
+  m_credentials.ReadFromXML(filename);
+}
+
 int
 TestRunner::GetMaxRunningTime()
 {

@@ -150,6 +150,7 @@ StepInternetDlg::OnInitDialog()
   InitVerbs();
   InitStep();
   InitGlobalParameters();
+  InitCredentials();
   InitParameters();
   InitButtons();
   InitGlobals();
@@ -304,6 +305,24 @@ StepInternetDlg::InitParameters()
 }
 
 void
+StepInternetDlg::InitCredentials()
+{
+  CString filename = theApp.GetBaseDirectory() + _T("Credentials.cred");
+
+  // read the credential sets
+  try
+  {
+    m_credentials.ReadFromXML(filename);
+  }
+  catch(StdException& ex)
+  {
+    StyleMessageBox(this,ex.GetErrorMessage(),PRODUCT_NAME,MB_OK | MB_ICONERROR);
+    theApp.GetMainWnd()->PostMessage(WM_QUIT,0,0);
+  }
+}
+
+
+void
 StepInternetDlg::InitButtons()
 {
   m_buttonOK     .SetStyle(_T("ok"));
@@ -406,7 +425,7 @@ StepInternetDlg::LoadVariablesTabs()
   m_page1->InitTab(m_testStep,&m_parameters);
   m_page2->InitTab(m_testStep,&m_parameters);
   m_page3->InitTab(m_testStep,&m_parameters);
-  m_page4->InitTab(m_testStep,&m_parameters);
+  m_page4->InitTab(m_testStep,&m_parameters,&m_credentials);
   m_page5->InitTab(m_testStep);
   m_page6->InitTab(m_testStep,&m_parameters);
   m_page7->InitTab(m_testStep,&m_parameters);
@@ -440,6 +459,7 @@ StepInternetDlg::RefreshHeaders()
 bool
 StepInternetDlg::SaveStep()
 {
+  StoreCredentials();
   StoreVariables();
 
   CString filenameStep = theApp.GetEffectiveStep();
@@ -462,6 +482,18 @@ StepInternetDlg::SaveStep()
     StyleMessageBox(this, ex.GetErrorMessage(), PRODUCT_NAME, MB_OK | MB_ICONERROR);
   }
   return false;
+}
+
+void
+StepInternetDlg::StoreCredentials()
+{
+  if(m_credentials.GetChanged())
+  {
+    if(!m_credentials.WriteToXML())
+    {
+      StyleMessageBox(this,_T("Could not store (all) credentials!"),PRODUCT_NAME,MB_OK | MB_ICONERROR);
+    }
+  }
 }
 
 void

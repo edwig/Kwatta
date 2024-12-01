@@ -100,6 +100,7 @@ TestStepNET::ReadFromXML(CString p_filename)
   XMLElement* auth = msg.FindElement(def,_T("Authentication"));
   if(auth)
   {
+    m_credential  = msg.GetElement(auth,_T("Credentials"));
     m_authType    = msg.GetElement(auth,_T("Type"));
     m_userName    = msg.GetElement(auth,_T("Username"));
     m_password    = msg.GetElement(auth,_T("Password"));
@@ -108,8 +109,9 @@ TestStepNET::ReadFromXML(CString p_filename)
     m_clientID    = msg.GetElement(auth,_T("ClientID"));
     m_clientKey   = msg.GetElement(auth,_T("ClientKey"));
     m_clientScope = msg.GetElement(auth,_T("ClientScope"));
-  }
 
+    SetCredential(m_credential);
+  }
 
   // Timeouts
   XMLElement* timeouts = msg.FindElement(def,_T("Timeouts"));
@@ -173,15 +175,18 @@ TestStepNET::WriteToXML(CString p_filename)
 
   // Authentication
   XMLElement* auth = msg.AddElement(def,_T("Authentication"),XDT_String,_T(""));
-  msg.AddElement(auth,_T("Type"),       XDT_String,m_authType);
-  msg.AddElement(auth,_T("Username"),   XDT_String,m_userName);
-  msg.AddElement(auth,_T("Password"),   XDT_String,m_password);
-  msg.AddElement(auth,_T("OAuthGrant"), XDT_String,m_oauthGrant);
-  msg.AddElement(auth,_T("TokenServer"),XDT_String,m_tokenServer);
-  msg.AddElement(auth,_T("ClientID"),   XDT_String,m_clientID);
-  msg.AddElement(auth,_T("ClientKey"),  XDT_String,m_clientKey);
-  msg.AddElement(auth,_T("ClientScope"),XDT_String,m_clientScope);
-
+  msg.AddElement(auth,_T("Credentials"),XDT_String,m_credential);
+  if(m_credential.IsEmpty())
+  {
+    msg.AddElement(auth,_T("Type"),       XDT_String,m_authType);
+    msg.AddElement(auth,_T("Username"),   XDT_String,m_userName);
+    msg.AddElement(auth,_T("Password"),   XDT_String,m_password);
+    msg.AddElement(auth,_T("OAuthGrant"), XDT_String,m_oauthGrant);
+    msg.AddElement(auth,_T("TokenServer"),XDT_String,m_tokenServer);
+    msg.AddElement(auth,_T("ClientID"),   XDT_String,m_clientID);
+    msg.AddElement(auth,_T("ClientKey"),  XDT_String,m_clientKey);
+    msg.AddElement(auth,_T("ClientScope"),XDT_String,m_clientScope);
+  }
   // And our payload body
   msg.AddElement(def,_T("MimeType"),        XDT_String, m_mimeType);
   msg.AddElement(def,_T("BodyInputIsFile"), XDT_Boolean,m_bodyInputIsFile  ? _T("true") : _T("false") );
@@ -354,7 +359,6 @@ TestStepNET::GetEffectiveCombinedURL()
   return url;
 }
 
-
 CString
 TestStepNET::GetRawRequest()
 {
@@ -394,4 +398,23 @@ TestStepNET::ResetEffective()
   m_effectiveBody.Empty();
   m_effectiveParameters.clear();
   m_effectiveHeaders.clear();
+}
+
+void
+TestStepNET::SetCredential(CString p_credential)
+{
+  // Remember credential template
+  m_credential = p_credential;
+
+  if(!m_credential.IsEmpty())
+  {
+    m_authType.Empty();
+    m_userName.Empty();
+    m_password.Empty();
+    m_oauthGrant.Empty();
+    m_tokenServer.Empty();
+    m_clientID.Empty();
+    m_clientKey.Empty();
+    m_clientScope.Empty();
+  }
 }

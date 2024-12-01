@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <Credentials.h>
 #include <Parameters.h>
 
 class RequestDlg;
@@ -62,12 +63,14 @@ protected:
   void InitVerbs();
   void InitStep();
   void InitGlobalParameters();
+  void InitCredentials();
   void InitParameters();
   void InitButtons();
   void InitGlobals();
   void InitTooltips();
   void ReadParameters(CString p_file, bool p_global = true);
   bool SaveStep();
+  void StoreCredentials();
   void StoreVariables();
   void LoadVariables();
   void LoadVariablesTabs();
@@ -95,6 +98,7 @@ protected:
   StyleButton       m_buttonCancel;
 
   TestStepNET*      m_testStep { nullptr };
+  Credentials       m_credentials;
   Parameters        m_parameters;
   RequestDlg*       m_page1;
   URLParameterDlg*  m_page2;

@@ -27,6 +27,7 @@
 
 #pragma once
 #include "Parameters.h"
+#include "Credentials.h"
 #include "Validate.h"
 #include <vector>
 
@@ -67,6 +68,7 @@ public:
 protected:
   // General functions
   void ReadParameters();
+  void ReadCredentials();
   void PerformStep(CString p_stepName);
   void PreCommandWaiting();
   void PostCommandWaiting();
@@ -102,6 +104,7 @@ protected:
   bool        m_global     { false };
   bool        m_loadtest   { false };
   Parameters  m_parameters;
+  Credentials m_credentials;
   Validations m_validations;
   // The test and result of the test
   TestStep*   m_testStep { nullptr };

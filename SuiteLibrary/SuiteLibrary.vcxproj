@@ -187,6 +187,7 @@
   <ItemGroup>
     <ClInclude Include="AboutDlg.h" />
     <ClInclude Include="CMDRunner.h" />
+    <ClInclude Include="Credentials.h" />
     <ClInclude Include="ExtraExtensions.h" />
     <ClInclude Include="ExtraMessages.h" />
     <ClInclude Include="framework.h" />
@@ -232,6 +233,7 @@
   <ItemGroup>
     <ClCompile Include="AboutDlg.cpp" />
     <ClCompile Include="CMDRunner.cpp" />
+    <ClCompile Include="Credentials.cpp" />
     <ClCompile Include="GetExePath.cpp" />
     <ClCompile Include="GlobalFileDlg.cpp" />
     <ClCompile Include="NETRunner.cpp" />

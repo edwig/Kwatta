@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #pragma once
+#include <Credentials.h>
 #include <Parameters.h>
 
 class TestStepSQL;
@@ -59,9 +60,11 @@ protected:
   void InitStep();
   void InitGlobalParameters();
   void InitParameters();
+  void InitCredentials();
   void ReadParameters(CString p_file, bool p_global = true);
   bool SaveStep();
   void StoreVariables();
+  void StoreCredentials();
   void LoadVariables();
   void LoadVariablesTabs();
   void Redraw();
@@ -83,6 +86,7 @@ protected:
 
   TestStepSQL*      m_testStep { nullptr };
   Parameters        m_parameters;
+  Credentials       m_credentials;
   SQLDlg*           m_page1;
   DatabaseDlg*      m_page2;
   TimingDlg*        m_page3;

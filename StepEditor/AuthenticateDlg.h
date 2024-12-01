@@ -21,12 +21,14 @@
 
 class TestStepNET;
 class StepResultNET;
+class Credentials;
+enum class CredType;
 
-#define AUTH_ANONYMOUS  1
-#define AUTH_BASIC      2
-#define AUTH_NTLM_SSO   3
-#define AUTH_NTLM       4
-#define AUTH_OAUTH      5
+// #define AUTH_ANONYMOUS  1
+// #define AUTH_BASIC      2
+// #define AUTH_NTLM_SSO   3
+// #define AUTH_NTLM       4
+// #define AUTH_OAUTH      5
 
 // AuthenticateDlg dialog
 
@@ -39,7 +41,7 @@ public:
 	virtual ~AuthenticateDlg();
   virtual BOOL OnInitDialog() override;
 
-  void InitTab(TestStepNET* p_step,Parameters* p_parameters);
+  void InitTab(TestStepNET* p_step,Parameters* p_parameters,Credentials* p_credentials);
   void SetResult(CString p_token);
   void StoreVariables();
   bool IsFilled();
@@ -51,18 +53,25 @@ protected:
   virtual void DoDataExchange(CDataExchange* pDX) override;
   virtual void SetupDynamicLayout() override;
 
-  void InitButtons();
-  void InitCombos();
-  int  CalcAuthenticationType();
-  void EffectiveParameters();
-  void ChooseVariable(StyleEdit& p_edit);
-  void AdjustAuthentication();
-  void PresetBasicAuthentication();
+  void      InitButtons();
+  void      InitCombos();
+  CredType  CalcAuthenticationType();
+  void      EffectiveParameters();
+  void      ChooseVariable(StyleEdit& p_edit);
+  void      AdjustAuthentication();
+  void      PresetBasicAuthentication();
+  void      SetCredentials();
+  void      SaveCredentials();
+  void      DeleteCredentials();
 
-  TestStepNET* m_testStep   { nullptr };
-  Parameters* m_parameters { nullptr };
-  
+  TestStepNET*    m_testStep    { nullptr };
+  Parameters*     m_parameters  { nullptr };
+  Credentials*    m_credentials { nullptr };
+
+  StyleComboBox   m_comboIdentifier;
   StyleComboBox   m_comboType;
+  StyleButton     m_buttonSave;
+  StyleButton     m_buttonDelete;
   StyleEdit       m_editUsername;
   StyleEdit       m_editPassword;
   StyleComboBox   m_comboGrant;
@@ -79,6 +88,7 @@ protected:
   StyleButton     m_buttonClientKeyParm;
   StyleButton     m_buttonClientScopeParm;
 
+  CString         m_identifier;
   CString         m_authType;
   CString         m_userName;
   CString         m_password;
@@ -92,7 +102,10 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
   afx_msg void OnTimer(UINT_PTR p_timer);
+  afx_msg void OnCbnSelchangeIdentifier();
   afx_msg void OnCbnSelchangeAuthType();
+  afx_msg void OnBnClickedSave();
+  afx_msg void OnBnClickedDelete();
   afx_msg void OnEnChangeUsername();
   afx_msg void OnEnChangePassword();
   afx_msg void OnCbnSelchangeGrant();

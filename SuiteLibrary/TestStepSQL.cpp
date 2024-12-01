@@ -57,10 +57,13 @@ TestStepSQL::ReadFromXML(CString p_filename)
   {
     throw StdException(_T("Missing <Definition> in QRUN file: ") + p_filename);
   }
+  m_credential = msg.GetElement(def,_T("Credential"));
   m_datasource = msg.GetElement(def,_T("Datasource"));
   m_user       = msg.GetElement(def,_T("User"));
   m_password   = msg.GetElement(def,_T("Password"));
   m_sql        = msg.GetElement(def,_T("SQL"));
+
+  SetCredential(m_credential);
 }
 
 bool
@@ -78,6 +81,9 @@ TestStepSQL::WriteToXML(CString p_filename)
 
   XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
 
+  SetCredential(m_credential);
+
+  msg.AddElement(def,_T("Credential"),XDT_String,m_credential);
   msg.AddElement(def,_T("Datasource"),XDT_String,m_datasource);
   msg.AddElement(def,_T("User"),      XDT_String,m_user);
   msg.AddElement(def,_T("Password"),  XDT_String,m_password);
@@ -124,4 +130,17 @@ TestStepSQL::ResetEffective()
   m_effectivePassword.Empty();
   m_effectiveUser.Empty();
   m_effectiveSQL.Empty();
+}
+
+void
+TestStepSQL::SetCredential(CString p_credential)
+{
+  m_credential = p_credential;
+
+  if(!m_credential.IsEmpty())
+  {
+    m_datasource.Empty();
+    m_user.Empty();
+    m_password.Empty();
+  }
 }

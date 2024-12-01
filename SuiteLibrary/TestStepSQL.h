@@ -43,6 +43,8 @@ public:
   void            SetUser(CString p_user)             { m_user       = p_user;        }
   void            SetPassword(CString p_password)     { m_password   = p_password;    }
   void            SetSQL(CString p_sql)               { m_sql        = p_sql;         }
+  void            SetCredential(CString p_credential);
+
   // GETTERS
   CString         GetDataSource()                     { return m_datasource;          }
   CString         GetUser()                           { return m_user;                }
@@ -52,8 +54,12 @@ public:
   CString         GetEffectiveUser()                  { return m_effectiveUser;       }
   CString         GetEffectivePassword()              { return m_effectivePassword;   }
   CString         GetEffectiveSQL()                   { return m_effectiveSQL;        }
+  CString         GetCredential()                     { return m_credential;          }
 
 protected:
+  // Credential template
+  CString         m_credential;
+  // Credentials
   CString         m_datasource;
   CString         m_user;
   CString         m_password;

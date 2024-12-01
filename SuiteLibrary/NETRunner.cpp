@@ -173,6 +173,7 @@ NETRunner::ReadingAllFiles()
 
   ReadTestStep();
   ReadParameters();
+  ReadCredentials();
   ReadValidations();
 
   // Now set the name proper to the given test step
@@ -186,6 +187,17 @@ NETRunner::ParameterProcessing()
   PerformStep(_T("Parameter processing..."));
 
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+  Credential* cred = m_credentials.FindCredential(step->GetCredential());
+  if(cred)
+  {
+    step->SetAuthType       (cred->m_typeName);
+    step->SetAuthUser       (cred->m_username);
+    step->SetAuthPassword   (cred->m_password);
+    step->SetAuthGrant      (cred->m_oauthGrant);
+    step->SetAuthClientID   (cred->m_clientID);
+    step->SetAuthClientKey  (cred->m_clientKey);
+    step->SetAuthClientScope(cred->m_clientScope);
+  }
 
   // Effectuate the parameters for the step
   unbound = step->EffectiveReplacements(&m_parameters,false);
@@ -268,11 +280,11 @@ NETRunner::PerformAuthentication()
   {
     SetBasicAuthentication();
   }
-  else if(auth.Find(_T("NTLM Single")) >= 0)
+  else if(auth.Find(_T("NTLM Single-signon")) >= 0)
   {
     SetNTLMSSOAuthentication();
   }
-  else if(auth.Find(_T("NTLM")) >= 0)
+  else if(auth.Find(_T("NTLM Logon")) >= 0)
   {
     SetNTLMAuthentication();
   }

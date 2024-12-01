@@ -65,6 +65,7 @@ public:
   UrlParameters&  GetParameters()           { return m_parameters; }
   UrlHeaders&     GetHeaders()              { return m_headers;    }
   CString         GetRawRequest();
+  CString         GetCredential()           { return m_credential; }
   CString         GetAuthType()             { return m_authType;   }
   CString         GetAuthUser()             { return m_userName;   }
   CString         GetAuthPassword()         { return m_password;   }
@@ -114,10 +115,11 @@ public:
   void      SetUseStatus(bool p_use)              { m_useStatus         = p_use;        }
   void      SetUseHeaders(bool p_use)             { m_useHeaders        = p_use;        }
   void      SetUseBody(bool p_use)                { m_useBody           = p_use;        }
-  void      SetTimeoutResolve(int p_timeout)      { m_timeoutResolve    = p_timeout;  };
-  void      SetTimeoutConnect(int p_timeout)      { m_timeoutConnect    = p_timeout;  };
-  void      SetTimeoutSend   (int p_timeout)      { m_timeoutSend       = p_timeout;  };
-  void      SetTimeoutReceive(int p_timeout)      { m_timeoutReceive    = p_timeout;  };
+  void      SetTimeoutResolve(int p_timeout)      { m_timeoutResolve    = p_timeout;    }
+  void      SetTimeoutConnect(int p_timeout)      { m_timeoutConnect    = p_timeout;    }
+  void      SetTimeoutSend   (int p_timeout)      { m_timeoutSend       = p_timeout;    }
+  void      SetTimeoutReceive(int p_timeout)      { m_timeoutReceive    = p_timeout;    }
+  void      SetCredential(CString p_credential);
 
   void      DeleteParameter(CString p_parameter);
 
@@ -140,7 +142,9 @@ protected:
   unsigned      m_timeoutSend     { DEF_TIMEOUT_SEND    };        // Timeout in sending 
   unsigned      m_timeoutReceive  { DEF_TIMEOUT_RECEIVE };        // Timeout in receiving
 
-  // Authenticate
+  // Credential template
+  CString       m_credential;
+  // Our own authentication set
   CString       m_authType;
   CString       m_userName;
   CString       m_password;
@@ -149,6 +153,7 @@ protected:
   CString       m_clientID;
   CString       m_clientKey;
   CString       m_clientScope;
+  // Effective OAuth2 token
   CString       m_bearerToken;
 
   // After replacement

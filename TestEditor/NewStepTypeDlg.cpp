@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "TestEditor.h"
+#include "TestEditorDlg.h"
 #include "afxdialogex.h"
 #include "NewStepTypeDlg.h"
 
@@ -58,11 +59,11 @@ NewStepTypeDlg::InitStyleTab(void* p_data)
   m_comboType.AddString(_T("Windows (WIN)"));
   m_comboType.SetCurSel(0);
 
-  StepType type = *((StepType*)p_data);
-  if(m_stepType != type)
+  NewStepInfo* info = ((NewStepInfo*)p_data);
+  if(m_stepType != info->m_type)
   {
-    m_stepType = type;
-    m_comboType.SetCurSel((int)type);
+    m_stepType = info->m_type;
+    m_comboType.SetCurSel((int)m_stepType);
   }
   return true;
 }
@@ -85,7 +86,7 @@ NewStepTypeDlg::SaveStyleTab(void* p_data)
   if(m_stepType >= StepType::Step_command &&
      m_stepType <= StepType::Step_win)
   {
-    *((StepType*)p_data) = m_stepType;
+    ((NewStepInfo*)p_data)->m_type = m_stepType;
   }
   return true;
 }

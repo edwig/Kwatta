@@ -36,6 +36,13 @@
 #define COL_STATUS_GLOBAL 2
 #define COL_STATUS_LOCAL  3
 
+typedef struct _newstep
+{
+  StepType m_type;
+  CString  m_default;
+}
+NewStepInfo;
+
 // TestEditorDlg dialog
 class TestEditorDlg : public StyleDialog
 {

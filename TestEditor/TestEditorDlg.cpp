@@ -1150,9 +1150,11 @@ TestEditorDlg::OnBnClickedNew()
   AutoFocus focus;
 
   // Create the wizard
-  StepType type = StepType::Step_command;
+  NewStepInfo info;
+  info.m_type = StepType::Step_command;
+
   StyleStepper wizard(this);
-  wizard.SetStepperData(&type);
+  wizard.SetStepperData(&info);
   wizard.SetCaption(_T("New test step"));
 
   // Define pages as child's of the wizard
@@ -1169,10 +1171,10 @@ TestEditorDlg::OnBnClickedNew()
   if(wizard.DoModal() == IDOK)
   {
     // Create test step and first validation
-    int row = MakeNewTest(type,page2.GetStepGlobal(),page2.GetStepName(),page2.GetStepFile());
+    int row = MakeNewTest(info.m_type,page2.GetStepGlobal(),page2.GetStepName(),page2.GetStepFile());
     if(row > 0)
     {
-      MakeNewVali(type,page3.GetValiGlobal(),page3.GetValiName(),page3.GetValiFile(),row);
+      MakeNewVali(info.m_type,page3.GetValiGlobal(),page3.GetValiName(),page3.GetValiFile(),row);
     }
     m_changed = true;
     SaveTest();

@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "TestEditor.h"
+#include "TestEditorDlg.h"
 #include "afxdialogex.h"
 #include "NewStepNamesDlg.h"
 #include <ExtraExtensions.h>
@@ -77,10 +78,10 @@ NewStepNamesDlg::SetupDynamicLayout()
 bool
 NewStepNamesDlg::InitStyleTab(void* p_data)
 {
-  StepType stepType = *(static_cast<StepType*>(p_data));
-  if(m_stepType != stepType)
+  NewStepInfo* info= static_cast<NewStepInfo*>(p_data);
+  if(m_stepType != info->m_type)
   {
-    m_stepType = stepType;
+    m_stepType = info->m_type;
     ResetPage();
     UpdateData(FALSE);
   }
@@ -105,7 +106,12 @@ NewStepNamesDlg::CheckStyleTab(void* p_data)
   }
   m_editName.SetErrorState(false);
   m_editFile.SetErrorState(false);
-  *(static_cast<StepType*>(p_data)) = m_stepType;
+  
+  // Save the state
+  (static_cast<NewStepInfo*>(p_data))->m_type = m_stepType;
+  CString defaultName = StripExtension(m_stepFile);
+  (static_cast<NewStepInfo*>(p_data))->m_default = defaultName;
+
   return true;
 }
 

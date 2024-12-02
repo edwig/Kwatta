@@ -20,6 +20,7 @@
 
 #include "stdafx.h"
 #include "TestEditor.h"
+#include "TestEditorDlg.h"
 #include "afxdialogex.h"
 #include "NewStepValiDlg.h"
 #include <GlobalFileDlg.h>
@@ -59,11 +60,15 @@ END_MESSAGE_MAP()
 bool
 NewStepValiDlg::InitStyleTab(void* p_data)
 {
-  StepType stepType = *(static_cast<StepType*>(p_data));
-  if(m_stepType != stepType)
+  NewStepInfo* stepType = (static_cast<NewStepInfo*>(p_data));
+  if(m_stepType != stepType->m_type)
   {
-    m_stepType = stepType;
+    m_stepType = stepType->m_type;
     ResetPage();
+
+    m_valiName = stepType->m_default;
+    PresetFilenames();
+
     UpdateData(FALSE);
   }
   return true;
@@ -120,6 +125,9 @@ NewStepValiDlg::PresetFilenames()
   {
     m_valiFile = m_valiName;
     CheckValiFile();
+
+
+
     UpdateData(FALSE);
   }
 }

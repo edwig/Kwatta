@@ -103,6 +103,11 @@ void
 NewTestDlg::OnKillfocusDirectory()
 {
   UpdateData();
+  if(m_testName.IsEmpty())
+  {
+    m_testName = m_directory;
+    UpdateData(FALSE);
+  }
 }
 
 void 
@@ -120,6 +125,7 @@ NewTestDlg::OnBnClickedActive()
 void 
 NewTestDlg::OnBnClickedOK()
 {
+  UpdateData();
   if(CheckInput())
   {
     OnOK();

@@ -73,7 +73,7 @@ NewSuiteDlg::OnInitDialog()
   m_buttonChooseFile.SetIconImage(IDI_NEW);
   m_buttonOK.SetStyle(_T("ok"));
   m_buttonCancel.SetStyle(_T("can"));
-  m_editDirectory.SetEmpty(true,_T("Choose a new directory"));
+  m_editDirectory.SetEmpty(true,_T("Choose a new folder"));
   m_editSuiteName.SetEmpty(true,_T("Choose a new test suite name"));
 
   m_explain = _T("Create a new test suite by creating a new empty directory.\r\n")
@@ -108,6 +108,10 @@ NewSuiteDlg::CheckDirectory()
     }
     m_editDirectory.SetErrorState(true,_T("You must choose/create an empty directory!"));
     return false;
+  }
+  else
+  {
+    std::filesystem::create_directory(m_directory.GetString());
   }
   return true;
 }
@@ -207,6 +211,7 @@ NewSuiteDlg::OnBnClickedChooseFile()
 void 
 NewSuiteDlg::OnBnClickedOK()
 {
+  UpdateData();
   if(!m_directory.IsEmpty() && !m_suiteName.IsEmpty())
   {
     if(CheckDirectory() && CheckSuiteName())

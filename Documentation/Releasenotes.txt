@@ -1,6 +1,20 @@
 KWATTA RELEASENOTES
 ===================
 
+Version 1.3.4 Release date 02-12-2024
+-------------------------------------
+1) Credentials are now stored in the "Credentials.cred" file in the root
+   folder of the test suite. This enables you to re-use credentials with
+   every test step for SQL and INET tests.
+2) TAB order on the sub-tabs of all applications are fixed so that the 
+   next selected control is the control on the sub-dialog and not the main
+   dialog.
+3) The starter dialog has been fixed, so that it shows up on the MS-Windows taskbar
+4) The creation of a new testsuite has been made more intuitive. You can type in
+   a new folder, and the system will then auto-create that folder
+5) The creation of a new test step has been made more intuitive. The names for the
+   validation are now defaulted from the name of the teststep.
+
 Version 1.3.3 Release date 22-03-2024
 -------------------------------------
 1) Kwatta now has a load testing feature in the testeditor.

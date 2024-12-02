@@ -23,6 +23,7 @@
 #include "SuiteLibrary.h"
 #include <Crypto.h>
 #include <XMLMessage.h>
+#include <io.h>
 
 // Reset all credentials
 void

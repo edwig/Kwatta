@@ -100,6 +100,7 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleTab)
   ON_WM_TIMER()
+  ON_CBN_KILLFOCUS(IDC_IDENTIFIER,  &AuthenticateDlg::OnCbnSelchangeIdentifier)
   ON_CBN_SELCHANGE(IDC_IDENTIFIER,  &AuthenticateDlg::OnCbnSelchangeIdentifier)
   ON_CBN_SELCHANGE(IDC_AUTH_TYPE,   &AuthenticateDlg::OnCbnSelchangeAuthType)
   ON_EN_KILLFOCUS (IDC_USERNAME,    &AuthenticateDlg::OnEnChangeUsername)
@@ -451,6 +452,11 @@ AuthenticateDlg::SetCredentials()
     m_comboType.SetCurSel(ind);
     m_comboType.GetLBText(ind,m_authType);
   }
+  ind = m_comboIdentifier.FindStringExact(0,m_identifier);
+  if(ind >= 0)
+  {
+    m_comboIdentifier.SetCurSel(ind);
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -496,12 +502,16 @@ void
 AuthenticateDlg::OnBnClickedSave()
 {
   SaveCredentials();
+  InitCombos();
+  SetCredentials();
 }
 
 void 
 AuthenticateDlg::OnBnClickedDelete()
 {
+  UpdateData();
   DeleteCredentials();
+  InitCombos();
 }
 
 void

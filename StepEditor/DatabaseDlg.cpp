@@ -69,6 +69,7 @@ void DatabaseDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(DatabaseDlg, StyleTab)
+  ON_CBN_KILLFOCUS(IDC_IDENTIFIER,     &DatabaseDlg::OnCbnSelChangeCredential)
   ON_CBN_SELCHANGE(IDC_IDENTIFIER,     &DatabaseDlg::OnCbnSelChangeCredential)
   ON_BN_CLICKED   (IDC_DBSSAVE,        &DatabaseDlg::OnBnClickedSave)
   ON_BN_CLICKED   (IDC_DBSDEL,         &DatabaseDlg::OnBnClickedDelete)
@@ -113,6 +114,12 @@ DatabaseDlg::InitCombo()
   for(auto& conn : m_credentials->GetAllConnections())
   {
     m_comboCredential.AddString(conn.first);
+  }
+
+  int ind = m_comboCredential.FindStringExact(0,m_credential);
+  if(ind >= 0)
+  {
+    m_comboCredential.SetCurSel(ind);
   }
 }
 
@@ -275,12 +282,16 @@ void
 DatabaseDlg::OnBnClickedSave()
 {
   SaveCredentials();
+  InitCombo();
+  SetCredentials();
 }
 
 void
 DatabaseDlg::OnBnClickedDelete()
 {
+  UpdateData();
   DeleteCredentials();
+  InitCombo();
 }
 
 void 

@@ -136,24 +136,28 @@
 ;--------------------------------------------------------------------------------------------------------
 Section "The Program" prog_always
 
- CreateDirectory "$INSTDIR"
- CreateDirectory "$INSTDIR\Unicode"
+ ;CreateDirectory "$INSTDIR\Ansi"
+  CreateDirectory "$INSTDIR"
  
  ; Explicit overwrite of files
  SetOverwrite on
  
- SetOutPath  "$INSTDIR"
+ ;SetOutPath  "$INSTDIR\Ansi"
+ ;DetailPrint "Output directory set to: ${INSTDIR}\Ansi"
+ ;DetailPrint "Copying the files..."
+ ;File "${RootDir}TheName.md"
+ ;File "${RootDir}License.md"
+ ;File "${InputDir}Kwatta.exe"
+ ;File "${InputDir}TestEditor.exe"
+ ;File "${InputDir}StepEditor.exe"
+ ;File "${InputDir}ValidateEditor.exe"
+ ;File "${InputDir}ResultViewer.exe"
+ ;File "${InputDir}TestRunner.exe"
+ SetOutPath "$INSTDIR"
  DetailPrint "Output directory set to: $INSTDIR"
  DetailPrint "Copying the files..."
  File "${RootDir}TheName.md"
  File "${RootDir}License.md"
- File "${InputDir}Kwatta.exe"
- File "${InputDir}TestEditor.exe"
- File "${InputDir}StepEditor.exe"
- File "${InputDir}ValidateEditor.exe"
- File "${InputDir}ResultViewer.exe"
- File "${InputDir}TestRunner.exe"
- SetOutPath "$INSTDIR\Unicode"
  File "${InputDirUnicode}Kwatta.exe"
  File "${InputDirUnicode}TestEditor.exe"
  File "${InputDirUnicode}StepEditor.exe"
@@ -176,8 +180,8 @@ Section "Create desktop icons" Desktop_icons
 
  DetailPrint "Creating of the desktop shortcuts"
  SetOutPath "$INSTDIR"
- CreateShortCut "$DESKTOP\Kwatta.lnk"          "$INSTDIR\Kwatta.exe"
- CreateShortCut "$DESKTOP\Kwatta_Unicode.lnk"  "$INSTDIR\Unicode\Kwatta.exe"
+ ;CreateShortCut "$DESKTOP\Kwatta_ANSI.lnk" "$INSTDIR\Ansi\Kwatta.exe"
+  CreateShortCut "$DESKTOP\Kwatta.lnk"      "$INSTDIR\Kwatta.exe"
 SectionEnd
 
 
@@ -275,13 +279,13 @@ Section Uninstall
 
  ; Remove directory in the start menu
  DetailPrint "Remove links from the startmenu"
+ Delete "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\Kwatta_ANSI.lnk"
  Delete "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\Kwatta.lnk"
- Delete "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}\Kwatta_Unicode.lnk"
  RmDir /r /REBOOTOK "$SMPROGRAMS\${PRODUCT_PUBLISHER}\${PRODUCT_NAME}_${PRODUCT_VERSION}"
 
  DetailPrint "Removing the links from the desktop"
+ Delete "$DESKTOP\Kwatta_ANSI.lnk"
  Delete "$DESKTOP\Kwatta.lnk"
- Delete "$DESKTOP\Kwatta_Unicode.lnk"
  
  ;De-Registring of the product.
  DetailPrint "De-registration of ${PRODUCT_NAME}"

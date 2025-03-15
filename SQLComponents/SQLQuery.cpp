@@ -2,7 +2,7 @@
 //
 // File: SQLQuery.cpp
 //
-// Copyright (c) 1998-2024 ir. W.E. Huisman
+// Copyright (c) 1998-2025 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
@@ -1276,7 +1276,7 @@ SQLQuery::BindColumns()
     type = RebindColumn(type);
 
     // Bind columns up to the first long column
-    if(m_hasLongColumns == 0 || bcol < m_hasLongColumns)
+    if(!var->GetAtExec())
     {
       m_retCode = SQLBindCol(m_hstmt                    // statement handle
                              ,bcol                       // Column number
@@ -1284,7 +1284,7 @@ SQLQuery::BindColumns()
                              ,const_cast<SQLPOINTER>(var->GetDataPointer())      // Data pointer
                              ,size                       // Buffer length
                              ,var->GetIndicatorPointer() // Indicator address
-      );
+                            );
       if(!SQL_SUCCEEDED(m_retCode))
       {
         GetLastError(_T("Cannot bind to column. Error: "));
@@ -1297,7 +1297,7 @@ SQLQuery::BindColumns()
         BindColumnNumeric((SQLSMALLINT)bcol,var,SQL_RESULT_COL);
       }
     }
-    else
+    if(m_hasLongColumns && (bcol > m_hasLongColumns))
     {
       if(type == SQL_C_NUMERIC && 
          m_database && ((m_database->GetSQLInfoDB()->GetGetDataExtensions() & SQL_GD_BOUND) == 0) && 
@@ -1608,62 +1608,54 @@ SQLQuery::GetRecord()
 }
 
 // Retrieve the piece-by-piece data at exec time of the SQLFetch
+// But for unbound columns only
 int
 SQLQuery::RetrieveAtExecData()
 {
-  for(auto& column : m_numMap)
+  for(int col = m_hasLongColumns; col <= m_numColumns; ++col)
   { 
-    int col = column.first;
-    if(col < m_hasLongColumns)
-    {
-      // Data already gotten by the SQLFetch
-      continue;
-    }
     SQLLEN actualLength = 0L;
-    SQLVariant* var = column.second;
+    SQLVariant* var = m_numMap[col];
     int datatype = var->GetDataType();
 
     // See how to get the data
-    if(var->GetAtExec())
+    if(var->GetAtExec() == false)
     {
-      // Retrieve actual length of this instance of the column
-      m_retCode = SqlGetData(m_hstmt
-                            ,(SQLUSMALLINT) col
-                            ,(SQLSMALLINT)  datatype
-                            ,(SQLPOINTER)   &actualLength  // Some drivers need this!
-                            ,(SQLINTEGER)   0  // Request the actual length of this field
-                            ,&actualLength);
-      if(!SQL_SUCCEEDED(m_retCode))
-      {
-        // SQL_ERROR / SQL_NO_DATA / SQL_STILL_EXECUTING / SQL_INVALID_HANDLE
-        return m_retCode;
-      }
-      if(actualLength == SQL_NO_TOTAL)
-      {
-        // Cannot determine the data in this column
-        return m_retCode;
-      }
-      else if(actualLength == 0 || actualLength == SQL_NULL_DATA)
-      {
-        continue;
-      }
-      else if(actualLength < SQL_NULL_DATA)
-      {
-        // BEWARE: Some drivers do not return the buffer length
-        // but the result of the the SQL_LEN_DATA_AT_EXEC macro
-        // we take this length into account including the SQL_LEN_DATA_AT_EXEC_OFFSET
-        actualLength = -actualLength; 
-      }
-      // Get extra overhead space for a zero-terminator
-      actualLength += (datatype == SQL_C_CHAR || datatype == SQL_C_WCHAR)? 1 : 0;
-      // Reserve space in the SQLVariant for this data (same datatype)
-      var->ReserveSpace(datatype,(int)actualLength);
+      continue;
     }
-    else
+    // Retrieve actual length of this instance of the column
+    m_retCode = SqlGetData(m_hstmt
+                          ,(SQLUSMALLINT) col
+                          ,(SQLSMALLINT)  datatype
+                          ,(SQLPOINTER)   &actualLength  // Some drivers need this!
+                          ,(SQLINTEGER)   0  // Request the actual length of this field
+                          ,&actualLength);
+    if(!SQL_SUCCEEDED(m_retCode))
     {
-      // Actual data can be gotten in the standard buffer
-      actualLength = var->GetDataSize();
+      // SQL_ERROR / SQL_NO_DATA / SQL_STILL_EXECUTING / SQL_INVALID_HANDLE
+      return m_retCode;
     }
+    if(actualLength == SQL_NO_TOTAL)
+    {
+      // Cannot determine the data in this column
+      return m_retCode;
+    }
+    else if(actualLength == 0 || actualLength == SQL_NULL_DATA)
+    {
+      continue;
+    }
+    else if(actualLength < SQL_NULL_DATA)
+    {
+      // BEWARE: Some drivers do not return the buffer length
+      // but the result of the the SQL_LEN_DATA_AT_EXEC macro
+      // we take this length into account including the SQL_LEN_DATA_AT_EXEC_OFFSET
+      actualLength = -actualLength; 
+    }
+    // Get extra overhead space for a zero-terminator
+    actualLength += (datatype == SQL_C_CHAR || datatype == SQL_C_WCHAR) ? 2 : 0;
+    // Reserve space in the SQLVariant for this data (same datatype)
+    var->ReserveSpace(datatype,(int)actualLength);
+
     // Now go get it
     m_retCode = SqlGetData(m_hstmt
                           ,(SQLUSMALLINT) col

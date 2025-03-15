@@ -2,7 +2,7 @@
 //
 // File: SQLDataSet.cpp
 //
-// Copyright (c) 1998-2024 ir. W.E. Huisman
+// Copyright (c) 1998-2025 ir. W.E. Huisman
 // All rights reserved
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
@@ -1445,6 +1445,12 @@ SQLDataSet::Synchronize(int p_mutationID /*=0*/,bool p_throw /*=false*/)
   {
     // Nothing to do: all OK.
     return true;
+  }
+  // Check preliminary conditions
+  if(m_primaryTableName.IsEmpty())
+  {
+    // Needs the primary table name of the dataset
+    return false;
   }
   if(m_status & (SQL_Record_Deleted | SQL_Record_Updated))
   {

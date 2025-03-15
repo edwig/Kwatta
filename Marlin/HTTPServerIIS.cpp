@@ -325,7 +325,7 @@ HTTPServerIIS::CreateSite(PrefixType    p_type
 
 // Delete a channel (from prefix OR base URL forms)
 bool
-HTTPServerIIS::DeleteSite(int p_port,XString p_baseURL,bool p_force /*=false*/)
+HTTPServerIIS::DeleteSite(int p_port,XString p_baseURL,bool /*p_force /*=false*/)
 {
   AutoCritSec lock(&m_sitesLock);
   // Default result
@@ -339,16 +339,15 @@ HTTPServerIIS::DeleteSite(int p_port,XString p_baseURL,bool p_force /*=false*/)
     HTTPSite* site = it->second;
 
     // See if other sites are dependent on this one
-    if(p_force == false && site->GetIsSubsite() == false)
+    if(site->GetHasSubSites())
     {
       // Walk all sites, to see if sub-sites still dependent on this main site
       for(SiteMap::iterator fit = m_allsites.begin(); fit != m_allsites.end(); ++fit)
       {
         if(fit->second->GetMainSite() == site)
         {
-          // Cannot delete this site, other sites are dependent on this one
-          ERRORLOG(ERROR_ACCESS_DENIED,_T("Cannot remove site. Sub-sites still dependent on: ") + p_baseURL);
-          return false;
+          fit->second->StopSite(true);
+          fit = m_allsites.begin();
         }
       }
     }
@@ -1055,42 +1054,40 @@ HTTPServerIIS::SendResponse(HTTPMessage* p_message)
   // Add cookies to the unknown response headers
   // Because we can have more than one Set-Cookie: header
   // and HTTP API just supports one set-cookie.
+  XString setcookie = p_message->GetHeader(_T("Set-Cookie"));
+  if(!setcookie.IsEmpty())
+  {
+    SetResponseHeader(response,HttpHeaderSetCookie,setcookie,false);
+    p_message->DelHeader(_T("Set-Cookie"));
+  }
   UKHeaders ukheaders;
   Cookies& cookies = p_message->GetCookies();
-  if(cookies.GetCookies().empty())
-  {
-    XString cookie = p_message->GetHeader(_T("Set-Cookie"));
-    if(!cookie.IsEmpty())
-    {
-      SetResponseHeader(response,HttpHeaderSetCookie,cookie,false);
-    }
-  }
-  else
+  if(!cookies.GetCookies().empty())
   {
     for(auto& cookie : cookies.GetCookies())
     {
-      if(cookiesHasSecure)  cookie.SetSecure  (cookieSecure);
+      if(cookiesHasSecure)  cookie.SetSecure(cookieSecure);
       if(cookiesHasHttp)    cookie.SetHttpOnly(cookieHttpOnly);
       if(cookiesHasSame)    cookie.SetSameSite(cookieSameSite);
-      if(cookiesHasPath)    cookie.SetPath    (cookiePath);
-      if(cookiesHasDomain)  cookie.SetDomain  (cookieDomain);
-      if(cookiesHasMaxAge)  cookie.SetMaxAge  (cookieMaxAge);
-
-      if(cookiesHasExpires && cookieExpires > 0)
+      if(cookiesHasPath)    cookie.SetPath(cookiePath);
+      if(cookiesHasDomain)  cookie.SetDomain(cookieDomain);
+      if((cookie.GetMaxAge() != 0) && cookiesHasMaxAge)
+      {
+        cookie.SetMaxAge(cookieMaxAge);
+      }
+      if(cookiesHasExpires && cookieExpires > 0 && cookie.GetMaxAge() >= 0)
       {
         SYSTEMTIME current;
         GetSystemTime(&current);
         AddSecondsToSystemTime(&current,&current,60 * (double)cookieExpires);
         cookie.SetExpires(&current);
       }
-
       ukheaders.push_back(UKHeader(_T("Set-Cookie"),cookie.GetSetCookieText()));
     }
   }
-  p_message->DelHeader(_T("Set-Cookie"));
 
 
-  // Add extra headers from the message, except for content-length
+  // Add extra headers from the message, except for content-length and set-cookie
   p_message->DelHeader(_T("Content-Length"));
 
   HeaderMap* map = p_message->GetHeaderMap();

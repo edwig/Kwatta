@@ -142,9 +142,17 @@ WebSocketClient::OpenSocket()
     return false;
   }
 
+  bool secure = false;
+  if(m_uri.Left(3).Compare(_T("wss"))   == 0 ||
+     m_uri.Left(5).Compare(_T("https")) == 0  ) 
+  {
+    secure = true;
+  }
+
   // GET this URI (ws[s]://resource) !!
   client.SetVerb(_T("GET"));
   client.SetURL(m_uri);
+  client.SetSecure(secure);
 
   // Also send the desktop number
   client.SetTerminalServices(true);
@@ -283,30 +291,39 @@ WebSocketClient::SendCloseSocket(USHORT p_code,XString p_reason)
   }
   DETAILLOGV(_T("Send close WebSocket [%d:%s] for: %s"),p_code,p_reason.GetString(),m_uri.GetString());
   DWORD error = m_websocket_close(m_socket,p_code,(void*)reason.cstr(),length); // WinHttpWebSocketClose
-  if(error && (error != ERROR_WINHTTP_OPERATION_CANCELLED))
+
+  if(m_openReading || m_openWriting)
   {
-    // We could be in a tight spot (socket already closed)
-    if(error == ERROR_INVALID_OPERATION)
+    // Only if OnClose not already received from the other end
+    if(error && (error != ERROR_WINHTTP_OPERATION_CANCELLED))
     {
-      return true;
+      // We could be in a tight spot (socket already closed)
+      if(error == ERROR_INVALID_OPERATION)
+      {
+        return true;
+      }
+      // Failed to send a close socket message.
+      XString message = _T("Failed to send WebSocket 'close' message: ") + GetLastErrorAsString(error);
+      ERRORLOG(error,message);
+      return false;
     }
-    // Failed to send a close socket message.
-    XString message = _T("Failed to send WebSocket 'close' message: ") + GetLastErrorAsString(error);
-    ERRORLOG(error,message);
-    return false;
+    // Tell it to the application
+    OnClose();
   }
-  else if(!m_closingError)
-  {
-    // ReceiveCloseSocket();
-  }
-  // Tell it to the application
-  OnClose();
 
   // The other side acknowledged the fact that they did close also
   // It was an answer on an incoming 'close' message
   // We did our answering, so close completely
   CloseSocket();
 
+  return true;
+}
+
+// Send a ping/pong keep alive message
+bool
+WebSocketClient::SendKeepAlive()
+{
+  // Not known how to accomplish this in WinHTTP
   return true;
 }
 
@@ -447,7 +464,8 @@ WebSocketClient::SocketListener()
                                      ,&type);
     if(error)
     {
-      if(error != ERROR_WINHTTP_OPERATION_CANCELLED)
+      if(error != ERROR_WINHTTP_OPERATION_CANCELLED &&
+         error != ERROR_WINHTTP_CONNECTION_ERROR)
       {
         ERRORLOG(error,_T("ERROR while receiving from WebSocket: ") + m_uri);
         CloseSocket();

@@ -134,10 +134,12 @@ WebServiceServer::Reset()
       // Otherwise would result in a memory leak!
       m_errorMessage.Format(_T("Service site [%s] not removed by server."),m_name.GetString());
       m_log->AnalysisLog(_T(__FUNCTION__),LogType::LOG_ERROR,false,m_errorMessage);
-      delete m_site;
+    }
+    else
+    {
+      m_site = nullptr;
     }
   }
-  m_site = nullptr;
 
   // Remove WSDL
   if(m_wsdl && m_wsdlOwner)
@@ -183,9 +185,18 @@ WebServiceServer::Reset()
   // Remove Logfile
   if(m_log && m_logOwner)
   {
+    HANDLE writer = m_log->GetBackgroundWriterThread();
+
+    // Drop the logfile
     LogAnalysis::DeleteLogfile(m_log);
-    m_log = nullptr;
+    m_log      = nullptr;
     m_logOwner = false;
+
+    // Wait until the background writer has been closed
+    if(writer)
+    {
+      WaitForSingleObject(writer,10 * CLOCKS_PER_SEC);
+    }
   }
 
   // SoapHandler & GetHandler
@@ -615,23 +626,10 @@ WebServiceServer::RunService()
     return false;
   }
 
-  // Only starting the server if no (real) errors found
-  if(::GetLastError() == NO_ERROR || 
-     ::GetLastError() == ERROR_ALREADY_EXISTS)
+  // Go run our service!!
+  if(m_httpServer->GetIsRunning() == false)
   {
-    // Go run our service!!
-    if(m_httpServer->GetIsRunning() == false)
-    {
-      m_httpServer->Run();
-    }
-  }
-  else
-  {
-    m_errorMessage.Format(_T("Cannot start HTTPServer. Server in error state. Error %lu: %s")
-                          ,::GetLastError()
-                          ,GetLastErrorAsString().GetString());
-    m_log->AnalysisLog(_T(__FUNCTION__),LogType::LOG_ERROR,false,m_errorMessage);
-    return false;
+    m_httpServer->Run();
   }
   // Now legally running
   return (m_isRunning = true);

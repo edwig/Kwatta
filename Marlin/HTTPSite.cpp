@@ -34,6 +34,7 @@
 #include "Crypto.h"
 #include "WinINETError.h"
 #include "ErrorReport.h"
+#include "ConvertWideString.h"
 #include <WinFile.h>
 #include <winerror.h>
 #include <sddl.h>
@@ -585,10 +586,12 @@ HTTPSite::RemoveSiteFromGroup()
       return true;
     }
   }
-  else
+  // Site could be a divider (e.g. 'Driver' for events)
+  if(m_hasSubSites)
   {
-    ERRORLOG(ERROR_INVALID_PARAMETER,_T("No recorded URL-Group. Cannot remove URL Site: ") + m_site);
+    return true;
   }
+  ERRORLOG(ERROR_INVALID_PARAMETER,_T("No recorded URL-Group. Cannot remove URL Site: ") + m_site);
   return false;
 }
 
@@ -1644,8 +1647,13 @@ HTTPSite::CheckBodySigning(SessionAddress& p_address
       Crypto sign;
       sign.SetHashMethod(method);
       p_message->SetSigningMethod(sign.GetHashMethod());
-      XString digest = sign.Digest(signedXML.GetString(),signedXML.GetLength() * sizeof(TCHAR));
 
+#ifdef _UNICODE
+      AutoCSTR xml(signedXML);
+      XString digest = sign.Digest(xml.cstr(),xml.size());
+#else
+      XString digest = sign.Digest(signedXML.GetString(),signedXML.GetLength());
+#endif
       if(signature.CompareNoCase(digest) == 0)
       {
         // Not yet ready with this message

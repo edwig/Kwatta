@@ -105,12 +105,12 @@ WebSocketServerIIS::OpenSocket()
 }
 
 void WINAPI
-ServerWriteCompletion(HRESULT p_error,
-                      VOID*   p_completionContext,
-                      DWORD   p_bytes,
-                      BOOL    p_utf8,
-                      BOOL    p_final,
-                      BOOL    p_close)
+ServerWriteCompletionIIS(HRESULT p_error,
+                         VOID*   p_completionContext,
+                         DWORD   p_bytes,
+                         BOOL    p_utf8,
+                         BOOL    p_final,
+                         BOOL    p_close)
 {
   WebSocketServerIIS* socket = reinterpret_cast<WebSocketServerIIS*>(p_completionContext);
   if(socket)
@@ -142,8 +142,7 @@ WebSocketServerIIS::SocketWriter(HRESULT p_error
   // Handle any error (if any)
   if(p_error != (HRESULT)0)
   {
-    DWORD error = (p_error & 0x000F);
-    ERRORLOG(error,_T("Websocket failed to write fragment"));
+    ERRORLOG((DWORD)p_error,_T("Websocket failed to write fragment."));
     OnError();
     CloseSocket();
     return;
@@ -220,7 +219,7 @@ WebSocketServerIIS::SocketDispatch()
 
   if(IsBadReadPtr(m_iis_socket,sizeof(IWebSocketContext)))
   {
-    ERRORLOG(ERROR_INVALID_HANDLE,_T("Websocket IIS context unreachable"));
+    ERRORLOG(ERROR_INVALID_HANDLE,_T("Websocket IIS context unreachable."));
     return;
   }
 
@@ -233,13 +232,12 @@ WebSocketServerIIS::SocketDispatch()
                                             ,TRUE
                                             ,(BOOL)frame->m_utf8
                                             ,(BOOL)frame->m_final
-                                            ,ServerWriteCompletion
+                                            ,ServerWriteCompletionIIS
                                             ,this
                                             ,&expected);
     if(FAILED(hr))
     {
-      DWORD error = hr & 0x0F;
-      ERRORLOG(error,_T("Websocket failed to register write command for a fragment"));
+      ERRORLOG((DWORD)hr,_T("Websocket failed to register write command for a fragment."));
     }
     if(!expected)
     {
@@ -284,7 +282,10 @@ ServerReadCompletionIIS(HRESULT p_error,
         {
           // Empty frame, final closing frame. Just ignore it
           // Chances are that the socket is already closed and gone.
-          socket->SetClosingStatus(WS_CLOSE_GOINGAWAY);
+          if(socket->m_header == WEBSOCKET_HEADER)
+          {
+            socket->SetClosingStatus(WS_CLOSE_GOINGAWAY);
+          }
           return;
         }
         // Read this frame part into the socket
@@ -308,8 +309,7 @@ WebSocketServerIIS::SocketReader(HRESULT p_error
   // Handle any error (if any)
   if(p_error != S_OK)
   {
-    DWORD error = (p_error & 0x0F);
-    ERRORLOG(error,_T("Websocket failed to read fragment"));
+    ERRORLOG((DWORD)p_error,_T("Websocket failed to read fragment."));
     CloseSocket();
     return;
   }
@@ -430,11 +430,10 @@ WebSocketServerIIS::SocketListener()
                                          ,&expected);
   if(FAILED(hr))
   {
-    DWORD error = hr & 0x0F;
-    ERRORLOG(error,_T("Websocket failed to register read command for a fragment"));
+    ERRORLOG((DWORD)hr,_T("Websocket failed to register read command for a fragment."));
   }
 
-  if(!expected)
+  if(!expected && SUCCEEDED(hr))
   {
     // Was issued in-sync after all, so re-work the received data
     SocketReader(hr,m_reading->m_read,utf8,last,isclosing);
@@ -472,7 +471,7 @@ WebSocketServerIIS::SendCloseSocket(USHORT p_code,XString p_reason)
     hr = m_iis_socket->SendConnectionClose(TRUE
                                           ,p_code
                                           ,pointer
-                                          ,ServerWriteCompletion
+                                          ,ServerWriteCompletionIIS
                                           ,this
                                           ,&expected);
   }
@@ -717,4 +716,12 @@ WebSocketServerIIS::SetClosingStatus(USHORT p_code)
     m_closingError = p_code;
     OnClose();
   }
+}
+
+// Send a ping/pong keep alive message
+bool
+WebSocketServerIIS::SendKeepAlive() 
+{
+  // No way to do this in IIS
+  return true;
 }

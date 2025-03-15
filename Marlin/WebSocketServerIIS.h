@@ -26,7 +26,8 @@
 // THE SOFTWARE.
 //
 #pragma once
-#include "WebSocket.h"
+#include "WebSocketMain.h"
+#define WEBSOCKET_HEADER 0x77884321
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -60,6 +61,8 @@ public:
   virtual bool GetCloseSocket(USHORT& p_code,XString& p_reason) override;
   // Detected a closing status on read-completion
   virtual void SetClosingStatus(USHORT p_code) override;
+  // Send a ping/pong keep alive message
+  virtual bool SendKeepAlive() override;
 
   // To be called for ASYNC I/O completion!
   void    SocketReader(HRESULT p_error,DWORD p_bytes,BOOL p_utf8,BOOL p_final,BOOL p_close);
@@ -69,6 +72,10 @@ public:
   // Dispatch an extra write action
   void    SocketDispatch();
   void    PostCompletion(DWORD dwErrorCode,DWORD dwNumberOfBytes);
+
+  // Private data for the server variant of the WebSocket
+  ULONG               m_header { WEBSOCKET_HEADER };
+
 protected:
   // Decode the incoming close socket message
   bool    ReceiveCloseSocket();

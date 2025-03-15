@@ -159,10 +159,16 @@ FormDataDlg::ParsePayload()
   m_orignalBody.Replace(_T("\r\n"),_T("\n"));
   m_orignalBody.Replace(_T("\n"),_T("\r\n"));
 
+#ifdef _UNICODE
+  int utf16 = true;
+#else
+  int utf16 = false;
+#endif
+
   FileBuffer file;
-  file.SetBuffer((uchar*)m_orignalBody.GetString(), m_orignalBody.GetLength());
+  file.SetBuffer((uchar*)m_orignalBody.GetString(), m_orignalBody.GetLength() * (utf16 ? 2 : 1));
   m_buffer.SetFileExtensions(m_useExtensions);
-  if(!m_buffer.ParseBuffer(m_contentType,&file))
+  if(!m_buffer.ParseBuffer(m_contentType,&file,false,utf16))
   {
     StyleMessageBox(this,_T("ALARM: Cannot parse body into a MultiPart/Form-data buffer!"),_T(KWATTA),MB_OK|MB_ICONERROR);
     OnCancel();

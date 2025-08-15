@@ -83,6 +83,12 @@ public:
   // Supports functions at the place of table columns in create/alter index statement
   bool    GetRDBMSSupportsFunctionalIndexes() const override;
 
+  // Support for "as" in alias statements (FROM clause)
+  bool    GetRDBMSSupportsAsInAlias() const override;
+
+  // Foreign key DDL defines the index and cannot reuse already existing ones
+  bool    GetRDBMSForeignKeyDefinesIndex() const;
+
   // Gets the maximum length of an SQL statement
   unsigned long GetRDBMSMaxStatementLength() const override;
 
@@ -94,6 +100,9 @@ public:
 
   // Maximum for a VARCHAR to be handled without AT-EXEC data. Assume NVARCHAR is half that size!
   int GetRDBMSMaxVarchar() const override;
+
+  // Identifier rules differ per RDBMS
+  bool IsIdentifier(XString p_identifier) const override;
 
   // KEYWORDS
 
@@ -188,6 +197,10 @@ public:
   // Query to perform a keep alive ping
   XString GetPing() const override;
 
+  // Pre- and postfix statements for a bulk import
+  XString GetBulkImportPrefix (XString p_schema,XString p_tablename,bool p_identity = true,bool p_constraints = true) const;
+  XString GetBulkImportPostfix(XString p_schema,XString p_tablename,bool p_identity = true,bool p_constraints = true) const;
+
   //////////////////////////////////////////////////////////////////////////
   // SQL STRINGS
 
@@ -215,8 +228,8 @@ public:
   // Get the name of a temp table (local temporary or global temporary)
   XString GetTempTablename(XString p_schema,XString p_tablename,bool p_local) const override;
 
-  // Changes to parameters before binding to an ODBC HSTMT handle
-  void DoBindParameterFixup(SQLSMALLINT& p_dataType,SQLSMALLINT& p_sqlDatatype,SQLULEN& p_columnSize,SQLSMALLINT& p_scale,SQLLEN& p_bufferSize,SQLLEN* p_indicator) const override;
+  // Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
+  bool DoBindParameterFixup(SQLSMALLINT& p_dataType,SQLSMALLINT& p_sqlDatatype,SQLULEN& p_columnSize,SQLSMALLINT& p_scale,SQLLEN& p_bufferSize,SQLLEN* p_indicator) const override;
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -249,12 +262,19 @@ public:
   XString GetCATALOGDefaultCharset() const override;
   XString GetCATALOGDefaultCharsetNCV() const override;
   XString GetCATALOGDefaultCollation() const override;
+  // All user defined compound data types
+  XString GetCATALOGTypeExists        (XString& p_schema,XString& p_typename,bool p_quoted = false) const;
+  XString GetCATALOGTypeList          (XString& p_schema,XString& p_pattern, bool p_quoted = false) const;
+  XString GetCATALOGTypeAttributes    (XString& p_schema,XString& p_typename,bool p_quoted = false) const;
+  XString GetCATALOGTypeSource        (XString& p_schema,XString& p_typename,bool p_quoted = false) const;
+  XString GetCATALOGTypeCreate        (MUserTypeMap& p_type) const;
+  XString GetCATALOGTypeDrop          (XString  p_schema,XString  p_typename) const;
   // All table functions
-  XString GetCATALOGTableExists       (XString& p_schema,XString& p_tablename)  const override;
-  XString GetCATALOGTablesList        (XString& p_schema,XString& p_pattern)    const override;
-  XString GetCATALOGTableAttributes   (XString& p_schema,XString& p_tablename)  const override;
-  XString GetCATALOGTableSynonyms     (XString& p_schema,XString& p_tablename)  const override;
-  XString GetCATALOGTableCatalog      (XString& p_schema,XString& p_tablename)  const override;
+  XString GetCATALOGTableExists       (XString& p_schema,XString& p_tablename,bool p_quoted = false) const override;
+  XString GetCATALOGTablesList        (XString& p_schema,XString& p_pattern  ,bool p_quoted = false) const override;
+  XString GetCATALOGTableAttributes   (XString& p_schema,XString& p_tablename,bool p_quoted = false) const override;
+  XString GetCATALOGTableSynonyms     (XString& p_schema,XString& p_tablename,bool p_quoted = false) const override;
+  XString GetCATALOGTableCatalog      (XString& p_schema,XString& p_tablename,bool p_quoted = false) const override;
   XString GetCATALOGTableCreate       (MetaTable& p_table,MetaColumn& p_column) const override;
   XString GetCATALOGTableCreatePostfix(MetaTable& p_table,MetaColumn& p_column) const override;
   XString GetCATALOGTableRename       (XString  p_schema,XString  p_tablename,XString p_newname) const override;
@@ -264,29 +284,29 @@ public:
   XString GetCATALOGTemptableIntoTemp (XString p_schema,XString p_tablename,XString p_select) const override;
   XString GetCATALOGTemptableDrop     (XString p_schema,XString p_tablename) const override;
   // All column functions
-  XString GetCATALOGColumnExists    (XString  p_schema,XString  p_tablename,XString  p_columnname) const override;
-  XString GetCATALOGColumnList      (XString& p_schema,XString& p_tablename) const override;
-  XString GetCATALOGColumnAttributes(XString& p_schema,XString& p_tablename,XString& p_columnname) const override;
+  XString GetCATALOGColumnExists    (XString  p_schema,XString  p_tablename,XString  p_columnname,bool p_quoted = false) const override;
+  XString GetCATALOGColumnList      (XString& p_schema,XString& p_tablename,                      bool p_quoted = false) const override;
+  XString GetCATALOGColumnAttributes(XString& p_schema,XString& p_tablename,XString& p_columnname,bool p_quoted = false) const override;
   XString GetCATALOGColumnCreate    (MetaColumn& p_column) const override;
   XString GetCATALOGColumnAlter     (MetaColumn& p_column) const override;
   XString GetCATALOGColumnRename    (XString  p_schema,XString  p_tablename,XString  p_columnname,XString p_newname,XString p_datatype) const override;
   XString GetCATALOGColumnDrop      (XString  p_schema,XString  p_tablename,XString  p_columnname) const override;
   // All index functions
-  XString GetCATALOGIndexExists     (XString  p_schema,XString  p_tablename,XString  p_indexname) const override;
-  XString GetCATALOGIndexList       (XString& p_schema,XString& p_tablename) const override;
-  XString GetCATALOGIndexAttributes (XString& p_schema,XString& p_tablename,XString& p_indexname) const override;
+  XString GetCATALOGIndexExists     (XString  p_schema,XString  p_tablename,XString  p_indexname,bool p_quoted = false) const override;
+  XString GetCATALOGIndexList       (XString& p_schema,XString& p_tablename,                     bool p_quoted = false) const override;
+  XString GetCATALOGIndexAttributes (XString& p_schema,XString& p_tablename,XString& p_indexname,bool p_quoted = false) const override;
   XString GetCATALOGIndexCreate     (MIndicesMap& p_index,bool p_duplicateNulls = false) const override;
   XString GetCATALOGIndexDrop       (XString  p_schema,XString  p_tablename,XString  p_indexname) const override;
   XString GetCATALOGIndexFilter     (MetaIndex& p_index) const override;
   // All primary key functions
-  XString GetCATALOGPrimaryExists    (XString  p_schema,XString  p_tablename) const override;
-  XString GetCATALOGPrimaryAttributes(XString& p_schema,XString& p_tablename) const override;
+  XString GetCATALOGPrimaryExists    (XString  p_schema,XString  p_tablename,bool p_quoted = false) const override;
+  XString GetCATALOGPrimaryAttributes(XString& p_schema,XString& p_tablename,bool p_quoted = false) const override;
   XString GetCATALOGPrimaryCreate    (MPrimaryMap& p_primaries) const override;
   XString GetCATALOGPrimaryDrop      (XString  p_schema,XString  p_tablename,XString p_constraintname) const override;
   // All foreign key functions
-  XString GetCATALOGForeignExists    (XString  p_schema,XString  p_tablename,XString  p_constraintname) const override;
-  XString GetCATALOGForeignList      (XString& p_schema,XString& p_tablename,int p_maxColumns = SQLINFO_MAX_COLUMNS) const override;
-  XString GetCATALOGForeignAttributes(XString& p_schema,XString& p_tablename,XString& p_constraintname,bool p_referenced = false,int p_maxColumns = SQLINFO_MAX_COLUMNS) const override;
+  XString GetCATALOGForeignExists    (XString  p_schema,XString  p_tablename,XString  p_constraintname,bool p_quoted = false) const override;
+  XString GetCATALOGForeignList      (XString& p_schema,XString& p_tablename,bool p_quoted = false) const override;
+  XString GetCATALOGForeignAttributes(XString& p_schema,XString& p_tablename,XString& p_constraintname,bool p_referenced = false,bool p_quoted = false) const override;
   XString GetCATALOGForeignCreate    (MForeignMap& p_foreigns) const override;
   XString GetCATALOGForeignAlter     (MForeignMap& p_original,MForeignMap& p_requested) const override;
   XString GetCATALOGForeignDrop      (XString  p_schema,XString  p_tablename,XString  p_constraintname) const override;
@@ -297,28 +317,28 @@ public:
   XString GetCATALOGDefaultCreate    (XString  p_schema,XString  p_tablename,XString  p_constraint,XString p_column,XString p_code) const override;
   XString GetCATALOGDefaultDrop      (XString  p_schema,XString  p_tablename,XString  p_constraint) const override;
   // All check constraints
-  XString GetCATALOGCheckExists      (XString  p_schema,XString  p_tablename,XString  p_constraint) const override;
-  XString GetCATALOGCheckList        (XString  p_schema,XString  p_tablename) const override;
-  XString GetCATALOGCheckAttributes  (XString  p_schema,XString  p_tablename,XString  p_constraint) const override;
+  XString GetCATALOGCheckExists      (XString  p_schema,XString  p_tablename,XString  p_constraint,bool p_quoted = false) const override;
+  XString GetCATALOGCheckList        (XString  p_schema,XString  p_tablename                      ,bool p_quoted = false) const override;
+  XString GetCATALOGCheckAttributes  (XString  p_schema,XString  p_tablename,XString  p_constraint,bool p_quoted = false) const override;
   XString GetCATALOGCheckCreate      (XString  p_schema,XString  p_tablename,XString  p_constraint,XString p_condition) const override;
   XString GetCATALOGCheckDrop        (XString  p_schema,XString  p_tablename,XString  p_constraint) const override;
   // All trigger functions
-  XString GetCATALOGTriggerExists    (XString  p_schema,XString  p_tablename,XString  p_triggername) const override;
-  XString GetCATALOGTriggerList      (XString& p_schema,XString& p_tablename) const override;
-  XString GetCATALOGTriggerAttributes(XString& p_schema,XString& p_tablename,XString& p_triggername) const override;
+  XString GetCATALOGTriggerExists    (XString  p_schema,XString  p_tablename,XString  p_triggername,bool p_quoted = false) const override;
+  XString GetCATALOGTriggerList      (XString& p_schema,XString& p_tablename,                       bool p_quoted = false) const override;
+  XString GetCATALOGTriggerAttributes(XString& p_schema,XString& p_tablename,XString& p_triggername,bool p_quoted = false) const override;
   XString GetCATALOGTriggerCreate    (MetaTrigger& p_trigger) const override;
   XString GetCATALOGTriggerDrop      (XString  p_schema,XString  p_tablename,XString  p_triggername) const override;
   // All sequence functions
-  XString GetCATALOGSequenceExists    (XString  p_schema,XString  p_sequence) const override;
-  XString GetCATALOGSequenceList      (XString& p_schema,XString& p_pattern)  const override;
-  XString GetCATALOGSequenceAttributes(XString& p_schema,XString& p_sequence) const override;
+  XString GetCATALOGSequenceExists    (XString  p_schema,XString  p_sequence,bool p_quoted = false) const override;
+  XString GetCATALOGSequenceList      (XString& p_schema,XString& p_pattern, bool p_quoted = false) const override;
+  XString GetCATALOGSequenceAttributes(XString& p_schema,XString& p_sequence,bool p_quoted = false) const override;
   XString GetCATALOGSequenceCreate    (MetaSequence& p_sequence) const override;
   XString GetCATALOGSequenceDrop      (XString  p_schema,XString  p_sequence) const override;
   // All view functions
-  XString GetCATALOGViewExists       (XString& p_schema,XString& p_viewname) const override;
-  XString GetCATALOGViewList         (XString& p_schema,XString& p_pattern)  const override;
-  XString GetCATALOGViewAttributes   (XString& p_schema,XString& p_viewname) const override;
-  XString GetCATALOGViewText         (XString& p_schema,XString& p_viewname) const override;
+  XString GetCATALOGViewExists       (XString& p_schema,XString& p_viewname,bool p_quoted = false) const override;
+  XString GetCATALOGViewList         (XString& p_schema,XString& p_pattern, bool p_quoted = false) const override;
+  XString GetCATALOGViewAttributes   (XString& p_schema,XString& p_viewname,bool p_quoted = false) const override;
+  XString GetCATALOGViewText         (XString& p_schema,XString& p_viewname,bool p_quoted = false) const override;
   XString GetCATALOGViewCreate       (XString  p_schema,XString  p_viewname,XString p_contents,bool p_ifexists = true) const override;
   XString GetCATALOGViewRename       (XString  p_schema,XString  p_viewname,XString p_newname)    const override;
   XString GetCATALOGViewDrop         (XString  p_schema,XString  p_viewname,XString& p_precursor) const override;
@@ -326,13 +346,15 @@ public:
   XString GetCATALOGTablePrivileges  (XString& p_schema,XString& p_tablename) const override;
   XString GetCATALOGColumnPrivileges (XString& p_schema,XString& p_tablename,XString& p_columnname) const override;
   XString GetCATALOGSequencePrivilege(XString& p_schema,XString& p_sequence) const override;
-  XString GetCATALOGGrantPrivilege   (XString  p_schema,XString  p_objectname,XString p_privilege,XString p_grantee,bool p_grantable) override;
-  XString GetCATALOGRevokePrivilege  (XString  p_schema,XString  p_objectname,XString p_privilege,XString p_grantee) override;
+  XString GetCATALOGGrantPrivilege   (XString  p_schema,XString  p_objectname,XString p_subObject,XString p_privilege,XString p_grantee,bool p_grantable) override;
+  XString GetCATALOGRevokePrivilege  (XString  p_schema,XString  p_objectname,XString p_subObject,XString p_privilege,XString p_grantee) override;
   // All Synonym functions
   XString GetCATALOGSynonymList      (XString& p_schema,XString& p_pattern) const override;
   XString GetCATALOGSynonymAttributes(XString& p_schema,XString& p_synonym) const override;
   XString GetCATALOGSynonymCreate    (XString& p_schema,XString& p_synonym,XString p_forObject,bool p_private = true) const override;
   XString GetCATALOGSynonymDrop      (XString& p_schema,XString& p_synonym,bool p_private = true) const override;
+  // For ALL objects
+  XString GetCATALOGCommentCreate(XString p_schema,XString p_object,XString p_name,XString p_subObject,XString p_remark) const;
 
   //////////////////////////////////////////////////////////////////////////
   //
@@ -364,16 +386,16 @@ public:
   //////////////////////////////////////////////////////////////////////////
 
   // All procedure functions
-  XString GetPSMProcedureExists    (XString  p_schema,XString  p_procedure) const override;
-  XString GetPSMProcedureList      (XString& p_schema) const override;
-  XString GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure) const override;
-  XString GetPSMProcedureSourcecode(XString  p_schema,XString  p_procedure) const override;
+  XString GetPSMProcedureExists    (XString  p_schema,XString  p_procedure,bool p_quoted = false) const override;
+  XString GetPSMProcedureList      (XString& p_schema,XString  p_procedure,bool p_quoted = false) const override;
+  XString GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure,bool p_quoted = false) const override;
+  XString GetPSMProcedureSourcecode(XString  p_schema,XString  p_procedure,bool p_quoted = false) const override;
   XString GetPSMProcedureCreate    (MetaProcedure& p_procedure) const override;
   XString GetPSMProcedureDrop      (XString  p_schema,XString  p_procedure,bool p_function = false) const override;
-  XString GetPSMProcedureErrors    (XString  p_schema,XString  p_procedure) const override;
-  XString GetPSMProcedurePrivilege (XString& p_schema,XString& p_procedure) const override;
+  XString GetPSMProcedureErrors    (XString  p_schema,XString  p_procedure,bool p_quoted = false) const override;
+  XString GetPSMProcedurePrivilege (XString& p_schema,XString& p_procedure,bool p_quoted = false) const override;
   // And it's parameters
-  XString GetPSMProcedureParameters(XString& p_schema,XString& p_procedure) const override;
+  XString GetPSMProcedureParameters(XString& p_schema,XString& p_procedure,bool p_quoted = false) const override;
 
   // All Language elements
   XString GetPSMDeclaration(bool p_first,XString p_variable,int p_datatype,int p_precision = 0,int p_scale = 0,

@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// SourceFile: EventlogRegistration.h
+// SourceFile: CreateFullThread.h
 //
 // BaseLibrary: Indispensable general objects and functions
 // 
@@ -27,10 +27,17 @@
 //
 #pragma once
 
-// Standard root folder for the event log folder we create
-// Defaulting to "Applications"
-extern LPCTSTR g_eventLogCategory;
+// Prototype for the starting point of a thread
+typedef unsigned (__stdcall *LPFN_THREADSTART)(void* p_context);
 
-int    RegisterMessagesDllForService(XString p_serviceName,XString p_messageDLL,XString& p_error);
-bool UnRegisterMessagesDllForService(XString p_serviceName,XString& p_error);
-bool IsMessageDLLRegistered(XString p_serviceName);
+// Create a thread that inherits the process security context
+HANDLE CreateFullThread(LPFN_THREADSTART p_start                    // Starting point of the new thread
+                       ,void*            p_context                  // Context argument of the starting point
+                       ,unsigned*        p_threadID  = nullptr      // Possibly return the thread ID
+                       ,int              p_stacksize = 0            // Possibly set extra stack space for the thread
+                       ,bool             p_inherit   = false        // Sub-processes can inherit the security handle
+                       ,bool             p_suspended = false);      // Create suspended (Use "ResumeThread")
+
+// Setting the name of a thread
+void   SetThreadName(char* threadName,DWORD dwThreadID);
+

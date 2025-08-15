@@ -37,6 +37,10 @@ static char THIS_FILE[] = __FILE__;
 namespace SQLComponents
 {
 
+// For MySQL the identifiers are transformed to LOWER case
+// as the system catalog is stored in this case setting.
+#define IdentifierCorrect(ident)   if(!p_quoted || !IsIdentifierMixedCase(ident)) ident.MakeLower()
+
 // Constructor
 SQLInfoMySQL::SQLInfoMySQL(SQLDatabase* p_database)
              :SQLInfoDB(p_database)
@@ -157,6 +161,21 @@ SQLInfoMySQL::GetRDBMSSupportsDatatypeInterval() const
 bool
 SQLInfoMySQL::GetRDBMSSupportsFunctionalIndexes() const
 {
+  return false;
+}
+
+// Support for "as" in alias statements (FROM clause)
+bool
+SQLInfoMySQL::GetRDBMSSupportsAsInAlias() const
+{
+  return true;
+}
+
+// Foreign key DDL defines the index and cannot reuse already existing ones
+bool
+SQLInfoMySQL::GetRDBMSForeignKeyDefinesIndex() const
+{
+  // If the index exists the creation of the foreign key does NOT fail!!
   return true;
 }
 
@@ -188,6 +207,34 @@ SQLInfoMySQL::GetRDBMSMaxVarchar() const
 {
   // See: https://dev.mysql.com/doc/refman/8.0/en/char.html#:~:text=Values%20in%20VARCHAR%20columns%20are,and%20the%20character%20set%20used.
   return 65535;
+}
+
+// Identifier rules differ per RDBMS
+bool
+SQLInfoMySQL::IsIdentifier(XString p_identifier) const
+{
+  // Cannot be empty and cannot exceed this amount of characters
+  if(p_identifier.GetLength() == 0 ||
+     p_identifier.GetLength() > (int)GetMaxIdentifierNameLength())
+  {
+    return false;
+  }
+  // Must start with one alpha char
+  if(!_istalpha(p_identifier.GetAt(0)))
+  {
+    return false;
+  }
+  for(int index = 0;index < p_identifier.GetLength();++index)
+  {
+    // Can be upper/lower alpha or a number
+    // MySQL does NOT allow an underscore!
+    TCHAR ch = p_identifier.GetAt(index);
+    if(!_istalnum(ch))
+    {
+      return false;
+    }
+  }
+  return true;
 }
 
 // KEYWORDS
@@ -276,9 +323,9 @@ SQLInfoMySQL::GetKEYWORDParameterPrefix() const
 // Get select part to add new record identity to a table
 // Can be special column like 'OID' or a sequence select
 XString
-SQLInfoMySQL::GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix /*= "_seq"*/) const
+SQLInfoMySQL::GetKEYWORDIdentityString(XString& /*p_tablename*/,XString /*p_postfix /*= "_seq"*/) const
 {
-  return p_tablename + p_postfix + _T(".nextval");
+  return _T("0");
 }
 
 // Gets the UPPER function
@@ -292,21 +339,116 @@ SQLInfoMySQL::GetKEYWORDUpper(XString& p_expression) const
 XString
 SQLInfoMySQL::GetKEYWORDInterval1MinuteAgo() const
 {
-  return _T("ERROR");
+  return _T("TIMESTAMPADD(MINUTE,-1,CURRENT_TIMESTAMP)");
 }
 
 // Gets the Not-NULL-Value statement of the database
 XString
 SQLInfoMySQL::GetKEYWORDStatementNVL(XString& p_test,XString& p_isnull) const
 {
-  return _T("{fn IFNULL(") + p_test + _T(",") + p_isnull + _T(")}");
+  return _T("IFNULL(") + p_test + _T(",") + p_isnull + _T(")");
 }
 
 // Gets the RDBMS definition of the datatype
 XString
 SQLInfoMySQL::GetKEYWORDDataType(MetaColumn* p_column)
 {
-  return p_column->m_typename;
+  XString type;
+
+  switch(p_column->m_datatype)
+  {
+    case SQL_CHAR:                      type = _T("CHAR");          break;
+    case SQL_VARCHAR:                   type = _T("VARCHAR");       break;
+    case SQL_LONGVARCHAR:               type = _T("TEXT");          break;
+    case SQL_WCHAR:                     type = _T("CHAR charset ucs2");         break;   // TBF
+    case SQL_WVARCHAR:                  type = _T("VARCHAR charset ucs2");      break;   // TBF
+    case SQL_WLONGVARCHAR:              type = _T("TEXT charset ucs2");         break;   // TBF
+    case SQL_NUMERIC:                   // Fall through
+    case SQL_DECIMAL:                   type = _T("DECIMAL");
+                                        if(p_column->m_decimalDigits == 0)
+                                        {
+                                          if(p_column->m_columnSize <= 2)
+                                          {
+                                            type = _T("TINYINT");
+                                            p_column->m_datatype  = SQL_TINYINT;
+                                            p_column->m_datatype3 = SQL_TINYINT;
+                                          }
+                                          else if(p_column->m_columnSize <= 4)
+                                          {
+                                            type = _T("SMALLINT");
+                                            p_column->m_datatype  = SQL_SMALLINT;
+                                            p_column->m_datatype3 = SQL_SMALLINT;
+                                          }
+                                          else if(p_column->m_columnSize <= 9)
+                                          {
+                                            type = _T("INTEGER");
+                                            p_column->m_datatype  = SQL_INTEGER;
+                                            p_column->m_datatype3 = SQL_INTEGER;
+                                          }
+                                          else if(p_column->m_columnSize <= 18)
+                                          {
+                                            type = _T("BIGINT");
+                                            p_column->m_datatype  = SQL_BIGINT;
+                                            p_column->m_datatype3 = SQL_BIGINT;
+                                          }
+                                          else if(p_column->m_columnSize >= SQLNUM_MAX_PREC)
+                                          {
+                                            // Unspecified DECIMAL FOUND.
+                                            // See to it that we get some decimals at least
+                                            p_column->m_decimalDigits = SQLNUM_MAX_PREC / 2;
+                                          }
+                                        }
+                                        break;
+    case SQL_INTEGER:                   type = _T("INTEGER");
+                                        p_column->m_columnSize = 10;
+                                        break;
+    case SQL_SMALLINT:                  type = _T("SMALLINT");
+                                        p_column->m_columnSize = 5;
+                                        break;
+    case SQL_FLOAT:                     type = _T("FLOAT");         break;
+    case SQL_REAL:                      type = _T("REAL");          break;
+    case SQL_DOUBLE:                    type = _T("DOUBLE");        break;
+    //case SQL_DATE:
+    case SQL_DATETIME:                  type = _T("DATETIME");      break;
+    case SQL_TYPE_DATE:                 type = _T("DATE");          break;
+    case SQL_TIME:                      type = _T("TIME");          break;
+    case SQL_TYPE_TIME:                 type = _T("TIME");          break;
+    case SQL_TIMESTAMP:                 type = _T("TIMESTAMP");     break;
+    case SQL_TYPE_TIMESTAMP:            type = _T("TIMESTAMP");     break;
+    case SQL_BINARY:                    type = _T("BINARY");        break;
+    case SQL_VARBINARY:                 type = _T("VARBINARY");     break;
+    case SQL_LONGVARBINARY:             type = _T("LONGBLOB");      break;
+    case SQL_BIGINT:                    type = _T("BIGINT");
+                                        p_column->m_columnSize = 19;
+                                        break;
+    case SQL_TINYINT:                   type = _T("TINYINT");
+                                        p_column->m_columnSize = 3;
+                                        break;
+    case SQL_BIT:                       type = _T("BIT");           break;
+    case SQL_GUID:                      type = _T("VARCHAR");
+                                        p_column->m_columnSize    = 45;
+                                        p_column->m_decimalDigits = 0;
+                                        break;
+    case SQL_INTERVAL_YEAR:             // Fall through
+    case SQL_INTERVAL_MONTH:            // Fall through
+    case SQL_INTERVAL_DAY:              // Fall through
+    case SQL_INTERVAL_HOUR:             // Fall through
+    case SQL_INTERVAL_MINUTE:           // Fall through
+    case SQL_INTERVAL_SECOND:           // Fall through
+    case SQL_INTERVAL_YEAR_TO_MONTH:    // Fall through
+    case SQL_INTERVAL_DAY_TO_HOUR:      // Fall through
+    case SQL_INTERVAL_DAY_TO_MINUTE:    // Fall through
+    case SQL_INTERVAL_DAY_TO_SECOND:    // Fall through
+    case SQL_INTERVAL_HOUR_TO_MINUTE:   // Fall through
+    case SQL_INTERVAL_HOUR_TO_SECOND:   // Fall through
+    case SQL_INTERVAL_MINUTE_TO_SECOND: type = _T("VARCHAR");
+                                        p_column->m_columnSize    = 40;
+                                        p_column->m_decimalDigits = 0;
+                                        break;
+    case SQL_UNKNOWN_TYPE:
+    default:                            type = _T("UNKNOWN ODBC DATA TYPE!");  break;
+  }
+  return p_column->m_typename = type;
 }
 
 // Gets the USER (current-user) keyword function
@@ -333,14 +475,14 @@ SQLInfoMySQL::GetSQLNewSerial(XString /*p_table*/, XString /*p_sequence*/) const
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoMySQL::GetSQLGenerateSerial(XString p_table) const
+SQLInfoMySQL::GetSQLGenerateSerial(XString /*p_table*/) const
 {
   // NO WAY OF KNOWNING THIS
   return _T("0");
 }
 
 XString
-SQLInfoMySQL::GetSQLGenerateSequence(XString p_sequence) const
+SQLInfoMySQL::GetSQLGenerateSequence(XString /*p_sequence*/) const
 {
   // Not supported
   return _T("");
@@ -357,21 +499,21 @@ SQLInfoMySQL::GetSQLEffectiveSerial(XString p_identity) const
 
 // Gets the sub-transaction commands
 XString
-SQLInfoMySQL::GetSQLStartSubTransaction(XString p_savepointName) const
+SQLInfoMySQL::GetSQLStartSubTransaction(XString /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString(_T(""));
 }
 
 XString
-SQLInfoMySQL::GetSQLCommitSubTransaction(XString p_savepointName) const
+SQLInfoMySQL::GetSQLCommitSubTransaction(XString /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString(_T(""));
 }
 
 XString
-SQLInfoMySQL::GetSQLRollbackSubTransaction(XString p_savepointName) const
+SQLInfoMySQL::GetSQLRollbackSubTransaction(XString /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString(_T(""));
@@ -398,10 +540,9 @@ SQLInfoMySQL::GetSQLLockTable(XString /*p_schema*/,XString p_tablename,bool p_ex
 
 // Get query to optimize the table statistics
 XString
-SQLInfoMySQL::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
+SQLInfoMySQL::GetSQLOptimizeTable(XString /*p_schema*/, XString p_tablename) const
 {
-  // To be implemented
-  return _T("");
+  return _T("OPTIMIZE TABLE ") + QIQ(p_tablename) + _T(" NOWAIT");
 }
 
 // Transform query to select top <n> rows
@@ -441,6 +582,19 @@ SQLInfoMySQL::GetPing() const
 {
   // Getting the time does a ping
   return _T("SELECT current_timestamp");
+}
+
+// Pre- and postfix statements for a bulk import
+XString
+SQLInfoMySQL::GetBulkImportPrefix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoMySQL::GetBulkImportPostfix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+{
+  return _T("");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -520,10 +674,11 @@ SQLInfoMySQL::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool /*p
   return p_tablename;
 }
 
-// Changes to parameters before binding to an ODBC HSTMT handle
-void
+// Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
+bool
 SQLInfoMySQL::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
 {
+  return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -579,22 +734,70 @@ SQLInfoMySQL::GetCATALOGDefaultCollation() const
   return _T("latin1_swedish_ci");
 }
 
+// All user defined compound data types
+XString
+SQLInfoMySQL::GetCATALOGTypeExists(XString& /*p_schema*/,XString& /*p_typename*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoMySQL::GetCATALOGTypeList(XString& /*p_schema*/,XString& /*p_pattern*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoMySQL::GetCATALOGTypeAttributes(XString& /*p_schema*/,XString& /*p_typename*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoMySQL::GetCATALOGTypeSource(XString& /*p_schema*/,XString& /*p_typename*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoMySQL::GetCATALOGTypeCreate(MUserTypeMap& /*p_type*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoMySQL::GetCATALOGTypeDrop(XString /*p_schema*/,XString /*p_typename*/) const
+{
+  return XString();
+}
+
 // Get SQL to check if a table already exists in the database
 XString
-SQLInfoMySQL::GetCATALOGTableExists(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGTableExists(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
-  // Still to do in MySQL
-  return _T("");
+  XString sql;
+  sql = _T("SELECT COUNT(*)\n")
+        _T("  FROM information_schema.tables\n")  
+        _T(" WHERE table_type = 'BASE TABLE'\n")
+        _T("   AND table_schema NOT IN ('mysql','sys','performance_schema')\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
+  IdentifierCorrect(p_tablename);
+  sql += _T("   AND table_name = ?");
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTablesList(XString& p_schema,XString& p_pattern) const
+SQLInfoMySQL::GetCATALOGTablesList(XString& p_schema,XString& p_pattern,bool p_quoted /*= false*/) const
 {
-  return GetCATALOGTableAttributes(p_schema,p_pattern);
+  return GetCATALOGTableAttributes(p_schema,p_pattern,p_quoted);
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTableAttributes(XString& p_schema,XString& p_tablename) const
+SQLInfoMySQL::GetCATALOGTableAttributes(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
   XString sql;
   sql = _T("SELECT table_catalog\n")
@@ -611,12 +814,14 @@ SQLInfoMySQL::GetCATALOGTableAttributes(XString& p_schema,XString& p_tablename) 
         _T("  FROM information_schema.tables\n")  
         _T(" WHERE table_type = 'BASE TABLE'\n")
         _T("   AND table_schema NOT IN ('mysql','sys','performance_schema')\n");
-  if(!p_schema)
+  if(!p_schema.IsEmpty())
   {
+    IdentifierCorrect(p_schema);
     sql += _T("   AND table_schema = ?\n");
   }
   if(!p_tablename.IsEmpty())
   {
+    IdentifierCorrect(p_tablename);
     sql += _T("   AND table_name ");
     sql += p_tablename.Find('%') >= 0 ? _T("LIKE") : _T("=");
     sql += _T(" ?\n");
@@ -626,17 +831,19 @@ SQLInfoMySQL::GetCATALOGTableAttributes(XString& p_schema,XString& p_tablename) 
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTableSynonyms(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGTableSynonyms(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
-  // MS-Access cannot do this
-  return XString();
+  // MySQL does not support SYNONYMS, but we must return an empty select statement
+  // so that proceses as 'DropSchema' can continue
+  XString sql = _T("SELECT *\n"
+                   "  FROM information_schema.tables\n"
+                   " WHERE 0 = 1");
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTableCatalog(XString& p_schema,XString& p_tablename) const
+SQLInfoMySQL::GetCATALOGTableCatalog(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
-  p_schema.Empty(); // do not bind as a parameter
-
   XString sql;
   sql = _T("SELECT table_catalog\n")
         _T("      ,table_schema\n")
@@ -649,37 +856,50 @@ SQLInfoMySQL::GetCATALOGTableCatalog(XString& p_schema,XString& p_tablename) con
         _T("  FROM information_schema.tables\n")  
         _T(" WHERE ( table_type = 'SYSTEM VIEW'\n")
         _T("      OR table_schema IN ('mysql','sys','performance_schema'))\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
   if(!p_tablename.IsEmpty())
   {
+    IdentifierCorrect(p_tablename);
     sql += _T("   AND table_name ");
     sql += p_tablename.Find('%') >= 0 ? _T("LIKE") : _T("=");
     sql += _T(" ?\n");
   }
   sql += _T(" ORDER BY 1,2,3");
-  return sql;}
+  return sql;
+}
 
 XString
 SQLInfoMySQL::GetCATALOGTableCreate(MetaTable& p_table,MetaColumn& /*p_column*/) const
 {
   XString sql = _T("CREATE ");
-  if (p_table.m_temporary)
+  if(p_table.m_temporary)
   {
     sql += _T("TEMPORARY ");
   }
-  sql += _T("TABLE ") + p_table.m_table;
+  sql += _T("TABLE ");
+  sql += QIQ(p_table.m_table);
   return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTableCreatePostfix(MetaTable& /*p_table*/,MetaColumn& /*p_column*/) const
+SQLInfoMySQL::GetCATALOGTableCreatePostfix(MetaTable& p_table,MetaColumn& /*p_column*/) const
 {
-  return _T("");
+  XString sql;
+  if(p_table.m_temporary)
+  {
+    sql += _T("ENGINE = MEMORY");
+  }
+  return sql;
 }
 
 XString
 SQLInfoMySQL::GetCATALOGTableRename(XString /*p_schema*/,XString p_tablename,XString p_newname) const
 {
-  XString sql(_T("RENAME TABLE") + p_tablename + _T(" TO ") + p_newname);
+  XString sql(_T("RENAME TABLE") + QIQ(p_tablename) + _T(" TO ") + QIQ(p_newname));
   return sql;
 }
 
@@ -691,7 +911,8 @@ SQLInfoMySQL::GetCATALOGTableDrop(XString /*p_schema*/,XString p_tablename,bool 
   {
     sql += _T("IF EXISTS ");
   }
-  sql += p_tablename;
+  // BEWARE: drop table cannot use the schema prefix !!
+  sql += QIQ(p_tablename);
   if (p_restrict)
   {
     sql += _T(" RESTRICT");
@@ -710,49 +931,185 @@ XString
 SQLInfoMySQL::GetCATALOGTemptableCreate(XString /*p_schema*/,XString p_tablename,XString p_select) const
 {
   // BEWARE: THIS IS A GUESS. 
-  return _T("CREATE TEMPORARY TABLE ") + p_tablename + _T("\nAS ") + p_select;
+  return _T("CREATE TEMPORARY TABLE ") + QIQ(p_tablename) + _T("\nAS ") + p_select;
 }
 
 XString 
 SQLInfoMySQL::GetCATALOGTemptableIntoTemp(XString /*p_schema*/,XString p_tablename,XString p_select) const
 {
-  return _T("INSERT INTO ") + p_tablename + _T("\n") + p_select;
+  XString sql(_T("INSERT INTO "));
+  sql += QIQ(p_tablename) + _T("\n") + p_select;
+  return sql;
 }
 
 XString 
 SQLInfoMySQL::GetCATALOGTemptableDrop(XString /*p_schema*/,XString p_tablename) const
 {
-  return _T("DROP TABLE ") + p_tablename;
+  // DROP table cannot use the schema name
+  return _T("DROP TABLE ") + QIQ(p_tablename);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // ALL COLUMN FUNCTIONS
 
 XString 
-SQLInfoMySQL::GetCATALOGColumnExists(XString /*p_schema*/,XString p_tablename,XString p_columnname) const
+SQLInfoMySQL::GetCATALOGColumnExists(XString p_schema,XString p_tablename,XString p_columnname,bool p_quoted /*= false*/) const
 {
-  return _T("");
+  IdentifierCorrect(p_tablename);
+  IdentifierCorrect(p_columnname);
+  XString query = _T("SELECT COUNT(*)\n")
+                  _T("  FROM information_schema.columns\n")
+                  _T(" WHERE table_name  = '") + p_tablename  + _T("'\n")
+                  _T("   AND column_name = '") + p_columnname + _T("'\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    query += _T("   AND table_schema = '") + p_schema + _T("'\n");
+  }
+  return query;
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGColumnList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGColumnList(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
-  // Standard ODBC driver suffices
-  return _T("");
+  XString column;
+  return GetCATALOGColumnAttributes(p_schema,p_tablename,column,p_quoted);
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGColumnAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_columnname*/) const
+SQLInfoMySQL::GetCATALOGColumnAttributes(XString& p_schema,XString& p_tablename,XString& p_columnname,bool p_quoted /*= false*/) const
 {
-  // Standard ODBC driver suffices
-  return _T("");
+  IdentifierCorrect(p_tablename);
+  XString query = _T("SELECT table_catalog  AS table_cat\n")
+                  _T("      ,table_schema   AS table_schem\n")
+                  _T("      ,table_name\n")
+                  _T("      ,column_name\n")
+                  _T("      ,case data_type\n")
+                  _T("            when 'char'               then   1\n")
+                  _T("            when 'varchar'            then  12\n")
+                  _T("            when 'bigint'   then case locate('unsigned',column_type) > 0\n")
+                  _T("                                 when true then -27\n")   // UBIGINT
+                  _T("                                           else -25\n")   // SBIGINT
+                  _T("                                 end\n")
+                  _T("            when 'binary'             then  -2\n")
+                  _T("            when 'bit'                then  -7\n")
+                  _T("            when 'blob'               then  -4\n")  // longvarbinary
+                  _T("            when 'bool'               then  -7\n")  // bit
+                  _T("            when 'date'               then   9\n")  // date
+                  _T("            when 'datetime'           then  93\n")  // TYPE TIMESTAMP
+                  _T("            when 'decimal'            then   2\n")  // NUMERIC
+                  _T("            when 'double'             then   8\n")
+                  _T("            when 'double precision'   then   8\n")
+                  _T("            when 'enum'               then  12\n")  // VARCHAR
+                  _T("            when 'float'              then   7\n")
+                  _T("            when 'int'      then case locate('unsigned',column_type) > 0\n")
+                  _T("                                 when true then -18\n")   // ULONG
+                  _T("                                           else   4\n")   // SLONG
+                  _T("                                 end\n")
+                  _T("            when 'integer'  then case locate('unsigned',column_type) > 0\n")
+                  _T("                                 when true then -18\n")   // ULONG
+                  _T("                                           else   4\n")   // SLONG
+                  _T("                                 end\n")
+                  _T("            when 'long varbinary'     then  -4\n")  // BLOB
+                  _T("            when 'long varchar'       then  -1\n")
+                  _T("            when 'longblob'           then  -4\n")
+                  _T("            when 'longtext'           then  -1\n")
+                  _T("            when 'mediumblob'         then  -4\n")
+                  _T("            when 'mediumint' then case locate('unsigned',column_type) > 0\n")
+                  _T("                                  when true then -18\n")   // ULONG
+                  _T("                                            else   4\n")   // SLONG
+                  _T("                                  end\n")
+                  _T("            when 'mediumtext'         then  -1\n")
+                  _T("            when 'numeric'            then   2\n")
+                  _T("            when 'real'               then   7\n")
+                  _T("            when 'set'                then  12\n")
+                  _T("            when 'smallint' then case locate('unsigned',column_type) > 0\n")
+                  _T("                                 when true then -17\n")   // USMALLINT
+                  _T("                                           else   5\n")   // SMALLINT
+                  _T("                                 end\n")
+                  _T("            when 'text'               then  -1\n")
+                  _T("            when 'time'               then  92\n")  // TYPE TIME
+                  _T("            when 'timestamp'          then  93\n")
+                  _T("            when 'tinyblob'           then  -3\n")  // varbinary
+                  _T("            when 'tinyint'  then case locate('unsigned',column_type) > 0\n")
+                  _T("                                 when true then -16\n")   // UTINYINT
+                  _T("                                           else  -6\n")   // TINYINT
+                  _T("                                 end\n")
+                  _T("            when 'tinytext'           then  -1\n")
+                  _T("            when 'varbinary'          then  -3\n")
+                  _T("       end       as data_type\n")
+                  _T("      ,ucase(if(column_type like '%%(%%)%%',concat(substring(column_type,1,locate('(',column_type)-1),substring(column_type,1+locate(')',column_type))),column_type)) as type_name\n")
+                  _T("      ,case when data_type = 'bit'    then (numeric_precision+7)/8\n")
+                  _T("            when data_type in('tinyint','smallint','mediumint','int','bigint','decimal') then numeric_precision\n")
+                  _T("            when data_type = 'float'  then if(numeric_scale IS NULL,7,numeric_precision)\n")
+                  _T("            when data_type = 'double' then if(numeric_scale IS NULL,15,numeric_precision)\n")
+                  _T("            when data_type = 'date'   then 10\n")
+                  _T("            when data_type = 'time'   then  8\n")
+                  _T("            when data_type = 'year'   then  4\n")
+                  _T("            when data_type in('timestamp','datetime') then 19\n")
+                  _T("            else character_maximum_length\n")
+                  _T("       end  as column_size\n")
+                  _T("      ,case data_type\n")
+                  _T("            when 'bit'        then 1\n")
+                  _T("            when 'tinyint'    then 1\n")
+                  _T("            when 'smallint'   then 2\n")
+                  _T("            when 'int'        then 4\n")
+                  _T("            when 'integer'    then 4\n")
+                  _T("            when 'mediumint'  then 3\n")
+                  _T("            when 'bigint'     then 20\n")
+                  _T("            when 'real'       then 4\n")
+                  _T("            when 'float'      then 8\n")
+                  _T("            when 'double'     then 8\n")
+                  _T("            when 'date'       then 6\n")
+                  _T("            when 'time'       then 6\n")
+                  _T("            when 'timestamp'  then 16\n")
+                  _T("            when 'datetime'   then 16\n")
+                  _T("            when 'guid'       then 16\n")
+                  _T("            when 'year'       then 2\n")
+                  _T("            when 'decimal'    then (numeric_precision + 2)\n")
+                  _T("            else  character_octet_length\n")
+                  _T("       end  as buffer_length\n")
+                  _T("      ,ifnull(numeric_scale,datetime_precision) AS decimal_digits\n")
+                  _T("      ,if(character_octet_length is not null,null,10) as num_prec_radix\n")
+                  _T("      ,if(data_type='timestamp',1,if(is_nullable='YES',1,if(extra='auto_increment',1,0))) as nullable\n")
+                  _T("      ,column_comment     as remarks\n")
+                  _T("      ,column_default     as column_def\n")
+                  _T("      ,case data_type\n")
+                  _T("            when 'date'      then 9\n")   // DATETIME
+                  _T("            when 'time'      then 9\n")   // DATETIME
+                  _T("            when 'datetime'  then 9\n")   // DATETIME
+                  _T("            when 'timestamp' then 9\n")   // DATETIME
+                  _T("       end  as sql_data_type\n")
+                  _T("      ,case data_type\n")
+                  _T("            when 'date'      then 1\n")   // SQL_DATE
+                  _T("            when 'time'      then 2\n")   // SQL_TIME
+                  _T("            when 'datetime'  then 3\n")   // SQL_CODE_TIMESTAMP
+                  _T("            when 'timestamp' then 3\n")   // SQL_CODE_TIMESTAMP
+                  _T("       end  as sql_datetime_sub\n")
+                  _T("      ,character_octet_length\n")
+                  _T("      ,ordinal_position\n")
+                  _T("      ,if(data_type = 'timestamp','YES',if(is_nullable = 'YES','YES',if(extra = 'auto_increment','YES','NO'))) as is_nullable\n")
+                  _T("  FROM information_schema.columns\n")
+                  _T(" WHERE table_name   = '") + p_tablename + _T("'\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    query += _T("   AND table_schema = '") + p_schema + _T("'\n");
+  }
+  if(!p_columnname.IsEmpty())
+  {
+    IdentifierCorrect(p_columnname);
+    query += _T("   AND column_name = '") + p_columnname + _T("'\n");
+  }
+  query += _T(" ORDER BY ordinal_position ASC");
+  return query;
 }
 
 XString 
 SQLInfoMySQL::GetCATALOGColumnCreate(MetaColumn& p_column) const
 {
-  XString sql = _T("ALTER TABLE ")  + p_column.m_table  + _T("\n")
-                _T("  ADD COLUMN ") + p_column.m_column + _T(" ") + p_column.m_typename;
+  XString sql = _T("ALTER TABLE ")  + QIQ(p_column.m_table)  + _T("\n")
+                _T("  ADD COLUMN ") + QIQ(p_column.m_column) + _T(" ") + QIQ(p_column.m_typename);
   p_column.GetPrecisionAndScale(sql);
   p_column.GetNullable(sql);
   p_column.GetDefault(sql);
@@ -765,8 +1122,8 @@ XString
 SQLInfoMySQL::GetCATALOGColumnAlter(MetaColumn& p_column) const
 {
   // The MODIFY keyword is a-typical
-  XString sql = _T("ALTER  TABLE  ") + p_column.m_table + _T("\n")
-                _T("MODIFY COLUMN ") + p_column.m_column + _T(" ") + p_column.m_typename;
+  XString sql = _T("ALTER  TABLE  ") + QIQ(p_column.m_table) + _T("\n")
+                _T("MODIFY COLUMN ") + QIQ(p_column.m_column) + _T(" ") + QIQ(p_column.m_typename);
   p_column.GetPrecisionAndScale(sql);
   p_column.GetNullable(sql);
   p_column.GetDefault(sql);
@@ -777,19 +1134,19 @@ SQLInfoMySQL::GetCATALOGColumnAlter(MetaColumn& p_column) const
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGColumnRename(XString p_schema,XString p_tablename,XString p_columnname,XString p_newname,XString /*p_datatype*/) const
+SQLInfoMySQL::GetCATALOGColumnRename(XString /*p_schema*/,XString p_tablename,XString p_columnname,XString p_newname,XString /*p_datatype*/) const
 {
   // General ISO syntax
-  XString sql(_T("ALTER  TABLE  ") + p_tablename + _T("\n")
-              _T("RENAME ") + p_columnname + _T(" TO ") + p_newname + _T("\n"));
+  XString sql(_T("ALTER  TABLE  ") + QIQ(p_tablename) + _T("\n")
+              _T("RENAME ") + QIQ(p_columnname) + _T(" TO ") + QIQ(p_newname) + _T("\n"));
   return sql;
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGColumnDrop(XString p_schema,XString p_tablename,XString p_columnname) const
+SQLInfoMySQL::GetCATALOGColumnDrop(XString /*p_schema*/,XString p_tablename,XString p_columnname) const
 {
-  XString sql(_T("ALTER TABLE  ") + p_tablename + _T("\n")
-              _T(" DROP COLUMN ") + p_columnname);
+  XString sql(_T("ALTER TABLE  ") + QIQ(p_tablename) + _T("\n")
+              _T(" DROP COLUMN ") + QIQ(p_columnname));
   return sql;
 }
 
@@ -798,27 +1155,74 @@ SQLInfoMySQL::GetCATALOGColumnDrop(XString p_schema,XString p_tablename,XString 
 
 // All index functions
 XString
-SQLInfoMySQL::GetCATALOGIndexExists(XString /*p_schema*/,XString p_tablename,XString p_indexname) const
+SQLInfoMySQL::GetCATALOGIndexExists(XString p_schema,XString /*p_tablename*/,XString p_indexname,bool p_quoted /*= false*/) const
 {
-  // Cannot be implemented for generic ODBC
-  // Use SQLStatistics instead (see SQLInfo class)
-  return _T("");
+  XString sql = _T("SELECT COUNT(*)\n"
+                   "  FROM information_schema.statistics\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
+  IdentifierCorrect(p_indexname);
+  sql += _T("  AND index_name = ?");
+
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGIndexList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGIndexList(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
-  // Cannot be implemented for generic ODBC
-  // Use SQLStatistics instead (see SQLInfo class)
-  return _T("");
+  XString index;
+  return GetCATALOGIndexAttributes(p_schema,p_tablename,index,p_quoted);
 }
 
 XString
-SQLInfoMySQL::GetCATALOGIndexAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_indexname*/) const
+SQLInfoMySQL::GetCATALOGIndexAttributes(XString& p_schema,XString& p_tablename,XString& p_indexname,bool p_quoted /*= false*/) const
 {
-  // Cannot be implemented for generic ODBC
-  // Use SQLStatistics instead (see SQLInfo class)
-  return _T("");
+  XString sql = _T("SELECT table_schema AS catalog_name\n"
+                   "      ,table_schema AS schema_name\n"
+                   "      ,table_name\n"
+                   "      ,non_unique\n"
+                   "      ,''           AS index_qualifier\n"
+                   "      ,index_name\n"
+                   "      ,CASE index_type\n"
+                   "            WHEN 'CLUSTERED' THEN 1\n"
+                   "            WHEN 'HASHED'    THEN 2\n"
+                   "            WHEN 'BTREE'     THEN 3\n"
+                   "            ELSE 3\n"
+                   "       END  AS index_type\n"
+                   "      ,seq_in_index\n"
+                   "      ,column_name\n"
+                   "      ,'A'          AS ascending\n"
+                   "      ,cardinality\n"
+                   "      ,'' AS pages\n"
+                   "      ,'' AS filter_condition\n"
+                   "  FROM information_schema.statistics\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_tablename);
+    sql += _T("   AND table_name = ?\n");
+  }
+  if(!p_indexname.IsEmpty())
+  {
+    IdentifierCorrect(p_indexname);
+    sql += _T("  AND index_name = ?\n");
+  }
+  if(m_filterPKFK)
+  {
+    sql += _T("   AND index_name <> 'PRIMARY'\n");
+  }
+  sql += _T(" ORDER BY index_name,seq_in_index");
+
+  return sql;
 }
 
 XString
@@ -838,20 +1242,18 @@ SQLInfoMySQL::GetCATALOGIndexCreate(MIndicesMap& p_indices,bool /*p_duplicateNul
         query += _T("UNIQUE ");
       }
       query += _T("INDEX ");
-      query += index.m_indexName;
+      query += QIQ(index.m_indexName);
       query += _T(" ON ");
-      if(!index.m_schemaName.IsEmpty())
-      {
-        query += index.m_schemaName + _T(".");
-      }
-      query += index.m_tableName;
+      query += QIQ(index.m_tableName);
       query += _T("(");
     }
     else
     {
       query += _T(",");
     }
-    query += index.m_columnName;
+    query += QIQ(index.m_columnName);
+
+    // Descending column
     if(index.m_ascending != _T("A"))
     {
       query += _T(" DESC");
@@ -862,9 +1264,10 @@ SQLInfoMySQL::GetCATALOGIndexCreate(MIndicesMap& p_indices,bool /*p_duplicateNul
 }
 
 XString
-SQLInfoMySQL::GetCATALOGIndexDrop(XString /*p_schema*/,XString /*p_tablename*/,XString p_indexname) const
+SQLInfoMySQL::GetCATALOGIndexDrop(XString /*p_schema*/,XString p_tablename,XString p_indexname) const
 {
-  XString sql = _T("DROP INDEX ") + p_indexname;
+  XString sql = _T("ALTER TABLE ") + QIQ(p_tablename) + _T("\n")
+                _T(" DROP INDEX ") + QIQ(p_indexname);
   return sql;
 }
 
@@ -879,19 +1282,57 @@ SQLInfoMySQL::GetCATALOGIndexFilter(MetaIndex& /*p_index*/) const
 // ALL PRIMARY KEY FUNCTIONS
 
 XString
-SQLInfoMySQL::GetCATALOGPrimaryExists(XString /*p_schema*/,XString p_tablename) const
+SQLInfoMySQL::GetCATALOGPrimaryExists(XString p_schema,XString p_tablename,bool p_quoted /*= false*/) const
 {
-  // To be implemented
-  return _T("");
+  XString sql = _T("SELECT COUNT(*)\n"
+                   "  FROM information_schema.table_constraints AS tc\n"
+                   "       JOIN information_schema.key_column_usage AS kcu\n"
+                   "              ON tc.constraint_name = kcu.constraint_name\n"
+                   "             AND tc.table_name      = kcu.table_name\n"
+                   "             AND tc.table_schema    = kcu.table_schema\n"
+                   " WHERE tc.constraint_type = 'PRIMARY KEY'\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND tc.table_schema = ?\n");
+  }
+  IdentifierCorrect(p_tablename);
+  sql += _T("   AND tc.table_name   = ?");
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGPrimaryAttributes(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGPrimaryAttributes(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
-  // To be implemented
-  return _T("");
+  XString sql = _T("SELECT tc.table_schema AS catalog_name\n"
+                   "      ,tc.table_schema AS schema_name\n"
+                   "      ,tc.table_name\n"
+                   "      ,kcu.column_name\n"
+                   "      ,kcu.ordinal_position\n"
+                   "      ,tc.constraint_name AS pk_name\n"
+                   "  FROM information_schema.table_constraints AS tc\n"
+                   "       JOIN information_schema.key_column_usage AS kcu\n"
+                   "              ON tc.constraint_name = kcu.constraint_name\n"
+                   "             AND tc.table_name      = kcu.table_name\n"
+                   "             AND tc.table_schema    = kcu.table_schema\n"
+                   " WHERE tc.constraint_type = 'PRIMARY KEY'\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND tc.table_schema = ?\n");
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_tablename);
+    sql += _T("   AND tc.table_name   = ?\n");
+  }
+  sql += _T(" ORDER BY 1,2,3,5");
+
+  return sql;
 }
 
+// In MySQL all primary keys are named "PRIMARY".
+// You can add a constraint name, but it WILL be ignored!
 XString
 SQLInfoMySQL::GetCATALOGPrimaryCreate(MPrimaryMap& p_primaries) const
 {
@@ -901,26 +1342,26 @@ SQLInfoMySQL::GetCATALOGPrimaryCreate(MPrimaryMap& p_primaries) const
   {
     if(prim.m_columnPosition == 1)
     {
-      query += prim.m_table + _T("\n");
-      query += _T("  ADD CONSTRAINT ") + prim.m_constraintName + _T("\n");
-      query += _T("      PRIMARY KEY (");
+      query += QIQ(prim.m_table) + _T("\n");
+      query += _T("  ADD PRIMARY KEY (");
 
     }
     else
     {
       query += _T(",");
     }
-    query += prim.m_columnName;
+    query += QIQ(prim.m_columnName);
   }
   query += _T(")");
   return query;
 }
 
+// In MySQL all primary keys are named "PRIMARY".
 XString
-SQLInfoMySQL::GetCATALOGPrimaryDrop(XString /*p_schema*/,XString p_tablename,XString p_constraintname) const
+SQLInfoMySQL::GetCATALOGPrimaryDrop(XString /*p_schema*/,XString p_tablename,XString /*p_constraintname*/) const
 {
-  XString sql(_T("ALTER TABLE ") + p_tablename + _T("\n")
-              _T(" DROP CONSTRAINT ") + p_constraintname);
+  XString sql(_T("ALTER TABLE ") + QIQ(p_tablename) + _T("\n")
+              _T(" DROP CONSTRAINT PRIMARY"));
   return sql;
 }
 
@@ -928,27 +1369,103 @@ SQLInfoMySQL::GetCATALOGPrimaryDrop(XString /*p_schema*/,XString p_tablename,XSt
 // ALL FOREIGN KEY FUNCTIONS
 
 XString
-SQLInfoMySQL::GetCATALOGForeignExists(XString /*p_schema*/,XString p_tablename,XString p_constraintname) const
+SQLInfoMySQL::GetCATALOGForeignExists(XString p_schema,XString p_tablename,XString p_constraintname,bool p_quoted /*= false*/) const
 {
-  // Cannot be implemented for generic ODBC
-  // Use SQLForeignKeys instead (see SQLInfo class)
-  return _T("");
+  XString sql = _T("SELECT COUNT(*)\n"
+                   "  FROM information_schema.referential_constraints rc\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND rc.constraint_schema = ?\n");
+  }
+  IdentifierCorrect(p_tablename);
+  sql += _T("   AND rc.table_name = ?\n");
+  IdentifierCorrect(p_constraintname);
+  sql += _T("   AND rc.constraint_name = ?\n");
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGForeignList(XString& /*p_schema*/,XString& /*p_tablename*/,int /*p_maxColumns*/ /*=SQLINFO_MAX_COLUMNS*/) const
+SQLInfoMySQL::GetCATALOGForeignList(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
-  // Cannot be implemented for generic ODBC
-  // Use SQLForeignKeys instead (see SQLInfo class)
-  return _T("");
+  XString constraint;
+  return GetCATALOGForeignAttributes(p_schema,p_tablename,constraint,p_quoted);
 }
 
 XString
-SQLInfoMySQL::GetCATALOGForeignAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_constraintname*/,bool /*p_referenced = false*/,int /*p_maxColumns*/ /*=SQLINFO_MAX_COLUMNS*/) const
+SQLInfoMySQL::GetCATALOGForeignAttributes(XString& p_schema,XString& p_tablename,XString& p_constraintname,bool p_referenced /*= false*/,bool p_quoted /*= false*/) const
 {
-  // Cannot be implemented for generic ODBC
-  // Use SQLForeignKeys instead (see SQLInfo class)
-  return _T("");
+  XString sql = _T("SELECT rc.unique_constraint_schema AS pktable_catalog\n"
+                   "      ,rc.unique_constraint_schema AS pktable_schema\n"
+                   "      ,rc.referenced_table_name    AS pktable_name\n"
+                   "      ,kcu.referenced_column_name  AS pkcolumn_name\n"
+                   "      ,rc.constraint_schema        AS fktable_catalog\n"
+                   "      ,rc.constraint_schema        AS fktable_schema\n"
+                   "      ,rc.table_name               AS fktable_name\n"
+                   "      ,kcu.column_name             AS fkcolumn_name\n"
+                   "      ,kcu.position_in_unique_constraint AS key_sequence\n"
+                   "      ,rc.update_rule\n"
+                   "      ,rc.delete_rule\n"
+                   "      ,rc.constraint_name          AS fk_constraint_name\n"
+                   "      ,rc.unique_constraint_name   AS pk_constraint_name\n"
+                   "      ,NULL                        AS deferrability\n"
+                   "      ,CASE rc.match_option\n"
+                   "            WHEN 'NONE'    THEN 0\n"
+                   "            WHEN 'PARTIAL' THEN 1\n"
+                   "            WHEN 'SIMPLE'  THEN 2\n"
+                   "            ELSE 0\n"
+                   "       END                         as match_option\n"
+                   "      ,0                           AS initially_deferred\n"
+                   "      ,1                           AS enabled\n"
+                   "  FROM information_schema.referential_constraints rc\n"
+                   "       JOIN information_schema.key_column_usage kcu\n"
+                   "                         ON rc.constraint_name   = kcu.constraint_name\n"
+                   "                        AND rc.constraint_schema = kcu.constraint_schema\n"
+                   "                        AND rc.table_name        = kcu.table_name\n"
+                   "        JOIN information_schema.table_constraints tc\n"
+                   "                         ON tc.table_name        = rc.referenced_table_name\n"
+                   "                        AND tc.constraint_schema = rc.constraint_schema\n"
+                   "                        AND tc.constraint_name   = 'PRIMARY'\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    if(p_referenced)
+    {
+      sql += _T("   AND rc.unique_constraint_schema = ?\n");
+    }
+    else
+    {
+      sql += _T("   AND rc.constraint_schema = ?\n");
+    }
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_tablename);
+    if(p_referenced)
+    {
+      sql += _T("   AND rc.referenced_table_name = ?\n");
+    }
+    else
+    {
+      sql += _T("   AND rc.table_name = ?\n");
+    }
+  }
+  if(!p_constraintname.IsEmpty())
+  {
+    IdentifierCorrect(p_constraintname);
+    if(p_referenced)
+    {
+      sql += _T("   AND tc.constraint_name = ?\n");
+    }
+    else
+    {
+      sql += _T("   AND rc.constraint_name = ?\n");
+    }
+  }
+  sql += _T(" ORDER BY 12,9");
+  return sql;
 }
 
 XString
@@ -962,8 +1479,8 @@ SQLInfoMySQL::GetCATALOGForeignCreate(MForeignMap& p_foreigns) const
   XString primary(foreign.m_pkTableName);
 
   // The base foreign key command
-  XString query = _T("ALTER TABLE ") + table + _T("\n")
-                  _T("  ADD CONSTRAINT ") + foreign.m_foreignConstraint + _T("\n")
+  XString query = _T("ALTER TABLE ") + QIQ(table) + _T("\n")
+                  _T("  ADD CONSTRAINT ") + QIQ(foreign.m_foreignConstraint) + _T("\n")
                   _T("      FOREIGN KEY (");
 
   // Add the foreign key columns
@@ -971,19 +1488,19 @@ SQLInfoMySQL::GetCATALOGForeignCreate(MForeignMap& p_foreigns) const
   for(const auto& key : p_foreigns)
   {
     if(extra) query += _T(",");
-    query += key.m_fkColumnName;
+    query += QIQ(key.m_fkColumnName);
     extra = true;
   }
 
   // Add references primary table
-  query += _T(")\n      REFERENCES ") + primary + _T("(");
+  query += _T(")\n      REFERENCES ") + QIQ(primary) + _T("(");
 
   // Add the primary key columns
   extra = false;
   for(const auto& key : p_foreigns)
   {
     if(extra) query += _T(",");
-    query += key.m_pkColumnName;
+    query += QIQ(key.m_pkColumnName);
     extra = true;
   }
   query += _T(")");
@@ -1036,8 +1553,8 @@ SQLInfoMySQL::GetCATALOGForeignAlter(MForeignMap& p_original, MForeignMap& p_req
   XString table(original.m_fkTableName);
 
   // The base foreign key command
-  XString query = _T("ALTER TABLE ") + table + _T("\n")
-                  _T("ALTER CONSTRAINT ") + original.m_foreignConstraint + _T("\n");
+  XString query = _T("ALTER TABLE ") + QIQ(table) + _T("\n")
+                  _T("ALTER CONSTRAINT ") + QIQ(original.m_foreignConstraint) + _T("\n");
 
   // Add all relevant options
   if(original.m_deferrable != requested.m_deferrable)
@@ -1089,8 +1606,8 @@ SQLInfoMySQL::GetCATALOGForeignAlter(MForeignMap& p_original, MForeignMap& p_req
 XString
 SQLInfoMySQL::GetCATALOGForeignDrop(XString /*p_schema*/,XString p_tablename,XString p_constraintname) const
 {
-  XString sql(_T("ALTER TABLE ") + p_tablename + _T("\n")
-              _T(" DROP CONSTRAINT ") + p_constraintname);
+  XString sql(_T("ALTER TABLE ") + QIQ(p_tablename) + _T("\n")
+              _T(" DROP CONSTRAINT ") + QIQ(p_constraintname));
   return sql;
 }
 
@@ -1130,53 +1647,115 @@ SQLInfoMySQL::GetCATALOGDefaultDrop(XString /*p_schema*/,XString /*p_tablename*/
 // All check constraints
 
 XString
-SQLInfoMySQL::GetCATALOGCheckExists(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+SQLInfoMySQL::GetCATALOGCheckExists(XString  p_schema,XString p_tablename,XString p_constraint,bool p_quoted /*= false*/) const
 {
-  return _T("");
+  XString sql = _T("SELECT COUNT(*)\n"
+                   "  FROM information_schema.check_constraints\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("  AND constraint_schema = ?\n");
+  }
+  IdentifierCorrect(p_tablename);
+  sql += _T("   AND table_name = ?\n");
+  IdentifierCorrect(p_constraint);
+  sql += _T("   AND constraint_name = ?");
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGCheckList(XString  /*p_schema*/,XString  /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGCheckList(XString p_schema,XString p_tablename,bool p_quoted /*= false*/) const
 {
-  return _T("");
+  XString constraint;
+  return GetCATALOGCheckAttributes(p_schema,p_tablename,constraint,p_quoted);
 }
 
 XString
-SQLInfoMySQL::GetCATALOGCheckAttributes(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+SQLInfoMySQL::GetCATALOGCheckAttributes(XString p_schema,XString p_tablename,XString p_constraint,bool p_quoted /*= false*/) const
 {
-  return _T("");
+  XString sql = _T("SELECT constraint_schema AS catalog_name\n"
+                   "      ,constraint_schema\n"
+                   "      ,table_name\n"
+                   "      ,constraint_name\n"
+                   "      ,check_clause\n"
+                   "  FROM information_schema.check_constraints\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("  AND constraint_schema = ?\n");
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_tablename);
+    sql += _T("   AND table_name = ?\n");
+  }
+  if(!p_constraint.IsEmpty())
+  {
+    IdentifierCorrect(p_constraint);
+    sql += _T("   AND constraint_name = ?\n");
+  }
+  sql += _T(" ORDER BY 1,2,3,4");
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGCheckCreate(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/,XString /*p_condition*/) const
+SQLInfoMySQL::GetCATALOGCheckCreate(XString /*p_schema*/,XString p_tablename,XString p_constraint,XString p_condition) const
 {
-  return _T("");
+  XString sql(_T("ALTER TABLE "));
+  sql += QIQ(p_tablename) + _T("\n");
+  sql += _T("  ADD CONSTRAINT ") + QIQ(p_constraint);
+  sql += _T(" CHECK (") + p_condition + _T(")");
+
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGCheckDrop(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+SQLInfoMySQL::GetCATALOGCheckDrop(XString /*p_schema*/,XString p_tablename,XString p_constraint) const
 {
-  return _T("");
+  XString sql(_T("ALTER TABLE "));
+  sql += QIQ(p_tablename) + _T("\n");
+  sql += _T("  DROP CONSTRAINT ") + QIQ(p_constraint);
+
+  return sql;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // ALL TRIGGER FUNCTIONS
 
 XString
-SQLInfoMySQL::GetCATALOGTriggerExists(XString /*p_schema*/, XString p_tablename, XString p_triggername) const
+SQLInfoMySQL::GetCATALOGTriggerExists(XString p_schema,XString p_tablename,XString p_triggername,bool p_quoted /*= false*/) const
 {
-  return _T("");
+  XString sql(_T("SELECT COUNT(*)\n"
+                 "  FROM information_schema.triggers\n"));
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T(" WHERE event_object_schema = ?\n");
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += p_schema.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
+    sql += _T("event_object_table = ?\n");
+  }
+  IdentifierCorrect(p_triggername);
+  sql += p_schema.IsEmpty() && p_tablename.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
+  sql += _T("trigger_name = ?\n");
+
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTriggerList(XString& p_schema,XString& p_tablename) const
+SQLInfoMySQL::GetCATALOGTriggerList(XString& p_schema,XString& p_tablename,bool p_quoted /*= false*/) const
 {
   XString triggername;
-  return GetCATALOGTriggerAttributes(p_schema,p_tablename,triggername);
+  return GetCATALOGTriggerAttributes(p_schema,p_tablename,triggername,p_quoted);
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTriggerAttributes(XString& p_schema,XString& p_tablename,XString& p_triggername) const
+SQLInfoMySQL::GetCATALOGTriggerAttributes(XString& p_schema,XString& p_tablename,XString& p_triggername,bool p_quoted /*= false*/) const
 {
   XString sql;
   sql = _T("SELECT event_object_catalog\n")
@@ -1207,64 +1786,96 @@ SQLInfoMySQL::GetCATALOGTriggerAttributes(XString& p_schema,XString& p_tablename
         _T("  FROM information_schema.triggers\n");
   if(!p_schema.IsEmpty())
   {
+    IdentifierCorrect(p_schema);
     sql += _T(" WHERE event_object_schema = ?\n");
   }
   if(!p_tablename.IsEmpty())
   {
+    IdentifierCorrect(p_schema);
     sql += p_schema.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
-    sql += _T("event_object_table = ?\n");
+    sql += _T("event_object_table ");
+    sql += p_tablename.Find(_T("%")) >= 0 ? _T("LIKE") : _T("=");
+    sql += _T(" ?\n");
   }
   if(!p_triggername.IsEmpty())
   {
+    IdentifierCorrect(p_triggername);
     sql += p_schema.IsEmpty() && p_tablename.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
-    sql += _T("trigger_name = ?\n");
+    sql += _T("trigger_name ");
+    sql += p_triggername.Find(_T("%")) >= 0 ? _T("LIKE") : _T("=");
+    sql += _T(" ?\n");
   }
-  sql += _T(" ORDER BY 1,2,3,4");
+  sql += _T(" ORDER BY 1,2,3,6");
   return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTriggerCreate(MetaTrigger& /*p_trigger*/) const
+SQLInfoMySQL::GetCATALOGTriggerCreate(MetaTrigger& p_trigger) const
 {
-  return _T("");
+  XString sql(_T("CREATE TRIGGER IF NOT EXISTS "));
+  sql += QIQ(p_trigger.m_triggerName) + _T("\n");
+
+  // Before or after
+  sql += p_trigger.m_before ? _T("BEFORE ") : _T("AFTER ");
+
+  // Trigger actions
+       if(p_trigger.m_insert) sql += _T("INSERT");
+  else if(p_trigger.m_update) sql += _T("UPDATE");
+  else if(p_trigger.m_delete) sql += _T("DELETE");
+
+  // Add trigger table
+  sql += _T("\nON ");
+  sql += QIQ(p_trigger.m_tableName);
+  sql += _T(" FOR EACH ROW\n");
+
+  // Add trigger body
+  sql += p_trigger.m_source;
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGTriggerDrop(XString /*p_schema*/, XString p_tablename, XString p_triggername) const
+SQLInfoMySQL::GetCATALOGTriggerDrop(XString /*p_schema*/, XString /*p_tablename*/, XString p_triggername) const
 {
-  return _T("");
+  XString sql(_T("DROP TRIGGER IF EXISTS "));
+  sql += QIQ(p_triggername);
+  return sql;
 }
 
 //////////////////////////////////////////////////////////////////////////
 // ALL SEQUENCE FUNCTIONS
 
 XString
-SQLInfoMySQL::GetCATALOGSequenceExists(XString /*p_schema*/, XString p_sequence) const
+SQLInfoMySQL::GetCATALOGSequenceExists(XString /*p_schema*/,XString /*p_sequence*/,bool /*p_quoted /*= false*/) const
 {
+  // MySQL does NOT support SEQUENCE
   return _T("");
 }
 
 XString
-SQLInfoMySQL::GetCATALOGSequenceList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+SQLInfoMySQL::GetCATALOGSequenceList(XString& /*p_schema*/,XString& /*p_pattern*/,bool /*p_quoted /*= false*/) const
 {
+  // MySQL does NOT support SEQUENCE
   return _T("");
 }
 
 XString
-SQLInfoMySQL::GetCATALOGSequenceAttributes(XString& /*p_schema*/,XString& /*p_sequence*/) const
+SQLInfoMySQL::GetCATALOGSequenceAttributes(XString& /*p_schema*/,XString& /*p_sequence*/,bool /*p_quoted /*= false*/) const
 {
+  // MySQL does NOT support SEQUENCE
   return _T("");
 }
 
 XString
 SQLInfoMySQL::GetCATALOGSequenceCreate(MetaSequence& /*p_sequence*/) const
 {
+  // MySQL does NOT support SEQUENCE
   return _T("");
 }
 
 XString
-SQLInfoMySQL::GetCATALOGSequenceDrop(XString /*p_schema*/, XString p_sequence) const
+SQLInfoMySQL::GetCATALOGSequenceDrop(XString /*p_schema*/, XString /*p_sequence*/) const
 {
+  // MySQL does NOT support SEQUENCE
   return _T("");
 }
 
@@ -1272,19 +1883,33 @@ SQLInfoMySQL::GetCATALOGSequenceDrop(XString /*p_schema*/, XString p_sequence) c
 // ALL VIEW FUNCTIONS
 
 XString 
-SQLInfoMySQL::GetCATALOGViewExists(XString& /*p_schema*/,XString& /*p_viewname*/) const
+SQLInfoMySQL::GetCATALOGViewExists(XString& p_schema,XString& p_viewname,bool p_quoted /*= false*/) const
 {
-  return _T("");
+  XString sql = _T("SELECT COUNT(*)\n")
+                _T("  FROM information_schema.tables\n")  
+                _T(" WHERE table_type = 'VIEW'\n")
+                _T("   AND table_schema NOT IN ('mysql','sys','performance_schema')\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
+  if(!p_viewname.IsEmpty())
+  {
+    IdentifierCorrect(p_viewname);
+    sql += _T("   AND table_name  = ?");
+  }
+  return sql;
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGViewList(XString& p_schema,XString& p_pattern) const
+SQLInfoMySQL::GetCATALOGViewList(XString& p_schema,XString& p_pattern,bool p_quoted /*= false*/) const
 {
-  return GetCATALOGViewAttributes(p_schema,p_pattern);
+  return GetCATALOGViewAttributes(p_schema,p_pattern,p_quoted);
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGViewAttributes(XString& p_schema,XString& p_viewname) const
+SQLInfoMySQL::GetCATALOGViewAttributes(XString& p_schema,XString& p_viewname,bool p_quoted /*= false*/) const
 {
   XString sql;
   sql = _T("SELECT table_catalog\n")
@@ -1298,12 +1923,14 @@ SQLInfoMySQL::GetCATALOGViewAttributes(XString& p_schema,XString& p_viewname) co
         _T("  FROM information_schema.tables\n")  
         _T(" WHERE table_type = 'VIEW'\n")
         _T("   AND table_schema NOT IN ('mysql','sys','performance_schema')\n");
-  if(!p_schema)
+  if(!p_schema.IsEmpty())
   {
+    IdentifierCorrect(p_schema);
     sql += _T("   AND table_schema = ?\n");
   }
   if(!p_viewname.IsEmpty())
   {
+    IdentifierCorrect(p_viewname);
     sql += _T("   AND table_name ");
     sql += p_viewname.Find('%') >= 0 ? _T("LIKE") : _T("=");
     sql += _T(" ?\n");
@@ -1313,20 +1940,40 @@ SQLInfoMySQL::GetCATALOGViewAttributes(XString& p_schema,XString& p_viewname) co
 }
 
 XString
-SQLInfoMySQL::GetCATALOGViewText(XString& /*p_schema*/,XString& /*p_viewname*/) const
+SQLInfoMySQL::GetCATALOGViewText(XString& p_schema,XString& p_viewname,bool p_quoted /*= false*/) const
 {
-  // Cannot query this, Use ODBC functions
-  return _T("");
+  XString sql = _T("SELECT view_definition\n"
+                   "  FROM information_schema.views\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = '") + p_schema + _T("'\n");
+  }
+  if(!p_viewname.IsEmpty())
+  {
+    IdentifierCorrect(p_viewname);
+    sql += _T("   AND table_name   = '") + p_viewname +_T("'");
+  }
+  return sql;
 }
 
 XString
-SQLInfoMySQL::GetCATALOGViewCreate(XString /*p_schema*/,XString p_viewname,XString p_contents,bool /*p_ifexists /*= true*/) const
+SQLInfoMySQL::GetCATALOGViewCreate(XString /*p_schema*/,XString p_viewname,XString p_contents,bool p_ifexists /*= true*/) const
 {
-  return _T("CREATE VIEW ") + p_viewname + _T("\n") + p_contents;
+  XString sql = _T("CREATE "); 
+  if(p_ifexists)
+  {
+    sql += _T("OR REPLACE ");
+  }
+  sql += _T("VIEW ");
+  sql += QIQ(p_viewname) + _T(" AS\n") + p_contents;
+
+  return sql;
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGViewRename(XString p_schema,XString p_viewname,XString p_newname)    const
+SQLInfoMySQL::GetCATALOGViewRename(XString /*p_schema*/,XString /*p_viewname*/,XString /*p_newname*/)    const
 {
   return _T("");
 }
@@ -1335,20 +1982,71 @@ XString
 SQLInfoMySQL::GetCATALOGViewDrop(XString /*p_schema*/,XString p_viewname,XString& p_precursor) const
 {
   p_precursor.Empty();
-  return _T("DROP VIEW ") + p_viewname;
+  XString sql = _T("DROP VIEW ");
+  sql += QIQ(p_viewname);
+  return sql;
 }
 
 // All Privilege functions
+
 XString
-SQLInfoMySQL::GetCATALOGTablePrivileges(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoMySQL::GetCATALOGTablePrivileges(XString& p_schema,XString& p_tablename) const
 {
-  return _T("");
+  bool p_quoted(true);
+  XString sql = _T("SELECT table_schema AS table_catalog\n"
+                   "      ,table_schema\n"
+                   "      ,table_name\n"
+                   "      ,'_SYSTEM' AS grantor\n"
+                   "      ,Trim(both '''' FROM substring_index(grantee,'@',1)) as grantee\n"
+                   "      ,privilege_type\n"
+                   "      ,is_grantable\n"
+                   "  FROM information_schema.table_privileges\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_tablename);
+    sql += _T("   AND table_name   = ?\n");
+  }
+  sql += _T(" ORDER BY 1,2,3,5,6");
+  return sql;
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGColumnPrivileges(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_columnname*/) const
+SQLInfoMySQL::GetCATALOGColumnPrivileges(XString& p_schema,XString& p_tablename,XString& p_columnname) const
 {
-  return _T("");
+  bool p_quoted(true);
+  XString sql = _T("SELECT table_schema AS table_catalog\n"
+                   "      ,table_schema\n"
+                   "      ,table_name\n"
+                   "      ,column_name\n"
+                   "      ,'_SYSTEM' AS grantor\n"
+                   "      ,Trim(both '''' FROM substring_index(grantee,'@',1)) as grantee\n"
+                   "      ,privilege_type\n"
+                   "      ,is_grantable\n"
+                   "  FROM information_schema.column_privileges\n"
+                   " WHERE 1 = 1\n");
+  if(!p_schema.IsEmpty())
+  {
+    IdentifierCorrect(p_schema);
+    sql += _T("   AND table_schema = ?\n");
+  }
+  if(!p_tablename.IsEmpty())
+  {
+    IdentifierCorrect(p_tablename);
+    sql += _T("   AND table_name   = ?\n");
+  }
+  if(!p_columnname.IsEmpty())
+  {
+    IdentifierCorrect(p_columnname);
+    sql += _T("   AND column_name  = ?\n");
+  }
+  sql += _T(" ORDER BY 1,2,3,5,6");
+  return sql;
 }
 
 XString
@@ -1358,15 +2056,19 @@ SQLInfoMySQL::GetCATALOGSequencePrivilege(XString& /*p_schema*/,XString& /*p_seq
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGGrantPrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
+SQLInfoMySQL::GetCATALOGGrantPrivilege(XString /*p_schema*/,XString p_objectname,XString p_subObject,XString p_privilege,XString p_grantee,bool p_grantable)
 {
   XString sql;
-  p_grantee.MakeLower();
 
   // MySQL does not know the concept of "PUBLIC"
   if(p_grantee.Compare(_T("public")))
   {
-    sql.Format(_T("GRANT %s ON %s TO %s"),p_privilege.GetString(),p_objectname.GetString(),p_grantee.GetString());
+    sql.Format(_T("GRANT %s"),p_privilege.GetString());
+    if(!p_subObject.IsEmpty())
+    {
+      sql.AppendFormat(_T("(%s)"),QIQ(p_subObject).GetString());
+    }
+    sql.AppendFormat(_T(" ON %s TO %s"),QIQ(p_objectname).GetString(),QIQ(p_grantee).GetString());
     if(p_grantable)
     {
       sql += _T(" WITH GRANT OPTION");
@@ -1376,7 +2078,7 @@ SQLInfoMySQL::GetCATALOGGrantPrivilege(XString /*p_schema*/,XString p_objectname
 }
 
 XString 
-SQLInfoMySQL::GetCATALOGRevokePrivilege(XString /*p_schema*/,XString p_objectname,XString p_privilege,XString p_grantee)
+SQLInfoMySQL::GetCATALOGRevokePrivilege(XString /*p_schema*/,XString p_objectname,XString p_subObject,XString p_privilege,XString p_grantee)
 {
   XString sql;
   p_grantee.MakeLower();
@@ -1384,7 +2086,13 @@ SQLInfoMySQL::GetCATALOGRevokePrivilege(XString /*p_schema*/,XString p_objectnam
   // MySQL does not know the concept of "PUBLIC"
   if(p_grantee.Compare(_T("public")))
   {
-    sql.Format(_T("REVOKE %s ON %s FROM %s"), p_privilege.GetString(), p_objectname.GetString(), p_grantee.GetString());
+    sql.Format(_T("REVOKE %s"),p_privilege.GetString());
+    if(!p_subObject.IsEmpty())
+    {
+      sql.AppendFormat(_T("(%s)"),QIQ(p_subObject).GetString());
+    }
+    sql += _T(" ON ");
+    sql.AppendFormat(_T(" ON %s FROM %s"),QIQ(p_objectname).GetString(),QIQ(p_grantee).GetString());
   }
   return sql;
 }
@@ -1418,6 +2126,31 @@ SQLInfoMySQL::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*/
   return _T("");
 }
 
+// For ALL objects
+XString
+SQLInfoMySQL::GetCATALOGCommentCreate(XString /*p_schema*/,XString p_object,XString p_name,XString p_subObject,XString p_remark) const
+{
+  XString sql;
+  if(!p_object.IsEmpty() && !p_name.IsEmpty() && !p_remark.IsEmpty())
+  {
+    sql.Format(_T("COMMENT ON %s "),p_object.GetString());
+    sql += QIQ(p_name);
+    if(!p_subObject.IsEmpty())
+    {
+      sql += _T(".") + QIQ(p_subObject);
+    }
+    if(p_remark.CompareNoCase(_T("NULL")))
+    {
+      sql.AppendFormat(_T(" IS '%s'"),p_remark.GetString());
+    }
+    else
+    {
+      sql += _T(" IS NULL");
+    }
+  }
+  return sql;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // SQL/PSM PERSISTENT STORED MODULES 
@@ -1448,27 +2181,29 @@ SQLInfoMySQL::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_synonym*/
 //////////////////////////////////////////////////////////////////////////
 
 XString
-SQLInfoMySQL::GetPSMProcedureExists(XString p_schema, XString p_procedure) const
+SQLInfoMySQL::GetPSMProcedureExists(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql;
   sql = _T("SELECT SELECT COUNT(*)\n")
         _T("  FROM information_schema.routines\n");
   if(!p_schema.IsEmpty())
-  { 
+  {
+    IdentifierCorrect(p_schema);
     sql += _T("   AND routine_schema = '") + p_schema + _T("'\n");
   }
   if(!p_procedure.IsEmpty())
   {
+    IdentifierCorrect(p_procedure);
     sql += _T("   AND routine_name = '") + p_procedure + _T("'");
   }
   return sql;
 }
 
 XString
-SQLInfoMySQL::GetPSMProcedureList(XString& p_schema) const
+SQLInfoMySQL::GetPSMProcedureList(XString& p_schema,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql;
-  sql = _T("SELECT routine_catalog\n")
+  sql = _T("SELECT routine_schema as catalog\n")
         _T("      ,routine_schema\n")
         _T("      ,routine_name\n")
         _T("      ,CASE routine_type\n")
@@ -1477,9 +2212,17 @@ SQLInfoMySQL::GetPSMProcedureList(XString& p_schema) const
         _T("                             ELSE 3\n")
         _T("       end\n")
         _T("  FROM information_schema.routines fun\n");
-  if (!p_schema.IsEmpty())
+  if(!p_schema.IsEmpty())
   {
+    IdentifierCorrect(p_schema);
     sql += _T(" WHERE routine_schema = ?\n");
+  }
+  if(!p_procedure.IsEmpty())
+  {
+    IdentifierCorrect(p_procedure);
+    sql += _T("   AND routine_name ");
+    sql += (p_procedure.Find(_T("%")) >= 0) ? _T("LIKE") : _T("=");
+    sql += _T(" ?\n");
   }
   sql += _T(" ORDER BY 1,2,3");
 
@@ -1487,10 +2230,10 @@ SQLInfoMySQL::GetPSMProcedureList(XString& p_schema) const
 }
 
 XString
-SQLInfoMySQL::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure) const
+SQLInfoMySQL::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql;
-  sql = _T("SELECT routine_catalog\n")
+  sql = _T("SELECT routine_schema as catalog\n")
         _T("      ,routine_schema\n")
         _T("      ,routine_name\n")
         _T("      ,(SELECT COUNT(*)\n")
@@ -1517,14 +2260,16 @@ SQLInfoMySQL::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure) 
         _T("            WHEN 'FUNCTION'  THEN 2\n")
         _T("                             ELSE 3\n")
         _T("       end as procedure_type\n")
-        _T("      ,routine_definition\n")
+        _T("      ,'<@>'\n")
         _T("  FROM information_schema.routines fun\n");
   if(!p_schema.IsEmpty())
   { 
+    IdentifierCorrect(p_schema);
     sql += _T(" WHERE routine_schema = ?\n");
   }
   if(!p_procedure.IsEmpty())
   {
+    IdentifierCorrect(p_procedure);
     sql += p_schema.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
     sql += _T("routine_name ");
     sql += p_procedure.Find('%') >= 0 ? _T("LIKE") : _T("=");
@@ -1534,44 +2279,79 @@ SQLInfoMySQL::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure) 
   return sql;
 }
 
+// SQL is almost the same as MariaDB with two extensions
+// 'READS SQL DATA' - must always be specified
+// 'GROUP BY'       - always has two extra columns
 XString
-SQLInfoMySQL::GetPSMProcedureSourcecode(XString p_schema, XString p_procedure) const
+SQLInfoMySQL::GetPSMProcedureSourcecode(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
 {
-  // Source-code already gotten with attributes
+  XString sql = _T("SELECT 0 as type\n"
+                   "      ,0 as line\n"
+                   "      ,CONCAT(\n"
+                   "       'CREATE OR REPLACE ',r.routine_type,' `',r.routine_name,'`(',\n"
+                   "       IFNULL(GROUP_CONCAT(\n"
+                   "              CONCAT(p.parameter_mode,' ',p.parameter_name,' ',p.dtd_identifier)\n"
+                   "              ORDER BY p.ordinal_position\n"
+                   "              SEPARATOR ','),''),\n"
+                   "       ')',CHAR(10),IFNULL(CONCAT('RETURNS ',r.dtd_identifier,CHAR(10)),''),\n"
+                   "       'READS SQL DATA',CHAR(10),r.routine_definition) AS source\n"
+                   "  FROM information_schema.routines r\n"
+                   "       LEFT OUTER JOIN information_schema.parameters p ON r.specific_name  = p.specific_name\n"
+                   "                                                      AND r.routine_schema = p.specific_schema\n");
+  if(!p_schema.IsEmpty())
+  { 
+    IdentifierCorrect(p_schema);
+    sql += _T(" WHERE routine_schema = '") + p_schema + _T("'\n");
+  }
+  if(!p_procedure.IsEmpty())
+  {
+    IdentifierCorrect(p_procedure);
+    sql += p_schema.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
+    sql += _T("routine_name  = '") + p_procedure + _T("'\n");
+  }
+  sql += _T(" GROUP BY r.routine_schema\n"
+            "         ,r.routine_name\n"
+            "         ,r.routine_type\n"
+            "         ,r.dtd_identifier\n"
+            "         ,r.routine_definition");
+  return sql;
+}
+
+XString
+SQLInfoMySQL::GetPSMProcedureCreate(MetaProcedure& p_procedure) const
+{
+  // Souce fully gotten by previous method
+  return p_procedure.m_source;
+}
+
+XString
+SQLInfoMySQL::GetPSMProcedureDrop(XString /*p_schema*/, XString p_procedure,bool p_function /*=false*/) const
+{
+  XString sql(_T("DROP "));
+  sql += p_function ? _T("FUNCTION ") : _T("PROCEDURE ");
+  sql += QIQ(p_procedure);
+  return sql;
+}
+
+XString
+SQLInfoMySQL::GetPSMProcedureErrors(XString /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
+{
   return _T("");
 }
 
 XString
-SQLInfoMySQL::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
-{
-  return _T("");
-}
-
-XString
-SQLInfoMySQL::GetPSMProcedureDrop(XString /*p_schema*/, XString p_procedure,bool /*p_function /*=false*/) const
-{
-  return _T("");
-}
-
-XString
-SQLInfoMySQL::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
-{
-  return _T("");
-}
-
-XString
-SQLInfoMySQL::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/) const
+SQLInfoMySQL::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return _T("");
 }
 
 // And it's parameters
 XString
-SQLInfoMySQL::GetPSMProcedureParameters(XString& p_schema,XString& p_procedure) const
+SQLInfoMySQL::GetPSMProcedureParameters(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql;
 
-  sql = _T("SELECT par.specific_catalog\n")
+  sql = _T("SELECT par.specific_schema as catalog\n")
         _T("      ,par.specific_schema\n")
         _T("      ,fun.routine_name\n")
         _T("      ,par.parameter_name\n")
@@ -1611,10 +2391,12 @@ SQLInfoMySQL::GetPSMProcedureParameters(XString& p_schema,XString& p_procedure) 
         _T("   AND par.specific_name    = fun.specific_name\n");
   if(!p_schema.IsEmpty())
   {
+    IdentifierCorrect(p_schema);
     sql += _T("   AND fun.routine_schema = ?\n");
   }
   if(!p_procedure.IsEmpty())
   {
+    IdentifierCorrect(p_procedure);
     sql += _T("   AND fun.routine_name    = ?\n");
   }
   sql += _T(" ORDER BY 1,2,3,18");
@@ -1823,7 +2605,7 @@ SQLInfoMySQL::GetSESSIONMyself() const
 }
 
 XString
-SQLInfoMySQL::GetSESSIONExists(XString p_sessionID) const
+SQLInfoMySQL::GetSESSIONExists(XString /*p_sessionID*/) const
 {
   return _T("");
 }
@@ -1835,7 +2617,7 @@ SQLInfoMySQL::GetSESSIONList() const
 }
 
 XString
-SQLInfoMySQL::GetSESSIONAttributes(XString p_sessionID) const
+SQLInfoMySQL::GetSESSIONAttributes(XString /*p_sessionID*/) const
 {
   return _T("");
 }

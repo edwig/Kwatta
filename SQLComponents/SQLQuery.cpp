@@ -352,11 +352,11 @@ SQLQuery::ReportQuerySpeed(LARGE_INTEGER p_start)
   XString message;
   if(seconds > m_speedThreshold)
   {
-    message.Format(_T("[999] Query too long: %.6f seconds\n"),secondsDBL);
+    message.Format(_T("[999] Query too long: %.6f seconds"),secondsDBL);
   }
   else
   {
-    message.Format(_T("Query time: %.6f seconds\n"),secondsDBL);
+    message.Format(_T("Query time: %.6f seconds"),secondsDBL);
   }
   m_database->LogPrint(message);
 }
@@ -643,7 +643,8 @@ SQLQuery::DoSQLStatement(const XString& p_statement)
 
   // See if it is a 'SELECT' query
   m_isSelectQuery = false;
-  if(p_statement.Left(6).CompareNoCase(_T("select")) == 0)
+  if(p_statement.Left(6).CompareNoCase(_T("select")) == 0 ||
+     p_statement.Left(4).CompareNoCase(_T("with"))   == 0 )
   {
     m_isSelectQuery = true;
   }
@@ -666,7 +667,7 @@ SQLQuery::DoSQLStatement(const XString& p_statement)
   if(m_database && m_database->WilLog())
   {
     logging = true;
-    XString log = "[Database query]\n" + statement + "\n";
+    XString log = "[Database query]\n" + statement;
     m_database->LogPrint(log);
   }
 
@@ -892,7 +893,6 @@ SQLQuery::DoSQLPrepare(const XString& p_statement)
   {
     m_database->LogPrint(_T("[Database query]\n"));
     m_database->LogPrint(statement.GetString());
-    m_database->LogPrint(_T("\n"));
   }
 
   // The Oracle 10.2.0.3.0 ODBC Driver - and later versions - contain a bug
@@ -1029,6 +1029,16 @@ SQLQuery::BindParameters()
     SQLSMALLINT paramType   = (SQLSMALLINT)var->GetParameterType();
     SQLULEN     columnSize  = var->GetDataSize();
     SQLLEN      bufferSize  = var->GetDataSize();
+    SQLLEN*     indicator   = var->GetIndicatorPointer();
+
+    // Check rebinds to do for scripting 
+    sqlDatatype = RebindParameter(sqlDatatype);
+
+    // Fix max length parameters for some database types
+    if(m_database->GetSQLInfoDB()->DoBindParameterFixup(dataType,sqlDatatype,columnSize,scale,bufferSize,indicator))
+    {
+      var->SetAtExec(true);
+    }
 
     // Check for an at-execution-streaming of values
     if(var->GetAtExec())
@@ -1037,14 +1047,9 @@ SQLQuery::BindParameters()
       dataPointer = (SQLPOINTER)(DWORD_PTR) icol;
       // Some database types need to know the length beforehand (Oracle!)
       // If no database type known, set to true, just to be sure!
-      var->SetSizeIndicator(m_database ? m_database->GetNeedLongDataLen() : true);
+      var->SetSizeIndicator(m_database ? m_database->GetNeedLongDataLen() : true,var->IsBinaryType());
       bufferSize = 0;
     }
-
-    SQLLEN* indicator = var->GetIndicatorPointer();
-
-    // Check rebinds to do for scripting 
-    sqlDatatype = RebindParameter(sqlDatatype);
 
     // Check minimum for an input type
     if(paramType == SQL_PARAM_TYPE_UNKNOWN)
@@ -1053,24 +1058,22 @@ SQLQuery::BindParameters()
       var->SetParameterType(SQLParamType::P_SQL_PARAM_INPUT);
     }
 
-    // Fix max length parameters for some database types
-    m_database->GetSQLInfoDB()->DoBindParameterFixup(dataType,sqlDatatype,columnSize,scale,bufferSize,indicator);
-
     // Log what we bind here
     if(logging)
     {
       LogParameter(icol,var);
     }
 
-//     TRACE("COLUMN    : %d\n", icol);
-//     TRACE("ParamType : %d\n", paramType);
-//     TRACE("Datatype  : %d\n", dataType);
-//     TRACE("SQLtype   : %d\n", sqlDatatype);
-//     TRACE("Col size  : %d\n", columnSize);
-//     TRACE("Scale     : %d\n", scale);
-//     TRACE("Buffersize: %d\n", bufferSize);
-//     TRACE("Indicator : %d\n", (int)*indicator);
-//     TRACE("DATA      : %s\n", var->GetAsString());
+//     TRACE("COLUMN     : %d\n", icol);
+//     TRACE("ParamType  : %d\n", paramType);
+//     TRACE("Datatype   : %d\n", dataType);
+//     TRACE("SQLtype    : %d\n", sqlDatatype);
+//     TRACE("Col size   : %d\n", columnSize);
+//     TRACE("Scale      : %d\n", scale);
+//     TRACE("DataPointer: %p\n", dataPointer);
+//     TRACE("Buffersize : %d\n", bufferSize);
+//     TRACE("Indicator  : %d\n", (int)*indicator);
+//     TRACE("DATA       : %s\n", var->GetAsString().GetString());
 
     // Do the bindings
     m_retCode = SqlBindParameter(m_hstmt        // Statement handle
@@ -1141,7 +1144,7 @@ SQLQuery::LogParameter(int p_column,const SQLVariant* p_parameter)
 {
   if(p_column == 1)
   {
-    m_database->LogPrint(_T("Parameters as passed on to the database:\n"));
+    m_database->LogPrint(_T("Parameters as passed on to the database:"));
   }
   XString text,name,value;
   p_parameter->GetAsString(value);
@@ -1152,7 +1155,6 @@ SQLQuery::LogParameter(int p_column,const SQLVariant* p_parameter)
   {
     text += _T(" name: ") + name;
   }
-  text += _T("\n");
   m_database->LogPrint(text);
 }
 
@@ -1263,6 +1265,9 @@ SQLQuery::BindColumns()
 //     TRACE("- ATEXEC   : %d\n",atexec);
   }
 
+  // See which SQLGetData extentsions are reported by the ODBC driver
+  SQLUINTEGER extensions = m_database ? m_database->GetSQLInfoDB()->GetGetDataExtensions() : 0;
+
   // NOW WE HAVE ALL INFORMATION
   // TO BEGIN THE BINDING PROCES
   for(auto& column : m_numMap)
@@ -1272,6 +1277,13 @@ SQLQuery::BindColumns()
     SQLSMALLINT  type = (SQLSMALLINT)  var->GetDataType();
     SQLLEN       size = var->GetDataSize();
 
+    // Stop if we must retrieve all columns after the first "AtExec" column
+    // with individual calls to SQLGetData
+    if(var->GetAtExec() && ((extensions & SQL_GD_ANY_COLUMN) == 0))
+    {
+      break;
+    }
+
     // Rebind the column datatype
     type = RebindColumn(type);
 
@@ -1279,11 +1291,11 @@ SQLQuery::BindColumns()
     if(!var->GetAtExec())
     {
       m_retCode = SQLBindCol(m_hstmt                    // statement handle
-                             ,bcol                       // Column number
-                             ,type                       // Data type
-                             ,const_cast<SQLPOINTER>(var->GetDataPointer())      // Data pointer
-                             ,size                       // Buffer length
-                             ,var->GetIndicatorPointer() // Indicator address
+                            ,bcol                       // Column number
+                            ,type                       // Data type
+                            ,const_cast<SQLPOINTER>(var->GetDataPointer())      // Data pointer
+                            ,size                       // Buffer length
+                            ,var->GetIndicatorPointer() // Indicator address
                             );
       if(!SQL_SUCCEEDED(m_retCode))
       {
@@ -1295,20 +1307,6 @@ SQLQuery::BindColumns()
       if(type == SQL_C_NUMERIC)
       {
         BindColumnNumeric((SQLSMALLINT)bcol,var,SQL_RESULT_COL);
-      }
-    }
-    if(m_hasLongColumns && (bcol > m_hasLongColumns))
-    {
-      if(type == SQL_C_NUMERIC && 
-         m_database && ((m_database->GetSQLInfoDB()->GetGetDataExtensions() & SQL_GD_BOUND) == 0) && 
-         var->GetNumericScale() > 0 &&
-         !(var->GetNumericPrecision() == 38 && var->GetNumericScale() == 16))
-      {
-        // Cannot get a NUMERIC with decimals after a At-Exec column,
-        // because we cannot bind the precision and scale
-        m_lastError = _T("Cannot retrieve a NUMERIC after a (binary)large object.");
-        m_lastError.AppendFormat(_T(" Column: %d"),bcol);
-        throw StdException(m_lastError);
       }
     }
   }
@@ -1412,9 +1410,13 @@ SQLQuery::ProvideAtExecData()
         {
           piece = size;
         }
+        if(piece == 0)
+        {
+          piece = size;
+        }
 
         // Put all the data pieces into place
-        while(total < size)
+        while((total < size) && (piece > 0))
         {
           m_retCode = SqlPutData(m_hstmt,data,piece);
           if(SQL_SUCCEEDED(m_retCode) == false && m_retCode != SQL_NEED_DATA)
@@ -1612,14 +1614,19 @@ SQLQuery::GetRecord()
 int
 SQLQuery::RetrieveAtExecData()
 {
+  // See which SQLGetData extentsions are reported by the ODBC driver
+  SQLUINTEGER extensions = m_database ? m_database->GetSQLInfoDB()->GetGetDataExtensions() : 0;
+
   for(int col = m_hasLongColumns; col <= m_numColumns; ++col)
   { 
     SQLLEN actualLength = 0L;
     SQLVariant* var = m_numMap[col];
     int datatype = var->GetDataType();
 
-    // See how to get the data
-    if(var->GetAtExec() == false)
+    // See how to get the data. If we may retrieve any column, it will be bound
+    // and thus already gotten by the SQLFetch. 
+    // For all other drivers (MS-SQLServer) we must do the SQLGetData.
+    if(var->GetAtExec() == false && (extensions & SQL_GD_ANY_COLUMN))
     {
       continue;
     }
@@ -1663,7 +1670,7 @@ SQLQuery::RetrieveAtExecData()
                           ,(SQLPOINTER)   var->GetDataPointer()
                           ,(SQLINTEGER)   actualLength
                           ,               var->GetIndicatorPointer());
-    if(!SQL_SUCCEEDED(m_retCode))
+    if(!SQL_SUCCEEDED(m_retCode) && m_retCode != SQL_NO_DATA)
     {
       // SQL_ERROR / SQL_NO_DATA / SQL_STILL_EXECUTING / SQL_INVALID_HANDLE
       return m_retCode;

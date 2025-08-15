@@ -40,6 +40,7 @@
     <ProjectGuid>{2364c44b-2e4d-4631-a050-b47509afbc82}</ProjectGuid>
     <RootNamespace>BaseLibrary</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>BaseLibrary</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -509,6 +510,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ActiveDirectory.h" />
     <ClInclude Include="Alert.h" />
     <ClInclude Include="AuthenticationHeader.h" />
     <ClInclude Include="AutoCritical.h" />
@@ -520,6 +522,7 @@
     <ClInclude Include="Cookie.h" />
     <ClInclude Include="CrackURL.h" />
     <ClInclude Include="CRC32.h" />
+    <ClInclude Include="CreateFullThread.h" />
     <ClInclude Include="Crypto.h" />
     <ClInclude Include="Encoding.h" />
     <ClInclude Include="Environment.h" />
@@ -594,6 +597,7 @@
     <ClInclude Include="ZIP\zutil.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ActiveDirectory.cpp" />
     <ClCompile Include="Alert.cpp" />
     <ClCompile Include="AuthenticationHeader.cpp" />
     <ClCompile Include="AutoCritical.cpp" />
@@ -604,6 +608,7 @@
     <ClCompile Include="Cookie.cpp" />
     <ClCompile Include="CrackURL.cpp" />
     <ClCompile Include="CRC32.cpp" />
+    <ClCompile Include="CreateFullThread.cpp" />
     <ClCompile Include="Crypto.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="EventLogRegistration.cpp" />

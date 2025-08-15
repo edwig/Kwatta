@@ -159,6 +159,21 @@ SQLInfoGenericODBC::GetRDBMSSupportsFunctionalIndexes() const
   return false;
 }
 
+// Support for "as" in alias statements (FROM clause)
+bool
+SQLInfoGenericODBC::GetRDBMSSupportsAsInAlias() const
+{
+  return true;
+}
+
+// Foreign key DDL defines the index and cannot reuse already existing ones
+bool
+SQLInfoGenericODBC::GetRDBMSForeignKeyDefinesIndex() const
+{
+  // Uncertain: but creating an index as well is a good idea!
+  return false;
+}
+
 // Gets the maximum length of an SQL statement
 unsigned long 
 SQLInfoGenericODBC::GetRDBMSMaxStatementLength() const
@@ -187,6 +202,8 @@ SQLInfoGenericODBC::GetRDBMSMaxVarchar() const
 {
   return 1000;
 }
+
+#include <sql.h>
 
 // KEYWORDS
 
@@ -331,14 +348,14 @@ SQLInfoGenericODBC::GetSQLNewSerial(XString /*p_table*/, XString /*p_sequence*/)
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoGenericODBC::GetSQLGenerateSerial(XString p_table) const
+SQLInfoGenericODBC::GetSQLGenerateSerial(XString /*p_table*/) const
 {
   // NO WAY OF KNOWNING THIS / And no need to
   return _T("0");
 }
 
 XString
-SQLInfoGenericODBC::GetSQLGenerateSequence(XString p_sequence) const
+SQLInfoGenericODBC::GetSQLGenerateSequence(XString /*p_sequence*/) const
 {
   // Not supported
   return _T("");
@@ -355,21 +372,21 @@ SQLInfoGenericODBC::GetSQLEffectiveSerial(XString p_identity) const
 
 // Gets the sub-transaction commands
 XString
-SQLInfoGenericODBC::GetSQLStartSubTransaction(XString p_savepointName) const
+SQLInfoGenericODBC::GetSQLStartSubTransaction(XString /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetSQLCommitSubTransaction(XString p_savepointName) const
+SQLInfoGenericODBC::GetSQLCommitSubTransaction(XString /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetSQLRollbackSubTransaction(XString p_savepointName) const
+SQLInfoGenericODBC::GetSQLRollbackSubTransaction(XString /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString();
@@ -396,7 +413,7 @@ SQLInfoGenericODBC::GetSQLLockTable(XString p_schema, XString p_tablename,bool p
 
 // Get query to optimize the table statistics
 XString
-SQLInfoGenericODBC::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
+SQLInfoGenericODBC::GetSQLOptimizeTable(XString /*p_schema*/, XString /*p_tablename*/) const
 {
   return XString();
 }
@@ -428,6 +445,19 @@ SQLInfoGenericODBC::GetPing() const
 {
   // Not implemented yet
   return XString();
+}
+
+// Pre- and postfix statements for a bulk import
+XString
+SQLInfoGenericODBC::GetBulkImportPrefix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoGenericODBC::GetBulkImportPostfix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+{
+  return _T("");
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -507,10 +537,11 @@ SQLInfoGenericODBC::GetTempTablename(XString /*p_schema*/,XString p_tablename,bo
   return p_tablename;
 }
 
-// Changes to parameters before binding to an ODBC HSTMT handle
-void
+// Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
+bool
 SQLInfoGenericODBC::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
 {
+  return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -566,38 +597,75 @@ SQLInfoGenericODBC::GetCATALOGDefaultCollation() const
   return _T("-");
 }
 
+// All user defined compound data types
+XString
+SQLInfoGenericODBC::GetCATALOGTypeExists(XString& /*p_schema*/,XString& /*p_typename*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGTypeList(XString& /*p_schema*/,XString& /*p_pattern*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGTypeAttributes(XString& /*p_schema*/,XString& /*p_typename*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGTypeSource(XString& /*p_schema*/,XString& /*p_typename*/,bool /*p_quoted = false*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGTypeCreate(MUserTypeMap& /*p_type*/) const
+{
+  return XString();
+}
+
+XString
+SQLInfoGenericODBC::GetCATALOGTypeDrop(XString /*p_schema*/,XString /*p_typename*/) const
+{
+  return XString();
+}
+
 // ALL FUNCTIONS FOR TABLE(s)
 
 XString
-SQLInfoGenericODBC::GetCATALOGTableExists(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGTableExists(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, let ODBC handle this
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTablesList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+SQLInfoGenericODBC::GetCATALOGTablesList(XString& /*p_schema*/,XString& /*p_pattern*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, let ODBC handle this
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTableAttributes(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGTableAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, let ODBC handle this
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTableSynonyms(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGTableSynonyms(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, let ODBC handle this
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTableCatalog(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGTableCatalog(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, let ODBC handle this
   return XString();
@@ -667,21 +735,21 @@ SQLInfoGenericODBC::GetCATALOGTemptableDrop(XString p_schema,XString p_tablename
 // ALL COLUMN FUNCTIONS
 
 XString 
-SQLInfoGenericODBC::GetCATALOGColumnExists(XString p_schema,XString p_tablename,XString p_columnname) const
+SQLInfoGenericODBC::GetCATALOGColumnExists(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_columnname*/,bool /*p_quoted /*= false*/) const
 {
   // Cannot now that, use ODBC!
   return XString();
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGColumnList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGColumnList(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted /*= false*/) const
 {
   // Cannot now that, use ODBC!
   return XString();
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGColumnAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_columnname*/) const
+SQLInfoGenericODBC::GetCATALOGColumnAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_columnname*/,bool /*p_quoted /*= false*/) const
 {
   // Cannot now that, use ODBC!
   return XString();
@@ -740,7 +808,7 @@ SQLInfoGenericODBC::GetCATALOGColumnDrop(XString p_schema,XString p_tablename,XS
 
 // All index functions
 XString
-SQLInfoGenericODBC::GetCATALOGIndexExists(XString p_schema,XString p_tablename,XString p_indexname) const
+SQLInfoGenericODBC::GetCATALOGIndexExists(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_indexname*/,bool /*p_quoted = false*/) const
 {
   // Cannot be implemented for generic ODBC
   // Use SQLStatistics instead (see SQLInfo class)
@@ -748,7 +816,7 @@ SQLInfoGenericODBC::GetCATALOGIndexExists(XString p_schema,XString p_tablename,X
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGIndexList(XString& /*p_schema*/,XString& /*p_tablename*/)   const
+SQLInfoGenericODBC::GetCATALOGIndexList(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/)   const
 {
   // Cannot be implemented for generic ODBC
   // Use SQLStatistics instead (see SQLInfo class)
@@ -756,7 +824,7 @@ SQLInfoGenericODBC::GetCATALOGIndexList(XString& /*p_schema*/,XString& /*p_table
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGIndexAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_indexname*/)  const
+SQLInfoGenericODBC::GetCATALOGIndexAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_indexname*/,bool /*p_quoted = false*/)  const
 {
   // Cannot be implemented for generic ODBC
   // Use SQLStatistics instead (see SQLInfo class)
@@ -825,14 +893,14 @@ SQLInfoGenericODBC::GetCATALOGIndexFilter(MetaIndex& /*p_index*/) const
 // ALL PRIMARY KEY FUNCTIONS
 
 XString
-SQLInfoGenericODBC::GetCATALOGPrimaryExists(XString /*p_schema*/,XString /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGPrimaryExists(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, Use ODBC functions!
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGPrimaryAttributes(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGPrimaryAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot do this, Use ODBC functions!
   return XString();
@@ -879,7 +947,7 @@ SQLInfoGenericODBC::GetCATALOGPrimaryDrop(XString p_schema,XString p_tablename,X
 // ALL FOREIGN KEY FUNCTIONS
 
 XString
-SQLInfoGenericODBC::GetCATALOGForeignExists(XString p_schema,XString p_tablename,XString p_constraintname) const
+SQLInfoGenericODBC::GetCATALOGForeignExists(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraintname*/,bool /*p_quoted = false*/) const
 {
   // Cannot be implemented for generic ODBC
   // Use SQLForeignKeys instead (see SQLInfo class)
@@ -887,7 +955,7 @@ SQLInfoGenericODBC::GetCATALOGForeignExists(XString p_schema,XString p_tablename
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGForeignList(XString& /*p_schema*/,XString& /*p_tablename*/,int /*p_maxColumns*/ /*=SQLINFO_MAX_COLUMNS*/) const
+SQLInfoGenericODBC::GetCATALOGForeignList(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Cannot be implemented for generic ODBC
   // Use SQLForeignKeys instead (see SQLInfo class)
@@ -895,7 +963,7 @@ SQLInfoGenericODBC::GetCATALOGForeignList(XString& /*p_schema*/,XString& /*p_tab
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGForeignAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_constraintname*/,bool /*p_referenced = false*/,int /*p_maxColumns*/ /*=SQLINFO_MAX_COLUMNS*/) const
+SQLInfoGenericODBC::GetCATALOGForeignAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_constraintname*/,bool /*p_referenced = false*/,bool /*p_quoted = false*/) const
 {
   // Cannot be implemented for generic ODBC
   // Use SQLForeignKeys instead (see SQLInfo class)
@@ -1100,19 +1168,19 @@ SQLInfoGenericODBC::GetCATALOGDefaultDrop(XString /*p_schema*/,XString /*p_table
 // All check constraints
 
 XString
-SQLInfoGenericODBC::GetCATALOGCheckExists(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+SQLInfoGenericODBC::GetCATALOGCheckExists(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGCheckList(XString  /*p_schema*/,XString  /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGCheckList(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGCheckAttributes(XString  /*p_schema*/,XString  /*p_tablename*/,XString  /*p_constraint*/) const
+SQLInfoGenericODBC::GetCATALOGCheckAttributes(XString /*p_schema*/,XString /*p_tablename*/,XString /*p_constraint*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
@@ -1133,21 +1201,21 @@ SQLInfoGenericODBC::GetCATALOGCheckDrop(XString  /*p_schema*/,XString  /*p_table
 // ALL TRIGGER FUNCTIONS
 
 XString
-SQLInfoGenericODBC::GetCATALOGTriggerExists(XString p_schema, XString p_tablename, XString p_triggername) const
+SQLInfoGenericODBC::GetCATALOGTriggerExists(XString /*p_schema*/, XString /*p_tablename*/, XString /*p_triggername*/,bool /*p_quoted = false*/) const
 {
   // Not standard enough
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTriggerList(XString& /*p_schema*/,XString& /*p_tablename*/) const
+SQLInfoGenericODBC::GetCATALOGTriggerList(XString& /*p_schema*/,XString& /*p_tablename*/,bool /*p_quoted = false*/) const
 {
   // Not standard enough
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTriggerAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_triggername*/) const
+SQLInfoGenericODBC::GetCATALOGTriggerAttributes(XString& /*p_schema*/,XString& /*p_tablename*/,XString& /*p_triggername*/,bool /*p_quoted = false*/) const
 {
   // Not standard enough
   return XString();
@@ -1161,7 +1229,7 @@ SQLInfoGenericODBC::GetCATALOGTriggerCreate(MetaTrigger& /*p_trigger*/) const
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGTriggerDrop(XString p_schema, XString p_tablename, XString p_triggername) const
+SQLInfoGenericODBC::GetCATALOGTriggerDrop(XString /*p_schema*/, XString /*p_tablename*/, XString /*p_triggername*/) const
 {
   // Not standard enough
   return XString();
@@ -1171,19 +1239,19 @@ SQLInfoGenericODBC::GetCATALOGTriggerDrop(XString p_schema, XString p_tablename,
 // ALL SEQUENCE FUNCTIONS
 
 XString
-SQLInfoGenericODBC::GetCATALOGSequenceExists(XString p_schema, XString p_sequence) const
+SQLInfoGenericODBC::GetCATALOGSequenceExists(XString /*p_schema*/, XString /*p_sequence*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGSequenceList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+SQLInfoGenericODBC::GetCATALOGSequenceList(XString& /*p_schema*/,XString& /*p_pattern*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGSequenceAttributes(XString& /*p_schema*/,XString& /*p_sequence*/) const
+SQLInfoGenericODBC::GetCATALOGSequenceAttributes(XString& /*p_schema*/,XString& /*p_sequence*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
@@ -1195,7 +1263,7 @@ SQLInfoGenericODBC::GetCATALOGSequenceCreate(MetaSequence& /*p_sequence*/) const
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGSequenceDrop(XString p_schema, XString p_sequence) const
+SQLInfoGenericODBC::GetCATALOGSequenceDrop(XString /*p_schema*/, XString /*p_sequence*/) const
 {
   return XString();
 }
@@ -1204,25 +1272,25 @@ SQLInfoGenericODBC::GetCATALOGSequenceDrop(XString p_schema, XString p_sequence)
 // ALL VIEW FUNCTIONS
 
 XString 
-SQLInfoGenericODBC::GetCATALOGViewExists(XString& /*p_schema*/,XString& /*p_viewname*/) const
+SQLInfoGenericODBC::GetCATALOGViewExists(XString& /*p_schema*/,XString& /*p_viewname*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGViewList(XString& /*p_schema*/,XString& /*p_pattern*/) const
+SQLInfoGenericODBC::GetCATALOGViewList(XString& /*p_schema*/,XString& /*p_pattern*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGViewAttributes(XString& /*p_schema*/,XString& /*p_viewname*/) const
+SQLInfoGenericODBC::GetCATALOGViewAttributes(XString& /*p_schema*/,XString& /*p_viewname*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGViewText(XString& /*p_schema*/,XString& /*p_viewname*/) const
+SQLInfoGenericODBC::GetCATALOGViewText(XString& /*p_schema*/,XString& /*p_viewname*/,bool /*p_quoted = false*/) const
 {
   // Cannot query this, Use ODBC functions
   return XString();
@@ -1235,7 +1303,7 @@ SQLInfoGenericODBC::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XSt
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGViewRename(XString p_schema,XString p_viewname,XString p_newname)    const
+SQLInfoGenericODBC::GetCATALOGViewRename(XString /*p_schema*/,XString /*p_viewname*/,XString /*p_newname*/)    const
 {
   return XString();
 }
@@ -1267,10 +1335,20 @@ SQLInfoGenericODBC::GetCATALOGSequencePrivilege(XString& /*p_schema*/,XString& /
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGGrantPrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee,bool p_grantable)
+SQLInfoGenericODBC::GetCATALOGGrantPrivilege(XString p_schema,XString p_objectname,XString p_subObject,XString p_privilege,XString p_grantee,bool p_grantable)
 {
   XString sql;
-  sql.Format(_T("GRANT %s ON %s.%s TO %s"),p_privilege.GetString(),p_schema.GetString(),p_objectname.GetString(),p_grantee.GetString());
+  sql.Format(_T("GRANT %s"),p_privilege.GetString());
+  if(!p_subObject.IsEmpty())
+  {
+    sql.AppendFormat(_T("(%s)"),QIQ(p_subObject).GetString());
+  }
+  sql += _T(" ON ");
+  if(!p_schema.IsEmpty())
+  {
+    sql.AppendFormat(_T("%s."),QIQ(p_schema).GetString());
+  }
+  sql.AppendFormat(_T("%s TO %s"),QIQ(p_objectname).GetString(),QIQ(p_grantee).GetString());
   if(p_grantable)
   {
     sql += _T(" WITH GRANT OPTION");
@@ -1279,10 +1357,20 @@ SQLInfoGenericODBC::GetCATALOGGrantPrivilege(XString p_schema,XString p_objectna
 }
 
 XString 
-SQLInfoGenericODBC::GetCATALOGRevokePrivilege(XString p_schema,XString p_objectname,XString p_privilege,XString p_grantee)
+SQLInfoGenericODBC::GetCATALOGRevokePrivilege(XString p_schema,XString p_objectname,XString p_subObject,XString p_privilege,XString p_grantee)
 {
   XString sql;
-  sql.Format(_T("REVOKE %s ON %s.%s FROM %s"),p_privilege.GetString(),p_schema.GetString(),p_objectname.GetString(),p_grantee.GetString());
+  sql.Format(_T("REVOKE %s"),p_privilege.GetString());
+  if(!p_subObject.IsEmpty())
+  {
+    sql.AppendFormat(_T("(%s)"),QIQ(p_subObject).GetString());
+  }
+  sql += _T(" ON ");
+  if(!p_schema.IsEmpty())
+  {
+    sql.AppendFormat(_T("%s."),QIQ(p_schema).GetString());
+  }
+  sql.AppendFormat(_T("%s FROM %s"),QIQ(p_objectname).GetString(),QIQ(p_grantee).GetString());
   return sql;
 }
 
@@ -1315,6 +1403,35 @@ SQLInfoGenericODBC::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_syn
   return XString();
 }
 
+// For ALL objects
+XString
+SQLInfoGenericODBC::GetCATALOGCommentCreate(XString p_schema,XString p_object,XString p_name,XString p_subObject,XString p_remark) const
+{
+  XString sql;
+  if(!p_object.IsEmpty() && !p_name.IsEmpty() && !p_remark.IsEmpty())
+  {
+    sql.Format(_T("COMMENT ON %s "),p_object.GetString());
+    if(!p_schema.IsEmpty())
+    {
+      sql += QIQ(p_schema) + _T(".");
+    }
+    sql += QIQ(p_name);
+    if(!p_subObject.IsEmpty())
+    {
+      sql += _T(".") + QIQ(p_subObject);
+    }
+    if(p_remark.CompareNoCase(_T("NULL")))
+    {
+      sql.AppendFormat(_T(" IS '%s'"),p_remark.GetString());
+    }
+    else
+    {
+      sql += _T(" IS NULL");
+    }
+  }
+  return sql;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // SQL/PSM PERSISTENT STORED MODULES 
@@ -1345,25 +1462,25 @@ SQLInfoGenericODBC::GetCATALOGSynonymDrop(XString& /*p_schema*/,XString& /*p_syn
 //////////////////////////////////////////////////////////////////////////
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureExists(XString p_schema, XString p_procedure) const
+SQLInfoGenericODBC::GetPSMProcedureExists(XString /*p_schema*/, XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureList(XString& /*p_schema*/) const
+SQLInfoGenericODBC::GetPSMProcedureList(XString& /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureAttributes(XString& /*p_schema*/,XString& /*p_procedure*/) const
+SQLInfoGenericODBC::GetPSMProcedureAttributes(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureSourcecode(XString p_schema, XString p_procedure) const
+SQLInfoGenericODBC::GetPSMProcedureSourcecode(XString /*p_schema*/, XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
@@ -1375,27 +1492,27 @@ SQLInfoGenericODBC::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureDrop(XString p_schema, XString p_procedure,bool /* p_function /*=false*/) const
+SQLInfoGenericODBC::GetPSMProcedureDrop(XString /*p_schema*/, XString /*p_procedure*/,bool /* p_function /*=false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureErrors(XString p_schema,XString p_procedure) const
+SQLInfoGenericODBC::GetPSMProcedureErrors(XString /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   // ISO SQL does not support procedure errors
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/) const
+SQLInfoGenericODBC::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 // And it's parameters
 XString
-SQLInfoGenericODBC::GetPSMProcedureParameters(XString& /*p_schema*/,XString& /*p_procedure*/) const
+SQLInfoGenericODBC::GetPSMProcedureParameters(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
@@ -1484,7 +1601,7 @@ SQLInfoGenericODBC::GetPSMBREAK() const
 }
 
 XString
-SQLInfoGenericODBC::GetPSMRETURN(XString p_statement /*= ""*/) const
+SQLInfoGenericODBC::GetPSMRETURN(XString /* p_statement /*= ""*/) const
 {
   return XString();
 }
@@ -1518,13 +1635,13 @@ SQLInfoGenericODBC::GetPSMExceptionCatchNoData() const
 }
 
 XString
-SQLInfoGenericODBC::GetPSMExceptionCatch(XString p_sqlState) const
+SQLInfoGenericODBC::GetPSMExceptionCatch(XString /*p_sqlState*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMExceptionRaise(XString p_sqlState) const
+SQLInfoGenericODBC::GetPSMExceptionRaise(XString /*p_sqlState*/) const
 {
   return XString();
 }
@@ -1551,7 +1668,7 @@ SQLInfoGenericODBC::GetSESSIONMyself() const
 }
 
 XString
-SQLInfoGenericODBC::GetSESSIONExists(XString p_sessionID) const
+SQLInfoGenericODBC::GetSESSIONExists(XString /*p_sessionID*/) const
 {
   // Generic ISO ODBC has no info about other sessions
   return XString();
@@ -1565,7 +1682,7 @@ SQLInfoGenericODBC::GetSESSIONList() const
 }
 
 XString
-SQLInfoGenericODBC::GetSESSIONAttributes(XString p_sessionID) const
+SQLInfoGenericODBC::GetSESSIONAttributes(XString /*p_sessionID*/) const
 {
   // Generic ISO ODBC has no info about other sessions
   return XString();

@@ -55,6 +55,11 @@ DDLCreateTable::GetTableDDL(XString p_tableName)
   return ddl;
 }
 
+// Find the statemenst that make up the defintion of the table
+// Input can be:
+// 1) A simple tablename (if the database does not support schema's)
+// 2) The combination of "schemaname.tablename"
+//
 DDLS
 DDLCreateTable::GetTableStatements(XString p_tableName)
 {
@@ -111,6 +116,12 @@ DDLCreateTable::GetViewStatements(XString p_viewname)
   GetAccessInfo(true);
 
   return m_statements;
+}
+
+DDLS
+DDLCreateTable::GetCommentStatements()
+{
+  return m_comments;
 }
 
 bool
@@ -277,7 +288,7 @@ DDLCreateTable::GetTableInfo()
   {
     // Find table info
     m_tables.clear();
-    if(!m_info->MakeInfoTableTable(m_tables,errors,m_schema,m_tableName) || m_tables.empty())
+    if(!m_info->MakeInfoTableTable(m_tables,errors,m_catalog,m_schema,m_tableName) || m_tables.empty())
     {
       throw StdException(XString(_T("Cannot find table: ")) + m_tableName + _T(" : ") + errors);
     }
@@ -305,6 +316,9 @@ DDLCreateTable::GetTableInfo()
   ddl += m_info->GetCATALOGTableCreate(table,column);
   ddl += _T("\n");
 
+  // Record remarks
+  RecordRemarksAsComment(_T("TABLE"),table.m_table,_T(""),table.m_remarks);
+
   m_createDDL = ddl;
 }
 
@@ -318,7 +332,7 @@ DDLCreateTable::GetColumnInfo()
   {
     // Find column info
     m_columns.clear();
-    if(!m_info->MakeInfoTableColumns(m_columns,errors,m_schema,m_tableName) || m_columns.empty())
+    if(!m_info->MakeInfoTableColumns(m_columns,errors,m_catalog,m_schema,m_tableName) || m_columns.empty())
     {
       throw StdException(XString(_T("Cannot find columns for table: ")) + m_tableName + _T(" : ") + errors);
     }
@@ -360,9 +374,9 @@ DDLCreateTable::GetColumnInfo()
                                     ,column.m_decimalDigits);
     }
     // optional default value
-    if(!column.m_default.IsEmpty() && 
-        column.m_default.CompareNoCase(_T("null")) &&
-        column.m_default.Compare(_T("''")) &&
+    if(!column.m_default.IsEmpty()                      && 
+        column.m_default.CompareNoCase(_T("TRUNCATED")) &&
+        column.m_default.Compare(_T("''"))              &&
         column.m_default.Compare(_T("0")))
     {
       line += _T(" DEFAULT ");
@@ -385,6 +399,7 @@ DDLCreateTable::GetColumnInfo()
     {
       line += _T(" -- ") + column.m_remarks;
     }
+    RecordRemarksAsComment(_T("COLUMN"),m_tableName,column.m_column,column.m_remarks);
 
     // Stash the line
     m_createDDL += line + _T("\n");
@@ -437,7 +452,7 @@ DDLCreateTable::GetViewInfo()
   {
     // Find table info
     m_tables.clear();
-    if(!m_info->MakeInfoTableView(m_tables,errors,m_schema,m_tableName) || m_tables.empty())
+    if(!m_info->MakeInfoTableView(m_tables,errors,m_catalog,m_schema,m_tableName) || m_tables.empty())
     {
       throw StdException(XString(_T("Cannot find view: ")) + m_tableName + _T(" : ") + errors);
     }
@@ -459,9 +474,10 @@ DDLCreateTable::GetViewInfo()
   {
     ddl = _T("-- ") + table.m_remarks;
   }
+  RecordRemarksAsComment(_T("VIEW"),m_tableName,_T(""),table.m_remarks);
 
   XString definition;
-  if(m_info->MakeInfoViewDefinition(definition,errors,m_schema,m_tableName))
+  if(m_info->MakeInfoViewDefinition(definition,errors,m_catalog,m_schema,m_tableName))
   {
     // Do our DDL part
     ddl += m_info->GetCATALOGViewCreate(m_schema,table.m_table,definition,m_dropIfExists);
@@ -480,12 +496,23 @@ DDLCreateTable::GetIndexInfo()
   {
     // Find column info
     m_indices.clear();
-    m_info->MakeInfoTableStatistics(m_indices,errors,m_schema,m_tableName,nullptr);
+    m_info->MakeInfoTableStatistics(m_indices,errors,m_catalog,m_schema,m_tableName,nullptr);
     if(!errors.IsEmpty())
     {
       throw StdException(XString(_T("Cannot find indices for table: ")) + m_tableName + _T(" : ") + errors);
     }
     m_didIndices = !m_indices.empty();
+  }
+
+  // In case the foreign key wants to create the index
+  // we cannot create it independently !!
+  if(m_info->GetRDBMSForeignKeyDefinesIndex() && !m_indices.empty())
+  {
+    m_foreigns.clear();
+    m_info->MakeInfoTableForeign(m_foreigns,errors,m_catalog,m_schema,m_tableName);
+    DeDuplicateFKIndexes();
+    m_foreigns.clear();
+    m_didForeigns = false;
   }
 
   // Walk the list of indices
@@ -536,7 +563,7 @@ DDLCreateTable::GetPrimaryKeyInfo()
   {
     // Find column info
     m_primaries.clear();
-    m_info->MakeInfoTablePrimary(m_primaries,errors,m_schema,m_tableName);
+    m_info->MakeInfoTablePrimary(m_primaries,errors,m_catalog,m_schema,m_tableName);
     if(!errors.IsEmpty())
     {
       throw StdException(XString(_T("Cannot find the primary key for table: ")) + m_tableName + _T(" : ") + errors);
@@ -562,7 +589,7 @@ DDLCreateTable::GetForeignKeyInfo()
   {
     // Find column info
     m_foreigns.clear();
-    m_info->MakeInfoTableForeign(m_foreigns,errors,m_schema,m_tableName);
+    m_info->MakeInfoTableForeign(m_foreigns,errors,m_catalog,m_schema,m_tableName);
     if(!errors.IsEmpty())
     {
       throw StdException(XString(_T("Cannot find the foreign keys for table: ")) + m_tableName + _T(" : ") + errors);
@@ -608,7 +635,7 @@ DDLCreateTable::GetTriggerInfo()
   if(m_didTriggers)
   {
     m_triggers.clear();
-    m_info->MakeInfoTableTriggers(m_triggers,errors,m_schema,m_tableName);
+    m_info->MakeInfoTableTriggers(m_triggers,errors,m_catalog,m_schema,m_tableName);
     if(!errors.IsEmpty())
     {
       throw StdException(XString(_T("Cannot find the triggers for table: ")) + m_tableName + _T(" : ") + errors);
@@ -621,6 +648,7 @@ DDLCreateTable::GetTriggerInfo()
   {
     XString line = m_info->GetCATALOGTriggerCreate(trigger);
     StashTheLine(line);
+    RecordRemarksAsComment(_T("TRIGGER"),trigger.m_triggerName,_T(""),trigger.m_remarks);
   }
 }
 
@@ -633,7 +661,7 @@ DDLCreateTable::GetSequenceInfo()
   if(!m_didSequence)
   {
     m_sequences.clear();
-    m_info->MakeInfoTableSequences(m_sequences,errors,m_schema,m_tableName);
+    m_info->MakeInfoTableSequences(m_sequences,errors,m_catalog,m_schema,m_tableName);
     if(!errors.IsEmpty())
     {
       throw StdException(XString(_T("Cannot find the sequences for table: ")) + m_tableName + _T(" : ") + errors);
@@ -650,6 +678,7 @@ DDLCreateTable::GetSequenceInfo()
     line = m_target ? m_target->GetCATALOGSequenceCreate(seq)
                     :   m_info->GetCATALOGSequenceCreate(seq);
     StashTheLine(line);
+    RecordRemarksAsComment(_T("SEQUENCE"),seq.m_sequenceName,_T(""),seq.m_remarks);
   }
 }
 
@@ -663,7 +692,7 @@ DDLCreateTable::GetAccessInfo(bool p_strict /*=false*/)
   {
     // Find column info
     m_access.clear();
-    m_info->MakeInfoTablePrivileges(m_access,errors,m_schema,m_tableName);
+    m_info->MakeInfoTablePrivileges(m_access,errors,m_catalog,m_schema,m_tableName);
     if(!errors.IsEmpty())
     {
       throw StdException(XString(_T("Cannot find the privileges for table: ")) + m_tableName + _T(" : ") + errors);
@@ -671,6 +700,7 @@ DDLCreateTable::GetAccessInfo(bool p_strict /*=false*/)
     m_didPrivileges = !m_access.empty();
   }
 
+  XString subObject;
   bool strict = p_strict || m_info->GetPreferODBC();
 
   // Print all privileges
@@ -678,8 +708,8 @@ DDLCreateTable::GetAccessInfo(bool p_strict /*=false*/)
   {
     if(!strict || IsStrictODBCPrivilege(priv.m_privilege))
     {
-      line = m_target ? m_target->GetCATALOGGrantPrivilege(priv.m_schemaName,priv.m_tableName,priv.m_privilege,priv.m_grantee,priv.m_grantable)
-                      :   m_info->GetCATALOGGrantPrivilege(priv.m_schemaName,priv.m_tableName,priv.m_privilege,priv.m_grantee,priv.m_grantable);
+      line = m_target ? m_target->GetCATALOGGrantPrivilege(priv.m_schemaName,priv.m_tableName,subObject,priv.m_privilege,priv.m_grantee,priv.m_grantable)
+                      :   m_info->GetCATALOGGrantPrivilege(priv.m_schemaName,priv.m_tableName,subObject,priv.m_privilege,priv.m_grantee,priv.m_grantable);
       if(!line.IsEmpty())
       {
         StashTheLine(line);
@@ -694,17 +724,31 @@ DDLCreateTable::GetAccessInfo(bool p_strict /*=false*/)
 //
 //////////////////////////////////////////////////////////////////////////
 
+// Three posibilities
+// 1) "tablename"
+// 2) "schema.table"
+// 3) "catalog.schema.table"
 bool
 DDLCreateTable::FindSchemaName(XString p_tableName)
 {
   int pos = p_tableName.Find('.');
-  if (pos > 0)
+  if(pos < 0)
   {
-    m_schema    = p_tableName.Left(pos);
-    m_tableName = p_tableName.Mid(pos + 1);
+    m_tableName = p_tableName;
+  }
+  // Two part name
+  m_schema    = p_tableName.Left(pos);
+  m_tableName = p_tableName.Mid(pos + 1);
+
+  pos = p_tableName.Find('.');
+  if(pos < 0)
+  {
     return true;
   }
-  m_tableName = p_tableName;
+  // Three part name
+  m_catalog   = m_schema;
+  m_schema    = m_tableName.Left(pos);
+  m_tableName = m_tableName.Mid(pos + 1);
   return false;
 }
 
@@ -754,8 +798,11 @@ DDLCreateTable::ReplaceLengthPrecScale(TypeInfo*  p_type
   // Replace as strings
   if(p_length > 0)
   {
-    params.Replace(_T("max length"),length);    // ORACLE DOES THIS!!
-    params.Replace(_T("length"),    length);
+    // ODBC's create_params should report "length" for single length datatypes
+    // But the various RDBMS drivers have variations on this
+    params.Replace(_T("max. length"),length);    // PostgreSQL DOES THIS!!
+    params.Replace(_T("max length"), length);    // Oracle     DOES THIS!!
+    params.Replace(_T("length"),     length);    // SQLServer  DOES THIS!!
   }
   else if(p_type->m_type_name.CompareNoCase(_T("varchar")) == 0)
   {
@@ -788,18 +835,8 @@ DDLCreateTable::ReplaceLengthPrecScale(TypeInfo*  p_type
 XString
 DDLCreateTable::FormatColumnName(XString p_column,int p_length)
 {
-  // Adhere to catalog storage
-  if(m_info->GetRDBMSIsCatalogUpper())
-  {
-    p_column.MakeUpper();
-  }
-  else
-  {
-    p_column.MakeLower();
-  }
-
   // Circumvent locally reserved words
-  if(m_target && m_target->GetRDBMSDatabaseType() == DatabaseType::RDBMS_SQLSERVER)
+  if(m_target && m_target->GetRDBMSDatabaseType() == DatabaseType::RDBMS_SQLSERVER && p_column.GetAt(0) != '[')
   {
     p_column = _T("[") + p_column + _T("]");
     p_length += 2;
@@ -808,6 +845,11 @@ DDLCreateTable::FormatColumnName(XString p_column,int p_length)
   {
     XString quote = m_info->GetKEYWORDReservedWordQuote();
     p_column = quote + p_column + quote;
+  }
+  else
+  {
+    // Possibly a quoted identifier
+    p_column = m_info->QueryIdentifierQuotation(p_column);
   }
 
   // Pretty-print adjust datatype
@@ -866,6 +908,104 @@ DDLCreateTable::IsStrictODBCPrivilege(XString p_privilege)
   if(p_privilege.CompareNoCase(_T("INDEX"))      == 0) return true;
 
   return false;
+}
+
+int
+DDLCreateTable::DeDuplicateFKIndexes()
+{
+  // Index pointers in the index vector
+  int firstIndexCol = -1;
+  int lastIndexCol  = -1;
+  // Number of removed index columns
+  int removed = 0;
+
+  for(MForeignMap::iterator fk = m_foreigns.begin();fk != m_foreigns.end();++fk)
+  {
+    if(fk->m_keySequence == 1)
+    {
+      if(firstIndexCol >= 0)
+      {
+        // We arrived at a new FK set. Try to remove index from previous one
+        removed += RemoveIndex(firstIndexCol,lastIndexCol);
+      }
+      // New foreign key in the list, reset index counter
+      firstIndexCol = -1;
+      lastIndexCol  = -1;      
+    }
+    // Find matching index column at the first fk column
+    if(firstIndexCol < 0 && fk->m_keySequence == 1)
+    {
+      for(int ind = 0 ;ind < (int)m_indices.size();++ind)
+      {
+        if(m_indices[ind].m_position == fk->m_keySequence &&
+           m_indices[ind].m_columnName.CompareNoCase(fk->m_fkColumnName)      == 0 &&
+           m_indices[ind].m_indexName .CompareNoCase(fk->m_foreignConstraint) == 0)
+        {
+          // Match found
+          firstIndexCol = ind;
+          lastIndexCol  = ind;
+          break;
+        }
+      }
+    }
+    else if(firstIndexCol >= 0 && fk->m_keySequence > 1)
+    {
+      // try next column
+      int next = lastIndexCol + 1;
+
+      if(next > (int)m_indices.size() &&
+        (m_indices[next].m_position == fk->m_keySequence &&
+         m_indices[next].m_columnName.CompareNoCase(fk->m_fkColumnName)      == 0 &&
+         m_indices[next].m_indexName .CompareNoCase(fk->m_foreignConstraint) == 0))
+      {
+         // Matching foreign key with a index set
+        ++lastIndexCol;
+      }
+      else
+      {
+        // Index only partially matches the foreign key. Do not erase
+        firstIndexCol = -1;
+        lastIndexCol  = -1;
+      }
+    }
+  }
+
+  if(firstIndexCol >= 0)
+  {
+    // After processing everything, the last fk set matching an index is removed
+    removed += RemoveIndex(firstIndexCol,lastIndexCol);
+  }
+  return removed;
+}
+
+int
+DDLCreateTable::RemoveIndex(int p_first,int p_last)
+{
+  // Check that we have complete index set
+  if((p_last == (int)m_indices.size() - 1) || m_indices[p_last + 1].m_position == 1)
+  {
+    if(p_first == p_last)
+    {
+      m_indices.erase(m_indices.begin() + p_first);
+    }
+    else
+    {
+      m_indices.erase(m_indices.begin() + p_first,m_indices.begin() + p_last);
+    }
+   // Number of columns removed;
+    return (p_last - p_first + 1);
+  }
+  return 0;
+}
+
+void
+DDLCreateTable::RecordRemarksAsComment(XString p_object,XString p_name,XString p_subObject,XString p_remarks)
+{
+  if(!p_object.IsEmpty() && !p_name.IsEmpty() && !p_remarks.IsEmpty())
+  {
+    XString sql = m_info->GetCATALOGCommentCreate(m_schema,p_object,p_name,p_subObject,p_remarks);
+    m_comments.push_back(sql);
+  }
 }
 
 };

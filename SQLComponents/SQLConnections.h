@@ -33,6 +33,7 @@ typedef struct _connection
 {
   XString m_name;
   XString m_datasource;
+  XString m_targetSchema;
   XString m_username;
   XString m_password;
   XString m_options;
@@ -40,6 +41,8 @@ typedef struct _connection
 SQLConnection;
 
 using ConnMap = std::map<XString,SQLConnection>;
+
+#define DEFAULT_ENCRYPTION_KEY _T("S~Q!L@C#$n%ne^&c*t(i)o<n>s/")
 
 class SQLConnections
 {
@@ -54,10 +57,17 @@ public:
   SQLConnection*  GetConnection(XString p_name);
   SQLConnection*  GetConnection(unsigned p_number);
   XString         GetConnectionString(XString p_name);
+  int             GetConnectionsCount();
 
   // SETTERS
   void        Reset();
-  bool        AddConnection(XString p_name,XString p_datasource,XString p_username,XString p_password,XString p_options);
+  void        SetEncryptionKey(XString p_key);
+  bool        AddConnection(XString p_name
+                           ,XString p_datasource
+                           ,XString p_username
+                           ,XString p_password
+                           ,XString p_options
+                           ,XString p_targetSchema = _T(""));
   bool        DelConnection(XString p_name);
 
 private:
@@ -66,6 +76,7 @@ private:
 
   // All saved connections from "database.xml"
   ConnMap     m_connections;
+  XString     m_cryptKey;
 };
 
 }

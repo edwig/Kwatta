@@ -116,7 +116,7 @@ SQLDatabase::Close()
   catch(...)
   {
     // Can go wrong in many places in the ODBC stack or the RDMBS drivers stack
-    LogPrint(_T("Closing the database\n"));
+    LogPrint(_T("Closing the database"));
   }
   // Empty parameter and column rebinding
   m_rebindParameters.clear();
@@ -666,6 +666,14 @@ SQLDatabase::RealDatabaseName()
   bool  result = false;
 
   XString databaseName;
+
+  if(GetSQLInfoDB())
+  {
+    // Get the SQLInfo<Database> implementation's name
+    databaseName = m_info->GetRDBMSPhysicalDatabaseName();
+    m_namingMethod = _T("Physical database name");
+  }
+
   // ODBC 1.x method. Database name.
   buffer = databaseName.GetBuffer(SQL_MAX_OPTION_STRING_LENGTH);
   SQLGetInfo(m_hdbc, SQL_DATABASE_NAME, buffer, SQL_MAX_OPTION_STRING_LENGTH, &len);
@@ -683,20 +691,16 @@ SQLDatabase::RealDatabaseName()
   }
   if(databaseName.IsEmpty())
   {
-    if(GetSQLInfoDB())
-    {
-      // Get the SQLInfo<Database> implementation's name
-      databaseName   = m_info->GetRDBMSPhysicalDatabaseName();
-      m_namingMethod = _T("Physical database name");
-    }
-  }
-  if(databaseName.IsEmpty())
-  {
     // Or else: try the server name
     buffer = databaseName.GetBuffer(SQL_MAX_OPTION_STRING_LENGTH);
     SQLGetInfo(m_hdbc,SQL_SERVER_NAME,buffer,SQL_MAX_OPTION_STRING_LENGTH,&len);
     databaseName.ReleaseBuffer();
     m_namingMethod = _T("ODBC server name");
+  }
+  // Find Firebird IP database
+  if(databaseName.Find(_T(":")) >= 0)
+  {
+    databaseName = databaseName.Mid(databaseName.Find(_T(":")) + 1);
   }
   // Strip physical name for text sources 
   // Such as: DB3, FoxBase, Firebird, MS-Access, MS-Excel, PostgreSQL
@@ -743,7 +747,7 @@ SQLDatabase::RealDatabaseName()
   m_databaseName = databaseName;
   // Log the connection
   XString log;
-  log.Format(_T("Database connection at login => DATABASE: %s\n"),databaseName.GetString());
+  log.Format(_T("Database connection at login => DATABASE: %s"),databaseName.GetString());
   LogPrint(log);
   return result;
 }
@@ -944,7 +948,7 @@ SQLDatabase::FreeEnvHandle()
   if(Check(ret) == FALSE)
   {
     XString error = GetErrorString(0);
-    LogPrint(_T("Error at closing the database environment\n"));
+    LogPrint(_T("Error at closing the database environment"));
     LogPrint(error);
   }
   m_henv = SQL_NULL_HANDLE;
@@ -959,7 +963,7 @@ SQLDatabase::FreeDbcHandle()
   if(Check(ret) == FALSE)
   {
     XString error = GetErrorString(0);
-    LogPrint(_T("Error at closing the database\n"));
+    LogPrint(_T("Error at closing the database"));
     LogPrint(error);
   }
   // And free the handle
@@ -1178,7 +1182,7 @@ SQLDatabase::Check(INT nRetCode)
     case SQL_SUCCESS_WITH_INFO: if(WilLog())
                                 {
                                   XString error;
-                                  error.Format(_T("=> ODBC Success with info: %s\n"),GetErrorString().GetString());
+                                  error.Format(_T("=> ODBC Success with info: %s"),GetErrorString().GetString());
                                   LogPrint(error);
                                 }
     case SQL_SUCCESS:           // Fall through
@@ -1228,7 +1232,7 @@ SQLDatabase::StartTransaction(SQLTransaction* p_transaction, bool p_startSubtran
       transName.AppendFormat(_T("ASP%d"),static_cast<int>(m_transactions.size()));
 
       // Set savepoint
-      XString startSubtrans = m_info->GetSQLStartSubTransaction(transName);
+      XString startSubtrans = GetSQLInfoDB()->GetSQLStartSubTransaction(transName);
       if(!startSubtrans.IsEmpty())
       {
         try
@@ -1479,7 +1483,7 @@ SQLDatabase::CloseAllTransactions()
   if(Check(ret) == FALSE)
   {
     XString error = GetErrorString(0);
-    LogPrint(_T("Error in rollback at closing the database\n"));
+    LogPrint(_T("Error in rollback at closing the database"));
     LogPrint(error);
   }
 }

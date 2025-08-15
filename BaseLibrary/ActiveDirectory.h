@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////////
 //
-// SourceFile: EventlogRegistration.h
+// SourceFile: ActiveDirectory.h
 //
 // BaseLibrary: Indispensable general objects and functions
 // 
@@ -27,10 +27,9 @@
 //
 #pragma once
 
-// Standard root folder for the event log folder we create
-// Defaulting to "Applications"
-extern LPCTSTR g_eventLogCategory;
-
-int    RegisterMessagesDllForService(XString p_serviceName,XString p_messageDLL,XString& p_error);
-bool UnRegisterMessagesDllForService(XString p_serviceName,XString& p_error);
-bool IsMessageDLLRegistered(XString p_serviceName);
+// Gets the users email address from the AD
+// If not connected to the AD, it will retrieve the primary MS-Office mail address
+XString GetUserMailaddress();     // Current user email address according to the ADSI
+XString GetADOrganization();      // Getting the organization name according to the AD
+XString GetUserLogincode();       // Returns <domain>\<usercode>
+XString GetUserPrincipalName();   // Returns <user>@organisation.com (mostly!)

@@ -30,7 +30,7 @@
 #include <sql.h>
 #include <sqlext.h>
 #include <map>
-#include <list>
+#include <set>
 
 namespace SQLComponents
 {
@@ -41,6 +41,9 @@ namespace SQLComponents
 #define META_TABLES        3
 
 #define MAX_BUFFER       512
+
+// Much used quotation function
+#define QIQ QueryIdentifierQuotation
 
 typedef struct _TypeInfo
 {
@@ -67,7 +70,7 @@ typedef struct _TypeInfo
 TypeInfo;
 
 typedef std::map<XString,TypeInfo*> DataTypeMap;
-typedef std::list<XString>          WordList;
+typedef std::set<XString>           KeyWordList;
 
 class SQLInfo 
 {
@@ -121,19 +124,19 @@ public:
   // GETTING ALL THE INFO FOR ONE PROCEDURE
   // GETTING ALL META TYPES
 protected:
-  virtual bool MakeInfoTableTable      (MTableMap&     p_tables,    XString& p_errors,XString p_schema,XString p_tablename,XString p_type);
-  virtual bool MakeInfoTableColumns    (MColumnMap&    p_columns,   XString& p_errors,XString p_schema,XString p_tablename,XString p_columnname = _T(""));
-  virtual bool MakeInfoTablePrimary    (MPrimaryMap&   p_primaries, XString& p_errors,XString p_schema,XString p_tablename);
-  virtual bool MakeInfoPSMProcedures   (MProcedureMap& p_procedures,XString& p_errors,XString p_schema,XString p_procedure);
-  virtual bool MakeInfoPSMParameters   (MParameterMap& p_parameters,XString& p_errors,XString p_schema,XString p_procedure);
-  virtual bool MakeInfoTableForeign    (MForeignMap&   p_foreigns,  XString& p_errors,XString p_schema,XString p_tablename,bool p_referenced = false);
-  virtual bool MakeInfoTableStatistics (MIndicesMap&   p_statistics,XString& p_errors,XString p_schema,XString p_tablename,MPrimaryMap* p_keymap,bool p_all = true);
-  virtual bool MakeInfoTablePrivileges (MPrivilegeMap& p_privileges,XString& p_errors,XString p_schema,XString p_tablename);
-  virtual bool MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges,XString& p_errors,XString p_schema,XString p_tablename,XString p_columnname = _T(""));
+  virtual bool MakeInfoTableTable      (MTableMap&     p_tables,    XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename,XString p_type);
+  virtual bool MakeInfoTableColumns    (MColumnMap&    p_columns,   XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename,XString p_columnname = _T(""));
+  virtual bool MakeInfoTablePrimary    (MPrimaryMap&   p_primaries, XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename);
+  virtual bool MakeInfoPSMProcedures   (MProcedureMap& p_procedures,XString& p_errors,XString p_catalog,XString p_schema,XString p_procedure);
+  virtual bool MakeInfoPSMParameters   (MParameterMap& p_parameters,XString& p_errors,XString p_catalog,XString p_schema,XString p_procedure);
+  virtual bool MakeInfoTableForeign    (MForeignMap&   p_foreigns,  XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename,bool p_referenced = false);
+  virtual bool MakeInfoTableStatistics (MIndicesMap&   p_statistics,XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename,MPrimaryMap* p_keymap,bool p_all = true);
+  virtual bool MakeInfoTablePrivileges (MPrivilegeMap& p_privileges,XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename);
+  virtual bool MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges,XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename,XString p_columnname = _T(""));
 
 public:
-  virtual bool MakeInfoTableSpecials  (MSpecialsMap&  p_specials,  XString& p_errors,XString p_schema,XString p_tablename);
-  virtual bool MakeInfoMetaTypes      (MMetaMap&      p_objects,   XString& p_errors,int p_type);
+  virtual bool MakeInfoTableSpecials   (MSpecialsMap&  p_specials,  XString& p_errors,XString p_catalog,XString p_schema,XString p_tablename);
+  virtual bool MakeInfoMetaTypes       (MMetaMap&      p_objects,   XString& p_errors,int p_type);
 
   // Meta pointer to SQLGet<META> functions
   SQLTCHAR* GetMetaPointer(SQLTCHAR* p_buffer,bool p_meta);
@@ -197,8 +200,8 @@ public:
 
   SQLSMALLINT   GetDatabaseFileUsage();
   // mappings
-  WordList&     GetODBCKeywords();
-  WordList&     GetRDBMSKeywords();
+  KeyWordList&  GetODBCKeywords();
+  KeyWordList&  GetRDBMSKeywords();
   DataTypeMap&  GetDataTypeMap();
   XString       GetDriverName();
   // type conversions
@@ -291,6 +294,7 @@ public:
   SQLSMALLINT   GetMaxSchemaNameLength();
   SQLSMALLINT   GetMaxTableNameLength();
   SQLSMALLINT   GetMaxColumnNameLength();
+  SQLSMALLINT   GetMaxIdentifierNameLength() const;
   SQLSMALLINT   GetMaxColumnsInTable();
   // Booleans
   bool          GetColumnAliasAllowed();
@@ -309,7 +313,7 @@ public:
   XString       GetCatalogNameSeparator();
   XString       GetSpecialCharacters();
   XString       GetLikeEscapeCharacter();
-  XString       GetIdentifierQuoteCharacter();
+  XString       GetIdentifierQuoteCharacter() const;
   XString       GetCollationSequence();
   // Function arrays
   SQLUSMALLINT* GetFunctionArrayV2();
@@ -317,6 +321,8 @@ public:
 
   // Get the catalog.schema.table from a user string
   void    GetObjectName(XString pattern,XString& p_catalog,XString& p_schema,XString& p_table);
+  // Preparing identifiers for doing a query (quotations)
+  XString QueryIdentifierQuotation(XString p_identifier) const;
   
 private:
   // SQLDatabase has access to attribute methods
@@ -350,6 +356,15 @@ protected:
                         ,SQLTCHAR* search_schema
                         ,SQLTCHAR* search_table
                         ,SQLTCHAR* search_type);
+  // Identifier rules differ per RDBMS
+  virtual bool IsIdentifier(XString p_identifier) const;
+  virtual bool IsIdentifierMixedCase(XString p_identifier) const;
+  // Create quoted identifier
+  XString QuotedIdentifier(XString p_identifier) const;
+  // Prepare an identifier for an ODBC discovery function
+  void    PrepareIdentifierForFunction(CString& p_identifier,bool p_meta);
+
+  // All data types
   void    ReadingDataTypes();
   void    InfoMessageBox(XString p_message,UINT p_type = MB_OK);
 
@@ -360,8 +375,8 @@ protected:
   HSTMT        m_hstmt;                // Statement handle for info of tables/procedures
   RETCODE      m_retCode;              // Generic return code from ::SQL function
 
-  WordList     m_ODBCKeywords;         // Stationary ODBC keywords
-  WordList     m_RDBMSkeywords;        // Keywords  reported by the RDBMS
+  KeyWordList  m_ODBCKeywords;         // Stationary ODBC keywords
+  KeyWordList  m_RDBMSkeywords;        // Keywords  reported by the RDBMS
   DataTypeMap  m_dataTypes;            // Datatypes reported by the RDBMS
 
   // CONFORMANCE TO THE SQL-LANGUAGE
@@ -431,6 +446,7 @@ protected:
   SQLSMALLINT  m_maxSchemaName;
   SQLSMALLINT  m_maxTableName;
   SQLSMALLINT  m_maxColumnName;
+  SQLSMALLINT  m_maxIdentifier;         // General maximum length of an identifier
   bool         m_accesibleProcedures;   // User can execute all returned names
   bool         m_accesibleTables;       // User can select from all returned names
   SQLSMALLINT  m_txn_cap;               // Capable of transactions
@@ -569,13 +585,13 @@ SQLInfo::SetAttributeFileDSNSave(XString p_fileDSN)
   m_fileDSNSave = p_fileDSN;
 }
 
-inline WordList& 
+inline KeyWordList& 
 SQLInfo::GetODBCKeywords()
 {
   return m_ODBCKeywords;
 }
 
-inline WordList&
+inline KeyWordList&
 SQLInfo::GetRDBMSKeywords()
 {
   return m_RDBMSkeywords;
@@ -1091,6 +1107,12 @@ SQLInfo::GetMaxColumnNameLength()
   return m_maxColumnName;
 }
 
+inline SQLSMALLINT
+SQLInfo::GetMaxIdentifierNameLength() const
+{
+  return m_maxIdentifier;
+}
+
 inline SQLSMALLINT   
 SQLInfo::GetMaxColumnsInTable()
 {
@@ -1110,7 +1132,7 @@ SQLInfo::GetLikeEscapeCharacter()
 }
 
 inline XString       
-SQLInfo::GetIdentifierQuoteCharacter()
+SQLInfo::GetIdentifierQuoteCharacter() const
 {
   return m_identifierQuote;
 }

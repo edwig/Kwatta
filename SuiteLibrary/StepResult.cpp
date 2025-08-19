@@ -155,7 +155,7 @@ StepResult::ReadFromXML(XMLMessage& p_msg,CString p_filename)
 }
 
 bool
-StepResult::WriteToXML(XMLMessage& p_msg,CString p_filename)
+StepResult::WriteToXML(XMLMessage& p_msg,CString /*p_filename*/)
 {
   p_msg.SetRootNodeName(_T("StepResult"));
 

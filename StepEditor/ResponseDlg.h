@@ -47,6 +47,7 @@ protected:
           void FormatPayload(StepResultNET* p_result);
 
   int         m_status { 0 };
+  bool        m_errors { false };
   CString     m_statusText;
   CString     m_time;
   CString     m_payload;

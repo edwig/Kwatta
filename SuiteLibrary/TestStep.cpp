@@ -164,7 +164,7 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
 }
 
 bool
-TestStep::WriteToXML(XMLMessage& msg,CString p_filename)
+TestStep::WriteToXML(XMLMessage& msg,CString /*p_filename*/)
 {
   msg.SetRootNodeName(_T("TestStep"));
 

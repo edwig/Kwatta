@@ -161,7 +161,7 @@ Validate::ReadFromXML(XMLMessage& p_msg,CString p_filename)
 }
 
 bool
-Validate::WriteToXML(XMLMessage& p_msg,CString p_filename)
+Validate::WriteToXML(XMLMessage& p_msg,CString /*p_filename*/)
 {
   p_msg.SetRootNodeName(_T("Validate"));
 
@@ -310,7 +310,7 @@ Validate::FileMatch(CString p_file1,CString p_file2)
 
   // Read in both files
   TCHAR* buffer1 = ReadFileInBuffer(p_file1,size1);
-  TCHAR* buffer2 = ReadFileInBuffer(p_file1,size2);
+  TCHAR* buffer2 = ReadFileInBuffer(p_file2,size2);
 
   // Compare
   if(buffer1 && buffer2 && (size1 == size2) || memcmp(buffer1,buffer2,size1) == 0)

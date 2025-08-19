@@ -1,10 +1,23 @@
 KWATTA RELEASENOTES
 ===================
 
+1) Fixed the reading of on XML file in the result pane of the step editor.
+   if an xml file was uploaded WITH an UTF-8 bom, this display did fail.
+   The BOM scanning has now been added.
+   If a XML or JSON file now faults while reading, the original contents
+   is displayed in the result pane with a red background.
+2) Fixed the copying of a "credential set". This went wrong when the 
+   credentials set contained an OAuth2 combination, because the tokenserver
+   URL was not forwarded to the testrunner.
+   You can now again fill the authentication pane by selecting a set.
+
 Version 1.3.5 Release date 15-08-2025
 -------------------------------------
 1) Corrections for embedded spaces in URL's by upgrading the Marlin library
-2) Upgraded other libraries as well.
+2) Removing false positives for MS-Windows Defender
+3) Fix bug: Saving credentials after typing
+4) Fix bug: $batch in version 4.00 Unicode fixed
+5) Upgraded other libraries as well.
 
 Version 1.3.4 Release date 02-12-2024
 -------------------------------------

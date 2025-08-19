@@ -194,6 +194,7 @@ NETRunner::ParameterProcessing()
     step->SetAuthUser       (cred->m_username);
     step->SetAuthPassword   (cred->m_password);
     step->SetAuthGrant      (cred->m_oauthGrant);
+    step->SetAuthTokenServer(cred->m_tokenServer);
     step->SetAuthClientID   (cred->m_clientID);
     step->SetAuthClientKey  (cred->m_clientKey);
     step->SetAuthClientScope(cred->m_clientScope);

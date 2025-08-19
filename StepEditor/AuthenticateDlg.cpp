@@ -198,6 +198,7 @@ AuthenticateDlg::InitCombos()
   m_comboType.AddString(_T("NTLM Logon"));
   m_comboType.AddString(_T("OAuth2"));
 
+  m_comboGrant.ResetContent();
   m_comboGrant.AddString(_T("Client credentials grant"));
   m_comboGrant.AddString(_T("User credentials grant"));
 
@@ -456,6 +457,11 @@ AuthenticateDlg::SetCredentials()
   if(ind >= 0)
   {
     m_comboIdentifier.SetCurSel(ind);
+  }
+  ind = m_comboGrant.FindStringExact(0,m_oauthGrant);
+  if(ind >= 0)
+  {
+    m_comboGrant.SetCurSel(ind);
   }
 }
 

@@ -57,6 +57,12 @@ ResponseDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX,IDC_TIME,       m_editTime,       m_time);
   DDX_Control(pDX,IDC_PAYLOAD,    m_editPayload,    m_payload);
   DDX_Control(pDX,IDC_CLEAR,      m_buttonClear);
+
+  if(pDX->m_bSaveAndValidate == FALSE)
+  {
+    COLORREF color = m_errors ? RGB(220,0,0) : FRAME_DEFAULT_COLOR;
+    m_editPayload.SetBkColor(color);
+  }
 }
 
 BEGIN_MESSAGE_MAP(ResponseDlg, StyleTab)
@@ -119,11 +125,18 @@ ResponseDlg::InitPayload()
 void 
 ResponseDlg::SetResult(StepResultNET* p_result)
 {
-  m_status = p_result->GetStatus();
+  m_status     = p_result->GetStatus();
   m_statusText = GetHTTPStatusText(m_status);
-  m_payload = p_result->GetBody();
+  m_payload    = p_result->GetBody();
   m_time.Format(_T("%6.3f"),p_result->GetTiming());
 
+  Encoding encoding = Encoding::UTF8;
+  unsigned int skip = 0;
+  WinFile::DefuseBOM((const uchar*)m_payload.GetString(),encoding,skip);
+  if(skip)
+  {
+    m_payload = m_payload.Mid(skip / sizeof(TCHAR));
+  }
   // In case we had an HTTP OS error!
   if(m_payload.IsEmpty() && !p_result->GetOSErrorString().IsEmpty())
   {
@@ -141,22 +154,35 @@ ResponseDlg::SetResult(StepResultNET* p_result)
 void
 ResponseDlg::FormatPayload(StepResultNET* p_result)
 {
+  m_errors = false;
   CString content = p_result->GetHeader(_T("content-type"));
-  if (content.Find(_T("xml")) >= 0)
+  if(content.Find(_T("xml")) >= 0)
   {
     XMLMessage xml;
+    CString payload;
     xml.ParseMessage(m_payload);
-    xml.SetCondensed(false);
-    m_payload = xml.Print();
-    m_payload.Replace(_T("\t"),_T("  "));
+    if(xml.GetInternalError() == XmlError::XE_NoError)
+    {
+      xml.SetCondensed(false);
+      m_payload = xml.Print();
+      m_payload.Replace(_T("\t"),_T("  "));
+      return;
+    }
+    m_errors = true;
   }
-  if (content.Find(_T("json")) >= 0)
+  if(content.Find(_T("json")) >= 0)
   {
     JSONMessage json(m_payload);
-    json.SetWhitespace(true);
-    m_payload = json.GetJsonMessage();
-    m_payload.Replace(_T("\t"),_T("  "));
+    if(json.GetErrorState() == false)
+    {
+      json.SetWhitespace(true);
+      m_payload = json.GetJsonMessage();
+      m_payload.Replace(_T("\t"),_T("  "));
+      return;
+    }
+    m_errors = true;
   }
+  // Add more content types here
 }
 
 // ResponseDlg message handlers

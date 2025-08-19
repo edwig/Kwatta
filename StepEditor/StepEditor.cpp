@@ -229,18 +229,18 @@ StepEditorApp::StartTheInetRunner(StepInternetDlg* p_caller)
     // Start a new test
     CreateHTTPClient();
     NETRunner runner(GetBaseDirectory()
-                     ,GetTestDirectory()
-                     ,GetTestStepFilename()
-                     ,GetParametersFilename()
-                     ,GetValidations()
-                     ,GetGlobalValidations()
-                     ,m_pMainWnd->GetSafeHwnd()
-                     ,GetHTTPClient()
-                     ,GetOAuth2Cache()
-                     ,0
-                     ,0
-                     ,theApp.GetGlobal()
-                     ,false);
+                    ,GetTestDirectory()
+                    ,GetTestStepFilename()
+                    ,GetParametersFilename()
+                    ,GetValidations()
+                    ,GetGlobalValidations()
+                    ,m_pMainWnd->GetSafeHwnd()
+                    ,GetHTTPClient()
+                    ,GetOAuth2Cache()
+                    ,0
+                    ,0
+                    ,theApp.GetGlobal()
+                    ,false);
 
     // PERFORM OUR TEST
     result = runner.PerformTest();

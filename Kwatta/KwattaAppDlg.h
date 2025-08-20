@@ -83,7 +83,7 @@ protected:
   DECLARE_MESSAGE_MAP()
 public:
   afx_msg void    OnSysCommand(UINT nID,LPARAM lParam);
-  afx_msg LRESULT OnReadyTest(WPARAM wParam,LPARAM lParam);
+  afx_msg LRESULT OnReadyTestSet(WPARAM wParam,LPARAM lParam);
   afx_msg void OnEnChangeSuite();
   afx_msg void OnEnChangeDescription();
   afx_msg void OnBnClickedButChoose();

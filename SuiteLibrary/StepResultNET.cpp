@@ -76,6 +76,13 @@ StepResultNET::ReadFromXML(CString p_filename)
 
   // Find the body
   m_body = msg.GetElement(_T("ResponseBody"));
+
+  if(m_body.Find(_T("&lt;!&#91;CDATA&#91;")) > 0)
+  {
+    // Recursive restartable CDATA section
+    m_body.Replace(_T("&lt;!&#91;CDATA&#91;"),_T("<![CDATA["));
+    m_body.Replace(_T("&#93;&#93;&gt;"),      _T("]]>"));
+  }
 }
 
 bool
@@ -114,11 +121,16 @@ StepResultNET::WriteToXML(CString p_filename)
   if(m_body.Find(_T("<![CDATA[")) > 0)
   {
     // Recursive restartable CDATA section
-    m_body.Replace(_T("]]>"),_T("]]]]><![CDATA[>"));
+    XString body(m_body);
+    body.Replace(_T("<![CDATA["),_T("&lt;!&#91;CDATA&#91;"));
+    body.Replace(_T("]]>"),     _T("&#93;&#93;&gt;"));
+    msg.AddElement(root,_T("ResponseBody"),XDT_CDATA,body);
   }
-  // Save the body
-  msg.AddElement(root,_T("ResponseBody"),XDT_CDATA,m_body);
-
+  else
+  {
+    // Just save the body
+    msg.AddElement(root,_T("ResponseBody"),XDT_CDATA,m_body);
+  }
   // Now save it
   return msg.SaveFile(p_filename);
 }

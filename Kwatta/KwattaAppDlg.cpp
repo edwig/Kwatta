@@ -115,7 +115,7 @@ KwattaAppDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(KwattaAppDlg, StyleDialog)
   ON_WM_SYSCOMMAND()
 
-  ON_MESSAGE     (WM_READYTEST,       &KwattaAppDlg::OnReadyTest)
+  ON_MESSAGE     (WM_READYSET,        &KwattaAppDlg::OnReadyTestSet)
   ON_EN_KILLFOCUS(IDC_SUITE,          &KwattaAppDlg::OnEnChangeSuite)
   ON_EN_KILLFOCUS(IDC_DESCRIPTION,    &KwattaAppDlg::OnEnChangeDescription)
   ON_BN_CLICKED  (IDC_BUT_CHOOSE,     &KwattaAppDlg::OnBnClickedButChoose)
@@ -937,7 +937,7 @@ KwattaAppDlg::OnBnClickedButMutate()
 }
 
 LRESULT
-KwattaAppDlg::OnReadyTest(WPARAM wParam,LPARAM lParam)
+KwattaAppDlg::OnReadyTestSet(WPARAM wParam,LPARAM lParam)
 {
   if(!m_suite)
   {

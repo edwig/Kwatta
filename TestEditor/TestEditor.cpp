@@ -21,6 +21,7 @@
 #include "stdafx.h"
 #include "TestEditor.h"
 #include "TestEditorDlg.h"
+#include <ExtraMessages.h>
 #include <ExtraExtensions.h>
 #include <GetExePath.h>
 #include <StartProgram.h>
@@ -102,6 +103,10 @@ BOOL TestEditorApp::InitInstance()
 int
 TestEditorApp::ExitInstance()
 {
+  if(m_callingHWND && m_callingROW)
+  {
+    ::PostMessage((HWND)m_callingHWND,WM_READYSET,(WPARAM)m_callingROW,(LPARAM)-1);
+  }
   CWinAppEx::ExitInstance();
 
   return m_returnValue;

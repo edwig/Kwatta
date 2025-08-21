@@ -80,6 +80,8 @@ protected:
   StyleEdit       m_editClientKey;
   StyleEdit       m_editClientScope;
   StyleEdit       m_editBearerToken;
+  StyleEdit       m_editHeaderName;
+  StyleEdit       m_editHeaderValue;
   StyleButton     m_buttonRefresh;
   StyleButton     m_buttonUsernameParm;
   StyleButton     m_buttonPasswordParm;
@@ -87,6 +89,8 @@ protected:
   StyleButton     m_buttonClientIDParm;
   StyleButton     m_buttonClientKeyParm;
   StyleButton     m_buttonClientScopeParm;
+  StyleButton     m_buttonHeaderNameParm;
+  StyleButton     m_buttonHeaderValueParm;
 
   CString         m_identifier;
   CString         m_authType;
@@ -98,6 +102,8 @@ protected:
   CString         m_clientKey;
   CString         m_clientScope;
   CString         m_bearerToken;
+  CString         m_headerName;
+  CString         m_headerValue;
 
 	DECLARE_MESSAGE_MAP()
 public:
@@ -115,6 +121,8 @@ public:
   afx_msg void OnEnChangeClientscope();
   afx_msg void OnEnChangeBearertoken();
   afx_msg void OnBnClickedRefresh();
+  afx_msg void OnEnChangeHeaderName();
+  afx_msg void OnEnChangeHeaderValue();
 
   afx_msg void OnBnClickedUsernameParm();
   afx_msg void OnBnClickedPasswordParm();
@@ -122,4 +130,6 @@ public:
   afx_msg void OnBnClickedClientIDParm();
   afx_msg void OnBnClickedClientKeyParm();
   afx_msg void OnBnClickedClientScopeParm();
+  afx_msg void OnBnClickedHeaderNameParm();
+  afx_msg void OnBnClickedHeaderValueParm();
 };

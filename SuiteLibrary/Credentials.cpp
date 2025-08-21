@@ -82,6 +82,8 @@ Credentials::ReadFromXML(XString p_filename)
     cred.m_clientID    = msg.GetElement(credelem,_T("ClientID"));
     cred.m_clientKey   = msg.GetElement(credelem,_T("ClientKey"));
     cred.m_clientScope = msg.GetElement(credelem,_T("ClientScope"));
+    cred.m_headerName  = msg.GetElement(credelem,_T("HeaderName"));
+    cred.m_headerValue = msg.GetElement(credelem,_T("HeaderValue"));
 
     // Convert type
     cred.m_type = StringToCredType(cred.m_typeName);
@@ -95,6 +97,11 @@ Credentials::ReadFromXML(XString p_filename)
     {
       Crypto crypt;
       cred.m_clientKey = crypt.Decryption(cred.m_clientKey,_T(KWATTA_ENCRYPT));
+    }
+    if(!cred.m_headerValue.IsEmpty())
+    {
+      Crypto crypt;
+      cred.m_headerValue = crypt.Decryption(cred.m_headerValue,_T(KWATTA_ENCRYPT));
     }
 
     // Store in the credentials mapping
@@ -168,6 +175,12 @@ Credentials::WriteToXML()
       Crypto crypt;
       clientKey = crypt.Encryption(clientKey,_T(KWATTA_ENCRYPT));
     }
+    XString headerValue(cred.second.m_headerValue);
+    if(!headerValue.IsEmpty())
+    {
+      Crypto crypt;
+      headerValue = crypt.Encryption(headerValue,_T(KWATTA_ENCRYPT));
+    }
     msg.AddElement(credelem,_T("TypeName"),   XDT_String,cred.second.m_typeName);
     msg.AddElement(credelem,_T("Identifier"), XDT_String,cred.second.m_identifier);
     msg.AddElement(credelem,_T("Username"),   XDT_String,cred.second.m_username);
@@ -177,6 +190,8 @@ Credentials::WriteToXML()
     msg.AddElement(credelem,_T("ClientID"),   XDT_String,cred.second.m_clientID);
     msg.AddElement(credelem,_T("ClientKey"),  XDT_String,clientKey);
     msg.AddElement(credelem,_T("ClientScope"),XDT_String,cred.second.m_clientScope);
+    msg.AddElement(credelem,_T("HeaderName"), XDT_String,cred.second.m_headerName);
+    msg.AddElement(credelem,_T("HeaderValue"),XDT_String,headerValue);
   }
 
   // Now save all the database connections
@@ -241,7 +256,7 @@ Credentials::SetBasicCredential(XString p_identifier,XString p_username,XString 
 
   Credential cred;
   cred.m_type       = CredType::BASIC;
-  cred.m_typeName   = _T("Basic");
+  cred.m_typeName   = CREDNAME_BASIC;
   cred.m_username   = p_username;
   cred.m_password   = p_password;
   cred.m_identifier = p_identifier;
@@ -260,7 +275,7 @@ Credentials::SetWNTLMCredential(XString p_identifier,XString p_username /*= _T("
 
   Credential cred;
   cred.m_type       = CredType::NTLM;
-  cred.m_typeName   = _T("NTLM Logon");
+  cred.m_typeName   = CREDNAME_NTLM;
   cred.m_username   = p_username;
   cred.m_password   = p_password;
   cred.m_identifier = p_identifier;
@@ -268,7 +283,7 @@ Credentials::SetWNTLMCredential(XString p_identifier,XString p_username /*= _T("
   if(p_username.IsEmpty() && p_password.IsEmpty())
   {
     cred.m_type = CredType::NTLM_SSO;
-    cred.m_typeName = _T("NTLM Single-signon");
+    cred.m_typeName = CREDNAME_NTLM_SSO;
   }
   m_credentials[p_identifier] = cred;
   return (m_changed = true);
@@ -284,13 +299,31 @@ Credentials::SetOAuthCredential(XString p_identifier,XString p_grant,XString p_t
 
   Credential cred;
   cred.m_type        = CredType::OAUTH2;
-  cred.m_typeName    = _T("OAuth2");
+  cred.m_typeName    = CREDNAME_OAUTH2;
   cred.m_oauthGrant  = p_grant;
   cred.m_tokenServer = p_tserver;
   cred.m_clientID    = p_id;
   cred.m_clientKey   = p_key;
   cred.m_clientScope = p_scope;
   cred.m_identifier  = p_identifier;
+
+  m_credentials[p_identifier] = cred;
+  return (m_changed = true);
+}
+
+bool
+Credentials::SetHeadrCredential(XString p_identifier,XString p_headerName,XString p_headerValue)
+{
+  if(FindCredential(p_identifier))
+  {
+    return false;
+  }
+
+  Credential cred;
+  cred.m_type        = CredType::HEADER;
+  cred.m_typeName    = CREDNAME_HEADER;
+  cred.m_headerName  = p_headerName;
+  cred.m_headerValue = p_headerValue;
 
   m_credentials[p_identifier] = cred;
   return (m_changed = true);
@@ -304,11 +337,13 @@ Credentials::CredTypeToString(CredType p_type)
   XString type;
   switch(p_type)
   {
-    case CredType::BASIC:     type = _T("Basic");             break;
-    case CredType::NTLM_SSO:  type = _T("NTLM Single-signon");break;
-    case CredType::NTLM:      type = _T("NTLM Logon");        break;
-    case CredType::OAUTH2:    type = _T("OAuth2");            break;
-    default:                  type = _T("Unknown");           break;
+    case CredType::ANONYMOUS: type = CREDNAME_ANONYMOUS; break;
+    case CredType::BASIC:     type = CREDNAME_BASIC;     break;
+    case CredType::NTLM_SSO:  type = CREDNAME_NTLM_SSO;  break;
+    case CredType::NTLM:      type = CREDNAME_NTLM;      break;
+    case CredType::OAUTH2:    type = CREDNAME_OAUTH2;    break;
+    case CredType::HEADER:    type = CREDNAME_HEADER;    break;
+    default:                  type = _T("Unknown");      break;
   }
   return type;
 }
@@ -316,10 +351,12 @@ Credentials::CredTypeToString(CredType p_type)
 CredType
 Credentials::StringToCredType(XString p_type)
 {
-  if(p_type.Compare(_T("Basic"))              == 0) return CredType::BASIC;
-  if(p_type.Compare(_T("NTLM Single-signon")) == 0) return CredType::NTLM_SSO;
-  if(p_type.Compare(_T("NTLM Login"))         == 0) return CredType::NTLM;
-  if(p_type.Compare(_T("OAuth2"))             == 0) return CredType::OAUTH2;
+  if(p_type.Compare(CREDNAME_ANONYMOUS) == 0) return CredType::ANONYMOUS;
+  if(p_type.Compare(CREDNAME_BASIC)     == 0) return CredType::BASIC;
+  if(p_type.Compare(CREDNAME_NTLM_SSO)  == 0) return CredType::NTLM_SSO;
+  if(p_type.Compare(CREDNAME_NTLM)      == 0) return CredType::NTLM;
+  if(p_type.Compare(CREDNAME_OAUTH2)    == 0) return CredType::OAUTH2;
+  if(p_type.Compare(CREDNAME_HEADER)    == 0) return CredType::HEADER;
 
   return CredType::ANONYMOUS;
 }

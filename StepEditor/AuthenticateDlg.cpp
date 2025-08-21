@@ -72,6 +72,11 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control (pDX,IDC_KEY_PARM,    m_buttonClientKeyParm);
   DDX_Control (pDX,IDC_SCOPE_PARM,  m_buttonClientScopeParm);
 
+  DDX_Control (pDX,IDC_HEADERNAME,  m_editHeaderName, m_headerName);
+  DDX_Control (pDX,IDC_KEYVALUE,    m_editHeaderValue,m_headerValue);
+  DDX_Control (pDX,IDC_HEADER_PARM, m_buttonHeaderNameParm);
+  DDX_Control (pDX,IDC_KEYVAL_PARM, m_buttonHeaderValueParm);
+
   if(pDX->m_bSaveAndValidate == FALSE)
   {
     CredType auth = CalcAuthenticationType();
@@ -85,6 +90,8 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
     m_editClientScope.EnableWindow(auth == CredType::OAUTH2);
     m_editBearerToken.EnableWindow(auth == CredType::OAUTH2);
     m_buttonRefresh  .EnableWindow(auth == CredType::OAUTH2);
+    m_editHeaderName .EnableWindow(auth == CredType::HEADER);
+    m_editHeaderValue.EnableWindow(auth == CredType::HEADER);
 
     m_buttonUsernameParm   .EnableWindow(auth == CredType::BASIC || auth == CredType::NTLM);
     m_buttonPasswordParm   .EnableWindow(auth == CredType::BASIC || auth == CredType::NTLM);
@@ -92,6 +99,8 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
     m_buttonClientIDParm   .EnableWindow(auth == CredType::OAUTH2);
     m_buttonClientKeyParm  .EnableWindow(auth == CredType::OAUTH2);
     m_buttonClientScopeParm.EnableWindow(auth == CredType::OAUTH2);
+    m_buttonHeaderNameParm .EnableWindow(auth == CredType::HEADER);
+    m_buttonHeaderValueParm.EnableWindow(auth == CredType::HEADER);
 
     m_buttonSave  .EnableWindow(!m_identifier.IsEmpty());
     m_buttonDelete.EnableWindow(!m_identifier.IsEmpty());
@@ -152,11 +161,14 @@ AuthenticateDlg::SetupDynamicLayout()
 #endif
 
   manager.AddItem(IDC_GRP_EFFECTIVE, CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_GRP_USER,      CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_GRP_OAUTH,     CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_GRP_HEADER,    CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+
   manager.AddItem(IDC_USERNAME,      CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_USER_PARM,     CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_PASSWORD,      CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_PWD_PARM,      CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_GRP_OAUTH,     CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_TOKENSERVER,   CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_TOKEN_PARM,    CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_CLIENTID,      CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
@@ -166,6 +178,11 @@ AuthenticateDlg::SetupDynamicLayout()
   manager.AddItem(IDC_CLIENTSCOPE,   CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_SCOPE_PARM,    CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_BEARERTOKEN,   CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+
+  manager.AddItem(IDC_HEADERNAME,    CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_KEYVALUE,      CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontal(100));
+  manager.AddItem(IDC_HEADER_PARM,   CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_KEYVAL_PARM,   CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
 }
 
 void
@@ -179,6 +196,8 @@ AuthenticateDlg::InitButtons()
   m_buttonClientIDParm   .SetIconImage(IDI_LIST);
   m_buttonClientKeyParm  .SetIconImage(IDI_LIST);
   m_buttonClientScopeParm.SetIconImage(IDI_LIST);
+  m_buttonHeaderNameParm .SetIconImage(IDI_LIST);
+  m_buttonHeaderNameParm .SetIconImage(IDI_LIST);
 
   RegisterTooltip(m_buttonUsernameParm,   _T("Choose global/test parameter for the username"));
   RegisterTooltip(m_buttonPasswordParm,   _T("Choose global/test parameter for the password"));
@@ -186,17 +205,20 @@ AuthenticateDlg::InitButtons()
   RegisterTooltip(m_buttonClientIDParm,   _T("Choose global/test parameter for the client ID"));
   RegisterTooltip(m_buttonClientKeyParm,  _T("Choose global/test parameter for the client KEY"));
   RegisterTooltip(m_buttonClientScopeParm,_T("Choose global/test parameter for the client Scope"));
+  RegisterTooltip(m_buttonHeaderNameParm, _T("Choose global/test parameter for the Authentication header"));
+  RegisterTooltip(m_buttonHeaderValueParm,_T("Choose global/test parameter for the KEY VALUE"));
 }
 
 void
 AuthenticateDlg::InitCombos()
 {
   m_comboType.ResetContent();
-  m_comboType.AddString(_T("Anonymous"));
-  m_comboType.AddString(_T("Basic authentication"));
-  m_comboType.AddString(_T("NTLM Single-signon"));
-  m_comboType.AddString(_T("NTLM Logon"));
-  m_comboType.AddString(_T("OAuth2"));
+  m_comboType.AddString(CREDNAME_ANONYMOUS);
+  m_comboType.AddString(CREDNAME_BASIC);
+  m_comboType.AddString(CREDNAME_NTLM_SSO);
+  m_comboType.AddString(CREDNAME_NTLM);
+  m_comboType.AddString(CREDNAME_OAUTH2);
+  m_comboType.AddString(CREDNAME_HEADER);
 
   m_comboGrant.ResetContent();
   m_comboGrant.AddString(_T("Client credentials grant"));
@@ -309,13 +331,7 @@ AuthenticateDlg::EffectiveParameters()
 CredType
 AuthenticateDlg::CalcAuthenticationType()
 {
-  if(m_authType.CompareNoCase(_T("Anonymous"))            == 0) return CredType::ANONYMOUS;
-  if(m_authType.CompareNoCase(_T("Basic authentication")) == 0) return CredType::BASIC;
-  if(m_authType.CompareNoCase(_T("NTLM Single-signon"))   == 0) return CredType::NTLM_SSO;
-  if(m_authType.CompareNoCase(_T("NTLM Logon"))           == 0) return CredType::NTLM;
-  if(m_authType.CompareNoCase(_T("OAuth2"))               == 0) return CredType::OAUTH2;
- 
-  return CredType::ANONYMOUS;
+  return Credentials::StringToCredType(m_authType);
 }
 
 void 
@@ -598,7 +614,6 @@ AuthenticateDlg::OnBnClickedClientScopeParm()
   ChooseVariable(m_editClientScope);
 }
 
-
 void 
 AuthenticateDlg::OnEnChangeBearertoken()
 {
@@ -610,3 +625,28 @@ AuthenticateDlg::OnBnClickedRefresh()
 {
   SetResult(theApp.RefreshBearerToken());
 }
+
+void 
+AuthenticateDlg::OnEnChangeHeaderName()
+{
+  UpdateData();
+}
+
+void
+AuthenticateDlg::OnEnChangeHeaderValue()
+{
+  UpdateData();
+}
+
+void
+AuthenticateDlg::OnBnClickedHeaderNameParm()
+{
+  ChooseVariable(m_editHeaderName);
+}
+
+void
+AuthenticateDlg::OnBnClickedHeaderValueParm()
+{
+  ChooseVariable(m_editHeaderValue);
+}
+

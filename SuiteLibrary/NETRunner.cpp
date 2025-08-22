@@ -198,6 +198,8 @@ NETRunner::ParameterProcessing()
     step->SetAuthClientID   (cred->m_clientID);
     step->SetAuthClientKey  (cred->m_clientKey);
     step->SetAuthClientScope(cred->m_clientScope);
+    step->SetKeyHeaderName  (cred->m_keyHeader);
+    step->SetKeyHeaderValue (cred->m_keyValue);
   }
 
   // Effectuate the parameters for the step
@@ -277,21 +279,25 @@ NETRunner::PerformAuthentication()
 
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
   CString auth = step->GetAuthType();
-  if(auth.Find(_T("Basic")) >= 0)
+  if(auth.Find(CREDNAME_BASIC) >= 0)
   {
     SetBasicAuthentication();
   }
-  else if(auth.Find(_T("NTLM Single-signon")) >= 0)
+  else if(auth.Find(CREDNAME_NTLM_SSO) >= 0)
   {
     SetNTLMSSOAuthentication();
   }
-  else if(auth.Find(_T("NTLM Logon")) >= 0)
+  else if(auth.Find(CREDNAME_NTLM) >= 0)
   {
     SetNTLMAuthentication();
   }
-  else if(auth.Find(_T("OAuth2")) >= 0)
+  else if(auth.Find(CREDNAME_OAUTH2) >= 0)
   {
     SetOAuth2Authentication();
+  }
+  else if(auth.Find(CREDNAME_HEADER) >= 0)
+  {
+    SetKeyHeaderAuthentication();
   }
 }
 
@@ -700,6 +706,19 @@ NETRunner::SetOAuth2Authentication()
   }
   m_client->SetOAuth2Cache(m_oauth);
   m_client->SetOAuth2Session(session);
+}
+
+void
+NETRunner::SetKeyHeaderAuthentication()
+{
+  CString headerName;
+  CString headerValue;
+  TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
+  
+  m_parameters.Replace(step->GetKeyHeaderName(), headerName, false,ParType::PAR_BUFFER);
+  m_parameters.Replace(step->GetKeyHeaderValue(),headerValue,false,ParType::PAR_BUFFER);
+
+  m_client->AddHeader(headerName,headerValue);
 }
 
 //////////////////////////////////////////////////////////////////////////

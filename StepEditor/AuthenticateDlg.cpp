@@ -72,8 +72,8 @@ void AuthenticateDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control (pDX,IDC_KEY_PARM,    m_buttonClientKeyParm);
   DDX_Control (pDX,IDC_SCOPE_PARM,  m_buttonClientScopeParm);
 
-  DDX_Control (pDX,IDC_HEADERNAME,  m_editHeaderName, m_headerName);
-  DDX_Control (pDX,IDC_KEYVALUE,    m_editHeaderValue,m_headerValue);
+  DDX_Control (pDX,IDC_HEADERNAME,  m_editHeaderName, m_keyHeader);
+  DDX_Control (pDX,IDC_KEYVALUE,    m_editHeaderValue,m_keyValue);
   DDX_Control (pDX,IDC_HEADER_PARM, m_buttonHeaderNameParm);
   DDX_Control (pDX,IDC_KEYVAL_PARM, m_buttonHeaderValueParm);
 
@@ -120,6 +120,8 @@ BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleTab)
   ON_EN_KILLFOCUS (IDC_CLIENTKEY,   &AuthenticateDlg::OnEnChangeClientkey)
   ON_EN_KILLFOCUS (IDC_CLIENTSCOPE, &AuthenticateDlg::OnEnChangeClientscope)
   ON_EN_KILLFOCUS (IDC_BEARERTOKEN, &AuthenticateDlg::OnEnChangeBearertoken)
+  ON_EN_KILLFOCUS (IDC_HEADERNAME,  &AuthenticateDlg::OnEnChangeHeaderName)
+  ON_EN_KILLFOCUS (IDC_KEYVALUE,    &AuthenticateDlg::OnEnChangeHeaderValue)
   
   ON_BN_CLICKED   (IDC_AUTHSAVE,    &AuthenticateDlg::OnBnClickedSave)
   ON_BN_CLICKED   (IDC_AUTHDELETE,  &AuthenticateDlg::OnBnClickedDelete)
@@ -130,6 +132,8 @@ BEGIN_MESSAGE_MAP(AuthenticateDlg, StyleTab)
   ON_BN_CLICKED   (IDC_ID_PARM,     &AuthenticateDlg::OnBnClickedClientIDParm)
   ON_BN_CLICKED   (IDC_KEY_PARM,    &AuthenticateDlg::OnBnClickedClientKeyParm)
   ON_BN_CLICKED   (IDC_SCOPE_PARM,  &AuthenticateDlg::OnBnClickedClientScopeParm)
+  ON_BN_CLICKED   (IDC_HEADER_PARM, &AuthenticateDlg::OnBnClickedHeaderNameParm)
+  ON_BN_CLICKED   (IDC_KEYVAL_PARM, &AuthenticateDlg::OnBnClickedHeaderValueParm)
 END_MESSAGE_MAP()
 
 BOOL
@@ -142,6 +146,7 @@ AuthenticateDlg::OnInitDialog()
 
   InitButtons();
   InitCombos();
+  InitFields();
   SetCanResize();
 
   // Check bearer token every second
@@ -197,7 +202,7 @@ AuthenticateDlg::InitButtons()
   m_buttonClientKeyParm  .SetIconImage(IDI_LIST);
   m_buttonClientScopeParm.SetIconImage(IDI_LIST);
   m_buttonHeaderNameParm .SetIconImage(IDI_LIST);
-  m_buttonHeaderNameParm .SetIconImage(IDI_LIST);
+  m_buttonHeaderValueParm.SetIconImage(IDI_LIST);
 
   RegisterTooltip(m_buttonUsernameParm,   _T("Choose global/test parameter for the username"));
   RegisterTooltip(m_buttonPasswordParm,   _T("Choose global/test parameter for the password"));
@@ -237,6 +242,40 @@ AuthenticateDlg::InitCombos()
   }
 }
 
+void
+AuthenticateDlg::InitFields()
+{
+  CRect wndUser;
+  CRect wndHeader;
+  m_editUsername.GetWindowRect(&wndUser);
+  m_editHeaderName.GetWindowRect(wndHeader);
+  int movey = wndHeader.top - wndUser.top;
+
+  MoveWindowUp(IDC_GRP_HEADER, movey);
+  MoveWindowUp(IDC_HEADERNAME, movey);
+  MoveWindowUp(IDC_KEYVALUE,   movey);
+  MoveWindowUp(IDC_STAT_KN,    movey);
+  MoveWindowUp(IDC_STAT_KV,    movey);
+  MoveWindowUp(IDC_HEADER_PARM,movey);
+  MoveWindowUp(IDC_KEYVAL_PARM,movey);
+}
+
+void
+AuthenticateDlg::MoveWindowUp(int p_id,int p_movey)
+{
+  CRect r;
+  CRect d;
+  CWnd* w = GetDlgItem(p_id);
+  w->GetWindowRect(r);
+  GetWindowRect(d);
+  r.MoveToXY(r.left - d.left,r.top - d.top);
+  r.top    -= p_movey;
+  r.bottom -= p_movey;
+
+  w->MoveWindow(r);
+  w->ShowWindow(SW_HIDE);
+}
+
 void 
 AuthenticateDlg::InitTab(TestStepNET* p_step
                         ,Parameters*  p_parameters
@@ -255,6 +294,8 @@ AuthenticateDlg::InitTab(TestStepNET* p_step
   m_clientKey   = m_testStep->GetAuthClientKey();
   m_clientScope = m_testStep->GetAuthClientScope();
   m_bearerToken = m_testStep->GetAuthBearerToken();
+  m_keyHeader   = m_testStep->GetKeyHeaderName();
+  m_keyValue    = m_testStep->GetKeyHeaderValue();
 
   InitCombos();
 
@@ -268,6 +309,7 @@ AuthenticateDlg::InitTab(TestStepNET* p_step
   {
     SetCredentials();
   }
+  AdjustUPHVfields();
   UpdateData(FALSE);
 }
 
@@ -289,6 +331,8 @@ AuthenticateDlg::StoreVariables()
   m_testStep->SetAuthClientKey(m_clientKey);
   m_testStep->SetAuthClientScope(m_clientScope);
   m_testStep->SetAuthBearerToken(m_bearerToken);
+  m_testStep->SetKeyHeaderName(m_keyHeader);
+  m_testStep->SetKeyHeaderValue(m_keyValue);
 }
 
 void 
@@ -338,16 +382,28 @@ void
 AuthenticateDlg::AdjustAuthentication()
 {
   CredType type = CalcAuthenticationType();
-  switch (type)
+  if(type != CredType::OAUTH2)
   {
-    case CredType::NTLM_SSO:  // Fall through
-    case CredType::OAUTH2:    // Fall through
-    case CredType::ANONYMOUS: m_userName.Empty();
-                              m_password.Empty();
-                              break;
-    case CredType::BASIC:     PresetBasicAuthentication();
-                              break;
-    case CredType::NTLM:      break;
+    m_oauthGrant.Empty();
+    m_tokenServer.Empty();
+    m_clientID.Empty();
+    m_clientKey.Empty();
+    m_clientScope.Empty();
+    m_bearerToken.Empty();
+  }
+  if(type != CredType::HEADER)
+  {
+    m_keyHeader.Empty();
+    m_keyValue.Empty();
+  }
+  if(type != CredType::NTLM && type != CredType::BASIC)
+  {
+    m_userName.Empty();
+    m_password.Empty();
+  }
+  if(type != CredType::BASIC)
+  {
+    PresetBasicAuthentication();
   }
 }
 
@@ -405,6 +461,8 @@ AuthenticateDlg::SaveCredentials()
                              break;
     case CredType::OAUTH2:   m_credentials->SetOAuthCredential(m_identifier,m_oauthGrant,m_tokenServer,m_clientID,m_clientKey,m_clientScope);
                              break;
+    case CredType::HEADER:   m_credentials->SetKeyHdCredential(m_identifier,m_keyHeader,m_keyValue);
+                             break;
   }
 }
 
@@ -438,6 +496,8 @@ AuthenticateDlg::DeleteCredentials()
       m_clientKey.Empty();
       m_clientScope.Empty();
       m_bearerToken.Empty();
+      m_keyHeader.Empty();
+      m_keyValue.Empty();
       UpdateData(FALSE);
     }
   }
@@ -462,6 +522,8 @@ AuthenticateDlg::SetCredentials()
   m_clientID    = cred->m_clientID;
   m_clientKey   = cred->m_clientKey;
   m_clientScope = cred->m_clientScope;
+  m_keyHeader   = cred->m_keyHeader;
+  m_keyValue    = cred->m_keyValue;
 
   int ind = m_comboType.FindString(0,cred->m_typeName);
   if(ind >= 0)
@@ -481,6 +543,38 @@ AuthenticateDlg::SetCredentials()
   }
 }
 
+void
+AuthenticateDlg::AdjustUPHVfields()
+{
+  CredType  type = CalcAuthenticationType();
+  int showHeader = (type == CredType::HEADER) ? SW_SHOW : SW_HIDE;
+  int showUserpw = (type == CredType::HEADER) ? SW_HIDE : SW_SHOW;
+
+  // KEY Header/value fields
+  CWnd* w1 = GetDlgItem(IDC_GRP_HEADER);
+  CWnd* w2 = GetDlgItem(IDC_STAT_KN);
+  CWnd* w3 = GetDlgItem(IDC_STAT_KV);
+  w1->ShowWindow(showHeader);
+  w2->ShowWindow(showHeader);
+  w3->ShowWindow(showHeader);
+  m_editHeaderName.ShowWindow(showHeader);
+  m_editHeaderValue.ShowWindow(showHeader);
+  m_buttonHeaderNameParm.ShowWindow(showHeader);
+  m_buttonHeaderValueParm.ShowWindow(showHeader);
+
+  // User/Password fields
+  w1 = GetDlgItem(IDC_GRP_USER);
+  w2 = GetDlgItem(IDC_STAT_USER);
+  w3 = GetDlgItem(IDC_STAT_PASSWD);
+  w1->ShowWindow(showUserpw);
+  w2->ShowWindow(showUserpw);
+  w3->ShowWindow(showUserpw);
+  m_editUsername.ShowWindow(showUserpw);
+  m_editPassword.ShowWindow(showUserpw);
+  m_buttonUsernameParm.ShowWindow(showUserpw);
+  m_buttonPasswordParm.ShowWindow(showUserpw);
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // AuthenticateDlg message handlers
@@ -494,8 +588,9 @@ AuthenticateDlg::OnCbnSelchangeIdentifier()
   UpdateData();
 
   if(identifier.IsEmpty() && !m_identifier.IsEmpty() &&
-    (!m_userName.IsEmpty() || !m_password.IsEmpty()  || !m_oauthGrant.IsEmpty() || !m_tokenServer.IsEmpty() ||
-     !m_clientID.IsEmpty() || !m_clientKey.IsEmpty() || !m_clientScope.IsEmpty()))
+    (!m_userName.IsEmpty()  || !m_password.IsEmpty()  || !m_oauthGrant.IsEmpty()  || !m_tokenServer.IsEmpty() ||
+     !m_clientID.IsEmpty()  || !m_clientKey.IsEmpty() || !m_clientScope.IsEmpty() ||
+     !m_keyHeader.IsEmpty() || !m_keyValue.IsEmpty() ))
   {
     if(StyleMessageBox(this,_T("Current credentials are not stored\n")
                             _T("Would you like to store them first, before selecting another set?")
@@ -517,6 +612,7 @@ AuthenticateDlg::OnCbnSelchangeAuthType()
 {
   UpdateData();
   AdjustAuthentication();
+  AdjustUPHVfields();
   UpdateData(FALSE);
 }
 

@@ -278,3 +278,8 @@ paket-files/
 .idea/
 *.sln.iml
 
+# Kwatta result files
+*.xres
+*.ires
+*.qres
+*.wres

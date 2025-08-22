@@ -109,6 +109,8 @@ TestStepNET::ReadFromXML(CString p_filename)
     m_clientID    = msg.GetElement(auth,_T("ClientID"));
     m_clientKey   = msg.GetElement(auth,_T("ClientKey"));
     m_clientScope = msg.GetElement(auth,_T("ClientScope"));
+    m_keyHeader   = msg.GetElement(auth,_T("KeyHeaderName"));
+    m_keyValue    = msg.GetElement(auth,_T("KeyHeaderValue"));
 
     SetCredential(m_credential);
   }
@@ -178,14 +180,16 @@ TestStepNET::WriteToXML(CString p_filename)
   msg.AddElement(auth,_T("Credentials"),XDT_String,m_credential);
   if(m_credential.IsEmpty())
   {
-    msg.AddElement(auth,_T("Type"),       XDT_String,m_authType);
-    msg.AddElement(auth,_T("Username"),   XDT_String,m_userName);
-    msg.AddElement(auth,_T("Password"),   XDT_String,m_password);
-    msg.AddElement(auth,_T("OAuthGrant"), XDT_String,m_oauthGrant);
-    msg.AddElement(auth,_T("TokenServer"),XDT_String,m_tokenServer);
-    msg.AddElement(auth,_T("ClientID"),   XDT_String,m_clientID);
-    msg.AddElement(auth,_T("ClientKey"),  XDT_String,m_clientKey);
-    msg.AddElement(auth,_T("ClientScope"),XDT_String,m_clientScope);
+    msg.AddElement(auth,_T("Type"),          XDT_String,m_authType);
+    msg.AddElement(auth,_T("Username"),      XDT_String,m_userName);
+    msg.AddElement(auth,_T("Password"),      XDT_String,m_password);
+    msg.AddElement(auth,_T("OAuthGrant"),    XDT_String,m_oauthGrant);
+    msg.AddElement(auth,_T("TokenServer"),   XDT_String,m_tokenServer);
+    msg.AddElement(auth,_T("ClientID"),      XDT_String,m_clientID);
+    msg.AddElement(auth,_T("ClientKey"),     XDT_String,m_clientKey);
+    msg.AddElement(auth,_T("ClientScope"),   XDT_String,m_clientScope);
+    msg.AddElement(auth,_T("KeyHeaderName"), XDT_String,m_keyHeader);
+    msg.AddElement(auth,_T("KeyHeaderValue"),XDT_String,m_keyValue);
   }
   // And our payload body
   msg.AddElement(def,_T("MimeType"),        XDT_String, m_mimeType);
@@ -416,5 +420,7 @@ TestStepNET::SetCredential(CString p_credential)
     m_clientID.Empty();
     m_clientKey.Empty();
     m_clientScope.Empty();
+    m_keyHeader.Empty();
+    m_keyValue.Empty();
   }
 }

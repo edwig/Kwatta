@@ -1,6 +1,8 @@
 KWATTA RELEASENOTES
 ===================
 
+Version 1.3.6 Release date 22-08-2025
+-------------------------------------
 1) Fixed the reading of on XML file in the result pane of the step editor.
    if an xml file was uploaded WITH an UTF-8 bom, this display did fail.
    The BOM scanning has now been added.
@@ -10,6 +12,13 @@ KWATTA RELEASENOTES
    credentials set contained an OAuth2 combination, because the tokenserver
    URL was not forwarded to the testrunner.
    You can now again fill the authentication pane by selecting a set.
+3) Fix: Storing [[CDATA]] messages in INET results
+4) Fix: It is again possible to edit testset names. The name change will
+   be visible in the level above the testsets (Kwatta's main interface)
+5) Removed the confusion about testset names when creating a new testset.
+6) Added the possibility to authenticate in an INET test with a specific header.
+   You can e.g. add a "X-Authenticate-myapp: ABCDEFGHIJKLMNOP123456789"
+   Cleaned up the "Credentials" code.
 
 Version 1.3.5 Release date 15-08-2025
 -------------------------------------

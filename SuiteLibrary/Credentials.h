@@ -38,7 +38,7 @@ enum class CredType
 #define CREDNAME_NTLM_SSO   _T("NTLM Single-signon")
 #define CREDNAME_NTLM       _T("NTLM Logon")
 #define CREDNAME_OAUTH2     _T("OAuth2")
-#define CREDNAME_HEADER     _T("Header")
+#define CREDNAME_HEADER     _T("Key-Header")
 
 // Saved credentials structure
 typedef struct _cred
@@ -53,8 +53,8 @@ typedef struct _cred
   XString   m_clientID;
   XString   m_clientKey;
   XString   m_clientScope;
-  XString   m_headerName;
-  XString   m_headerValue;
+  XString   m_keyHeader;
+  XString   m_keyValue;
 }
 Credential;
 
@@ -98,7 +98,7 @@ public:
   bool          SetBasicCredential(XString p_identifier,XString p_username,XString p_password);
   bool          SetWNTLMCredential(XString p_identifier,XString p_username = _T(""),XString p_password = _T(""));
   bool          SetOAuthCredential(XString p_identifier,XString p_grant,XString p_tserver,XString p_id,XString p_key,XString p_scope);
-  bool          SetHeadrCredential(XString p_identifier,XString p_headerName,XString p_headervalue);
+  bool          SetKeyHdCredential(XString p_identifier,XString p_headerName,XString p_headervalue);
   bool          SetODBCConnection (XString p_identifier,XString p_datasource,XString p_username,XString p_password);
 
   // Remove a credentials set

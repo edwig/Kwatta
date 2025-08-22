@@ -87,6 +87,7 @@ private:
   void  SetNTLMAuthentication();
   void  SetNTLMSSOAuthentication();
   void  SetOAuth2Authentication();
+  void  SetKeyHeaderAuthentication();
 
   // Details
   void  ReadTestStep();

@@ -82,8 +82,8 @@ Credentials::ReadFromXML(XString p_filename)
     cred.m_clientID    = msg.GetElement(credelem,_T("ClientID"));
     cred.m_clientKey   = msg.GetElement(credelem,_T("ClientKey"));
     cred.m_clientScope = msg.GetElement(credelem,_T("ClientScope"));
-    cred.m_headerName  = msg.GetElement(credelem,_T("HeaderName"));
-    cred.m_headerValue = msg.GetElement(credelem,_T("HeaderValue"));
+    cred.m_keyHeader   = msg.GetElement(credelem,_T("KeyHeader"));
+    cred.m_keyValue    = msg.GetElement(credelem,_T("KeyValue"));
 
     // Convert type
     cred.m_type = StringToCredType(cred.m_typeName);
@@ -98,10 +98,10 @@ Credentials::ReadFromXML(XString p_filename)
       Crypto crypt;
       cred.m_clientKey = crypt.Decryption(cred.m_clientKey,_T(KWATTA_ENCRYPT));
     }
-    if(!cred.m_headerValue.IsEmpty())
+    if(!cred.m_keyValue.IsEmpty())
     {
       Crypto crypt;
-      cred.m_headerValue = crypt.Decryption(cred.m_headerValue,_T(KWATTA_ENCRYPT));
+      cred.m_keyValue = crypt.Decryption(cred.m_keyValue,_T(KWATTA_ENCRYPT));
     }
 
     // Store in the credentials mapping
@@ -175,7 +175,7 @@ Credentials::WriteToXML()
       Crypto crypt;
       clientKey = crypt.Encryption(clientKey,_T(KWATTA_ENCRYPT));
     }
-    XString headerValue(cred.second.m_headerValue);
+    XString headerValue(cred.second.m_keyValue);
     if(!headerValue.IsEmpty())
     {
       Crypto crypt;
@@ -190,8 +190,8 @@ Credentials::WriteToXML()
     msg.AddElement(credelem,_T("ClientID"),   XDT_String,cred.second.m_clientID);
     msg.AddElement(credelem,_T("ClientKey"),  XDT_String,clientKey);
     msg.AddElement(credelem,_T("ClientScope"),XDT_String,cred.second.m_clientScope);
-    msg.AddElement(credelem,_T("HeaderName"), XDT_String,cred.second.m_headerName);
-    msg.AddElement(credelem,_T("HeaderValue"),XDT_String,headerValue);
+    msg.AddElement(credelem,_T("KeyHeader"),  XDT_String,cred.second.m_keyHeader);
+    msg.AddElement(credelem,_T("KeyValue"),   XDT_String,headerValue);
   }
 
   // Now save all the database connections
@@ -312,7 +312,7 @@ Credentials::SetOAuthCredential(XString p_identifier,XString p_grant,XString p_t
 }
 
 bool
-Credentials::SetHeadrCredential(XString p_identifier,XString p_headerName,XString p_headerValue)
+Credentials::SetKeyHdCredential(XString p_identifier,XString p_headerName,XString p_headerValue)
 {
   if(FindCredential(p_identifier))
   {
@@ -322,8 +322,8 @@ Credentials::SetHeadrCredential(XString p_identifier,XString p_headerName,XStrin
   Credential cred;
   cred.m_type        = CredType::HEADER;
   cred.m_typeName    = CREDNAME_HEADER;
-  cred.m_headerName  = p_headerName;
-  cred.m_headerValue = p_headerValue;
+  cred.m_keyHeader  = p_headerName;
+  cred.m_keyValue = p_headerValue;
 
   m_credentials[p_identifier] = cred;
   return (m_changed = true);

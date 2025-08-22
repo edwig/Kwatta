@@ -24,12 +24,6 @@ class StepResultNET;
 class Credentials;
 enum class CredType;
 
-// #define AUTH_ANONYMOUS  1
-// #define AUTH_BASIC      2
-// #define AUTH_NTLM_SSO   3
-// #define AUTH_NTLM       4
-// #define AUTH_OAUTH      5
-
 // AuthenticateDlg dialog
 
 class AuthenticateDlg : public StyleTab
@@ -55,7 +49,10 @@ protected:
 
   void      InitButtons();
   void      InitCombos();
+  void      InitFields();
+  void      MoveWindowUp(int p_id,int p_movey);
   CredType  CalcAuthenticationType();
+  void      AdjustUPHVfields();
   void      EffectiveParameters();
   void      ChooseVariable(StyleEdit& p_edit);
   void      AdjustAuthentication();
@@ -102,8 +99,8 @@ protected:
   CString         m_clientKey;
   CString         m_clientScope;
   CString         m_bearerToken;
-  CString         m_headerName;
-  CString         m_headerValue;
+  CString         m_keyHeader;
+  CString         m_keyValue;
 
 	DECLARE_MESSAGE_MAP()
 public:

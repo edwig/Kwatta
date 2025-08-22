@@ -77,7 +77,7 @@ KwattaAppDlg::DoDataExchange(CDataExchange* pDX)
 {
   StyleDialog::DoDataExchange(pDX);
 
-  DDX_Control(pDX,IDC_SUITE,			m_editTestsuite,	m_testsuite);
+  DDX_Control(pDX,IDC_SUITE,      m_editTestsuite,	m_testsuite);
   DDX_Control(pDX,IDC_DESCRIPTION,m_editDescription,m_description);
   DDX_Control(pDX,IDC_LIST,       m_list);
   DDX_Control(pDX,IDC_BUT_CHOOSE, m_buttonChoose);

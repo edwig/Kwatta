@@ -100,4 +100,5 @@ private:
   HTTPClient*   m_client      { nullptr };
   OAuth2Cache*  m_oauth       { nullptr };
   bool          m_isJson      { false   };
+  bool          m_xheader     { false   };
 };

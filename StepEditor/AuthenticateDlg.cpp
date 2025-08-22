@@ -141,9 +141,6 @@ AuthenticateDlg::OnInitDialog()
 {
   StyleTab::OnInitDialog();
 
-  m_editBearerToken.SetMutable(false);
-  m_editPassword.SetPassword(true);
-
   InitButtons();
   InitCombos();
   InitFields();
@@ -258,6 +255,12 @@ AuthenticateDlg::InitFields()
   MoveWindowUp(IDC_STAT_KV,    movey);
   MoveWindowUp(IDC_HEADER_PARM,movey);
   MoveWindowUp(IDC_KEYVAL_PARM,movey);
+
+  m_editPassword   .SetPassword(true);
+  m_editPassword   .UsePasswordEye(true);
+  m_editHeaderValue.SetPassword(true);
+  m_editHeaderValue.UsePasswordEye(true);
+  m_editBearerToken.SetMutable(false);
 }
 
 void

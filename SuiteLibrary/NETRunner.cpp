@@ -297,7 +297,7 @@ NETRunner::PerformAuthentication()
   }
   else if(auth.Find(CREDNAME_HEADER) >= 0)
   {
-    SetKeyHeaderAuthentication();
+    m_xheader = true;
   }
 }
 
@@ -339,6 +339,11 @@ NETRunner::PrepareMessage()
   if(accept.Find(_T("json")) >= 0)
   {
     m_isJson = true;
+  }
+
+  if(m_xheader)
+  {
+    SetKeyHeaderAuthentication();
   }
 }
 
@@ -718,7 +723,7 @@ NETRunner::SetKeyHeaderAuthentication()
   m_parameters.Replace(step->GetKeyHeaderName(), headerName, false,ParType::PAR_BUFFER);
   m_parameters.Replace(step->GetKeyHeaderValue(),headerValue,false,ParType::PAR_BUFFER);
 
-  m_client->AddHeader(headerName,headerValue);
+  m_message->AddHeader(headerName,headerValue);
 }
 
 //////////////////////////////////////////////////////////////////////////

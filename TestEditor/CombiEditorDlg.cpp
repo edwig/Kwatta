@@ -237,8 +237,11 @@ CombiEditorDlg::OnBnClickedAddValidation()
   AutoFocus focus;
 
   StepType type = m_stepType;
+  NewStepInfo info;
+  info.m_type = type;
+
   StyleStepper wizard(this,IDD_STEPPER,_T("New validation"));
-  wizard.SetStepperData(&type);
+  wizard.SetStepperData(&info);
 
   // Optionally add first page
   NewStepTypeDlg page1;

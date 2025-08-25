@@ -151,6 +151,7 @@ ResultViewerDlg::LoadVariables()
 {
   m_name          = m_stepResult.GetName();
   m_documentation = m_stepResult.GetDocumentation();
+  m_documentation.Replace(_T("\n"),_T("\r\n"));
 
   LPTSTR bitmap = m_stepResult.GetTotalResult() ? MAKEINTRESOURCE(IDB_OK) : MAKEINTRESOURCE(IDB_ERROR);
   m_picture.LoadBitmaps(bitmap);

@@ -344,26 +344,69 @@ SQLRunner::ReadResultSet()
 void
 SQLRunner::PerformAllValidations()
 {
-  StepResultSQL* result = dynamic_cast<StepResultSQL*>(m_result);
+  StepResultSQL* stepresult = dynamic_cast<StepResultSQL*>(m_result);
+  CString documentation;
+  bool totalresult = true;
 
   int step = 1;
   for(auto& vali : m_validations)
   {
     ValidateSQL* validate = dynamic_cast<ValidateSQL*>(vali);
     PerformStep(_T("Validation: ") + validate->GetName());
+    documentation += _T("Validation: ") + validate->GetName() + _T("\n");
 
     // Do the validations
-    bool totalresult = true;
-    if(validate->ValidateSucceeded   (&m_parameters,result->GetSucceeded())    == false) totalresult = false;
-    if(validate->ValidateReturnedCols(&m_parameters,result->GetResultCols())   == false) totalresult = false;
-    if(validate->ValidateReturnedRows(&m_parameters,result->GetResultRows())   == false) totalresult = false;
-    if(validate->ValidateSQLState    (&m_parameters,result->GetSQLState())     == false) totalresult = false;
-    if(validate->ValidateNativeStatus(&m_parameters,result->GetNativeStatus()) == false) totalresult = false;
-    if(validate->ValidateFirstData   (&m_parameters,result->GetFirstData())    == false) totalresult = false;
-    if(validate->ValidateColumnData  (result->GetResultMap())                  == false) totalresult = false;
+    bool result = true;
+    if(validate->ValidateSucceeded(&m_parameters,stepresult->GetSucceeded()) == false)
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Returned success status failed.\n");
+    }
+    if(validate->ValidateReturnedCols(&m_parameters,stepresult->GetResultCols()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Number of returned columns failed.\n");
+    }
+    if(validate->ValidateReturnedRows(&m_parameters,stepresult->GetResultRows()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Number of result rows failed.\n");
+    }
+    if(validate->ValidateSQLState(&m_parameters,stepresult->GetSQLState()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Expected SQL-State is incorrect.\n");
+    }
+    if(validate->ValidateNativeStatus(&m_parameters,stepresult->GetNativeStatus()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("");
+    }
+    if(validate->ValidateFirstData(&m_parameters,stepresult->GetFirstData()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Contents of the first data field failed.\n");
+    }
+    if(validate->ValidateColumnData(stepresult->GetResultMap()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Mapped columnar data failed.\n");
+    }
     // Add the validation to the result set
-    result->AddValidation(step++,validate->GetName(),validate->GetFilename(), totalresult,validate->GetGlobal());
+    stepresult->AddValidation(step++,validate->GetName(),validate->GetFilename(), result,validate->GetGlobal());
   }
+  if(totalresult)
+  {
+    documentation = _T("OK!");
+  }
+  m_result->SetDocumentation(documentation);
 }
 
 // Saving the test results to the disk

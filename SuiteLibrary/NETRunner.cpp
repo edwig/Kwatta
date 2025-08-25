@@ -446,50 +446,67 @@ NETRunner::ExamineMessage()
 void
 NETRunner::PerformAllValidations()
 {
-  StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
+  StepResultNET* stepresult = reinterpret_cast<StepResultNET*>(m_result);
+  CString documentation;
+  bool totalresult = true;
 
   int step = 1;
   for(auto& vali : m_validations)
   {
     ValidateNET* validate = reinterpret_cast<ValidateNET*>(vali);
     PerformStep(_T("Validation: ") + validate->GetName());
+    documentation += _T("Validation: ") + validate->GetName() + _T("\n");
 
     // Do the validations
-    bool totalresult = true;
-    if(!validate->ValidateStatusValue(&m_parameters,result->GetStatus()))
+    bool result = true;
+    if(!validate->ValidateStatusValue(&m_parameters,stepresult->GetStatus()))
     {
+      result = false;
       totalresult = false;
+      documentation += _T("HTTP status did not check out.\n");
     }
-    if(!validate->ValidateBodyValue(&m_parameters,result->GetBody()))
+    if(!validate->ValidateBodyValue(&m_parameters,stepresult->GetBody()))
     {
+      result = false;
       totalresult = false;
+      documentation += _T("Body value mismatch.\n");
     }
     if(validate->GetCheckHeader())
     {
-      CString header = result->GetHeader(validate->GetVerifyHeader());
+      CString header = stepresult->GetHeader(validate->GetVerifyHeader());
       if(!validate->ValidateHeaderValue(&m_parameters,header))
       {
+        result = false;
         totalresult = false;
+        documentation += _T("Header value mismatch: ") + header + _T("\n");
       }
     }
     if(validate->GetCheckXML())
     {
-      if(!validate->ValidateXMLValue(&m_parameters,result->GetBody()))
+      if(!validate->ValidateXMLValue(&m_parameters,stepresult->GetBody()))
       {
+        result = false;
         totalresult = false;
+        documentation += _T("XML check failure.\n");
       }
     }
     if(validate->GetCheckJSON())
     {
-      if(!validate->ValidateJSONValue(&m_parameters,result->GetBody()))
+      if(!validate->ValidateJSONValue(&m_parameters,stepresult->GetBody()))
       {
+        result = false;
         totalresult = false;
+        documentation += _T("JSON check failure.\n");
       }
     }
-
     // Add the validation to the result set
-    result->AddValidation(step++,validate->GetName(),validate->GetFilename(),totalresult,validate->GetGlobal());
+    stepresult->AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
   }
+  if(totalresult)
+  {
+    documentation = _T("OK!");
+  }
+  m_result->SetDocumentation(documentation);
 }
 
 void

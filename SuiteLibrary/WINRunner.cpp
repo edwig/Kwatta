@@ -276,22 +276,44 @@ void
 WINRunner::PerformAllValidations()
 {
   int step = 1;
-  StepResultWIN* result = dynamic_cast<StepResultWIN*>(m_result);
+  StepResultWIN* stepresult = dynamic_cast<StepResultWIN*>(m_result);
+  CString documentation;
+  bool totalresult = true;
 
   for (auto& vali : m_validations)
   {
     ValidateWIN* validate = dynamic_cast<ValidateWIN*>(vali);
     PerformStep(_T("Validation: ") + validate->GetName());
+    documentation += _T("Validation: ") + validate->GetName() + _T("\n");
 
     // Do the validations
-    bool totalresult = true;
-    if (validate->ValidateReturnValue(result->GetLastOSError())  == false) totalresult = false;
-    if (validate->ValidateLogging    (result->GetResultString()) == false) totalresult = false;
-    if (validate->ValidateErrors     (result->GetErrorString())  == false) totalresult = false;
-
+    bool result = true;
+    if (validate->ValidateReturnValue(stepresult->GetLastOSError())  == false) 
+    {
+      result = false;
+      totalresult = true;
+      documentation += _T("Last OS error was unexpected.\n");
+    }
+    if (validate->ValidateLogging(stepresult->GetResultString()) == false) 
+    {
+      result = false;
+      totalresult = true;
+      documentation += _T("Logging result was unexpected.\n");
+    }
+    if (validate->ValidateErrors(stepresult->GetErrorString())  == false) 
+    {
+      result = false;
+      totalresult = true;
+      documentation += _T("Error string was unexpected.\n");
+    }
     // Add the validation to the result set
-    result->AddValidation(step++,validate->GetName(),validate->GetFilename(),totalresult,validate->GetGlobal());
+    stepresult->AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
   }
+  if(totalresult)
+  {
+    documentation = _T("OK!");
+  }
+  m_result->SetDocumentation(documentation);
 }
 
 // Saving the test results to the disk

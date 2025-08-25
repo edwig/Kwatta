@@ -333,22 +333,44 @@ void
 CMDRunner::PerformAllValidations()
 {
   int step = 1;
-  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
+  StepResultCMD* stepresult = reinterpret_cast<StepResultCMD*>(m_result);
+  CString documentation;
+  bool totalresult = true;
 
   for(auto& vali : m_validations)
   {
     ValidateCMD* validate = reinterpret_cast<ValidateCMD*>(vali);
     PerformStep(_T("Validation: ") + validate->GetName());
+    documentation += _T("Validation: ") + validate->GetName() + _T("\n");
 
     // Do the validations
-    bool totalresult = true;
-    if(validate->ValidateReturnValue (result->GetReturnValue())    == false) totalresult = false;
-    if(validate->ValidateOutputBuffer(result->GetStandardOutput()) == false) totalresult = false;
-    if(validate->ValidateErrorBuffer (result->GetStandardError())  == false) totalresult = false;
-
+    bool result = true;
+    if(validate->ValidateReturnValue (stepresult->GetReturnValue()) == false)
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Return value is wrong.\n");
+    }
+    if(validate->ValidateOutputBuffer(stepresult->GetStandardOutput()) == false) 
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Standard output buffer is wrong.\n");
+    }
+    if(validate->ValidateErrorBuffer (stepresult->GetStandardError()) == false)
+    {
+      result = false;
+      totalresult = false;
+      documentation += _T("Standard error buffer is wrong.\n");
+    }
     // Add the validation to the result set
-    result->AddValidation(step++,validate->GetName(),validate->GetFilename(),totalresult,validate->GetGlobal());
+    stepresult->AddValidation(step++,validate->GetName(),validate->GetFilename(),result,validate->GetGlobal());
   }
+  if(totalresult)
+  {
+    documentation = _T("OK!");
+  }
+  m_result->SetDocumentation(documentation);
 }
 
 // Saving the test results to the disk

@@ -112,6 +112,7 @@ BEGIN_MESSAGE_MAP(StyleComboBox,CEdit)
   ON_MESSAGE(CB_SHOWDROPDOWN,         OnShowDropDown)
   ON_MESSAGE(WM_GETTEXT,              OnGetText)
   ON_MESSAGE(WM_GETTEXTLENGTH,        OnGetTextLength)
+  ON_MESSAGE(WM_DPICHANGED_AFTERPARENT,OnDpiChanged)
   /* NOTIFICATIONS TO THE PARENT 
   CBN_ERRSPACE      // NEVER SENT
   WM_COMPAREITEM    // WE NEVER ASK THE OWNER
@@ -123,9 +124,9 @@ END_MESSAGE_MAP()
 void 
 StyleComboBox::PreSubclassWindow()
 {
-  SetFont(&STYLEFONTS.DialogTextFont);
-  ScaleControl(this);
-
+  CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFont);
+  SetFont(font);
+  
   // Remove default box and list
   // Getting the default combobox implementation
   COMBOBOXINFO info;
@@ -156,10 +157,6 @@ StyleComboBox::PreSubclassWindow()
   int height = (rect.Height() * 13) / 11;
 
   // When size factors are set, apply these as well.
-  if(GetSFXSizeFactor() != 100)
-  {
-    height = (height * GetSFXSizeFactor()) / 100;
-  }
   ::MoveWindow(info.hwndCombo,rect.left,rect.top,rect.Width(),height,TRUE);
 }
 
@@ -252,6 +249,7 @@ StyleComboBox::CreateListControl()
     m_listControl->GetSkin()->SetMouseCapture(TRUE,TME_HOVER);
     m_listControl->GetSkin()->SkinSetMouseTracking();
   }
+  m_listControl->PostMessage(WM_SETFONT,(WPARAM)GetFont()->GetSafeHandle(),MAKELPARAM(TRUE,0));
 }
 
 // Needs to be called when created dynamic and not through a resource *.rc file
@@ -717,8 +715,7 @@ StyleComboBox::OnGetItemData(WPARAM wParam, LPARAM lParam)
 LRESULT 
 StyleComboBox::OnGetItemHeight(WPARAM wParam, LPARAM lParam)
 {
-  int height = GetItemHeight((int)wParam);
-  return (height * GetSFXSizeFactor()) / 100;
+  return GetItemHeight((int)wParam);
 }
 
 LRESULT 
@@ -924,6 +921,21 @@ StyleComboBox::OnChar(UINT nChar,UINT nRepCnt,UINT nFlags)
     }
   }
   CEdit::OnChar(nChar,nRepCnt,nFlags);
+}
+
+LRESULT
+StyleComboBox::OnDpiChanged(WPARAM wParam,LPARAM lParam)
+{
+  HMONITOR monitor = reinterpret_cast<HMONITOR>(lParam);
+  if(monitor)
+  {
+    m_itemControl->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
+    m_listControl->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
+
+    int height = LISTBOX_ITEMHEIGTH;
+    m_listControl->SetItemHeight(0,(height * GetSFXSizeFactor(monitor)) / 100);
+  }
+  return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1868,22 +1880,24 @@ StyleComboBox::DrawComboButton(CDC* p_dc,CRect& p_but)
   p_but.CenterPoint();
 
   POINT points[3];
+  int half  = WS(GetSafeHwnd(),4);
+  int extra = WS(GetSafeHwnd(),6);
   if(m_buttonDown)
   {
-    points[0].x = p_but.CenterPoint().x - WS(4);
-    points[0].y = p_but.CenterPoint().y + WS(4);
+    points[0].x = p_but.CenterPoint().x - half;
+    points[0].y = p_but.CenterPoint().y + half;
     points[1].x = p_but.CenterPoint().x + 1;
     points[1].y = p_but.CenterPoint().y - 1;
-    points[2].x = p_but.CenterPoint().x + WS(4) + 2;
-    points[2].y = p_but.CenterPoint().y + WS(4);
+    points[2].x = p_but.CenterPoint().x + extra;
+    points[2].y = p_but.CenterPoint().y + half;
   }
   else
   {
-    points[0].x = p_but.CenterPoint().x - WS(4);
+    points[0].x = p_but.CenterPoint().x - half;
     points[0].y = p_but.CenterPoint().y - 1;
     points[1].x = p_but.CenterPoint().x + 1;
-    points[1].y = p_but.CenterPoint().y + WS(4);
-    points[2].x = p_but.CenterPoint().x + WS(4) + 2;
+    points[1].y = p_but.CenterPoint().y + half;
+    points[2].x = p_but.CenterPoint().x + extra;
     points[2].y = p_but.CenterPoint().y - 1;
   }
 
@@ -2270,7 +2284,8 @@ SCBListBox::~SCBListBox()
 void
 SCBListBox::PreSubclassWindow()
 {
-  SetFont(&STYLEFONTS.DialogTextFont);
+  CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFont);
+  SetFont(font);
 }
 
 bool
@@ -2543,7 +2558,7 @@ SCBListBox::OnMouseMove(UINT nFlags,CPoint point)
     INT itemHeight = GetItemHeight(0);
 
     // Compute which index to check/unchecked
-    INT index = topIndex + point.y / itemHeight;
+    INT index = topIndex + (point.y / itemHeight);
 
     CRect rcItem;
     GetItemRect(index,&rcItem);

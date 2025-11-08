@@ -45,11 +45,13 @@ protected:
   void RegisterTooltip(StyleComboBox& p_wnd,LPCTSTR p_text);
 
 private:
-  bool      m_error     { false  };
+  bool      m_error     { false };
   bool      m_canResize { false };
   CRect     m_originalSize;
   ToolTips  m_tooltips;
   CBrush    m_defaultBrush;
+  int       m_dpi_x     { 0     };
+  int       m_dpi_y     { 0     };
   
   DECLARE_MESSAGE_MAP();
 

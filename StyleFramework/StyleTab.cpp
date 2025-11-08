@@ -33,10 +33,10 @@ IMPLEMENT_DYNAMIC(StyleTab,CDialog);
 BEGIN_MESSAGE_MAP(StyleTab,CDialog)
   ON_WM_ERASEBKGND()
   ON_WM_CTLCOLOR()
-  ON_REGISTERED_MESSAGE(g_msg_changed,OnStyleChanged)
-  ON_NOTIFY_EX(TTN_NEEDTEXT,0,  OnToolTipNotify)
-  ON_MESSAGE(WM_CTLCOLORSTATIC, OnCtlColorStatic)
-  ON_MESSAGE(WM_CTLCOLORLISTBOX,OnCtlColorListBox)
+  ON_REGISTERED_MESSAGE(g_msg_changed,  OnStyleChanged)
+  ON_NOTIFY_EX(TTN_NEEDTEXT,0,          OnToolTipNotify)
+  ON_MESSAGE(WM_CTLCOLORSTATIC,         OnCtlColorStatic)
+  ON_MESSAGE(WM_CTLCOLORLISTBOX,        OnCtlColorListBox)
 END_MESSAGE_MAP()
 
 StyleTab::StyleTab(UINT  p_IDTemplate,CWnd* p_parentWnd)
@@ -56,7 +56,10 @@ StyleTab::OnInitDialog()
   CDialog::OnInitDialog();
   OnStyleChanged(0,0);
 
-  ASSERT(GetStyle() & WS_CHILD);
+  ASSERT(GetStyle()   & WS_CHILD);
+  ASSERT(GetExStyle() & WS_EX_CONTROLPARENT);
+
+  GetDpi(GetSafeHwnd(),m_dpi_x,m_dpi_y);
   return TRUE;
 }
 
@@ -213,7 +216,7 @@ StyleTab::OnToolHitTest(CPoint point,TOOLINFO* pTI) const
       combo->GetWindowRect(&comboRect);
       CRect dialogRect;
       GetWindowRect(&dialogRect);
-      comboRect.OffsetRect(-dialogRect.left,-(dialogRect.top + WINDOWCAPTIONHEIGHT));
+      comboRect.OffsetRect(-dialogRect.left,-(dialogRect.top + WINDOWCAPTIONHEIGHT(m_hWnd)));
       comboRect.right -= comboRect.Height();
       if(comboRect.PtInRect(point))
       {

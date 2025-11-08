@@ -43,16 +43,15 @@ BEGIN_MESSAGE_MAP(StyleEdit,CEdit)
   ON_WM_LBUTTONUP()
   ON_WM_NCCALCSIZE()
   ON_WM_DROPFILES()
-  ON_MESSAGE(WM_MOUSEHOVER,           OnMouseHover)
-  ON_MESSAGE(WM_MOUSELEAVE,           OnMouseLeave)
-  ON_MESSAGE(WM_LBUTTONDBLCLK,        OnDoubleClick)
-  ON_CONTROL_REFLECT_EX(EN_KILLFOCUS, OnKillFocus)
-  ON_CONTROL_REFLECT_EX(EN_SETFOCUS,  OnSetfocus)
+  ON_MESSAGE(WM_MOUSEHOVER,             OnMouseHover)
+  ON_MESSAGE(WM_MOUSELEAVE,             OnMouseLeave)
+  ON_MESSAGE(WM_LBUTTONDBLCLK,          OnDoubleClick)
+  ON_CONTROL_REFLECT_EX(EN_KILLFOCUS,   OnKillFocus)
+  ON_CONTROL_REFLECT_EX(EN_SETFOCUS,    OnSetfocus)
+  ON_MESSAGE(WM_DPICHANGED_AFTERPARENT, OnDpiChangedAfter)
   ON_WM_CTLCOLOR_REFLECT()
-
 // BEWARE: Not activated
 // ON_WM_WINDOWPOSCHANGED()
-
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -82,8 +81,6 @@ StyleEdit::~StyleEdit()
 void
 StyleEdit::PreSubclassWindow()
 {
-  ScaleControl(this);
-
   if(m_directInit)
   {
     InitSkin();
@@ -125,7 +122,8 @@ StyleEdit::InitSkin(bool p_force /*=false*/)
       m_borderSize = STYLE_SINGLELN_BORDER;
     }
   }
-  SetFont(&STYLEFONTS.DialogTextFont);
+  CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFont);
+  SetFont(font);
   if(p_force || (style & ES_MULTILINE))
   {
     SkinWndScroll(this,border ? m_borderSize : 0);
@@ -876,14 +874,14 @@ StyleEdit::DrawPasswordEye()
 
   // Take a colored pen
   CPen pen;
-  pen.CreatePen(PS_SOLID,EDIT_EYE_WEIGHT,color);
+  pen.CreatePen(PS_SOLID,WS(GetSafeHwnd(),EDIT_EYE_WEIGHT) ,color);
   CPen* oldpen = dc->SelectObject(&pen);
 
   // Draw the eyebrow
   dc->Arc(left,top,right,bottom,startx,starty,endx,endy);
 
   // Size of the eye circle
-  int inner = EDIT_INNER_EYE;
+  int inner = WS(GetSafeHwnd(),EDIT_INNER_EYE);
   left   += inner;
   right  -= inner;
   top    += inner;
@@ -1231,15 +1229,25 @@ StyleEdit::CtlColor(CDC* pDC, UINT nCtlColor)
 }
 
 void 
-StyleEdit::ResetFont()
+StyleEdit::ResetFont(HMONITOR p_monitor /*= nullptr*/)
 {
-  LOGFONT  lgFont;
+  // Getting the font scaling factor
+  int scale = 100;
+  if(p_monitor)
+  {
+    scale = GetSFXSizeFactor(p_monitor);
+  }
+  else
+  {
+    scale = GetSFXSizeFactor(GetSafeHwnd());
+  }
 
+  LOGFONT lgFont;
   lgFont.lfCharSet        = m_language;
   lgFont.lfClipPrecision  = 0;
   lgFont.lfEscapement     = 0;
   _tcscpy_s(lgFont.lfFaceName,LF_FACESIZE,m_fontName);
-  lgFont.lfHeight         = m_fontSize;
+  lgFont.lfHeight         = (m_fontSize * scale) / 100;
   lgFont.lfItalic         = m_italic;
   lgFont.lfOrientation    = 0;
   lgFont.lfOutPrecision   = 0;
@@ -1397,6 +1405,18 @@ StyleEdit::OnSize(UINT nType, int cx, int cy)
   {
     Invalidate();
   }
+}
+
+LRESULT
+StyleEdit::OnDpiChangedAfter(WPARAM wParam,LPARAM lParam)
+{
+  HMONITOR monitor = reinterpret_cast<HMONITOR>(lParam);
+  if(monitor == nullptr)
+  {
+    return 0;
+  }
+  ResetFont(monitor);
+  return 0;
 }
 
 void

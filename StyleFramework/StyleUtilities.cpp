@@ -19,12 +19,16 @@
 #include "stdafx.h"
 #include "StyleUtilities.h"
 #include <afxglobals.h>
+#include <shellscalingapi.h>
+#include <VersionHelpers.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+#pragma comment(lib,"shcore.lib")
 
 CString EverythingBefore(CString p_string,CString p_tag)
 {
@@ -193,34 +197,6 @@ MinimalFrameWnd(CWnd* p_wnd)
   }
 }
 
-int GetSFXSizeFactor();
-void SFXResizeByFactor(CRect& p_rect);
-
-// Scale a control to the SFXSizeFactor
-void
-ScaleControl(CWnd* p_wnd)
-{
-  // See if we must do scaling
-  if(GetSFXSizeFactor() == 100)
-  {
-    return;
-  }
-
-  CRect rect;
-  p_wnd->GetWindowRect(rect);
-
-  CWnd* parent = p_wnd->GetParent();
-  if(parent)
-  {
-    parent->ScreenToClient(rect);
-  }
-  SFXResizeByFactor(rect);
-  // p_wnd->MoveWindow(rect);
-  SetWindowPos(p_wnd->GetSafeHwnd(),p_wnd->GetSafeHwnd()
-              ,rect.left,rect.top,rect.Width(),rect.Height()
-              ,SWP_NOZORDER|SWP_NOACTIVATE);
-}
-
 CString StyleGetStringFromClipboard(HWND p_wnd /*=NULL*/)
 {
 #ifdef UNICODE
@@ -288,4 +264,100 @@ bool StylePutStringToClipboard(CString p_string,HWND p_wnd /*=NULL*/,bool p_appe
     CloseClipboard();
   }
   return result;
+}
+
+// Getting the DPI for the DPI_AWARE_PER_MONITOR_V2
+bool GetDpi(HWND hWnd,int& p_dpi_x,int& p_dpi_y)
+{
+   bool v81 = IsWindows8Point1OrGreater();
+   bool v10 = IsWindows10OrGreater();
+   if (v81 || v10)
+   {
+      HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+      return GetDpiMonitor(hMonitor,p_dpi_x,p_dpi_y);
+   }
+   else
+   {
+      HDC hDC  = ::GetDC(hWnd);
+      INT xdpi = ::GetDeviceCaps(hDC, LOGPIXELSX);
+      INT ydpi = ::GetDeviceCaps(hDC, LOGPIXELSY);
+      ::ReleaseDC(NULL, hDC);
+      p_dpi_x = static_cast<int>(xdpi);
+      p_dpi_y = static_cast<int>(ydpi);
+      return true;
+   }
+}
+
+bool GetDpiMonitor(HMONITOR hMonitor,int& p_dpi_x,int& p_dpi_y)
+{
+  UINT xdpi, ydpi;
+  LRESULT success = ::GetDpiForMonitor(hMonitor,MDT_EFFECTIVE_DPI,&xdpi,&ydpi);
+  if(success == S_OK)
+  {
+    p_dpi_x = static_cast<int>(xdpi);
+    p_dpi_y = static_cast<int>(ydpi);
+    return true;
+  }
+  p_dpi_x = USER_DEFAULT_SCREEN_DPI;
+  p_dpi_y = USER_DEFAULT_SCREEN_DPI;
+  return false;
+}
+
+// Saving and restoring the window on a multi-monitor setup
+void StyleSaveWindowPosition(CWnd* p_wnd)
+{
+  CWinApp* app = AfxGetApp();
+  const StyleMonitor* monitor = g_styling.GetMonitor(p_wnd->GetSafeHwnd());
+  if(!monitor)
+  {
+    return;
+  }
+  // Save the name of the monitor
+  const CString name = monitor->GetName();
+  app->WriteProfileString(_T("Monitor"),_T("Name"),name);
+
+  // Save the window position relative to the monitor
+  CRect monRect = monitor->GetRect();
+  CRect winRect;
+  p_wnd->GetWindowRect(&winRect);
+
+  int left = winRect.left - monRect.left;
+  int top  = winRect.top  - monRect.top;
+  app->WriteProfileInt(_T("Monitor"),_T("Left"),left);
+  app->WriteProfileInt(_T("Monitor"),_T("Top"), top);
+}
+
+void
+StyleRestoreWindowPosition(CWnd* p_wnd)
+{
+  CWinApp* app = AfxGetApp();
+  CString name = app->GetProfileString(_T("Monitor"),_T("Name"),_T(""));
+  if(name.IsEmpty())
+  {
+    return;
+  }
+  const StyleMonitor* monitor = g_styling.GetMonitor(name);
+  if(!monitor)
+  {
+    return;
+  }
+  // Getting the saved position
+  int top  = app->GetProfileInt(_T("Monitor"),_T("Top"), -1);
+  int left = app->GetProfileInt(_T("Monitor"),_T("Left"),-1);
+  if(top == -1 && left == -1)
+  {
+    return;
+  }
+
+  // Getting the relative monitor position
+  CRect rect = monitor->GetRect();
+  rect.left += left;
+  rect.top  += top;
+
+  // Move our window to this position
+  CRect winrect;
+  p_wnd->GetWindowRect(&winrect);
+  ::SetWindowPos(p_wnd->GetSafeHwnd(),nullptr
+                ,rect.left,rect.top,winrect.Width(),winrect.Height()
+                ,SWP_NOZORDER | SWP_NOACTIVATE);
 }

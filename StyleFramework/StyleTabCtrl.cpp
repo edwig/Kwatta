@@ -35,7 +35,6 @@ StyleTabCtrl::StyleTabCtrl()
 {
   m_selColor   = ThemeColor::GetColor(Colors::ColorTabTextActive);
   m_unselColor = ThemeColor::GetColor(Colors::ColorTabTextInactive);
-  m_font       = &STYLEFONTS.DialogTextFontBold;
   m_hover      = -1;
   m_notch      = false;
   m_offset     = 0;
@@ -53,8 +52,9 @@ BEGIN_MESSAGE_MAP(StyleTabCtrl, CTabCtrl)
   ON_WM_SIZE()
   ON_WM_ERASEBKGND()
   ON_WM_CTLCOLOR()
-  ON_MESSAGE(WM_CTLCOLORSTATIC,   OnCtlColorStatic)
-  ON_NOTIFY_REFLECT(TCN_SELCHANGE,OnTcnSelchangeTabs)
+  ON_MESSAGE(WM_CTLCOLORSTATIC,        OnCtlColorStatic)
+  ON_NOTIFY_REFLECT(TCN_SELCHANGE,     OnTcnSelchangeTabs)
+  ON_MESSAGE(WM_DPICHANGED_AFTERPARENT,OnDpiChanged)
 END_MESSAGE_MAP()
 
 int 
@@ -64,7 +64,8 @@ StyleTabCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
   {
     return -1;
   }
-  ModifyStyle(0, TCS_OWNERDRAWFIXED);
+  ModifyStyle(0, TCS_OWNERDRAWFIXED | WS_TABSTOP);
+  m_font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFontBold);
   return 0;
 }
 
@@ -73,7 +74,8 @@ StyleTabCtrl::PreSubclassWindow()
 {
   CTabCtrl::PreSubclassWindow();
   ModifyStyle(0, TCS_OWNERDRAWFIXED);
-  SetFont(&STYLEFONTS.DialogTextFontBold);
+  CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFontBold);
+  SetFont(font);
 }
 
 HBRUSH
@@ -100,12 +102,41 @@ StyleTabCtrl::OnEraseBkgnd(CDC* pDC)
   return TRUE;
 }
 
+LRESULT
+StyleTabCtrl::OnDpiChanged(WPARAM wParam,LPARAM lParam)
+{
+  HMONITOR monitor = reinterpret_cast<HMONITOR>(lParam);
+  if(monitor)
+  {
+    int height = (tabHeaderHeight * GetSFXSizeFactor(monitor)) / 100;
+    CSize size(0,height);
+    SetItemSize(size);
+
+    // Tell it to all tab windows as well
+    int count = GetItemCount();
+    for(int ind = 0;ind < count; ++ind)
+    {
+      CWnd* wnd = GetTabWindow(ind);
+      if(wnd)
+      {
+        wnd->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
+      }
+    }
+    // Adjust all windows in the tab control
+    CRect rect;
+    GetWindowRect(&rect);
+    OnSize(0,rect.Width(),rect.Height());
+  }
+  return 0;
+}
+
 // Insert a CWnd on a tab, so that the OnSize may work
 LONG
 StyleTabCtrl::InsertItem(int p_item,CWnd* p_wnd,CString p_text)
 {
   // See to it that the tab control knows the height of the items
-  CSize size(0,tabHeaderHeight);
+  int height = WS(GetSafeHwnd(),tabHeaderHeight);
+  CSize size(0,height);
   SetItemSize(size);
 
   return CTabCtrl::InsertItem(TCIF_TEXT|TCIF_PARAM
@@ -176,13 +207,15 @@ StyleTabCtrl::AdjustRect(BOOL bLarger, LPRECT lpRect)
   lpRect->bottom = client.bottom;
   lpRect->right  = client.right;
 
+  int height = WS(GetSafeHwnd(),tabHeaderHeight);
+
   if (bLarger)
   {
-    lpRect->bottom = client.top + tabHeaderHeight;
+    lpRect->bottom = client.top + height;
   }
   else
   {
-    lpRect->top = client.top + tabHeaderHeight;
+    lpRect->top = client.top + height;
   }
 }
 
@@ -195,26 +228,26 @@ StyleTabCtrl::OnSize(UINT nType,int cx,int cy)
   {
     ResizeTab(index);
   }
+  Invalidate();
 }
 
 void
 StyleTabCtrl::ResizeTab(int p_tab)
 {
-
   CWnd* wnd = GetTabWindow(p_tab);
-  if (wnd)
+  if(wnd)
   {
     CRect rect;
     GetClientRect(&rect);
 
-    rect.top    += 4 + tabHeaderHeight;
+    rect.top    += WS(GetSafeHwnd(),4) + WS(GetSafeHwnd(),tabHeaderHeight);
     rect.left   += 1;
     rect.right  -= 1;
     rect.bottom -= 1;
 
     if (m_notch)
     {
-      rect.top += tabHeaderNotch;
+      rect.top += WS(GetSafeHwnd(),tabHeaderNotch);
     }
     wnd->MoveWindow(rect, true);
   }
@@ -227,12 +260,13 @@ StyleTabCtrl::OnPaint()
   {
     CPaintDC paint(this);
     CDC* dc = GetDC();
-    dc->SelectObject(&STYLEFONTS.DialogTextFont);
+    CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFont);
+    dc->SelectObject(font);
 
     CRect client;
     GetClientRect(client);
     //client.bottom = client.top + tabHeaderHeight;
-    const CRect itemrect(client.left, client.top, client.right, client.top + tabHeaderHeight);
+    const CRect itemrect(client.left, client.top, client.right, client.top + WS(GetSafeHwnd(),tabHeaderHeight));
     CRect rect;
 
     // Draw items    
@@ -297,24 +331,25 @@ StyleTabCtrl::OnPaint()
         HGDIOBJ org = dc->SelectObject(&brush);
 
         POINT points[7];
+        int notchHeight = WS(GetSafeHwnd(),tabHeaderNotch);
         points[0].x = rect.left;
-        points[0].y = rect.bottom - 1 - (m_notch ? tabHeaderNotch : 0);
+        points[0].y = rect.bottom - 1 - (m_notch ? notchHeight: 0);
         points[1].x = rect.left;
         points[1].y = rect.top;
         points[2].x = rect.right - 1;
         points[2].y = rect.top;
         points[3].x = rect.right - 1;
-        points[3].y = rect.bottom - 1 - (m_notch ? tabHeaderNotch : 0);
+        points[3].y = rect.bottom - 1 - (m_notch ? notchHeight: 0);
 
         if (ind == cursel)
         {
           // Optionally paint the notch (arrow down under the tab)
           points[4].x = rect.left + rect.Width() / 2 + 5;
-          points[4].y = rect.bottom - 1 - (m_notch ? tabHeaderNotch : 0);
+          points[4].y = rect.bottom - 1 - (m_notch ? notchHeight: 0);
           points[5].x = rect.left + rect.Width() / 2;
           points[5].y = rect.bottom - 1;
           points[6].x = rect.left + rect.Width() / 2 - 5;
-          points[6].y = rect.bottom - 1 - (m_notch ? tabHeaderNotch : 0);
+          points[6].y = rect.bottom - 1 - (m_notch ? notchHeight : 0);
 
           dc->Polygon(points, 7);
 
@@ -336,10 +371,10 @@ StyleTabCtrl::OnPaint()
 
           if (m_notch)
           {
-            points[0].y += tabHeaderNotch;
-            points[3].y += tabHeaderNotch;
-            points[1].y = points[0].y - tabHeaderNotch + 1;
-            points[2].y = points[3].y - tabHeaderNotch + 1;
+            points[0].y += notchHeight;
+            points[3].y += notchHeight;
+            points[1].y = points[0].y - notchHeight + 1;
+            points[2].y = points[3].y - notchHeight + 1;
             CBrush blank(ThemeColor::GetColor(Colors::ColorWindowFrame));             // ClrTabBkGndActive
             CPen   nopen(PS_SOLID,1,ThemeColor::GetColor(Colors::ColorWindowFrame));  // ClrTabBkGndActive
             dc->SelectObject(blank);
@@ -350,7 +385,7 @@ StyleTabCtrl::OnPaint()
         }
         dc->SelectObject(org);
 
-        rect.bottom -= (m_notch ? tabHeaderNotch : 0);
+        rect.bottom -= (m_notch ? notchHeight : 0);
         dc->SetBkColor(clrbkgnd);
         dc->SetTextColor(clrtext);
 
@@ -359,8 +394,8 @@ StyleTabCtrl::OnPaint()
           CRect r = rect;
           r.right  -= 5;
           r.left    = r.right - 4;
-          r.top    += 8 - (m_notch ? tabHeaderNotch / 2 : 0);
-          r.bottom += 8 - (m_notch ? tabHeaderNotch / 2 : 0);
+          r.top    += 8 - (m_notch ? notchHeight / 2 : 0);
+          r.bottom += 8 - (m_notch ? notchHeight / 2 : 0);
           PaintError(dc, r);
         }
 
@@ -420,7 +455,9 @@ StyleTabCtrl::OnPaint()
 void 
 StyleTabCtrl::PaintError(CDC* pDC, CRect rect)
 {
-  HGDIOBJ  oldfont  = pDC->SelectObject(STYLEFONTS.ErrorTextFont);
+  CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::ErrorFont);
+
+  HGDIOBJ  oldfont  = pDC->SelectObject(font);
   COLORREF oldcolor = pDC->SetTextColor(ColorWindowFrameError);
   int      oldmode  = pDC->SetBkMode(TRANSPARENT);
 
@@ -525,6 +562,10 @@ StyleTabCtrl::SetTabWindow(int p_tab,CWnd* p_window)
   {
     // Keep the old window
     CWnd* old = GetTabWindow(p_tab);
+    if(!old)
+    {
+      return nullptr;
+    }
 
     // Set the new window on the tab
     TCITEM item;

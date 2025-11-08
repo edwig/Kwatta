@@ -22,8 +22,8 @@
 // CSG_TextEdit window
 
 // Password eye: Number of DLU's the inner eye is within the eyebrow
-#define   EDIT_INNER_EYE  WS(5)
-#define   EDIT_EYE_WEIGHT WS(2)
+#define   EDIT_INNER_EYE  5
+#define   EDIT_EYE_WEIGHT 2
 
 // The password character
 #define   EDIT_PASSWORD_CHAR _T('•')
@@ -138,6 +138,7 @@ protected:
   afx_msg void    OnShowWindow(BOOL bShow, UINT nStatus);
   afx_msg BOOL    OnKillFocus();
   afx_msg BOOL    OnSetfocus();
+  afx_msg LRESULT OnDpiChangedAfter (WPARAM wParam,LPARAM lParam);
   afx_msg void    OnLButtonDown(UINT   nFlags,CPoint point);
   afx_msg void    OnLButtonUp  (UINT   nFlags,CPoint point);
   afx_msg LRESULT OnDoubleClick(WPARAM wParam,LPARAM lParam);
@@ -162,7 +163,7 @@ protected:
 
 private:
   void     ResetEditColors();
-  void     ResetFont();
+  void     ResetFont(HMONITOR p_monitor = nullptr);
   void     CreateBackgroundBrush(DWORD p_color);
   void     CreateBackgroundEmptyBrush(DWORD p_color);
   void     DrawPasswordEye();

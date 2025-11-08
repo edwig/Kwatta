@@ -18,6 +18,7 @@
 //
 #pragma once
 #include <map>
+#include <afxdialogex.h>
 
 class StyleComboBox;
 class AutoBlockActivation;
@@ -32,7 +33,7 @@ typedef struct
 } 
 SMessage, *PSMessage;
 
-class StyleDialog : public CDialog
+class StyleDialog : public CDialogEx
 {
   DECLARE_DYNAMIC(StyleDialog)
 
@@ -50,6 +51,7 @@ public:
              ,bool  p_caption   = true
              ,bool  p_sysmenu   = false
              ,bool  p_status    = false);
+  virtual ~StyleDialog() override;
 
   virtual INT_PTR DoModal() override;
   virtual INT_PTR DoModal(bool p_showGrayscreen);
@@ -89,8 +91,8 @@ protected:
   void    ReDrawButton(LRESULT type);
   void    DrawButton(CDC* pDC,CRect rect,LRESULT type);
   void    PositionButtons();
-  void    Button(CDC* pDC, CRect rect, LRESULT type, BUTTONSTATE state = BS_NORMAL, bool max = true);
   void    SendMessageToAllChildWindows(UINT MessageId,WPARAM wParam,LPARAM lParam);
+  void    NotifyMonitorToAllChilds();
   void    PerformMenu();
   void    InitStatusBar();
   void    EraseGripper();
@@ -99,10 +101,15 @@ protected:
 
   // Message handlers
   afx_msg int     OnCreate(LPCREATESTRUCT p_create);
+  afx_msg void    OnDestroy();
   afx_msg BOOL    OnEraseBkgnd(CDC* pDC);
   afx_msg HBRUSH  OnCtlColor(CDC* pDC,CWnd* pWnd,UINT nCtlColor);
-  afx_msg LPARAM  OnCtlColorStatic (WPARAM wParam,LPARAM lParam);
-  afx_msg LPARAM  OnCtlColorListBox(WPARAM wParam,LPARAM lParam);
+  afx_msg LPARAM  OnCtlColorStatic  (WPARAM wParam,LPARAM lParam);
+  afx_msg LPARAM  OnCtlColorListBox (WPARAM wParam,LPARAM lParam);
+  afx_msg LRESULT OnDpiChanged      (WPARAM wParam,LPARAM lParam);
+  afx_msg LRESULT OnGetDpiScaledSize(WPARAM wParam,LPARAM lParam);
+  afx_msg LRESULT OnDisplayChange   (WPARAM wParam,LPARAM lParam);
+  afx_msg LRESULT OnStyleChanged    (WPARAM wParam,LPARAM lParam);
   afx_msg void    OnNcMouseMove(UINT nFlags, CPoint point);
   afx_msg void    OnNcLButtonDown(UINT nFlags, CPoint point);
   afx_msg void    OnNcRButtonUp(UINT nFlags, CPoint point);
@@ -116,7 +123,6 @@ protected:
   afx_msg void    OnActivate(UINT nState,CWnd* pWndOther,BOOL bMinimized);
   afx_msg void    OnActivateApp(BOOL bActive,DWORD dwThreadID);
   afx_msg void    OnCancel() override;
-  afx_msg LRESULT OnStyleChanged(WPARAM wParam,LPARAM lParam);
   afx_msg void    OnSettingChange(UINT uFlags,LPCTSTR lpszSection);
   afx_msg BOOL    OnToolTipNotify(UINT id,NMHDR* pNMHDR,LRESULT* pResult);
   afx_msg HCURSOR OnQueryDragIcon();
@@ -157,8 +163,11 @@ protected:
   bool      m_hasGripper  { false };
   bool      m_hasStatus   { false };
   bool      m_canActivate { true  };
+  bool      m_saveMonitor { false };
   LRESULT   m_curhit      { HTNOWHERE };
   UINT      m_sysmenu     { NULL  };
+  int       m_dpi_x       { 0     };
+  int       m_dpi_y       { 0     };
   // Objects
   CMenu      m_menu;
   HICON      m_hIcon;

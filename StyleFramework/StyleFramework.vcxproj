@@ -358,6 +358,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="SkinScrollWnd.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="StyleMonitor.h" />
     <ClInclude Include="StyleProgressCtrl.h" />
     <ClInclude Include="StyleSpinButtonCtrl.h" />
     <ClInclude Include="StyleStatic.h" />
@@ -372,7 +373,6 @@
     <ClInclude Include="StyleButton.h" />
     <ClInclude Include="StyleCheckbox.h" />
     <ClInclude Include="StyleColors.h" />
-    <ClInclude Include="StyleDialogCA.h" />
     <ClInclude Include="StyleFonts.h" />
     <ClInclude Include="StyleFrameWndEx.h" />
     <ClInclude Include="StyleMacros.h" />
@@ -422,6 +422,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ReleaseUnicode|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="StyleMonitor.cpp" />
     <ClCompile Include="StyleProgressCtrl.cpp" />
     <ClCompile Include="StyleSpinButtonCtrl.cpp" />
     <ClCompile Include="StyleStatic.cpp" />
@@ -436,7 +437,6 @@
     <ClCompile Include="StyleButton.cpp" />
     <ClCompile Include="StyleCheckBox.cpp" />
     <ClCompile Include="StyleColors.cpp" />
-    <ClCompile Include="StyleDialogCA.cpp" />
     <ClCompile Include="StyleFonts.cpp" />
     <ClCompile Include="StyleFrameWndEx.cpp" />
     <ClCompile Include="StyleMDIFrameWnd.cpp" />
@@ -454,6 +454,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Icons\12_help.ico" />
+    <Image Include="Icons\40_LeftSingle.ico" />
+    <Image Include="Icons\43_RightSingle.ico" />
     <Image Include="IconS\73_map-openen.ico" />
     <Image Include="Icons\30_Save.ico" />
     <Image Include="Icons\60_OK.ico" />
@@ -468,6 +470,7 @@
     <Image Include="res\ScrollBar5.bmp" />
     <Image Include="res\ScrollBar6.bmp" />
     <Image Include="res\ScrollBar7.bmp" />
+    <Image Include="res\ScrollBar8.bmp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="WorkToDo.txt" />

@@ -1,0 +1,18 @@
+PLANNING FIXES AND FEATURES
+===========================
+
+Planned features
+----------------
+1) Re-calculate the result of a teststep for already executed steps.
+   This allows for adjusting the validations and checking that the 
+   validations have been correctly modified.
+   Take care for displaying the result of the step in the stepeditor.
+2) Icons in the step editor for the type of step (CMD, NET, SQL, WIN)
+3) Using the new BaseLibrary 2.x with std::string instead of MFC::CString
+   This will allow for better portability and less dependencies.
+
+Fixing bugs (if any)
+--------------------
+1) Creating a new credential set for a database teststep
+   This did go wrong the first time and needed many updates before correcting.
+2) File pick-and-point in NET teststep editor not working correctly

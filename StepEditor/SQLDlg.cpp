@@ -99,6 +99,7 @@ SQLDlg::InitTab(TestStepSQL* p_testStep,Parameters* p_parameters)
   m_parameters = p_parameters;
   // Setting the tab
   m_payload = m_testStep->GetSQL();
+  m_payload.Replace(_T("\n"),_T("\r\n"));
   UpdateData(FALSE);
 }
 

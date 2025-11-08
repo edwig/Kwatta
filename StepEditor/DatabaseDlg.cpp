@@ -241,6 +241,10 @@ DatabaseDlg::DeleteCredentials()
 void
 DatabaseDlg::SetCredentials()
 {
+  if(m_credentials == nullptr || m_credential.IsEmpty())
+  {
+    return;
+  }
   DBSConnect* cred = m_credentials->FindConnection(m_credential);
   if(cred == nullptr)
   {
@@ -271,8 +275,10 @@ DatabaseDlg::OnCbnSelChangeCredential()
     }
   }
   // Remember it in the test step
-  m_testStep->SetCredential(m_credential);
-
+  if(m_testStep)
+  {
+    m_testStep->SetCredential(m_credential);
+  }
   // Show the new set
   SetCredentials();
   UpdateData(FALSE);

@@ -74,6 +74,9 @@ AboutDlg::OnInitDialog()
 #ifdef _UNICODE
            _T("\\tab UNICODE VERSION !!\\par\n")
            _T("\\par\n")
+#else
+           _T("\\tab ANSI VERSION !!\\par\n")
+           _T("\\par\n")
 #endif
            _T("KWALITY TEST API - Program\\par\n")
            _T("\\par\n")

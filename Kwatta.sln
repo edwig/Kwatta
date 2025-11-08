@@ -27,12 +27,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SuiteLibrary", "SuiteLibrar
 		{9DDAC601-CBD3-4583-AE16-308EBD39AAAD} = {9DDAC601-CBD3-4583-AE16-308EBD39AAAD}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F58A8F79-5E64-4531-8D18-7FAFDA345C46}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "General solution", "General solution", "{F58A8F79-5E64-4531-8D18-7FAFDA345C46}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		Ateles_paniscus.jpg = Ateles_paniscus.jpg
 		framework.h = framework.h
 		License.md = License.md
+		Planning.txt = Planning.txt
 		QL_in_BNF.txt = QL_in_BNF.txt
 		ReadMe.md = ReadMe.md
 		Documentation\Releasenotes.txt = Documentation\Releasenotes.txt

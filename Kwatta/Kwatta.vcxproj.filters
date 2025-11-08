@@ -96,60 +96,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\file_view.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\file_view_hc.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\class_view.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\class_view_hc.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\fileview.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\fileview_hc.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\classview.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\classview_hc.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\explorer.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\explorer_hc.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\sort.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\sort_hc.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\menuimages.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\menuimages_hc.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\output_wnd.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\output_wnd_hc.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\info.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\userimages.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\TestSuiteDoc.ico">
       <Filter>Resource Files</Filter>
     </Image>

@@ -62,6 +62,7 @@ BEGIN_MESSAGE_MAP(StyleListBox, CListBox)
   ON_WM_DESTROY()
   ON_WM_ERASEBKGND()
   ON_WM_HSCROLL()
+  ON_WM_VSCROLL()
   ON_MESSAGE(WM_DPICHANGED_AFTERPARENT,OnDpiChanged)
   ON_MESSAGE(LB_GETITEMHEIGHT,         OnItemHeight)
   ON_MESSAGE(LB_GETITEMRECT,           OnItemRect)
@@ -92,8 +93,7 @@ StyleListBox::InitSkin(int p_borderSize /*=1*/,int p_clientBias /*=0*/)
   {
     CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFont);
     SetFont(font);
-    int height = LISTBOX_ITEMHEIGTH;
-    SetItemHeight(0,(height * GetSFXSizeFactor(m_hWnd)) / 100);
+    SetItemHeight(0,WS(GetSafeHwnd(),LISTBOX_ITEMHEIGTH));
 
     m_skin = SkinWndScroll(this,p_borderSize,p_clientBias);
   }
@@ -142,8 +142,9 @@ StyleListBox::OnItemRect(WPARAM wParam,LPARAM lParam)
     return 0;
   }
   rect->top    = (index - topIndex) * itemHeight;
-  rect->bottom = rect->top + itemHeight;
-  rect->right  = client.Width();
+  rect->bottom = rect->top + itemHeight - 1;
+  rect->right  = client.Width() - 1;
+  rect->left   = client.left + 1;
 
   return 0;
 }
@@ -188,6 +189,13 @@ void
 StyleListBox::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
   CListBox::OnHScroll(nSBCode,nPos,pScrollBar);
+  Invalidate();
+}
+
+void
+StyleListBox::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+{
+  CListBox::OnVScroll(nSBCode, nPos, pScrollBar);
   Invalidate();
 }
 

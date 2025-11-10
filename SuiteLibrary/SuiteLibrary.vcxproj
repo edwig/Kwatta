@@ -202,7 +202,6 @@
     <ClInclude Include="TestRunner.h" />
     <ClInclude Include="SQLRunner.h" />
     <ClInclude Include="StepResultSQL.h" />
-    <ClInclude Include="StyleRichEdit.h" />
     <ClInclude Include="SearchVarDlg.h" />
     <ClInclude Include="StartProgram.h" />
     <ClInclude Include="stdafx.h" />
@@ -243,7 +242,6 @@
     <ClCompile Include="SQLRunner.cpp" />
     <ClCompile Include="StepResultSQL.cpp" />
     <ClCompile Include="StepResultWIN.cpp" />
-    <ClCompile Include="StyleRichEdit.cpp" />
     <ClCompile Include="SearchVarDlg.cpp" />
     <ClCompile Include="StartProgram.cpp" />
     <ClCompile Include="stdafx.cpp">

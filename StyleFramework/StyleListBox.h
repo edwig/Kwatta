@@ -21,7 +21,8 @@
 #include "SkinScrollWnd.h"
 #include "StyleEdit.h"
 
-#define LIST_MAGIC 0xDEBAC1
+#define LIST_MAGIC         0xDEBAC1   // Marker for ownerdraw lines
+#define LISTBOX_ITEMHEIGTH 22         // Standard heigth of an item
 
 /////////////////////////////////////////////////////////////////////////////
 // CMulitLineListBox window
@@ -105,6 +106,8 @@ protected:
   afx_msg void    OnDestroy();
   afx_msg BOOL    OnEraseBkgnd(CDC* pDC);
   afx_msg void    OnHScroll(UINT nSBCode,UINT nPos,CScrollBar* pScrollBar);
+  afx_msg void    OnVScroll(UINT nSBCode,UINT nPos,CScrollBar* pScrollBar);
+
   afx_msg LRESULT OnDpiChanged(WPARAM wParam,LPARAM lParam);
   afx_msg LRESULT OnItemHeight(WPARAM wParam,LPARAM lParam);
   afx_msg LRESULT OnItemRect  (WPARAM wParam,LPARAM lParam);

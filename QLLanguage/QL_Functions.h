@@ -16,6 +16,6 @@ void init_functions(QLVirtualMachine* p_vm);
 extern int     qlargc;
 extern TCHAR** qlargv;
 
-extern CString db_database;
-extern CString db_user;
-extern CString db_password;
+extern XString db_database;
+extern XString db_user;
+extern XString db_password;

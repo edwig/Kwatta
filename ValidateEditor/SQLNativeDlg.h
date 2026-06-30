@@ -52,9 +52,9 @@ protected:
 
   bool           m_useCheckNative { false };
   BufferOperator m_nativeOperator { BufferOperator::BOP_NOP };
-  CString        m_nativeError;
-  CString        m_effectiveNative;
-  CString        m_nativeErrorVariable;
+  XString        m_nativeError;
+  XString        m_effectiveNative;
+  XString        m_nativeErrorVariable;
 
   StyleEdit      m_editNative;
   StyleEdit      m_editEffective;

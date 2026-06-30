@@ -118,7 +118,7 @@ NewVariableDlg::CheckName()
 {
   if(m_map.find(m_newName) != m_map.end())
   {
-    CString error;
+    XString error;
     error.Format(_T("The newly entered variable [%s] already exists"),m_newName.GetString());
     StyleMessageBox(this,error,_T(KWATTA),MB_OK|MB_ICONERROR);
     return false;
@@ -129,7 +129,7 @@ NewVariableDlg::CheckName()
 void
 NewVariableDlg::SaveName()
 {
-  CString empty;
+  XString empty;
   m_map.insert(std::make_pair(m_newName,empty));
 }
 

@@ -49,12 +49,12 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
   bool    m_killOnTimeout { false };
-  CString m_waitBeforeRun;
-  CString m_waitAfterRun;
-  CString m_maxExecution;
-  CString m_effectiveBefore;
-  CString m_effectiveExec;
-  CString m_effectiveAfter;
+  XString m_waitBeforeRun;
+  XString m_waitAfterRun;
+  XString m_maxExecution;
+  XString m_effectiveBefore;
+  XString m_effectiveExec;
+  XString m_effectiveAfter;
   int     m_timeoutResolve;
   int     m_timeoutConnect;
   int     m_timeoutSend;

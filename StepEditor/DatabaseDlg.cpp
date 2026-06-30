@@ -143,7 +143,7 @@ DatabaseDlg::InitTab(TestStepSQL* p_testStep
 
   if(!m_credential.IsEmpty())
   {
-    DBSConnect* conn = m_credentials->FindConnection(m_credential);
+    DBSConnect* conn = m_credentials->FindConnection(m_credential.GetString());
     if(conn)
     {
       m_datasource = conn->m_datasource;
@@ -203,12 +203,13 @@ DatabaseDlg::SaveCredentials()
   {
     return;
   }
-  DBSConnect* cred = m_credentials->FindConnection(m_credential);
+  XString credential(m_credential);
+  DBSConnect* cred = m_credentials->FindConnection(credential);
   if(cred)
   {
-    m_credentials->DeleteConnection(m_credential);
+    m_credentials->DeleteConnection(credential);
   }
-  m_credentials->SetODBCConnection(m_credential,m_datasource,m_user,m_password);
+  m_credentials->SetODBCConnection(credential,m_datasource,m_user,m_password);
 }
 
 void
@@ -218,12 +219,13 @@ DatabaseDlg::DeleteCredentials()
   {
     return;
   }
-  DBSConnect* cred = m_credentials->FindConnection(m_credential);
+  XString credential(m_credential);
+  DBSConnect* cred = m_credentials->FindConnection(credential);
   if(cred)
   {
     if(StyleMessageBox(this,_T("Do you want to delete the credential set: ") + m_credential,PRODUCT_NAME,MB_YESNO | MB_DEFBUTTON2 | MB_ICONQUESTION) == IDYES)
     {
-      m_credentials->DeleteConnection(m_credential);
+      m_credentials->DeleteConnection(credential);
       int ind = m_comboCredential.FindStringExact(0,m_credential);
       if(ind >= 0)
       {
@@ -245,7 +247,7 @@ DatabaseDlg::SetCredentials()
   {
     return;
   }
-  DBSConnect* cred = m_credentials->FindConnection(m_credential);
+  DBSConnect* cred = m_credentials->FindConnection(m_credential.GetString());
   if(cred == nullptr)
   {
     return;
@@ -261,7 +263,7 @@ DatabaseDlg::SetCredentials()
 void
 DatabaseDlg::OnCbnSelChangeCredential()
 {
-  CString identifier(m_credential);
+  XString identifier(m_credential);
   UpdateData();
 
   if(identifier.IsEmpty() && !m_credential.IsEmpty() &&
@@ -277,7 +279,7 @@ DatabaseDlg::OnCbnSelChangeCredential()
   // Remember it in the test step
   if(m_testStep)
   {
-    m_testStep->SetCredential(m_credential);
+    m_testStep->SetCredential(identifier);
   }
   // Show the new set
   SetCredentials();
@@ -314,7 +316,7 @@ DatabaseDlg::OnBnClickedButDatasource()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editDatasource.InsertAtCurPos(variable,0);
     UpdateData();
     EffectiveParameters();
@@ -342,7 +344,7 @@ DatabaseDlg::OnBnClickedButUser()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editUser.InsertAtCurPos(variable,0);
     UpdateData();
     EffectiveParameters();
@@ -369,7 +371,7 @@ DatabaseDlg::OnBnClickedButPassword()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editPassword.InsertAtCurPos(variable,0);
     UpdateData();
     EffectiveParameters();

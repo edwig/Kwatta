@@ -35,10 +35,10 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-TestRunner::TestRunner(CString    p_baseDirectory
-                      ,CString    p_testDirectory
-                      ,CString    p_testStepFilename
-                      ,CString    p_parametersFilename
+TestRunner::TestRunner(XString    p_baseDirectory
+                      ,XString    p_testDirectory
+                      ,XString    p_testStepFilename
+                      ,XString    p_parametersFilename
                       ,ValiSteps& p_localValidations
                       ,ValiSteps& p_globalValidations
                       ,HWND       p_consoleHWND
@@ -84,11 +84,11 @@ TestRunner::~TestRunner()
   }
 }
 
-CString
+XString
 TestRunner::GetEffectiveStepFilename()
 {
-  CString filename(m_baseDirectory);
-  filename += m_global ? CString(_T("Steps\\")) : m_testDirectory;
+  XString filename(m_baseDirectory);
+  filename += m_global ? XString(_T("Steps\\")) : m_testDirectory;
   filename += m_testStepFilename;
 
   return filename;
@@ -98,7 +98,7 @@ void
 TestRunner::ReadParameters()
 {
   // read the global parameters
-  CString filename = m_baseDirectory + _T("Parameters.xpar");
+  XString filename = m_baseDirectory + _T("Parameters.xpar");
   m_parameters.ReadFromXML(filename);
 
   // read the definition of the test parameters
@@ -110,7 +110,7 @@ void
 TestRunner::ReadCredentials()
 {
   // read the global credentials
-  CString filename = m_baseDirectory + _T("Credentials.cred");
+  XString filename = m_baseDirectory + _T("Credentials.cred");
   m_credentials.ReadFromXML(filename);
 }
 
@@ -122,7 +122,7 @@ TestRunner::GetMaxRunningTime()
 
 // Perform the next step in the total progress
 void
-TestRunner::PerformStep(CString p_stepName)
+TestRunner::PerformStep(XString p_stepName)
 {
   SetStep(p_stepName);
   m_progress += m_stepSize;
@@ -133,7 +133,7 @@ TestRunner::PerformStep(CString p_stepName)
 void
 TestRunner::PreCommandWaiting()
 {
-  CString step(_T("Pre-command waiting."));
+  XString step(_T("Pre-command waiting."));
   PerformStep(step);
 
   int time = _ttoi(m_testStep->GetEffectiveWaitBeforeRun());
@@ -147,7 +147,7 @@ TestRunner::PreCommandWaiting()
 void
 TestRunner::PostCommandWaiting()
 {
-  CString step(_T("Post-command waiting."));
+  XString step(_T("Post-command waiting."));
   PerformStep(step);
 
   int time = _ttoi(m_testStep->GetEffectiveWaitAfterRun());
@@ -158,7 +158,7 @@ TestRunner::PostCommandWaiting()
 }
 
 void
-TestRunner::WaitingForATimeout(CString p_stepname, int p_milliseconds)
+TestRunner::WaitingForATimeout(XString p_stepname, int p_milliseconds)
 {
   // Reset the progress step-name and progress-control bar
   p_stepname.AppendFormat(_T(" %.3f seconds"),((double)p_milliseconds / 1000.0));
@@ -196,7 +196,7 @@ TestRunner::WaitingForATimeout(CString p_stepname, int p_milliseconds)
 //////////////////////////////////////////////////////////////////////////
 
 void
-TestRunner::SetTest(CString p_test)
+TestRunner::SetTest(XString p_test)
 {
   if(m_reportHWND)
   {
@@ -205,7 +205,7 @@ TestRunner::SetTest(CString p_test)
 }
 
 void
-TestRunner::SetStep(CString p_step)
+TestRunner::SetStep(XString p_step)
 {
   if(m_reportHWND)
   {
@@ -246,7 +246,7 @@ __declspec(thread) LogAnalysis* runlog = nullptr;
 
 void osputs_stdout(const TCHAR* str)
 {
-  static CString out;
+  static XString out;
   int len = (int)_tcslen(str);
   if (len > 0 && str[len - 1] == '\n')
   {
@@ -277,9 +277,9 @@ void osputs_stderr(const TCHAR* str)
 
 // Default implementation of a QL error messages
 void
-TestRunner::CreateQLErrorMessage(CString p_error)
+TestRunner::CreateQLErrorMessage(XString p_error)
 {
-  CString error(_T("ERROR: "));
+  XString error(_T("ERROR: "));
   error += p_error;
   osputs_stderr(error.GetString());
 }
@@ -311,7 +311,7 @@ TestRunner::PerformQLScript(int p_result)
     {
       throw QLException(_T("Parameters not replaced. ") + m_parameters.GetUnboundErrors(),unbound);
     }
-    CString script = m_testStep->GetEffectiveScriptToRun();
+    XString script = m_testStep->GetEffectiveScriptToRun();
 
     // Write to the logfile (if any)
     bool trace_run = false;
@@ -345,7 +345,7 @@ TestRunner::PerformQLScript(int p_result)
     }
     // Set up an interpreter
     QLInterpreter inter(&vm,trace_run);
-    CString entrypoint(_T("main"));
+    XString entrypoint(_T("main"));
 
     // Set the latest test status
     inter.SetTestIterations(m_iterations);

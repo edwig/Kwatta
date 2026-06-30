@@ -52,10 +52,10 @@ protected:
 
   bool           m_useJSON;
   BufferOperator m_jsonOperator;
-  CString        m_jsonPath;
-  CString        m_expectedJSON;
-  CString        m_effectiveJSON;
-  CString        m_jsonVariable;
+  XString        m_jsonPath;
+  XString        m_expectedJSON;
+  XString        m_effectiveJSON;
+  XString        m_jsonVariable;
 
   StyleEdit      m_editJsonPath;
   StyleEdit      m_editExpected;

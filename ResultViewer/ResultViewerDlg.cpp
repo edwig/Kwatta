@@ -132,7 +132,7 @@ ResultViewerDlg::InitTabs()
 void
 ResultViewerDlg::InitResult()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetResultFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetResultFilename();
 
   // Read in the definition file for a test step
   try

@@ -28,7 +28,7 @@
 static BOOL IterateTopLevelWindows(HWND p_hwnd,LPARAM p_param);
 
 int
-WinAction::PerformAction(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::PerformAction(XString& p_log,XString& p_errors,UINT& p_error)
 {
   switch (m_action)
   {
@@ -60,7 +60,7 @@ WinAction::PerformAction(CString& p_log,CString& p_errors,UINT& p_error)
 //////////////////////////////////////////////////////////////////////////
 
 int
-WinAction::ActionStartProgram(CString& p_log, CString& p_errorString, UINT& p_error)
+WinAction::ActionStartProgram(XString& p_log, XString& p_errorString, UINT& p_error)
 {
   XString errors;
 
@@ -78,7 +78,7 @@ WinAction::ActionStartProgram(CString& p_log, CString& p_errorString, UINT& p_er
 }
 
 int
-WinAction::ActionCloseProgram(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionCloseProgram(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(FindPattern(false,p_log,p_errors,p_error) == 0)
   {
@@ -90,7 +90,7 @@ WinAction::ActionCloseProgram(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int
-WinAction::ActionActivateWindow(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionActivateWindow(XString& p_log,XString& p_errors,UINT& p_error)
 {
   p_log.AppendFormat(_T("Try to activate window [%s]\n"),m_pattern.GetString());
 
@@ -107,7 +107,7 @@ WinAction::ActionActivateWindow(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int
-WinAction::ActionWindowPresent(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionWindowPresent(XString& p_log,XString& p_errors,UINT& p_error)
 {
   p_log.AppendFormat(_T("Testing if window [%s] is present.\n"),m_pattern.GetString());
 
@@ -143,7 +143,7 @@ WinAction::ActionWindowPresent(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int 
-WinAction::ActionWindowFocus(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionWindowFocus(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(FindPattern(true,p_log,p_errors,p_error) == 0)
   {
@@ -155,14 +155,14 @@ WinAction::ActionWindowFocus(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int 
-WinAction::ActionWindowTxtArea(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionWindowTxtArea(XString& p_log,XString& p_errors,UINT& p_error)
 {
   p_log.AppendFormat(_T("Reading TEXT area of window [%s].\n"),m_pattern.GetString());
 
   if(FindPattern(false,p_log,p_errors,p_error) == 0)
   {
     // OK. OVERWRITING the previous log. We need this one as a result
-    CString text;
+    XString text;
     int length = (int)::SendMessage(m_hwnd, WM_GETTEXTLENGTH, 0, 0);
     if(length > 0)
     {
@@ -177,7 +177,7 @@ WinAction::ActionWindowTxtArea(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int
-WinAction::ActionSendOneChar(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionSendOneChar(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(!m_pattern.IsEmpty())
   {
@@ -192,7 +192,7 @@ WinAction::ActionSendOneChar(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int
-WinAction::ActionSendString(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionSendString(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(!m_pattern.IsEmpty())
   {
@@ -207,7 +207,7 @@ WinAction::ActionSendString(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int 
-WinAction::ActionMouseClick(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionMouseClick(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(!m_pattern.IsEmpty())
   {
@@ -222,7 +222,7 @@ WinAction::ActionMouseClick(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int 
-WinAction::ActionMouseDblClick(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionMouseDblClick(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(!m_pattern.IsEmpty())
   {
@@ -237,7 +237,7 @@ WinAction::ActionMouseDblClick(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int
-WinAction::ActionMouseRClick(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionMouseRClick(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(!m_pattern.IsEmpty())
   {
@@ -252,7 +252,7 @@ WinAction::ActionMouseRClick(CString& p_log,CString& p_errors,UINT& p_error)
 }
 
 int
-WinAction::ActionWindowCaretPos(CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActionWindowCaretPos(XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(FindPattern(false,p_log,p_errors,p_error) == 0)
   {
@@ -290,7 +290,7 @@ WinAction::ActionWindowCaretPos(CString& p_log,CString& p_errors,UINT& p_error)
 //////////////////////////////////////////////////////////////////////////
 
 int
-WinAction::FindPattern(bool p_activate,CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::FindPattern(bool p_activate,XString& p_log,XString& p_errors,UINT& p_error)
 {
   // Starting the search
   p_log.AppendFormat(_T("Test if window [%s] is present\n"),m_pattern.GetString());
@@ -347,8 +347,8 @@ BOOL IterateTopLevelWindows(HWND p_hwnd,LPARAM p_param)
   ::GetWindowText(p_hwnd,windowname,2 * MAX_PATH);
   ::GetClassName (p_hwnd,classname, 2 * MAX_PATH);
  
-  CString name(windowname);
-  CString nclass(classname);
+  XString name(windowname);
+  XString nclass(classname);
 
   // Top level windows have NO control-ID
   if(WinAction::MatchWindowName(search,0,name,nclass))
@@ -361,7 +361,7 @@ BOOL IterateTopLevelWindows(HWND p_hwnd,LPARAM p_param)
 }
 
 bool 
-WinAction::IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log,CString& p_errors)
+WinAction::IterateChildWindows(SearchWindow& p_search,int p_level,XString& p_log,XString& p_errors)
 {
   // Next recursive level found?
   if(!FillSearchPattern(p_search,p_level))
@@ -395,8 +395,8 @@ WinAction::IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log
     {
       TCHAR classname[2 * MAX_PATH];
       ::GetClassName(child,classname,2 * MAX_PATH);
-      CString nclass(classname);
-      CString text;
+      XString nclass(classname);
+      XString text;
 
       int length = (int)::SendMessage(child,WM_GETTEXTLENGTH,0,0);
       if(length > 0)
@@ -426,7 +426,7 @@ WinAction::IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log
 }
 
 int
-WinAction::ActivateWindow(HWND p_hwnd,CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::ActivateWindow(HWND p_hwnd,XString& p_log,XString& p_errors,UINT& p_error)
 {
   if(IsHungAppWindow(p_hwnd))
   {
@@ -460,7 +460,7 @@ WinAction::ActivateWindow(HWND p_hwnd,CString& p_log,CString& p_errors,UINT& p_e
 bool 
 WinAction::FillSearchPattern(SearchWindow& p_search,int p_part)
 {
-  CString pattern(m_pattern);
+  XString pattern(m_pattern);
   while(p_part)
   {
     if(int pos = pattern.Find('/'); pos > 0)
@@ -496,7 +496,7 @@ WinAction::FillSearchPattern(SearchWindow& p_search,int p_part)
   // Look for dialog ID "{n}" or a partial class name "{identifier}"
   if(pattern.Left(1) == _T("{") && pattern.Right(1) == _T("}"))
   {
-    CString partial = pattern.Mid(1,pattern.GetLength() - 2);
+    XString partial = pattern.Mid(1,pattern.GetLength() - 2);
     if(_ttoi(partial) > 0)
     {
       p_search.m_dialogID = _ttoi(partial);
@@ -536,7 +536,7 @@ WinAction::FillSearchPattern(SearchWindow& p_search,int p_part)
 }
 
 bool
-WinAction::MatchWindowName(SearchWindow* p_search,int p_ctrlID,CString& p_name,CString& p_classname)
+WinAction::MatchWindowName(SearchWindow* p_search,int p_ctrlID,XString& p_name,XString& p_classname)
 {
   // STEP 1: Try control ID first
   if(p_search->m_dialogID && p_search->m_dialogID == p_ctrlID)
@@ -586,7 +586,7 @@ WinAction::MatchWindowName(SearchWindow* p_search,int p_ctrlID,CString& p_name,C
 // Return the left over of the string along with
 // the first keystroke and the virtual key code (VK_*)
 void
-WinAction::GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey)
+WinAction::GetSystemKey(XString& p_input,XString& p_tosend,int& p_virtkey)
 {
   // Reset input
   p_tosend.Empty();
@@ -609,7 +609,7 @@ WinAction::GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey)
   {
     if(int pos = p_input.Find('}'); pos > 1)
     {
-      CString vkey = p_input.Mid(1,pos - 1);
+      XString vkey = p_input.Mid(1,pos - 1);
       int code = GetVirtualKeyCode(vkey);
       if (code > 0)
       {
@@ -626,10 +626,10 @@ WinAction::GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey)
 }
 
 int
-WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::SendSystemKey(XString key,XString& p_log,XString& p_errors,UINT& p_error)
 {
-  CString tosend(key);
-  CString send;
+  XString tosend(key);
+  XString send;
   int vkey = 0;
   int result = 0;
 
@@ -640,13 +640,13 @@ WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_er
      vkey == VK_SHIFT   || vkey == VK_LSHIFT   || vkey == VK_RSHIFT   ||
      vkey == VK_LWIN    || vkey == VK_RWIN )
   {
-    CString second;
+    XString second;
     int vkey2;
     GetSystemKey(tosend,second,vkey2);
 
     if(!vkey2)
     {
-      vkey2 = _totupper(second.GetAt(0));
+      vkey2 = _totupper((TCHAR)second.GetAt(0));
     }
     p_log.AppendFormat(_T("Sending one character [%s%s]\n"),send.GetString(),second.GetString());
     result += SendInputKey((WORD)vkey,(WORD)vkey2);
@@ -674,7 +674,7 @@ WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_er
 
   // Getting the HWND with the keyboard focus
   HWND hwnd = m_hwnd ? m_hwnd : ::GetFocus();
-  TCHAR ckey = send.GetAt(0);
+  TCHAR ckey = (TCHAR) send.GetAt(0);
 
   // Regular non-virtual key
   p_log.AppendFormat(_T("Sending one character [%c] to window [%llX]\n"),ckey,hwnd);
@@ -688,14 +688,14 @@ WinAction::SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_er
 }
 
 int
-WinAction::SendString(CString str,CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::SendString(XString str,XString& p_log,XString& p_errors,UINT& p_error)
 {
   int res = 0;
   p_log.AppendFormat(_T("Sending string of characters: %s\n"),str.GetString());
 
   while(str.GetLength())
   {
-    CString send;
+    XString send;
     int vkey = 0;
     GetSystemKey(str,send,vkey);
 
@@ -704,13 +704,13 @@ WinAction::SendString(CString str,CString& p_log,CString& p_errors,UINT& p_error
        vkey == VK_SHIFT   || vkey == VK_LSHIFT   || vkey == VK_RSHIFT   ||
        vkey == VK_LWIN    || vkey == VK_RWIN )
     {
-      CString second;
+      XString second;
       int vkey2;
       GetSystemKey(str,second,vkey2);
 
       if(!vkey2)
       {
-        vkey2 = _totupper(second.GetAt(0));
+        vkey2 = _totupper((TCHAR)second.GetAt(0));
       }
       p_log.AppendFormat(_T("Sending one character [%s%s]\n"),send.GetString(),second.GetString());
       res += SendInputKey((WORD)vkey,(WORD)vkey2);
@@ -733,7 +733,7 @@ WinAction::SendString(CString str,CString& p_log,CString& p_errors,UINT& p_error
 }
 
 int 
-WinAction::SendMouseClick(bool p_dbl,bool p_left,CString& p_log,CString& p_errors,UINT& p_error)
+WinAction::SendMouseClick(bool p_dbl,bool p_left,XString& p_log,XString& p_errors,UINT& p_error)
 {
   CRect windowRect;
   GetWindowRect(m_hwnd,windowRect);

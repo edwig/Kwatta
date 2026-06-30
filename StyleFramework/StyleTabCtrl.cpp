@@ -57,25 +57,36 @@ BEGIN_MESSAGE_MAP(StyleTabCtrl, CTabCtrl)
   ON_MESSAGE(WM_DPICHANGED_AFTERPARENT,OnDpiChanged)
 END_MESSAGE_MAP()
 
-int 
-StyleTabCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
-{
-  if (CTabCtrl::OnCreate(lpCreateStruct) == -1)
-  {
-    return -1;
-  }
-  ModifyStyle(0, TCS_OWNERDRAWFIXED | WS_TABSTOP);
-  m_font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFontBold);
-  return 0;
-}
-
 void 
 StyleTabCtrl::PreSubclassWindow()
 {
   CTabCtrl::PreSubclassWindow();
-  ModifyStyle(0, TCS_OWNERDRAWFIXED);
+  ModifyStyle  (0,TCS_OWNERDRAWFIXED | WS_TABSTOP);
+  ModifyStyleEx(0,WS_EX_CONTROLPARENT);
   CFont* font = GetSFXFont(GetSafeHwnd(),StyleFontType::DialogFontBold);
   SetFont(font);
+}
+
+bool
+StyleTabCtrl::RegisterAsControlPlane(CWnd* p_plane)
+{
+  CWnd* parent = GetParent();
+  while(parent)
+  { 
+    // Find the highest dialog parent that is also a control parent
+    if((parent->GetExStyle() & WS_EX_CONTROLPARENT) &&
+       (parent->GetParent() == nullptr))
+    {
+      StyleDialog* controlling = dynamic_cast<StyleDialog*>(parent);
+      if(controlling)
+      {
+        controlling->AddControlPlane(p_plane);
+        return true;
+      }
+    }
+    parent = parent->GetParent();
+  }
+  return false;
 }
 
 HBRUSH
@@ -102,6 +113,7 @@ StyleTabCtrl::OnEraseBkgnd(CDC* pDC)
   return TRUE;
 }
 
+// wParam = new DPI, lParam = HMONITOR
 LRESULT
 StyleTabCtrl::OnDpiChanged(WPARAM wParam,LPARAM lParam)
 {
@@ -138,6 +150,9 @@ StyleTabCtrl::InsertItem(int p_item,CWnd* p_wnd,CString p_text)
   int height = WS(GetSafeHwnd(),tabHeaderHeight);
   CSize size(0,height);
   SetItemSize(size);
+
+  // Each tab will be registered as a control plane with the highest dialog parent
+  RegisterAsControlPlane(p_wnd);
 
   return CTabCtrl::InsertItem(TCIF_TEXT|TCIF_PARAM
                              ,p_item                // Number

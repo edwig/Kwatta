@@ -48,12 +48,6 @@ StyleListBox::~StyleListBox()
   RemoveLineInfo();
   ResetSkin();
   OnNcDestroy();
-
-  if(m_font)
-  {
-    delete m_font;
-    m_font = nullptr;
-  }
 }
 
 BEGIN_MESSAGE_MAP(StyleListBox, CListBox)
@@ -146,7 +140,7 @@ StyleListBox::OnItemRect(WPARAM wParam,LPARAM lParam)
   rect->right  = client.Width() - 1;
   rect->left   = client.left + 1;
 
-  return 0;
+  return 1;
 }
 
 void
@@ -491,13 +485,16 @@ StyleListBox::AdjustHorizontalExtent()
   CFont* o = dc.SelectObject(f);
 
   m_width = 0;
+  int dpi = ::GetDpiForWindow(GetSafeHwnd());
+  int extra = 3 * ::GetSystemMetricsForDpi(SM_CXBORDER,dpi);
+
   for(int i = 0; i < CListBox::GetCount(); i++)
   {
     /* scan strings */
     CString s;
     GetText(i,s);
     CSize sz = dc.GetTextExtent(s);
-    sz.cx += 3 * ::GetSystemMetrics(SM_CXBORDER);
+    sz.cx += extra;
     if(sz.cx > m_width)
     {
       m_width = sz.cx;
@@ -813,7 +810,8 @@ StyleListBox::UpdateWidth(LPCTSTR p_string)
 
   // Find our extent
   CSize sz = dc.GetTextExtent(p_string,len);
-  sz.cx += 3 * ::GetSystemMetrics(SM_CXBORDER);
+  int dpi = ::GetDpiForWindow(GetSafeHwnd());
+  sz.cx += 3 * ::GetSystemMetricsForDpi(SM_CXBORDER,dpi);
   if(sz.cx > m_width)
   {
     // Extend the max horizontal scroll bar width
@@ -902,7 +900,9 @@ StyleListBox::Internal_Paint(CDC* p_cdc)
   int    items = GetCount();
   int    style = GetStyle();
   CRect  clientrect;
-  RECT   focusRect = { -1,-1,-1,-1 };
+  CRect  linerect;
+  int    focusItem  = -1;
+  int    lastBottom = 0;
 
   // Special case! Do not paint
   if(style & LBS_NOREDRAW)
@@ -917,7 +917,8 @@ StyleListBox::Internal_Paint(CDC* p_cdc)
   GetScrollInfo(SB_HORZ,&info);
   if(info.nPos > 0)
   {
-    int shift = info.nPos + ::GetSystemMetrics(SM_CXHSCROLL);
+    int dpi = ::GetDpiForWindow(GetSafeHwnd());
+    int shift = info.nPos + ::GetSystemMetricsForDpi(SM_CXHSCROLL,dpi);
     SetWindowOrgEx(p_cdc->GetSafeHdc(),shift,0,nullptr);
     clientrect.right += shift;
   }
@@ -943,42 +944,36 @@ StyleListBox::Internal_Paint(CDC* p_cdc)
 
   for(int index = top_item; index < items; index++)
   {
-    itemrect.bottom = itemrect.top + item_height;
-
     /* keep the focus rect, to paint the focus item after */
-    if (index == focus_item)
+    if(index == focus_item)
     {
-      focusRect = itemrect;
+      focusItem = index;
     }
-    Internal_PaintItem(p_cdc,&itemrect,index,ODA_DRAWENTIRE,TRUE);
-    itemrect.top = itemrect.bottom;
-
-    if(itemrect.top >= clientrect.Height())
+    OnItemRect((WPARAM)index,(LPARAM)&itemrect);
+    if(itemrect.IsRectNull())
     {
       break;
     }
+    Internal_PaintItem(p_cdc,&itemrect,index,ODA_DRAWENTIRE,TRUE);
+    lastBottom = itemrect.bottom;
   }
 
   /* Paint the focus item now */
-  if(focusRect.top != focusRect.bottom && focus_item >= 0)
+  if(focusItem >= 0)
   {
-    Internal_PaintItem(p_cdc,&focusRect, focus_item, ODA_FOCUS, FALSE);
+    RECT   focusRect = {-1,-1,-1,-1};
+    if(OnItemRect((WPARAM)focusItem,(LPARAM) & focusRect))
+    {
+      Internal_PaintItem(p_cdc,&focusRect,focus_item,ODA_FOCUS,FALSE);
+    }
   }
 
   /* Clear the remainder of the client area */
   p_cdc->SelectObject(brush);
-  if (itemrect.top < clientrect.Height())
+  if(lastBottom < clientrect.Height())
   {
-    itemrect.bottom = clientrect.bottom;
-    p_cdc->ExtTextOut(0, 0, ETO_OPAQUE | ETO_CLIPPED,&itemrect, NULL, 0, NULL);
-  }
-  if(itemrect.right < clientrect.Width())
-  {
-    itemrect.left   = itemrect.right;
-    itemrect.right  = clientrect.right;
-    itemrect.top    = 0;
-    itemrect.bottom = clientrect.bottom;
-    p_cdc->ExtTextOut(0, 0, ETO_OPAQUE | ETO_CLIPPED,&itemrect, NULL, 0, NULL);
+    clientrect.top = lastBottom + 1;
+    p_cdc->ExtTextOut(0, 0, ETO_OPAQUE | ETO_CLIPPED,&clientrect, NULL, 0, NULL);
   }
 
   // Reset old values in DC
@@ -1077,14 +1072,16 @@ void
 StyleListBox::ResetFont(HMONITOR p_monitor /*= nullptr*/)
 {
   // Getting the font scaling factor
-  int scale = 100;
+  int dpi = USER_DEFAULT_SCREEN_DPI;
   if(p_monitor)
   {
-    scale = GetSFXSizeFactor(p_monitor);
+    const StyleMonitor* mon = g_styling.GetMonitor(p_monitor);
+    mon->GetDPI(dpi,dpi);
   }
   else
   {
-    scale = GetSFXSizeFactor(GetSafeHwnd());
+    const StyleMonitor* mon = g_styling.GetMonitor(GetSafeHwnd());
+    mon->GetDPI(dpi,dpi);
   }
 
   LOGFONT lgFont;
@@ -1092,7 +1089,7 @@ StyleListBox::ResetFont(HMONITOR p_monitor /*= nullptr*/)
   lgFont.lfClipPrecision  = 0;
   lgFont.lfEscapement     = 0;
   _tcscpy_s(lgFont.lfFaceName,LF_FACESIZE,m_fontName);
-  lgFont.lfHeight         = (m_fontSize * scale) / 100;
+  lgFont.lfHeight         = -MulDiv((m_fontSize / 10),dpi,72);
   lgFont.lfItalic         = m_italic;
   lgFont.lfOrientation    = 0;
   lgFont.lfOutPrecision   = 0;
@@ -1101,25 +1098,19 @@ StyleListBox::ResetFont(HMONITOR p_monitor /*= nullptr*/)
   lgFont.lfStrikeOut      = 0;
   lgFont.lfUnderline      = m_underLine;
   lgFont.lfWidth          = 0;
-  lgFont.lfWeight         = m_bold ? FW_BOLD : FW_MEDIUM;
+  lgFont.lfWeight         = m_bold ? FW_BOLD : FW_NORMAL;
 
   // Create new font or remove old object from it
-  if(m_font)
+  if(m_font.m_hObject)
   {
-    if(m_font->m_hObject)
-    {
-      m_font->DeleteObject();
-    }
-  }
-  else
-  {
-    m_font = new CFont();
+    m_font.DeleteObject();
   }
   // Create new font and set it to this control
-  m_font->CreatePointFontIndirect(&lgFont);
-  SetFont(m_font);
+  m_font.CreateFontIndirect(&lgFont);
+  SetFont(&m_font);
 }
 
+// wParam = new DPI, lParam = HMONITOR
 LRESULT
 StyleListBox::OnDpiChanged(WPARAM wParam,LPARAM lParam)
 {

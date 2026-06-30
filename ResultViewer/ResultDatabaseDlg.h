@@ -47,8 +47,8 @@ protected:
   void            LoadVariables();
   void            LoadVariablesTabs();
 
-  CString         m_name;
-  CString         m_documentation;
+  XString         m_name;
+  XString         m_documentation;
 
   StyleEdit       m_editName;
   StyleEdit       m_editDocumentation;

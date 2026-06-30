@@ -25,20 +25,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "StdAfx.h"
+#include "pch.h"
 #include "ThreadPool.h"
 #include "ErrorReport.h"
 #include "CPULoad.h"
 #include <AutoCritical.h>
 #include <CreateFullThread.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
+#include <ServiceReporting.h>
 
 // A means to be free to debug the ThreadPool in debug mode
 #ifdef DEBUG_THREADPOOL
@@ -52,8 +45,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 // Static function, running a thread
-static unsigned RunThread(void* p_myThread);
-static unsigned RunHeartBeat(void* p_pool);
+static unsigned __stdcall RunThread(void* p_myThread);
+static unsigned __stdcall RunHeartBeat(void* p_pool);
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -61,6 +54,7 @@ static unsigned RunHeartBeat(void* p_pool);
 //
 ThreadPool::ThreadPool()
 {
+  SetCrashReportMap();
   InitializeCriticalSection(&m_critical);
   InitializeCriticalSection(&m_cpuclock);
 }
@@ -69,6 +63,7 @@ ThreadPool::ThreadPool(int p_minThreads,int p_maxThreads)
            :m_minThreads(p_minThreads)
            ,m_maxThreads(p_maxThreads)
 {
+  SetCrashReportMap();
   InitializeCriticalSection(&m_critical);
   InitializeCriticalSection(&m_cpuclock);
 }
@@ -93,6 +88,18 @@ void
 ThreadPool::Run()
 {
   InitThreadPool();
+}
+
+// Setting the crash report map
+void 
+ThreadPool::SetCrashReportMap()
+{
+  // See if we have a debug.txt in the "%windir%\system32\inetsrv\" directory
+  if(!m_crashMap.GetEnvironmentVariable(_T("windir")))
+  {
+    m_crashMap= _T("C:\\Windows");
+  }
+  m_crashMap += _T("\\TEMP");
 }
 
 // Initialize our new ThreadPool
@@ -142,9 +149,9 @@ ThreadPool::InitThreadPool()
     }
 
     // Adjust maximum of threads for the number of processors
-    if(m_maxThreads > ((4 * m_processors)/6))
+    if (m_maxThreads > (4 * m_processors))
     {
-      m_maxThreads = ((4 * m_processors)/6);
+      m_maxThreads = (4 * m_processors);
     }
   }
   // Create IO Completion Port
@@ -169,7 +176,7 @@ ThreadPool::InitThreadPool()
 ThreadRegister*
 ThreadPool::CreateThreadPoolThread()
 {
-  ThreadRegister* th = new ThreadRegister();
+  ThreadRegister* th = alloc_new ThreadRegister();
   if(th)
   {
     // Connect to the pool
@@ -370,7 +377,7 @@ ThreadPool::SetThreadInitFunction(LPFN_CALLBACK p_init,LPFN_TRYABORT p_abort,voi
 }
 
 // Running our thread!
-/*static*/ unsigned RunThread(void* p_myThread)
+/*static*/ unsigned __stdcall RunThread(void* p_myThread)
 {
   // If we come to here, we exist!
   ThreadRegister* reg = reinterpret_cast<ThreadRegister*>(p_myThread);
@@ -391,107 +398,143 @@ ThreadPool::RunAThread(ThreadRegister* p_register)
 
   SetThreadName("Marlin::ThreadPool",p_register->m_threadId);
 
-  // Check that there is a initialization routine
-  if(m_initialization)
+  try
   {
-    AutoCritSec lock(&m_critical);
-    TP_TRACE0("Running thread initialization routine\n");
-    (*m_initialization)(m_initParameter);
-  }
-
-  // MAIN LOOP
-  do 
-  {
-    DWORD     bytes = 0;
-    DWORD     error = 0;
-    ULONG_PTR key   = 0;
-    float     load  = 0.0;
-    LPOVERLAPPED overlapped = nullptr;
-
-    // Stops executing and wait in I/O completion port
-    InterlockedDecrement(&m_bsyThreads);
-    BOOL ok = GetQueuedCompletionStatus(m_completion,&bytes,&key,&overlapped,INFINITE);
-    error = GetLastError();
-
-    // Start executing again
-    InterlockedIncrement(&m_bsyThreads);
-
-    // Check for various stopping criteria
-    // 1) CloseHandle    -> ERROR_OPERATION_ABORTED
-    // 2) Posting a stop -> COMPLETION_STOP
-    if((!ok && error == ERROR_OPERATION_ABORTED) || key == COMPLETION_STOP)
+    // Check that there is a initialization routine
+    if(m_initialization)
     {
-      // Asynchronous I/O was aborted (e.g: file handle was closed)
-      // Call the abort function, so the caller can clean up the mess
+      AutoCritSec lock(&m_critical);
+      TP_TRACE0("Running thread initialization routine\n");
+      (*m_initialization)(m_initParameter);
+    }
+
+    // MAIN LOOP
+    do 
+    {
+      DWORD     bytes = 0;
+      DWORD     error = 0;
+      ULONG_PTR key   = 0;
+      float     load  = 0.0;
+      LPOVERLAPPED overlapped = nullptr;
+
+      // Stops executing and wait in I/O completion port
+      InterlockedDecrement(&m_bsyThreads);
+      BOOL ok = GetQueuedCompletionStatus(m_completion,&bytes,&key,&overlapped,INFINITE);
+      error = GetLastError();
+
+      // Start executing again
+      InterlockedIncrement(&m_bsyThreads);
+
+      // Check for various stopping criteria
+      // 1) CloseHandle    -> ERROR_OPERATION_ABORTED
+      // 2) Posting a stop -> COMPLETION_STOP
+      if((!ok && error == ERROR_OPERATION_ABORTED) || key == COMPLETION_STOP)
+      {
+        // Asynchronous I/O was aborted (e.g: file handle was closed)
+        // Call the abort function, so the caller can clean up the mess
+        if(m_abortfunction)
+        {
+          AutoCritSec lock(&m_critical);
+          TP_TRACE0("Running thread abort routine\n");
+          (*m_abortfunction)(overlapped,false,true);
+        }
+        break;
+      }
+
+      // Should we add another thread to the pool?
+      if((m_bsyThreads == m_curThreads) &&
+         (m_bsyThreads  < m_maxThreads) &&
+         (GetCPULoad(&m_cpuclock)  < 0.75) &&
+         m_openForWork)
+      {
+        CreateThreadPoolThread();
+      }
+
+      // Timeout from the completion port?
+      // We now always do a INFINITE wait
+      //   if(!ok && (error == WAIT_TIMEOUT))
+      //   {
+      //     // Thread timed out. Not much for the application to do
+      //     // thread can stop, even if it has some outstanding I/O
+      //     stayInThePool = false;
+      //   }
+
+      // PROCESSING A ACTION IN THE THREADPOOL
+      if(ok || overlapped)
+      {
+        TP_TRACE0("Running thread routine\n");
+        if(key == COMPLETION_WORK && overlapped == INVALID_HANDLE_VALUE)
+        {
+          // 1: Thread woke to do some interesting work....
+          LPFN_CALLBACK callback = nullptr;
+          void*         payload  = nullptr;
+          if(WorkToDo(callback,payload))
+          {
+            DoTheCallback(callback,payload);
+          }
+        }
+        else if (key == COMPLETION_CALL)
+        {
+          // 2: Implement your overload of this special call
+          DoTheCallback(overlapped);
+        }
+        else
+        {
+          // 3: The completion key **IS** the callback mechanism
+          LPFN_CALLBACK callback = reinterpret_cast<LPFN_CALLBACK>(key);
+          (*callback)(overlapped);
+        }
+      }
+
+      // TEST CRASH HANDLER
+      // HANDLE* event = nullptr;
+      // *event = 0L;
+
+      // Find CPU load and see if we must remain in the threadpool
+      load = GetCPULoad(&m_cpuclock);
+      TP_TRACE1("CPU Load: %f\n",load);
+      if((load > 0.9) && (m_curThreads > m_minThreads))
+      {
+        stayInThePool = false;
+      }
       if(m_abortfunction)
       {
         AutoCritSec lock(&m_critical);
-        TP_TRACE0("Running thread abort routine\n");
-        (*m_abortfunction)(overlapped,false,true);
+        TP_TRACE0("Running thread stay-in-the-pool routine\n");
+        stayInThePool = (*m_abortfunction)(overlapped,stayInThePool,false);
       }
-      break;
-    }
-
-    // Should we add another thread to the pool?
-    if((m_bsyThreads == m_curThreads) &&
-       (m_bsyThreads  < m_maxThreads) &&
-       (GetCPULoad(&m_cpuclock)  < 0.75) &&
-       m_openForWork)
+    } 
+    while(stayInThePool);
+  }
+  catch(StdException& ex)
+  {
+    if(ex.GetSafeExceptionCode())
     {
-      CreateThreadPoolThread();
-    }
+      // We need to detect the fact that a second exception can occur,
+      // so we do **not** call the error report method again
+      // Otherwise we would end into an infinite loop
+      XString empty;
+      g_exception = true;
+      g_exception = ErrorReport::Report(ex.GetSafeExceptionCode(),ex.GetExceptionPointers(),m_crashMap,empty);
 
-    // Timeout from the completion port?
-    // We now always do a INFINITE wait
-    //   if(!ok && (error == WAIT_TIMEOUT))
-    //   {
-    //     // Thread timed out. Not much for the application to do
-    //     // thread can stop, even if it has some outstanding I/O
-    //     stayInThePool = false;
-    //   }
-
-    // PROCESSING A ACTION IN THE THREADPOOL
-    if(ok || overlapped)
-    {
-      TP_TRACE0("Running thread routine\n");
-      if(key == COMPLETION_WORK && overlapped == INVALID_HANDLE_VALUE)
+      if(g_exception)
       {
-        // 1: Thread woke to do some interesting work....
-        LPFN_CALLBACK callback = nullptr;
-        void*         payload  = nullptr;
-        if(WorkToDo(callback,payload))
-        {
-          DoTheCallback(callback,payload);
-        }
-      }
-      else if (key == COMPLETION_CALL)
-      {
-        // 2: Implement your overload of this special call
-        DoTheCallback(overlapped);
+        // Error while sending an error report
+        // This error can originate from another thread, OR from the sending of this error report
+        SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("DOUBLE INTERNAL ERROR while making an error report.!!"));
+        g_exception = false;
       }
       else
       {
-        // 3: The completion key **IS** the callback mechanism
-        LPFN_CALLBACK callback = reinterpret_cast<LPFN_CALLBACK>(key);
-        (*callback)(overlapped);
+        SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("CRASH: Errorreport has been made in: ")) + m_crashMap);
       }
     }
-
-    // Find CPU load and see if we must remain in the threadpool
-    load = GetCPULoad(&m_cpuclock);
-    TP_TRACE1("CPU Load: %f\n",load);
-    if((load > 0.9) && (m_curThreads > m_minThreads))
+    else
     {
-      stayInThePool = false;
+      // 'Normal' C++ exception: But it was forgotten elsewhere to catch it
+      ErrorReport::Report(ex.GetErrorMessage(),0,m_crashMap,_T(""));
     }
-    if(m_abortfunction)
-    {
-      AutoCritSec lock(&m_critical);
-      TP_TRACE0("Running thread stay-in-the-pool routine\n");
-      stayInThePool = (*m_abortfunction)(overlapped,stayInThePool,false);
-    }
-  } 
-  while(stayInThePool);
+  }
 
   // Leaving the main loop
   TP_TRACE0("Thread is leaving the pool\n");
@@ -784,7 +827,7 @@ ThreadPool::SleepThread(DWORD_PTR p_unique,void* p_payload)
     return nullptr;
   }
 
-  SleepingThread* sleep = new SleepingThread();
+  SleepingThread* sleep = alloc_new SleepingThread();
   sleep->m_threadId = GetCurrentThreadId();
   sleep->m_unique   = p_unique;
   sleep->m_payload  = p_payload;

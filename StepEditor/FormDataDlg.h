@@ -28,7 +28,7 @@ class FormDataDlg : public StyleDialog
 	DECLARE_DYNAMIC(FormDataDlg)
 
 public:
-	FormDataDlg(CWnd* p_parent,CString p_body,CString p_content);
+	FormDataDlg(CWnd* p_parent,XString p_body,XString p_content);
 	virtual ~FormDataDlg();
 
 	MultiPartBuffer* GetBuffer() { return &m_buffer; }
@@ -48,11 +48,11 @@ protected:
 	void FillRow(MultiPart* p_part,int p_row,bool p_new = true);
 
 	MultiPartBuffer m_buffer;
-  CString				  m_orignalBody;
-	CString					m_contentType;
+  XString				  m_orignalBody;
+	XString					m_contentType;
   ////
-  CString				m_boundary;
-	CString				m_inCharset;
+  XString				m_boundary;
+	XString				m_inCharset;
 	bool 					m_useCharset;
 	bool					m_useExtensions;
   StyleEdit			m_editBoundary;

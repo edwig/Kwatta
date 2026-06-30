@@ -28,10 +28,10 @@ class MutateDlg : public StyleDialog
 	DECLARE_DYNAMIC(MutateDlg)
 
 public:
-	MutateDlg(CWnd* p_parent,CString p_object,CString p_filename);
+	MutateDlg(CWnd* p_parent,XString p_object,XString p_filename);
 	virtual ~MutateDlg();
 
-  CString GetFilename();
+  XString GetFilename();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -43,9 +43,9 @@ protected:
   virtual BOOL OnInitDialog() override;
           bool CheckFilenames();
 
-  CString     m_object;
-  CString     m_orgFilename;
-  CString     m_newFilename;
+  XString     m_object;
+  XString     m_orgFilename;
+  XString     m_newFilename;
 
   StyleEdit   m_editOrgFilename;
   StyleEdit   m_editNewFilename;

@@ -105,10 +105,10 @@ StarterDlg::InitTestSuites()
 
   for(int index = 0; index < MAX_SUITES; ++index)
   {
-    CString key;
+    XString key;
     key.Format(_T("TestSuite_%d"),index + 1);
 
-    CString suite = reg.GetRegistryString(_T("Suites"),key,_T(""));
+    XString suite = reg.GetRegistryString(_T("Suites"),key,_T(""));
     if(!suite.IsEmpty())
     {
       m_suites.push_back(suite);
@@ -141,7 +141,7 @@ StarterDlg::SaveTestSuites()
 
   for(int index = 0; index < MAX_SUITES; ++index)
   {
-    CString key;
+    XString key;
     key.Format(_T("TestSuite_%d"), index + 1);
 
     if(index < (int)m_suites.size())
@@ -171,8 +171,8 @@ StarterDlg::InitButtons()
   // Do the test suite buttons
   for(int index = 0;index < MAX_SUITES;++index)
   {
-    CString suite;
-    CString shorter;
+    XString suite;
+    XString shorter;
     bool active(false);
     bool bold(false);
 
@@ -236,7 +236,7 @@ StarterDlg::InitButtons()
 }
 
 // Service for our callers
-CString
+XString
 StarterDlg::GetChosenSuite()
 {
   return m_chosenSuite;
@@ -245,7 +245,7 @@ StarterDlg::GetChosenSuite()
 bool
 StarterDlg::CheckExists(int p_num)
 {
-  CString path = m_suites[p_num];
+  XString path = m_suites[p_num];
   if(!std::filesystem::exists(path.GetString()))
   {
     if(StyleMessageBox(this,_T("This test suite does no longer exists. Remove from this list?"),_T(KWATTA),MB_YESNO|MB_DEFBUTTON1|MB_ICONQUESTION) == IDYES)

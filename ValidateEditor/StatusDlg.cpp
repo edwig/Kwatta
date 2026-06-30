@@ -249,7 +249,7 @@ StatusDlg::OnCbnSelchangeStatusVar()
   int ind = m_comboStatusVar.GetCurSel();
   if (ind >= 0)
   {
-    CString var;
+    XString var;
     m_comboStatusVar.GetLBText(ind, var);
     m_statusVariable = var;
   }
@@ -262,7 +262,7 @@ StatusDlg::OnBnClickedStatusVar()
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {
-    CString newvar = dlg.GetNewName();
+    XString newvar = dlg.GetNewName();
     if(!newvar.IsEmpty())
     {
       m_statusVariable = newvar;

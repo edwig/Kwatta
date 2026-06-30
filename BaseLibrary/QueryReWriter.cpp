@@ -4,8 +4,8 @@
 //
 // BaseLibrary: Indispensable general objects and functions
 // 
-// Copyright (c) 2014-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 2014-2026 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
@@ -29,14 +29,6 @@
 #include "QueryReWriter.h"
 #include "WiNFile.h"
 
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
-
 // All tokens that must be recognized
 // for the logic to work correctly
 static const PTCHAR all_tokens[] =
@@ -48,6 +40,7 @@ static const PTCHAR all_tokens[] =
   ,_T("\"")
   ,_T(".")
   ,_T(",")
+  ,_T("+")
   ,_T("-")
   ,_T("/")
   ,_T("--")
@@ -56,7 +49,7 @@ static const PTCHAR all_tokens[] =
   ,_T("(")
   ,_T(")")
   ,_T("(+)")
-  ,_T("+")
+  ,_T("@")
   ,_T("||")
   ,_T(" ")
   ,_T("\t")
@@ -90,13 +83,13 @@ void QueryRewriterRemoveAllWords()
 
 ///////////////////////////////////////////////////////////////////////////
 
-QueryReWriter::QueryReWriter(XString p_schema)
+QueryReWriter::QueryReWriter(const XString& p_schema)
                :m_schema(p_schema)
 {
 }
 
 XString 
-QueryReWriter::Parse(XString p_input)
+QueryReWriter::Parse(const XString& p_input)
 {
   Reset();
   m_input = p_input;
@@ -123,11 +116,11 @@ QueryReWriter::SetOption(SROption p_option)
 }
 
 bool
-QueryReWriter::AddSQLWord(XString p_word
-                         ,XString p_replacement
-                         ,XString p_schema /*= ""*/
-                         ,Token   p_token  /*= Token::TK_EOS*/
-                         ,OdbcEsc p_odbc   /*= OdbcEsc::ODBCESC_None*/)
+QueryReWriter::AddSQLWord(const XString& p_word
+                         ,const XString& p_replacement
+                         ,const XString  p_schema /*= ""*/
+                         ,      Token    p_token  /*= Token::TK_EOS*/
+                         ,      OdbcEsc  p_odbc   /*= OdbcEsc::ODBCESC_None*/)
 {
   // Must be sure we have the tokens beforehand
   Initialization();
@@ -148,7 +141,7 @@ QueryReWriter::AddSQLWord(XString p_word
 }
 
 bool
-QueryReWriter::AddSQLWord(SQLWord& p_word)
+QueryReWriter::AddSQLWord(const SQLWord& p_word)
 {
   // Must be sure we have the tokens beforehand
   Initialization();
@@ -163,7 +156,7 @@ QueryReWriter::AddSQLWord(SQLWord& p_word)
 
 // Returns true if ALL words in parameter are added successfully
 bool
-QueryReWriter::AddSQLWords(SQLWords& p_words)
+QueryReWriter::AddSQLWords(const SQLWords& p_words)
 {
   // Must be sure we have the tokens beforehand
   Initialization();
@@ -181,7 +174,7 @@ QueryReWriter::AddSQLWords(SQLWords& p_words)
 }
 
 bool
-QueryReWriter::AddSQLWordsFromFile(XString p_filename)
+QueryReWriter::AddSQLWordsFromFile(const XString& p_filename)
 {
   // Must be sure we have the tokens beforehand
   Initialization();
@@ -194,7 +187,7 @@ QueryReWriter::AddSQLWordsFromFile(XString p_filename)
     while(file.Read(line))
     {
       line = line.TrimRight(_T("\n"));
-      if(!line.GetLength() || line[0] == '#')
+      if(!line.GetLength() || line.GetAt(0) == '#')
       {
         // Empty line or comment line
         continue;
@@ -352,7 +345,7 @@ QueryReWriter::ParseStatement(bool p_closingEscape /*= false*/)
     // Append schema
     if(m_nextTable)
     {
-      AppendSchema();
+      ProcessSchema();
     }
 
     // Find next table for appending a schema
@@ -446,11 +439,13 @@ QueryReWriter::PrintToken()
                               m_output += m_tokenString;
                               m_output += '\n';
                               break;
-    case Token::TK_PAR_ADD:   m_output += (m_options & (int)SROption::SRO_ADD_TO_CONCAT) ? _T("||") : _T("+");
+    case Token::TK_ADD:       m_output += (m_options & (int)SROption::SRO_ADD_TO_CONCAT) ? _T("||") : _T("+");
                               break;
-    case Token::TK_PAR_CONCAT:m_output += (m_options & (int)SROption::SRO_CONCAT_TO_ADD) ? _T("+") : _T("||");
+    case Token::TK_CONCAT:    m_output += (m_options & (int)SROption::SRO_CONCAT_TO_ADD) ? _T("+") : _T("||");
                               break;
     case Token::TK_PAR_OUTER: PrintOuterJoin();
+                              break;
+    case Token::TK_PAR_AMPER: PrintDatabaseLink();
                               break;
     case Token::TK_POINT:     [[fallthrough]];
     case Token::TK_COMMA:     [[fallthrough]];
@@ -495,9 +490,35 @@ QueryReWriter::PrintOuterJoin()
   }
 }
 
+void
+QueryReWriter::PrintDatabaseLink()
+{
+  if(m_options & (int)SROption::SRO_RESOLVE_DBLINK)
+  {
+    // Save last tokenstring as table
+    XString last = m_lastTokenString;
+    Token token = GetToken();
+    if(token == Token::TK_PLAIN)
+    {
+      m_output = m_output.Left(m_output.GetLength() - last.GetLength());
+      m_output += m_tokenString + _T(".") + last;
+    }
+    else
+    {
+      m_output += _T("@");
+      PrintToken();
+    }
+  }
+  else
+  {
+    // Keep the current database link
+    m_output += _T("@");
+  }
+}
+
 // THIS IS WHY WE ARE HERE IN THIS CLASS!
 void
-QueryReWriter::AppendSchema()
+QueryReWriter::ProcessSchema()
 {
   SkipSpaceAndComment();
 
@@ -506,8 +527,11 @@ QueryReWriter::AppendSchema()
   if(ch == '.')
   {
     // There already was a schema name
-    m_output += m_tokenString;
-    m_output += '.';
+    if(!(m_options & (int)SROption::SRO_REMOVE_SCHEMA))
+    {
+      m_output += m_tokenString;
+      m_output += '.';
+    }
     m_token   = GetToken();
   }
   else
@@ -558,6 +582,7 @@ QueryReWriter::SkipSpaceAndComment()
 Token
 QueryReWriter::GetToken()
 {
+  m_lastTokenString = m_tokenString;
   m_tokenString.Empty();
   int ch = 0;
 
@@ -576,7 +601,8 @@ QueryReWriter::GetToken()
       case ',':   return Token::TK_COMMA;
       case '(':   return Parenthesis();
       case ')':   return Token::TK_PAR_CLOSE;
-      case '+':   return Token::TK_PAR_ADD;
+      case '+':   return Token::TK_ADD;
+      case '@':   return Token::TK_PAR_AMPER;
       case ' ':   return Token::TK_SPACE;
       case '\t':  return Token::TK_TAB;
       case '\r':  return Token::TK_CR;
@@ -623,9 +649,9 @@ QueryReWriter::FindToken()
   {
     switch(tok->second.m_odbcEscape)
     {
-      case OdbcEsc::Function:   m_tokenString = _T("{fn ") + tok->second.m_replacement;
+      case OdbcEsc::Function:   m_tokenString = XString(_T("{fn ")) + tok->second.m_replacement;
                                 break;
-      case OdbcEsc::Procedure:  m_tokenString = _T("{[?=]call ") + tok->second.m_replacement;
+      case OdbcEsc::Procedure:  m_tokenString = XString(_T("{[?=]call ")) + tok->second.m_replacement;
                                 break;
       case OdbcEsc::Date:       m_tokenString = _T("{d ");
                                 break;
@@ -735,7 +761,7 @@ QueryReWriter::StringConcatenate()
   int ch = GetChar();
   if(ch == '|')
   {
-    return Token::TK_PAR_CONCAT;
+    return Token::TK_CONCAT;
   }
   UnGetChar(ch);
   return Token::TK_PLAIN;
@@ -749,7 +775,7 @@ QueryReWriter::Parenthesis()
   if(ch == '+')
   {
     // One extra look-ahead
-    if(m_input[m_position] == ')')
+    if(m_input.GetAt(m_position) == ')')
     {
       GetChar();
       return Token::TK_PAR_OUTER;

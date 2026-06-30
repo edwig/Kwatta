@@ -30,7 +30,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-TestSet::ReadFromXML(CString p_filename)
+TestSet::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
 
@@ -46,7 +46,7 @@ TestSet::ReadFromXML(CString p_filename)
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in XSET file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -109,15 +109,15 @@ TestSet::WriteToXML()
   msg.SetRootNodeName(_T("Test"));
 
   XMLElement* root = msg.GetRoot();
-  msg.AddElement(root, _T("Name"),          XDT_String, m_name);
-  msg.AddElement(root, _T("Documentation"), XDT_String, m_documentation);
+  msg.AddElement(root, _T("Name"),          m_name);
+  msg.AddElement(root, _T("Documentation"), m_documentation);
 
-  XMLElement* steps = msg.AddElement(root,_T("Steps"),XDT_String,_T(""));
+  XMLElement* steps = msg.AddElement(root,_T("Steps"),_T(""));
   for(auto& run : m_testruns)
   {
     // Add the step
-    XMLElement* step = msg.AddElement(steps,_T("Step"),XDT_String,_T(""));
-    XMLElement* xrun = msg.AddElement(step, _T("xrun"),XDT_String,run.m_filename);
+    XMLElement* step = msg.AddElement(steps,_T("Step"),_T(""));
+    XMLElement* xrun = msg.AddElement(step, _T("xrun"),run.m_filename);
     if(run.m_global)
     {
       msg.SetAttribute(xrun,_T("global"),_T("true"));
@@ -128,10 +128,10 @@ TestSet::WriteToXML()
     }
 
     // Add all validation steps of the run
-    XMLElement* validations = msg.AddElement(step,_T("Validations"),XDT_String,_T(""));
+    XMLElement* validations = msg.AddElement(step,_T("Validations"),_T(""));
     for(auto& vali : run.m_validations)
     {
-      XMLElement* validation = msg.AddElement(validations,_T("Validation"),XDT_String,vali.m_filename);
+      XMLElement* validation = msg.AddElement(validations,_T("Validation"),vali.m_filename);
       if(vali.m_global)
       {
         msg.SetAttribute(validation,_T("global"),_T("true"));
@@ -145,7 +145,7 @@ TestSet::WriteToXML()
     // Add any last result of the run
     if(!run.m_lastResult.IsEmpty())
     {
-      msg.AddElement(step,_T("LastResult"),XDT_String,run.m_lastResult);
+      msg.AddElement(step,_T("LastResult"),run.m_lastResult);
     }
   }
 
@@ -174,7 +174,7 @@ TestSet::GetTotalResult()
 }
 
 TRun* 
-TestSet::GetRun(CString p_filename)
+TestSet::GetRun(XString p_filename)
 {
   for(auto& trun : m_testruns)
   {
@@ -187,7 +187,7 @@ TestSet::GetRun(CString p_filename)
 }
 
 TSValSet*
-TestSet::GetValidationsByName(CString p_name)
+TestSet::GetValidationsByName(XString p_name)
 {
   for(auto& trun : m_testruns)
   {
@@ -200,7 +200,7 @@ TestSet::GetValidationsByName(CString p_name)
 }
 
 TSValSet*
-TestSet::GetValidationsByFile(CString p_filename)
+TestSet::GetValidationsByFile(XString p_filename)
 {
   for(auto& trun : m_testruns)
   {
@@ -213,7 +213,7 @@ TestSet::GetValidationsByFile(CString p_filename)
 }
 
 TRun*
-TestSet::AddTestStep(CString p_name,CString p_filename,bool p_global)
+TestSet::AddTestStep(XString p_name,XString p_filename,bool p_global)
 {
   TRun run;
   run.m_name     = p_name;
@@ -255,7 +255,7 @@ TestSet::GetTestRun(int p_run)
 //////////////////////////////////////////////////////////////////////////
 
 void
-TestSet::CheckFilename(CString p_filename)
+TestSet::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -268,8 +268,8 @@ TestSet::CheckFilename(CString p_filename)
   }
 }
 
-CString
-TestSet::FindElementString(XMLMessage& p_msg, XMLElement* p_start, CString p_name)
+XString
+TestSet::FindElementString(XMLMessage& p_msg, XMLElement* p_start, XString p_name)
 {
   XMLElement* elem = p_msg.FindElement(p_start, p_name);
   if (elem)

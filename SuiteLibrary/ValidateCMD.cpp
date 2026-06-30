@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-ValidateCMD::ReadFromXML(CString p_filename)
+ValidateCMD::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   Validate::ReadFromXML(msg,p_filename);
@@ -67,7 +67,7 @@ ValidateCMD::ReadFromXML(CString p_filename)
 }
 
 bool
-ValidateCMD::WriteToXML(CString p_filename)
+ValidateCMD::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!Validate::WriteToXML(msg,p_filename))
@@ -75,21 +75,21 @@ ValidateCMD::WriteToXML(CString p_filename)
     return false;
   }
   XMLElement* root   = msg.GetRoot();
-  XMLElement* retval = msg.AddElement(root,_T("CheckReturn"),XDT_String,_T(""));
+  XMLElement* retval = msg.AddElement(root,_T("CheckReturn"),_T(""));
   msg.SetElement(retval,_T("IsSigned"),m_returnIsSigned);
   msg.SetElement(retval,_T("Check"),   m_checkReturnValue);
   msg.SetElement(retval,_T("Operator"),ReturnOperatorToString(m_returnOperator));
-  msg.AddElement(retval,_T("Expected"),XDT_CDATA,m_expectedReturn);
+  msg.AddElement(retval,_T("Expected"),m_expectedReturn,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
-  XMLElement* output = msg.AddElement(root,_T("CheckOutput"),XDT_String,_T(""));
+  XMLElement* output = msg.AddElement(root,_T("CheckOutput"),_T(""));
   msg.SetElement(output,_T("Check"),   m_checkOutput);
   msg.SetElement(output,_T("Operator"),BufferOperatorToString(m_outputOperator));
-  msg.AddElement(output,_T("Expected"),XDT_CDATA,m_expectedOutput);
+  msg.AddElement(output,_T("Expected"),m_expectedOutput,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
-  XMLElement* error = msg.AddElement(root,_T("CheckError"),XDT_String,_T(""));
+  XMLElement* error = msg.AddElement(root,_T("CheckError"),_T(""));
   msg.SetElement(error,_T("Check"),   m_checkError);
   msg.SetElement(error,_T("Operator"),BufferOperatorToString(m_errorOperator));
-  msg.AddElement(error,_T("Expected"),XDT_CDATA,m_expectedError);
+  msg.AddElement(error,_T("Expected"),m_expectedError,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Now save it
   return msg.SaveFile(m_filename);
@@ -110,7 +110,7 @@ ValidateCMD::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 
 // Check our filenames extension
 void
-ValidateCMD::CheckFilename(CString p_filename)
+ValidateCMD::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -154,7 +154,7 @@ ValidateCMD::ValidateReturnValue(int p_value)
 }
 
 bool
-ValidateCMD::ValidateOutputBuffer(CString p_buffer)
+ValidateCMD::ValidateOutputBuffer(XString p_buffer)
 {
   // See if we must check the output value
   if(!m_checkOutput)
@@ -180,7 +180,7 @@ ValidateCMD::ValidateOutputBuffer(CString p_buffer)
 }
 
 bool
-ValidateCMD::ValidateErrorBuffer(CString p_buffer)
+ValidateCMD::ValidateErrorBuffer(XString p_buffer)
 {
   // See if we must check the error output
   // But if we DO HAVE AN ERROR, always consider it for an error

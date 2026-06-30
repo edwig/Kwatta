@@ -42,6 +42,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
   StyleRichEdit m_editText;
-  CString       m_text;
+  XString       m_text;
   StyleButton   m_buttonOK;
 };

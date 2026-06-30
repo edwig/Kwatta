@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-TestStepSQL::ReadFromXML(CString p_filename)
+TestStepSQL::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   TestStep::ReadFromXML(msg,p_filename);
@@ -42,7 +42,7 @@ TestStepSQL::ReadFromXML(CString p_filename)
   XMLElement* typ = msg.FindElement(root,_T("Type"),false);
   if(typ)
   {
-    CString type = typ->GetValue();
+    XString type = typ->GetValue();
     if(type.Compare(_T("SQL")))
     {
       throw StdException(_T("QRUN file is not a SQL test: ") + p_filename);
@@ -67,7 +67,7 @@ TestStepSQL::ReadFromXML(CString p_filename)
 }
 
 bool
-TestStepSQL::WriteToXML(CString p_filename)
+TestStepSQL::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!TestStep::WriteToXML(msg,p_filename))
@@ -77,17 +77,17 @@ TestStepSQL::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,_T("Type"),XDT_String,_T("SQL"));
+  msg.AddElement(root,_T("Type"),_T("SQL"));
 
-  XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
+  XMLElement* def = msg.AddElement(root,_T("Definition"),_T(""));
 
   SetCredential(m_credential);
 
-  msg.AddElement(def,_T("Credential"),XDT_String,m_credential);
-  msg.AddElement(def,_T("Datasource"),XDT_String,m_datasource);
-  msg.AddElement(def,_T("User"),      XDT_String,m_user);
-  msg.AddElement(def,_T("Password"),  XDT_String,m_password);
-  msg.AddElement(def,_T("SQL"),       XDT_String|XDT_CDATA,m_sql);
+  msg.AddElement(def,_T("Credential"),m_credential);
+  msg.AddElement(def,_T("Datasource"),m_datasource);
+  msg.AddElement(def,_T("User"),      m_user);
+  msg.AddElement(def,_T("Password"),  m_password);
+  msg.AddElement(def,_T("SQL"),       m_sql,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -109,7 +109,7 @@ TestStepSQL::EffectiveReplacements(Parameters* p_parameters, bool p_forDisplay)
 
 // Check our filenames extension
 void
-TestStepSQL::CheckFilename(CString p_filename)
+TestStepSQL::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -133,7 +133,7 @@ TestStepSQL::ResetEffective()
 }
 
 void
-TestStepSQL::SetCredential(CString p_credential)
+TestStepSQL::SetCredential(XString p_credential)
 {
   m_credential = p_credential;
 

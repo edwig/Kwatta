@@ -38,7 +38,7 @@ public:
   {
     UINT_PTR      v_all;            // Used if accessed as a memory object, instead of a type
     int			      v_integer;        // DTYPE_INTEGER  value
-    CString*      v_string;         // DTYPE_STRING   value
+    XString*      v_string;         // DTYPE_STRING   value
     bcd*          v_floating;       // DTYPE_BCD      value
     FILE*         v_file;           // DTYPE_FILE     value
     Array*        v_array;          // DTYPE_ARRAY    value
@@ -46,7 +46,7 @@ public:
     Class*        v_class;          // DTYPE_CLASS    value
     Function*     v_script;	        // DTYPE_SCRIPT   Internal compiled script function
     Internal      v_internal;       // DTYPE_INTERNAL Internal C++ function
-    CString*      v_sysname;        // DTYPE_EXTERNAL External PInvoke function
+    XString*      v_sysname;        // DTYPE_EXTERNAL External PInvoke function
     SQLDatabase*  v_database;       // DTYPE_DATABASE 
     SQLQuery*     v_query;          // DTYPE_QUERY
     SQLVariant*   v_variant;        // DTYPE_VARIANT

@@ -165,7 +165,7 @@ TestRunnerDlg::OnQueryDragIcon()
 // INTERFACE FUNCTIONS
 
 void
-TestRunnerDlg::SetTest(CString p_test)
+TestRunnerDlg::SetTest(XString p_test)
 {
   m_test = p_test;
   UpdateData(FALSE);
@@ -173,7 +173,7 @@ TestRunnerDlg::SetTest(CString p_test)
 }
 
 void
-TestRunnerDlg::SetStep(CString p_step)
+TestRunnerDlg::SetStep(XString p_step)
 {
   m_step = p_step;
   UpdateData(FALSE);
@@ -199,7 +199,7 @@ TestRunnerDlg::SetProgress(int p_percent)
 LRESULT 
 TestRunnerDlg::OnTestName(WPARAM wParam,LPARAM lParam)
 {
-  CString test = CString((TCHAR*)wParam);
+  XString test = XString((TCHAR*)wParam);
   SetTest(test);
   return 0;
 }
@@ -207,7 +207,7 @@ TestRunnerDlg::OnTestName(WPARAM wParam,LPARAM lParam)
 LRESULT 
 TestRunnerDlg::OnStepName(WPARAM wParam,LPARAM lParam)
 {
-  CString step = CString((TCHAR*)wParam);
+  XString step = XString((TCHAR*)wParam);
   SetStep(step);
   return 0;
 }

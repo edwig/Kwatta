@@ -41,10 +41,10 @@ TestStep::~TestStep()
 {
 }
 
-TestStep* ReadTestStep(CString p_filename)
+TestStep* ReadTestStep(XString p_filename)
 {
   WinFile file(p_filename);
-  CString extension = file.GetFilenamePartExtension();
+  XString extension = file.GetFilenamePartExtension();
 
   if(extension.CompareNoCase(EXTENSION_TESTSTEP_CMD) == 0)
   {
@@ -113,7 +113,7 @@ TestStep::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 //////////////////////////////////////////////////////////////////////////
 
 void
-TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
+TestStep::ReadFromXML(XMLMessage& msg,XString p_filename)
 {
   // Check that we have a *.xrun extension
   CheckFilename(p_filename);
@@ -127,7 +127,7 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in XRUN file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -164,15 +164,15 @@ TestStep::ReadFromXML(XMLMessage& msg,CString p_filename)
 }
 
 bool
-TestStep::WriteToXML(XMLMessage& msg,CString /*p_filename*/)
+TestStep::WriteToXML(XMLMessage& msg,XString /*p_filename*/)
 {
   msg.SetRootNodeName(_T("TestStep"));
 
   XMLElement* root = msg.GetRoot();
-  msg.AddElement(root, _T("Name"),         XDT_String|XDT_CDATA,m_name);
-  msg.AddElement(root, _T("Documentation"),XDT_String|XDT_CDATA,m_documentation);
+  msg.AddElement(root, _T("Name"),         m_name,         XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(root, _T("Documentation"),m_documentation,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
-  XMLElement* parameters = msg.AddElement(root,_T("Parameters"),XDT_String,_T(""));
+  XMLElement* parameters = msg.AddElement(root,_T("Parameters"),_T(""));
   msg.SetElement(parameters,_T("KillOnTimeout"),   m_killOnTimeout);
   msg.SetElement(parameters,_T("MaxExecutionTime"),m_maxExecution);
   msg.SetElement(parameters,_T("WaitBeforeRun"),   m_waitBeforeRun);
@@ -180,7 +180,7 @@ TestStep::WriteToXML(XMLMessage& msg,CString /*p_filename*/)
 
   if(!m_scriptToRun.IsEmpty())
   {
-    XMLElement* script = msg.AddElement(root,_T("Script"),XDT_String,_T(""));
+    XMLElement* script = msg.AddElement(root,_T("Script"),_T(""));
     msg.SetElement(script,_T("ScriptResult"),IntegerToString((int)m_scriptStatus));
     msg.SetElement(script,_T("QLScript"),m_scriptToRun);
     msg.SetElement(script,_T("StatusOK"),m_statusOK);
@@ -188,8 +188,8 @@ TestStep::WriteToXML(XMLMessage& msg,CString /*p_filename*/)
   return true;
 }
 
-CString
-TestStep::FindElementString(XMLMessage& p_msg, XMLElement* p_start, CString p_name)
+XString
+TestStep::FindElementString(XMLMessage& p_msg, XMLElement* p_start, XString p_name)
 {
   XMLElement* elem = p_msg.FindElement(p_start, p_name);
   if (elem)
@@ -200,7 +200,7 @@ TestStep::FindElementString(XMLMessage& p_msg, XMLElement* p_start, CString p_na
 }
 
 int
-TestStep::FindElementInteger(XMLMessage& p_msg, XMLElement* p_start, CString p_name)
+TestStep::FindElementInteger(XMLMessage& p_msg, XMLElement* p_start, XString p_name)
 {
   XMLElement* elem = p_msg.FindElement(p_start, p_name);
   if (elem)
@@ -211,7 +211,7 @@ TestStep::FindElementInteger(XMLMessage& p_msg, XMLElement* p_start, CString p_n
 }
 
 bool
-TestStep::FindElementBoolean(XMLMessage& p_msg, XMLElement* p_start, CString p_name)
+TestStep::FindElementBoolean(XMLMessage& p_msg, XMLElement* p_start, XString p_name)
 {
   XMLElement* elem = p_msg.FindElement(p_start, p_name);
   if (elem)

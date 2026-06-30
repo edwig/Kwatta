@@ -28,7 +28,7 @@
 
 IMPLEMENT_DYNAMIC(GlobalFileDlg, StyleDialog)
 
-GlobalFileDlg::GlobalFileDlg(CWnd* p_parent,bool p_step,StepType p_type,CString p_directory)
+GlobalFileDlg::GlobalFileDlg(CWnd* p_parent,bool p_step,StepType p_type,XString p_directory)
 	            :StyleDialog(IDD_GLOBALFILE,p_parent)
 							,m_directory(p_directory)
               ,m_step(p_step)
@@ -61,7 +61,7 @@ GlobalFileDlg::OnInitDialog()
 	StyleDialog::OnInitDialog();
 
   // Setting the title
-  CString title(_T("Choose global: "));
+  XString title(_T("Choose global: "));
   title += m_step ? _T("step") : _T("validation");
 	SetWindowText(title);
 
@@ -91,11 +91,11 @@ GlobalFileDlg::InitGrid()
 void 
 GlobalFileDlg::FillGrid()
 {
-	CString path(m_directory);
+	XString path(m_directory);
   path += m_step ? _T("Steps\\") : _T("Validations\\");
-  CString pattern(path);
+  XString pattern(path);
   int row = 0;
-  CString number;
+  XString number;
 
   if(m_step)
   {
@@ -130,7 +130,7 @@ GlobalFileDlg::FillGrid()
       if((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
       {
         number.Format(_T("%d"),++row);
-        CString filename(data.cFileName);
+        XString filename(data.cFileName);
         m_grid.InsertRow(number);
         m_grid.GetCell(row,1)->SetText(filename);
       }

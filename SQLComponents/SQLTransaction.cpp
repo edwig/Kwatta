@@ -2,8 +2,8 @@
 //
 // File: SQLTransaction.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,7 +23,7 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLTransaction.h"
 #include "SQLDatabase.h"
@@ -31,12 +31,6 @@
 #include "SQLQuery.h"
 #include "SQLWrappers.h"
 #include <atltrace.h>
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -49,6 +43,7 @@ SQLTransaction::SQLTransaction(SQLDatabase* p_database
                ,m_lock      (p_database,INFINITE)
                ,m_name      (p_name)
                ,m_active    (false)
+               ,m_readonly  (false)
                ,m_hdbc      (NULL)
 {
   // No spaces allowed in the name on any RDBMS platform
@@ -56,15 +51,24 @@ SQLTransaction::SQLTransaction(SQLDatabase* p_database
   // If asked for, start it right away
   if(p_startImmediate)
   {
-    Start(p_name, p_isSubTransaction);
+    Start(p_name,p_isSubTransaction);
+  }
+  // Override from database. 
+  // In a read-only database all transactions are read-only
+  if(p_database && p_database->GetReadOnly())
+  {
+    m_readonly = true;
   }
 }
 
-SQLTransaction::SQLTransaction(HDBC p_hdbc,bool p_startImmediate)
+SQLTransaction::SQLTransaction(HDBC p_hdbc
+                              ,bool p_startImmediate
+                              ,bool p_readonly /* =false */)
                :m_hdbc(p_hdbc)
                ,m_database(NULL)
                ,m_lock(NULL,INFINITE)
                ,m_active(false)
+               ,m_readonly(p_readonly)
 {
   if(p_startImmediate)
   {
@@ -97,7 +101,7 @@ SQLTransaction::~SQLTransaction()
 }
 
 void 
-SQLTransaction::Start(XString p_name, bool p_startSubtransaction)
+SQLTransaction::Start(const XString& p_name, bool p_startSubtransaction)
 {
   // On transaction per instance
   if(m_active)
@@ -145,12 +149,19 @@ SQLTransaction::Commit()
   // automatically do a rollback
   if(m_database)
   {
-    m_database->CommitTransaction(this);
+    if(m_readonly || m_database->GetReadOnly())
+    {
+      m_database->RollbackTransaction(this);
+    }
+    else
+    {
+      m_database->CommitTransaction(this);
+    }
   }
   else
   {
-    // Do the commit straight away
-    SQLRETURN ret = SqlEndTran(SQL_HANDLE_DBC,m_hdbc,SQL_COMMIT);
+    // Do the commit straight away, or a rollback on a read-only database
+    SQLRETURN ret = SqlEndTran(SQL_HANDLE_DBC,m_hdbc,m_readonly ? SQL_ROLLBACK : SQL_COMMIT);
     if(!SQL_SUCCEEDED(ret))
     {
       // Throw something, so we reach the catch block
@@ -162,12 +173,12 @@ SQLTransaction::Commit()
       // Not an error in all RDBMS'es. In MS-Access this is default behavior
       // So we log the error instead of throwing it. 
       // But as we do not have the database object to log it, we TRACE it :-(
-      ATLTRACE("Error setting autocommit mode to 'on', after committed transaction [%s]\n",m_name.GetString());
+      ATLTRACE(_T("Error setting autocommit mode to 'on', after committed transaction [%s]\n"),m_name.GetString());
     }
   }
   // Cleanup after use
-  m_name      = "";
-  m_savepoint = "";
+  m_name.Empty();
+  m_savepoint.Empty();
 }
 
 void 
@@ -200,18 +211,19 @@ SQLTransaction::Rollback()
       // Not an error in all RDBMS'es. In MS-Access this is default behavior
       // So we log the error instead of throwing it. 
       // But as we do not have the database object to log it, we TRACE it :-(
-      ATLTRACE("Error setting autocommit mode to 'on', after committed transaction [%s]\n",m_name.GetString());
+      ATLTRACE(_T("Error setting autocommit mode to 'on', after committed transaction [%s]\n"),m_name.GetString());
     }
   }
+  AfterRollback();
+
+  // We are no longer active
+  m_active = false;
 }
 
+// Can be overridden. We do nothing here
 void 
 SQLTransaction::AfterRollback()
 {
-  // After closing the transaction by a rollback
-  m_active    = false;
-  m_name      = _T("");
-  m_savepoint = _T("");
 }
 
 // Setting a transaction in a deferred state

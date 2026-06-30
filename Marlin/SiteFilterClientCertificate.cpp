@@ -25,23 +25,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SiteFilterClientCertificate.h"
 #include "SiteHandler.h"
 #include "HTTPCertificate.h"
 
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
-
 // Remember the certificate for this thread
 __declspec(thread) PHTTP_SSL_CLIENT_CERT_INFO g_certificate = nullptr;
 
-SiteFilterClientCertificate::SiteFilterClientCertificate(unsigned p_priority,XString p_name)
+SiteFilterClientCertificate::SiteFilterClientCertificate(unsigned p_priority,const XString& p_name)
                             :SiteFilter(p_priority,p_name)
 {
 }
@@ -130,7 +122,7 @@ SiteFilterClientCertificate::ReceiveClientCertificate(HTTPMessage* p_message)
   ULONG bytesReceived = 0;
   HANDLE requestQueue = m_site->GetHTTPServer()->GetRequestQueue();
   HTTP_CONNECTION_ID id = p_message->GetConnectionID();
-  g_certificate = new HTTP_SSL_CLIENT_CERT_INFO[1];
+  g_certificate = alloc_new HTTP_SSL_CLIENT_CERT_INFO[1];
   ZeroMemory(g_certificate,sizeof(HTTP_SSL_CLIENT_CERT_INFO));
 
   try
@@ -149,7 +141,7 @@ SiteFilterClientCertificate::ReceiveClientCertificate(HTTPMessage* p_message)
       // Allocate memory for the client certificate
       DWORD size = sizeof(HTTP_SSL_CLIENT_CERT_INFO) + g_certificate->CertEncodedSize;
       delete [] g_certificate;
-      g_certificate = (PHTTP_SSL_CLIENT_CERT_INFO) new uchar[size];
+      g_certificate = (PHTTP_SSL_CLIENT_CERT_INFO) alloc_new uchar[size];
       ZeroMemory(g_certificate,size);
       // Requery the client certificate. Now for real!!
       answer = HttpReceiveClientCertificate(requestQueue

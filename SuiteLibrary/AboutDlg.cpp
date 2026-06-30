@@ -52,7 +52,8 @@ void AboutDlg::DoDataExchange(CDataExchange* pDX)
 
   if(pDX->m_bSaveAndValidate == FALSE)
   {
-    m_editText.FormatRTFText(m_text);
+    CString text(m_text);
+    m_editText.FormatRTFText(text);
   }
 }
 
@@ -94,7 +95,7 @@ AboutDlg::OnInitDialog()
            _T("programming day......\n")
            _T("\n");
 
-  CString version;
+  XString version;
   version.Format(_T("{\\b VERSION: %s}}"),_T(KWATTA_VERSION));
   m_text += version;
 

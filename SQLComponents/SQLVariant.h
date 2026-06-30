@@ -2,8 +2,8 @@
 //
 // File: SQLVariant.h
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -100,11 +100,13 @@ public:
    // STATUS
    bool    IsNULL() const;
    bool    IsEmpty() const;
+   bool    IsStringType() const;
    bool    IsNumericType() const;
    bool    IsDecimalType() const;
    bool    IsIntervalType() const;
    bool    IsDateTimeType() const;
    bool    IsBinaryType() const;
+   bool    IsFixedLengthType() const;
 
    // GETTERS
    int     GetDataType() const;
@@ -184,8 +186,8 @@ public:
    const SQL_INTERVAL_STRUCT* GetAsInterval() const;
 
    // SET VALUE PER TYPE
-   void                 Set(LPCTSTR       p_string,bool p_wide = false);
-   void                 Set(const XString p_string,bool p_wide = false);
+   void                 Set(LPCTSTR        p_string,bool p_wide = false);
+   void                 Set(const XString& p_string,bool p_wide = false);
    void                 Set(void* p_pointer,int p_length);
    void                 Set(bool p_boolean);
    void                 Set(short p_short);

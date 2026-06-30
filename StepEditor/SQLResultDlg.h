@@ -45,7 +45,7 @@ protected:
           void InitLijst();
 
   StepResultSQL*  m_result { nullptr };
-  CString         m_speed;
+  XString         m_speed;
   StyleGridCtrl   m_list;
   StyleEdit       m_editSpeed;
   StyleButton     m_buttonClear;

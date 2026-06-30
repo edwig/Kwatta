@@ -40,9 +40,9 @@ public:
 public:
 	virtual BOOL InitInstance();
 
-  void    SetBaseDirectory(CString p_directory) { m_baseDirectory = p_directory; };
-  CString GetBaseDirectory()                    { return m_baseDirectory; };
-  CString GetBaseDirectoryClean();
+  void    SetBaseDirectory(XString p_directory) { m_baseDirectory = p_directory; };
+  XString GetBaseDirectory()                    { return m_baseDirectory; };
+  XString GetBaseDirectoryClean();
 
   int     StartTestEditor(Test& p_test,HWND p_hwnd,int p_row);
   int     StartTestRunner(Test& p_test,HWND p_hwnd,int p_row);
@@ -59,13 +59,13 @@ public:
 	DECLARE_MESSAGE_MAP()
 
 private:
-  CString StandardParameters(HWND p_wnd,int p_row);
-  CString GetParameterFilename(CString p_testname);
+  XString StandardParameters(HWND p_wnd,int p_row);
+  XString GetParameterFilename(XString p_testname);
   bool    ParseCommandLine();
   void    Usage();
 
-  CString m_baseDirectory;
-  CString m_suiteFilename;
+  XString m_baseDirectory;
+  XString m_suiteFilename;
 };
 
 extern KwattaApp theApp;

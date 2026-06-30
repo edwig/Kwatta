@@ -90,14 +90,14 @@ QLDebugger::DecodeProcedure(Function* p_function)
   int   len  = p_function->GetBytecodeSize();
   BYTE* code = p_function->GetBytecode();
 
-  CString funcName = p_function->GetName();
+  XString funcName = p_function->GetName();
   if(funcName != m_lastFunc)
   {
     // Display what we are debugging
-    CString name(_T("Function: "));
+    XString name(_T("Function: "));
     if(p_function->GetClass())
     {
-      CString className = p_function->GetClass()->GetName();
+      XString className = p_function->GetClass()->GetName();
       name += className + _T("::");
     }
     name += funcName;
@@ -130,8 +130,8 @@ QLDebugger::DecodeGlobals(BYTE* cbuff,int oldptr,int cptr)
 int 
 QLDebugger::DecodeInstruction(Function* p_function,BYTE* code,int lc,bool p_generator /*=false*/)
 {
-  CString name = p_function ? p_function->GetFullName() : _T("GLOBALS");
-  CString buffer;
+  XString name = p_function ? p_function->GetFullName() : _T("GLOBALS");
+  XString buffer;
   BYTE*   cp;
   OTDEF*  opcode;
   int n   = 1;
@@ -226,7 +226,7 @@ QLDebugger::DecodeInstruction(Function* p_function,BYTE* code,int lc,bool p_gene
 void
 QLDebugger::PrintReturn(Function* p_function)
 {
-  CString buffer;
+  XString buffer;
   buffer.Format(_T("\n              RET    %s"),p_function->GetFullName().GetString());
   osputs_stderr(buffer);
 }
@@ -269,7 +269,7 @@ QLDebugger::PrintIndexedObject(MemObject* p_vector,MemObject* p_index,MemObject*
 void
 QLDebugger::PopStack(int p_num)
 {
-  CString buffer;
+  XString buffer;
   buffer.Format(_T("              POP    %2.2X\n"),p_num);
   osputs_stderr(buffer);
 }

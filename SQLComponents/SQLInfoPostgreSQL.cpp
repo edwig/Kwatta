@@ -2,8 +2,8 @@
 //
 // File: SQLInfoPostgreSQL.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,16 +23,13 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLInfoPostgreSQL.h"
 #include "SQLQuery.h"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+// Undefine to convert in SQLMigrate without translation
+#define CONVERT_DECIMAL_INTEGER
 
 namespace SQLComponents
 {
@@ -147,6 +144,13 @@ SQLInfoPostgreSQL::GetRDBMSSupportsODBCCallNamedParameters() const
   return false;
 }
 
+// Supports the ODBC call procedure with named parameters
+bool
+SQLInfoPostgreSQL::GetRDBMSSupportsNamedParameters() const
+{
+  return false;
+}
+
 // If the database does not support the datatype TIME, it can be implemented as a DECIMAL
 bool
 SQLInfoPostgreSQL::GetRDBMSSupportsDatatypeTime() const
@@ -217,7 +221,7 @@ SQLInfoPostgreSQL::GetRDBMSMaxVarchar() const
 
 // Identifier rules differ per RDBMS
 bool
-SQLInfoPostgreSQL::IsIdentifier(XString p_identifier) const
+SQLInfoPostgreSQL::IsIdentifier(const XString& p_identifier) const
 {
   // Cannot be empty and cannot exceed this amount of characters
   if(p_identifier.GetLength() == 0 ||
@@ -226,20 +230,27 @@ SQLInfoPostgreSQL::IsIdentifier(XString p_identifier) const
     return false;
   }
   // Must start with one alpha char
-  if(!_istalpha(p_identifier.GetAt(0)))
+  if(!_istalpha((TCHAR)p_identifier.GetAt(0)))
   {
     return false;
   }
   for(int index = 0;index < p_identifier.GetLength();++index)
   {
     // Can be upper/lower alpha or a number OR an underscore
-    TCHAR ch = p_identifier.GetAt(index);
+    TCHAR ch = (TCHAR) p_identifier.GetAt(index);
     if(!_istalnum(ch) && ch != '_')
     {
       return false;
     }
   }
   return true;
+}
+
+// Return parameters from a PSM procedure module can be a result set (SUSPEND)
+bool
+SQLInfoPostgreSQL::GetRDBMSResultSetFromPSM() const
+{
+  return false;
 }
 
 // KEYWORDS
@@ -326,14 +337,14 @@ SQLInfoPostgreSQL::GetKEYWORDParameterPrefix() const
 // Get select part to add new record identity to a table
 // Can be special column like 'OID' or a sequence select
 XString
-SQLInfoPostgreSQL::GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix /*= "_seq"*/) const
+SQLInfoPostgreSQL::GetKEYWORDIdentityString(const XString& p_tablename,const XString& p_postfix /*= "_seq"*/) const
 {
   return _T("nextval('") + p_tablename + p_postfix + _T("')");
 }
 
 // Gets the UPPER function
 XString
-SQLInfoPostgreSQL::GetKEYWORDUpper(XString& p_expression) const
+SQLInfoPostgreSQL::GetKEYWORDUpper(const XString& p_expression) const
 {
   return _T("UPPER(") + p_expression + _T(")");
 }
@@ -348,7 +359,7 @@ SQLInfoPostgreSQL::GetKEYWORDInterval1MinuteAgo() const
 
 // Gets the Not-NULL-Value statement of the database
 XString
-SQLInfoPostgreSQL::GetKEYWORDStatementNVL(XString& p_test,XString& p_isnull) const
+SQLInfoPostgreSQL::GetKEYWORDStatementNVL(const XString& p_test,const XString& p_isnull) const
 {
   return _T("{fn IFNULL(") + p_test + _T(",") + p_isnull + _T(")}");
 }
@@ -357,7 +368,112 @@ SQLInfoPostgreSQL::GetKEYWORDStatementNVL(XString& p_test,XString& p_isnull) con
 XString
 SQLInfoPostgreSQL::GetKEYWORDDataType(MetaColumn* p_column)
 {
-  return p_column->m_typename;
+  XString type;
+
+  switch(p_column->m_datatype)
+  {
+    case SQL_CHAR:                      type = _T("varchar");       break;
+    case SQL_VARCHAR:                   type = _T("varchar");       break;
+    case SQL_LONGVARCHAR:               type = _T("text");          break;
+    case SQL_WCHAR:                     type = _T("varchar");       break;   // TBF
+    case SQL_WVARCHAR:                  type = _T("varchar");       break;   // TBF
+    case SQL_WLONGVARCHAR:              type = _T("text");          break;   // TBF
+    case SQL_NUMERIC:                   // Fall through
+    case SQL_DECIMAL:                   type = _T("numeric");
+#ifdef CONVERT_DECIMAL_INTEGER
+                                        if(p_column->m_decimalDigits == 0)
+                                        {
+                                          if(p_column->m_columnSize <= 2)
+                                          {
+                                            type = _T("int2");
+                                            p_column->m_datatype  = SQL_TINYINT;
+                                            p_column->m_datatype3 = SQL_TINYINT;
+                                          }
+                                          else if(p_column->m_columnSize <= 5)
+                                          {
+                                            type = _T("int2");
+                                            p_column->m_datatype  = SQL_SMALLINT;
+                                            p_column->m_datatype3 = SQL_SMALLINT;
+                                          }
+                                          else if(p_column->m_columnSize <= 10)
+                                          {
+                                            type = _T("int4");
+                                            p_column->m_datatype  = SQL_INTEGER;
+                                            p_column->m_datatype3 = SQL_INTEGER;
+                                          }
+                                          else if(p_column->m_columnSize >= SQLNUM_MAX_PREC)
+                                          {
+                                            type = _T("int4");
+                                            p_column->m_columnSize = 0;
+                                            p_column->m_datatype   = SQL_INTEGER;
+                                          }
+                                        }
+#endif
+                                        break;
+    case SQL_INTEGER:                   type = _T("int4");
+                                        p_column->m_columnSize = 10;
+                                        break;
+    case SQL_SMALLINT:                  type = _T("int2");
+                                        p_column->m_columnSize = 5;
+                                        break;
+    case SQL_FLOAT:                     type = _T("float8");
+                                        p_column->m_columnSize = 17;
+                                        break;
+    case SQL_REAL:                      type = _T("float4");
+                                        p_column->m_columnSize = 9;
+                                        break;
+    case SQL_DOUBLE:                    type = _T("float8");
+                                        p_column->m_columnSize = 17;
+                                        break;
+    //case SQL_DATE:
+    case SQL_DATETIME:                  // Fall through
+    case SQL_TYPE_DATE:                 type = _T("date");
+                                        p_column->m_columnSize = 10;
+                                        break;
+    case SQL_TIME:                      // Fall through
+    case SQL_TYPE_TIME:                 type = _T("time");
+                                        p_column->m_columnSize = 8;
+                                        break;
+    case SQL_TIMESTAMP:                 // Fall through
+    case SQL_TYPE_TIMESTAMP:            type = _T("timestamp");
+                                        p_column->m_columnSize = 26;
+                                        break;
+    case SQL_BINARY:                    type = _T("bytea");         break;
+    case SQL_VARBINARY:                 type = _T("bytea");         break;
+    case SQL_LONGVARBINARY:             type = _T("bytea");         break;
+    case SQL_BIGINT:                    type = _T("int8");
+                                        p_column->m_columnSize = 19;
+                                        break;
+    case SQL_TINYINT:                   type = _T("int2");
+                                        p_column->m_columnSize = 2;
+                                        break;
+    case SQL_BIT:                       type = _T("bool");
+                                        p_column->m_columnSize = 1;
+                                        break;
+    case SQL_GUID:                      type = _T("uuid");
+                                        p_column->m_columnSize    = 37;
+                                        p_column->m_decimalDigits = 0;
+                                        break;
+    case SQL_INTERVAL_YEAR:             // Fall through
+    case SQL_INTERVAL_MONTH:            // Fall through
+    case SQL_INTERVAL_DAY:              // Fall through
+    case SQL_INTERVAL_HOUR:             // Fall through
+    case SQL_INTERVAL_MINUTE:           // Fall through
+    case SQL_INTERVAL_SECOND:           // Fall through
+    case SQL_INTERVAL_YEAR_TO_MONTH:    // Fall through
+    case SQL_INTERVAL_DAY_TO_HOUR:      // Fall through
+    case SQL_INTERVAL_DAY_TO_MINUTE:    // Fall through
+    case SQL_INTERVAL_DAY_TO_SECOND:    // Fall through
+    case SQL_INTERVAL_HOUR_TO_MINUTE:   // Fall through
+    case SQL_INTERVAL_HOUR_TO_SECOND:   // Fall through
+    case SQL_INTERVAL_MINUTE_TO_SECOND: type = _T("varchar");
+                                        p_column->m_columnSize    = 40;
+                                        p_column->m_decimalDigits = 0;
+                                        break;
+    case SQL_UNKNOWN_TYPE:
+    default:                            type = _T("UNKNOWN ODBC DATA TYPE!");  break;
+  }
+  return p_column->m_typename = type;
 }
 
 // Gets the USER (current-user) keyword function
@@ -369,14 +485,14 @@ SQLInfoPostgreSQL::GetKEYWORDCurrentUser() const
 
 // Connects to a default schema in the database/instance
 XString
-SQLInfoPostgreSQL::GetSQLDefaultSchema(XString /*p_user*/,XString p_schema) const
+SQLInfoPostgreSQL::GetSQLDefaultSchema(const XString& /*p_user*/,const XString& p_schema) const
 {
   return _T("SET SEARCH_PATH TO ") + p_schema;
 }
 
 // Gets the construction for inline generating a key within an INSERT statement
 XString
-SQLInfoPostgreSQL::GetSQLNewSerial(XString p_table, XString p_sequence) const
+SQLInfoPostgreSQL::GetSQLNewSerial(const XString& p_table,const XString& p_sequence) const
 {
   XString sequence(p_sequence);
   if (sequence.IsEmpty() && !p_table.IsEmpty())
@@ -390,20 +506,20 @@ SQLInfoPostgreSQL::GetSQLNewSerial(XString p_table, XString p_sequence) const
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoPostgreSQL::GetSQLGenerateSerial(XString p_table) const
+SQLInfoPostgreSQL::GetSQLGenerateSerial(const XString& p_table) const
 {
   return _T("SELECT ") + p_table + _T("_seq.nextval FROM DUAL");
 }
 
 XString
-SQLInfoPostgreSQL::GetSQLGenerateSequence(XString p_sequence) const
+SQLInfoPostgreSQL::GetSQLGenerateSequence(const XString& p_sequence) const
 {
   return _T("SELECT ") + p_sequence + _T(".nextval FROM DUAL");
 }
 
 // Gets the construction / select for the resulting effective generated serial
 XString
-SQLInfoPostgreSQL::GetSQLEffectiveSerial(XString p_identity) const
+SQLInfoPostgreSQL::GetSQLEffectiveSerial(const XString& p_identity) const
 {
   // Already the correct value
   return p_identity;
@@ -411,20 +527,20 @@ SQLInfoPostgreSQL::GetSQLEffectiveSerial(XString p_identity) const
 
 // Gets the sub transaction commands
 XString
-SQLInfoPostgreSQL::GetSQLStartSubTransaction(XString p_savepointName) const
+SQLInfoPostgreSQL::GetSQLStartSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("SAVEPOINT ")) + p_savepointName;
 }
 
 XString
-SQLInfoPostgreSQL::GetSQLCommitSubTransaction(XString /*p_savepointName*/) const
+SQLInfoPostgreSQL::GetSQLCommitSubTransaction(const XString& /*p_savepointName*/) const
 {
   // No commit for a sub transaction
   return XString(_T(""));
 }
 
 XString
-SQLInfoPostgreSQL::GetSQLRollbackSubTransaction(XString p_savepointName) const
+SQLInfoPostgreSQL::GetSQLRollbackSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("ROLLBACK TO SAVEPOINT ")) + p_savepointName;
 }
@@ -439,7 +555,7 @@ SQLInfoPostgreSQL::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoPostgreSQL::GetSQLLockTable(XString p_schema,XString p_tablename,bool p_exclusive,int /*p_waittime*/) const
+SQLInfoPostgreSQL::GetSQLLockTable(const XString& p_schema,const XString& p_tablename,bool p_exclusive,int /*p_waittime*/) const
 {
   XString query = _T("LOCK TABLE ") + p_schema + _T(".") + p_tablename + _T(" IN ");
   query += p_exclusive ? _T("EXCLUSIVE") : _T("SHARE");
@@ -449,7 +565,7 @@ SQLInfoPostgreSQL::GetSQLLockTable(XString p_schema,XString p_tablename,bool p_e
 
 // Get query to optimize the table statistics
 XString
-SQLInfoPostgreSQL::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
+SQLInfoPostgreSQL::GetSQLOptimizeTable(const XString& p_schema,const XString& p_tablename) const
 {
   XString optim = _T("VACUUM ANALYZE ") + p_schema + _T(".") + p_tablename;
   return optim;
@@ -457,17 +573,18 @@ SQLInfoPostgreSQL::GetSQLOptimizeTable(XString p_schema, XString p_tablename) co
 
 // Transform query to select top <n> rows
 XString
-SQLInfoPostgreSQL::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) const
+SQLInfoPostgreSQL::GetSQLTopNRows(const XString& p_sql,int p_top,int p_skip /*= 0*/) const
 {
+  XString sql(p_sql);
   if(p_top > 0)
   {
-    p_sql.AppendFormat(_T("\nLIMIT %d "),p_top);
+    sql.AppendFormat(_T("\nLIMIT %d "),p_top);
     if(p_skip > 0)
     {
-      p_sql.AppendFormat(_T(" OFFSET %d"),p_skip);
+      sql.AppendFormat(_T(" OFFSET %d"),p_skip);
     }
   }
-  return p_sql;
+  return sql;
 }
 
 // Expand a SELECT with an 'FOR UPDATE' lock clause
@@ -478,12 +595,12 @@ SQLInfoPostgreSQL::GetSelectForUpdateTableClause(unsigned /*p_lockWaitTime*/) co
 }
 
 XString
-SQLInfoPostgreSQL::GetSelectForUpdateTrailer(XString p_select,unsigned p_lockWaitTime) const
+SQLInfoPostgreSQL::GetSelectForUpdateTrailer(const XString& p_select,unsigned p_lockWaitTime) const
 {
-  XString sql = p_select + "\nFOR UPDATE";
+  XString sql = p_select + _T("\nFOR UPDATE");
   if(!p_lockWaitTime)
   {
-    sql += " SKIP LOCKED";
+    sql += _T(" SKIP LOCKED");
   }
   return sql;
 }
@@ -498,13 +615,13 @@ SQLInfoPostgreSQL::GetPing() const
 
 // Pre- and postfix statements for a bulk import
 XString
-SQLInfoPostgreSQL::GetBulkImportPrefix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+SQLInfoPostgreSQL::GetBulkImportPrefix(const XString& /*p_schema*/,const XString& /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
 {
   return _T("");
 }
 
 XString
-SQLInfoPostgreSQL::GetBulkImportPostfix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+SQLInfoPostgreSQL::GetBulkImportPostfix(const XString& /*p_schema*/,const XString& /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
 {
   return _T("");
 }
@@ -568,22 +685,36 @@ SQLInfoPostgreSQL::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_day
 
 // Makes an catalog identifier string (possibly quoted on both sides)
 XString
-SQLInfoPostgreSQL::GetSQLDDLIdentifier(XString p_identifier) const
+SQLInfoPostgreSQL::GetSQLDDLIdentifier(const XString& p_identifier) const
 {
   return p_identifier;
 }
 
 // Get the name of a temp table (local temporary or global temporary)
 XString
-SQLInfoPostgreSQL::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool /*p_local*/) const
+SQLInfoPostgreSQL::GetTempTablename(const XString& /*p_schema*/,const XString& p_tablename,bool /*p_local*/) const
 {
   return p_tablename;
 }
 
 // Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
 bool
-SQLInfoPostgreSQL::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+SQLInfoPostgreSQL::DoBindParameterFixup(SQLVariant* /*p_var*/,SQLSMALLINT& p_dataType,SQLSMALLINT& p_sqlDatatype,SQLULEN& p_columnSize,SQLSMALLINT& p_scale,SQLLEN& p_bufferSize,SQLLEN* /*p_indicator*/) const
 {
+  if(p_dataType == SQL_C_TYPE_TIMESTAMP)
+  {
+    p_dataType = SQL_C_TIMESTAMP;
+    p_bufferSize = 0;
+    p_columnSize = 0;
+    p_scale      = 0;
+  }
+  if(p_sqlDatatype == SQL_TYPE_TIMESTAMP)
+  {
+    p_sqlDatatype = SQL_TIMESTAMP;
+    p_bufferSize = 0;
+    p_columnSize = 0;
+    p_scale      = 0;
+  }
   return false;
 }
 
@@ -613,12 +744,34 @@ SQLInfoPostgreSQL::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT&
 //////////////////////////////////////////////////////////////////////////
 
 // Meta info about meta types
-// Standard ODBC functions are good enough
+// Standard ODBC functions return always ALL objects in the database !!
 XString
 SQLInfoPostgreSQL::GetCATALOGMetaTypes(int p_type) const
 {
-  UNREFERENCED_PARAMETER(p_type);
-  return _T("");
+  // type META_CATALOGS / META_SCHEMAS / META_TABLES
+  XString sql;
+  if(p_type == META_CATALOGS)
+  {
+    sql = _T("SELECT datname as object_name\n")
+          _T("      ,''      as object_remarks\n")
+          _T("  FROM pg_database");
+  }
+  if(p_type == META_SCHEMAS)
+  {
+    sql = _T("SELECT nspname as object_name\n")
+          _T("      ,''      as object_remarks\n")
+          _T("  FROM pg_namespace\n")
+          _T(" WHERE nspname NOT LIKE 'pg\\_%' escape '\\'");
+  }
+  if(p_type == META_TABLES)
+  {
+    sql = _T("SELECT 'TABLE' as object_name\n")
+          _T("      ,''      as object_remarks\n")
+          _T("UNION\n")
+          _T("SELECT 'VIEW'  as object_name\n")
+          _T("      ,''      as object_remarks\n");
+  }
+  return sql;
 }
 
 XString
@@ -1369,20 +1522,16 @@ SQLInfoPostgreSQL::GetCATALOGForeignExists(XString p_schema,XString p_tablename,
   IdentifierCorrect(p_tablename);
   IdentifierCorrect(p_constraintname);
 
-  XString sql;
-  sql.Format(_T("SELECT COUNT(*)\n")
-             _T("  FROM pg_constraint con\n")
-             _T("      ,pg_class      cla\n")
-             _T("      ,pg_namespace  sch\n")
-             _T(" WHERE con.contype      = 'f'\n")
-             _T("   AND con.conrelid     = cla.oid\n")
-             _T("   AND cla.relnamespace = sch.oid\n")
-             _T("   AND sch.nspname      = '") + p_schema + _T("'\n")
-             _T("   AND cla.relname      = '") + p_tablename + _T("'\n")
-             _T("   AND con.conname      = '") + p_constraintname + _T("'")
-            ,p_schema.GetString()
-            ,p_tablename.GetString()
-            ,p_constraintname.GetString());
+  XString sql(_T("SELECT COUNT(*)\n")
+              _T("  FROM pg_constraint con\n")
+              _T("      ,pg_class      cla\n")
+              _T("      ,pg_namespace  sch\n")
+              _T(" WHERE con.contype      = 'f'\n")
+              _T("   AND con.conrelid     = cla.oid\n")
+              _T("   AND cla.relnamespace = sch.oid\n")
+              _T("   AND sch.nspname      = '") + p_schema + _T("'\n")
+              _T("   AND cla.relname      = '") + p_tablename + _T("'\n")
+              _T("   AND con.conname      = '") + p_constraintname + _T("'"));
   return sql;
 }
 
@@ -1884,6 +2033,7 @@ SQLInfoPostgreSQL::GetCATALOGSequenceList(XString& p_schema,XString& p_pattern,b
     sql += p_schema.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
     sql += _T("sequence_name LIKE ?");
   }
+  sql += _T(" ORDER BY 1,2,3");
   return sql;
 }
 
@@ -2033,9 +2183,25 @@ SQLInfoPostgreSQL::GetCATALOGViewText(XString& p_schema,XString& p_viewname,bool
 }
 
 XString
-SQLInfoPostgreSQL::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents,bool /*p_ifexists = true*/) const
+SQLInfoPostgreSQL::GetCATALOGViewCreate(XString p_schema,XString p_viewname,MColumnMap& p_columns,XString p_contents,bool /*p_ifexists = true*/) const
 {
-  return _T("CREATE OR REPLACE VIEW ") + QIQ(p_schema) + _T(".") + QIQ(p_viewname) + _T("\n") + p_contents;
+  XString sql = _T("CREATE OR REPLACE VIEW ") + QIQ(p_schema) + _T(".") + QIQ(p_viewname);
+  sql += _T("\n(  ");
+
+  bool next(false);
+  for(auto& column : p_columns)
+  {
+    if(next)
+    {
+      sql += _T(" ,");
+    }
+    sql += column.m_column;
+    sql += _T("\n");
+    next = true;
+  }
+  sql += _T(")\nAS\n") + p_contents;
+
+  return sql;
 }
 
 XString 
@@ -2197,8 +2363,45 @@ SQLInfoPostgreSQL::GetCATALOGCommentCreate(XString p_schema,XString p_object,XSt
 //
 //////////////////////////////////////////////////////////////////////////
 
+// All package functions
 XString
-SQLInfoPostgreSQL::GetPSMProcedureExists(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoPostgreSQL::GetPSMPackageExists(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoPostgreSQL::GetPSMPackageList(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoPostgreSQL::GetPSMPackageListModules(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString 
+SQLInfoPostgreSQL::GetPSMPackageAttributes(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoPostgreSQL::GetPSMPackageCreate(MetaPackage& /*p_package*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoPostgreSQL::GetPSMPackageDrop(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoPostgreSQL::GetPSMProcedureExists(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   IdentifierCorrect(p_procedure);
 
@@ -2214,7 +2417,7 @@ SQLInfoPostgreSQL::GetPSMProcedureExists(XString p_schema, XString p_procedure,b
 }
 
 XString
-SQLInfoPostgreSQL::GetPSMProcedureList(XString& p_schema,XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoPostgreSQL::GetPSMProcedureList(XString& p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql = _T("SELECT current_database() as procedure_catalog\n")
                 _T("      ,ns.nspname         as procedure_schema\n")
@@ -2253,7 +2456,7 @@ SQLInfoPostgreSQL::GetPSMProcedureList(XString& p_schema,XString p_procedure,boo
 }
 
 XString
-SQLInfoPostgreSQL::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
+SQLInfoPostgreSQL::GetPSMProcedureAttributes(XString& p_schema,XString& /*p_package*/,XString& p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql = _T("SELECT current_database() as procedure_catalog\n")
                 _T("      ,ns.nspname         as procedure_schema\n")
@@ -2295,7 +2498,7 @@ SQLInfoPostgreSQL::GetPSMProcedureAttributes(XString& p_schema,XString& p_proced
 }
 
 XString
-SQLInfoPostgreSQL::GetPSMProcedureSourcecode(XString p_schema,XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoPostgreSQL::GetPSMProcedureSourcecode(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql = _T("SELECT 1 as type\n")
                 _T("      ,1 as line\n")
@@ -2323,7 +2526,7 @@ SQLInfoPostgreSQL::GetPSMProcedureCreate(MetaProcedure& p_procedure) const
 }
 
 XString
-SQLInfoPostgreSQL::GetPSMProcedureDrop(XString p_schema, XString p_procedure,bool p_function /*=false*/) const
+SQLInfoPostgreSQL::GetPSMProcedureDrop(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_function /*=false*/) const
 {
   XString sql(_T("DROP "));
   sql += p_function ? _T("FUNCTION ") : _T("PROCEDURE ");
@@ -2336,20 +2539,20 @@ SQLInfoPostgreSQL::GetPSMProcedureDrop(XString p_schema, XString p_procedure,boo
 }
 
 XString
-SQLInfoPostgreSQL::GetPSMProcedureErrors(XString /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoPostgreSQL::GetPSMProcedureErrors(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return _T("");
 }
 
 XString
-SQLInfoPostgreSQL::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoPostgreSQL::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_package*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return _T("");
 }
 
 // And it's parameters
 XString
-SQLInfoPostgreSQL::GetPSMProcedureParameters(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
+SQLInfoPostgreSQL::GetPSMProcedureParameters(XString& p_schema,XString& /*p_package*/,XString& p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql;
   sql = _T("SELECT par.specific_catalog\n")
@@ -2435,7 +2638,7 @@ SQLInfoPostgreSQL::GetPSMDeclaration(bool    /*p_first*/
       line += _T(" DEFAULT ") + p_default;
     }
   }
-  else if(!p_asColumn)
+  else if(!p_asColumn.IsEmpty())
   {
     line += p_asColumn + _T("%TYPE");
   }
@@ -2670,7 +2873,7 @@ SQLInfoPostgreSQL::GetSESSIONConstraintsImmediate() const
 
 // Calling a stored function or procedure if the RDBMS does not support ODBC call escapes
 SQLVariant*
-SQLInfoPostgreSQL::DoSQLCall(SQLQuery* p_query,XString& p_schema,XString& p_procedure)
+SQLInfoPostgreSQL::DoSQLCall(SQLQuery* p_query,const XString& p_schema,const XString& p_procedure)
 {
   // PostgreSQL does not support the return parameter of the "{[?=]CALL procedure(?,?)}" sequence
   // instead you have to do a "SELECT procedure(?,?)" 
@@ -2737,7 +2940,7 @@ SQLInfoPostgreSQL::DoSQLCall(SQLQuery* p_query,XString& p_schema,XString& p_proc
 
 // Calling a stored function with named parameters, returning a value
 SQLVariant*
-SQLInfoPostgreSQL::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_function = true*/)
+SQLInfoPostgreSQL::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,const XString& /*p_schema*/,const XString& /*p_procedure*/,bool /*p_function = true*/)
 {
   return nullptr;
 }
@@ -2773,7 +2976,7 @@ SQLInfoPostgreSQL::GetCountReturnParameters(SQLQuery* p_query)
 XString
 SQLInfoPostgreSQL::ConstructSQLForProcedureCall(SQLQuery* p_query
                                                ,SQLQuery* p_thecall
-                                               ,XString&  p_schema
+                                               ,const XString& p_schema
                                                ,const XString& p_procedure)
 {
   // Start with select form

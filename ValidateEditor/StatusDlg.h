@@ -54,9 +54,9 @@ protected:
 
   bool           m_useStatusValue;
   ReturnOperator m_statusOperator;
-  CString        m_expectedStatus;
-  CString        m_effectiveStatus;
-  CString        m_statusVariable;
+  XString        m_expectedStatus;
+  XString        m_effectiveStatus;
+  XString        m_statusVariable;
 
   StyleEdit      m_editExpected;
   StyleEdit      m_editEffective;

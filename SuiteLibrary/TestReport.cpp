@@ -37,9 +37,9 @@
 using std::shared_ptr;
 using std::dynamic_pointer_cast;
 
-TestReport::TestReport(CString      p_basepath
-                      ,CString      p_filename
-                      ,CString      p_name
+TestReport::TestReport(XString      p_basepath
+                      ,XString      p_filename
+                      ,XString      p_name
                       ,ReportDepth  p_depth)
            :m_basepath(p_basepath)
            ,m_fileName(p_filename)
@@ -125,7 +125,7 @@ TestReport::PrintTiming()
 bool
 TestReport::OpenReport()
 {
-  CString filename = m_basepath + m_fileName;
+  XString filename = m_basepath + m_fileName;
   m_file.SetFilename(filename);
 
   if(m_file.Open(winfile_write | open_trans_text,FAttributes::attrib_none,Encoding::UTF8))
@@ -184,7 +184,7 @@ TestReport::PrintFooter()
   }
 
   PrintLine();
-  CString number;
+  XString number;
   number.Format(_T("Page: %d"),++m_page);
 
   int numspaces = m_pageWidth - number.GetLength();
@@ -221,17 +221,17 @@ TestReport::PrintLastLine()
 }
 
 void
-TestReport::PrintLine(CString p_text,bool p_next /*= true*/)
+TestReport::PrintLine(XString p_text,bool p_next /*= true*/)
 {
-  CString extra;
+  XString extra;
   bool next(false);
 
   // Newlines received?
   int newline = p_text.Find('\n');
   if(newline >= 0)
   {
-    CString before = p_text.Left(newline);
-    CString after  = p_text.Mid(newline + 1);
+    XString before = p_text.Left(newline);
+    XString after  = p_text.Mid(newline + 1);
     PrintLine(before);
     PrintLine(after,p_next);
     return;
@@ -272,7 +272,7 @@ TestReport::PrintLine(CString p_text,bool p_next /*= true*/)
 
 // Print a text at the end of the line
 void
-TestReport::PrintAtEnd(CString p_text)
+TestReport::PrintAtEnd(XString p_text)
 {
   int numSpaces = m_pageWidth - m_pos - p_text.GetLength();
   for(int index = 0;index < numSpaces;++index)
@@ -283,7 +283,7 @@ TestReport::PrintAtEnd(CString p_text)
 }
 
 void
-TestReport::PrintLine(CString p_part1,const TCHAR* p_part2)
+TestReport::PrintLine(XString p_part1,const TCHAR* p_part2)
 {
   Indent();
   PrintLine(p_part1,false);
@@ -298,7 +298,7 @@ TestReport::PrintLine(CString p_part1,const TCHAR* p_part2)
 void
 TestReport::PrintAllTestSuites()
 {
-  CString pattern(m_basepath + _T("*") + EXTENSION_SUITE);
+  XString pattern(m_basepath + _T("*") + EXTENSION_SUITE);
 
   // Read in all known files
   WIN32_FIND_DATA data;
@@ -307,7 +307,7 @@ TestReport::PrintAllTestSuites()
   {
     do
     {
-      CString filename = CString(data.cFileName);
+      XString filename = XString(data.cFileName);
       TestSuite suite(m_basepath);
       suite.ReadFromXML(filename);
       PrintTestSuite(&suite);
@@ -328,8 +328,8 @@ TestReport::PrintTestSuite(TestSuite* p_suite)
 
   for(auto& test : p_suite->GetAllTests())
   {
-    CString name   = test.second.m_name;
-    CString result = test.second.m_lastResult;
+    XString name   = test.second.m_name;
+    XString result = test.second.m_lastResult;
     if(result.Compare(_T("OK")))
     {
       result = _T("ERROR");
@@ -356,7 +356,7 @@ TestReport::PrintTestSuite(TestSuite* p_suite)
 }
 
 void
-TestReport::PrintTestSet(CString p_directory,CString p_filename)
+TestReport::PrintTestSet(XString p_directory,XString p_filename)
 {
   TestSet set;
   set.ReadFromXML(m_basepath + p_directory + _T("\\") + p_filename);
@@ -382,7 +382,7 @@ TestReport::PrintTestSet(CString p_directory,CString p_filename)
 }
 
 void
-TestReport::PrintTestStep(CString p_directory,CString p_filename)
+TestReport::PrintTestStep(XString p_directory,XString p_filename)
 {
   shared_ptr<TestStep> step = shared_ptr<TestStep>(ReadTestStep(m_basepath + p_directory + _T("\\") + p_filename));
   if(!step)
@@ -407,7 +407,7 @@ TestReport::PrintTestStep(CString p_directory,CString p_filename)
 }
 
 void
-TestReport::PrintTestStepCMD(TestStepCMD* p_cmd,CString p_directory,CString p_filename)
+TestReport::PrintTestStepCMD(TestStepCMD* p_cmd,XString p_directory,XString p_filename)
 {
   PrintLine(_T("Step: "),false);
   PrintLine(p_cmd->GetName(),false);
@@ -424,13 +424,13 @@ TestReport::PrintTestStepCMD(TestStepCMD* p_cmd,CString p_directory,CString p_fi
   }
   
   // Print the result of the CMD step
-  CString filename(p_filename);
+  XString filename(p_filename);
   filename.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
   PrintStepResultCMD(p_directory,filename);
 }
 
 void  
-TestReport::PrintTestStepNET(TestStepNET* p_net,CString p_directory,CString p_filename)
+TestReport::PrintTestStepNET(TestStepNET* p_net,XString p_directory,XString p_filename)
 {
   PrintLine(_T("Step: "),false);
   PrintLine(p_net->GetName(),false);
@@ -446,13 +446,13 @@ TestReport::PrintTestStepNET(TestStepNET* p_net,CString p_directory,CString p_fi
   }
   
   // Print the result of the CMD step
-  CString filename(p_filename);
+  XString filename(p_filename);
   filename.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
   PrintStepResultNET(p_directory,filename);
 }
 
 void
-TestReport::PrintTestStepSQL(TestStepSQL* p_sql,CString p_directory,CString p_filename)
+TestReport::PrintTestStepSQL(TestStepSQL* p_sql,XString p_directory,XString p_filename)
 {
   PrintLine(_T("Step: "),false);
   PrintLine(p_sql->GetName(),false);
@@ -468,7 +468,7 @@ TestReport::PrintTestStepSQL(TestStepSQL* p_sql,CString p_directory,CString p_fi
   }
   
   // Print the result of the CMD step
-  CString filename(p_filename);
+  XString filename(p_filename);
   filename.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
   PrintStepResultSQL(p_directory,filename);
 }
@@ -617,9 +617,9 @@ TestReport::PrintStepSQLDetails(TestStepSQL* p_sql)
 //////////////////////////////////////////////////////////////////////////
 
 void
-TestReport::PrintStepResultCMD(CString p_directory,CString p_filename)
+TestReport::PrintStepResultCMD(XString p_directory,XString p_filename)
 {
-  CString filename = m_basepath + p_directory + _T("\\") + p_filename;
+  XString filename = m_basepath + p_directory + _T("\\") + p_filename;
   shared_ptr<StepResult> result = shared_ptr<StepResult>(ReadStepResult(filename));
   if(!result)
   {
@@ -645,7 +645,7 @@ TestReport::PrintStepResultCMD(CString p_directory,CString p_filename)
     ValSteps& valis = cmd->GetValidations();
     for(auto& vali : valis)
     {
-      CString validation;
+      XString validation;
       validation.Format(_T("%d: %s %s"),vali.m_number,vali.m_global ? _T("GLOB") : _T("LCAL"),vali.m_validation.GetString());
       Indent();
       PrintLine(validation,false);
@@ -662,9 +662,9 @@ TestReport::PrintStepResultCMD(CString p_directory,CString p_filename)
 
 
 void
-TestReport::PrintStepResultNET(CString p_directory, CString p_filename)
+TestReport::PrintStepResultNET(XString p_directory, XString p_filename)
 {
-  CString filename = m_basepath + p_directory + _T("\\") + p_filename;
+  XString filename = m_basepath + p_directory + _T("\\") + p_filename;
   shared_ptr<StepResult> result = shared_ptr<StepResult>(ReadStepResult(filename));
   if(!result)
   {
@@ -690,7 +690,7 @@ TestReport::PrintStepResultNET(CString p_directory, CString p_filename)
     ValSteps& valis = net->GetValidations();
     for(auto& vali : valis)
     {
-      CString validation;
+      XString validation;
       validation.Format(_T("%d: %s %s"),vali.m_number,vali.m_global ? _T("GLOB") : _T("LCAL"),vali.m_validation.GetString());
       Indent();
       PrintLine(validation,false);
@@ -707,9 +707,9 @@ TestReport::PrintStepResultNET(CString p_directory, CString p_filename)
 }
 
 void
-TestReport::PrintStepResultSQL(CString p_directory, CString p_filename)
+TestReport::PrintStepResultSQL(XString p_directory, XString p_filename)
 {
-  CString filename = m_basepath + p_directory + _T("\\") + p_filename;
+  XString filename = m_basepath + p_directory + _T("\\") + p_filename;
   shared_ptr<StepResult> result = shared_ptr<StepResult>(ReadStepResult(filename));
   if(!result)
   {
@@ -735,7 +735,7 @@ TestReport::PrintStepResultSQL(CString p_directory, CString p_filename)
     ValSteps& valis = sql->GetValidations();
     for(auto& vali : valis)
     {
-      CString validation;
+      XString validation;
       validation.Format(_T("%d: %s %s"),vali.m_number,vali.m_global ? _T("GLOB") : _T("LCAL"),vali.m_validation.GetString());
       Indent();
       PrintLine(validation,false);
@@ -754,7 +754,7 @@ TestReport::PrintStepResultSQL(CString p_directory, CString p_filename)
 void
 TestReport::PrintResultCMD(StepResultCMD* p_cmd)
 {
-  CString text;
+  XString text;
 
   // Timing
   text.Format(_T("Test run for %.4f seconds"),p_cmd->GetTiming());
@@ -782,7 +782,7 @@ TestReport::PrintResultCMD(StepResultCMD* p_cmd)
 void
 TestReport::PrintResultNET(StepResultNET* p_net)
 {
-  CString text;
+  XString text;
 
   // Timing
   text.Format(_T("Test run for %.4f seconds"),p_net->GetTiming());
@@ -801,7 +801,7 @@ TestReport::PrintResultNET(StepResultNET* p_net)
     PrintLine(_T("OS error status: "),false);
     PrintLine(p_net->GetOSErrorString());
   }
-  CString token = p_net->GetBearerToken();
+  XString token = p_net->GetBearerToken();
   if(!token.IsEmpty())
   {
     Indent();
@@ -816,7 +816,7 @@ TestReport::PrintResultNET(StepResultNET* p_net)
 void
 TestReport::PrintResultSQL(StepResultSQL* p_sql)
 {
-  CString text;
+  XString text;
 
   // Timing
   text.Format(_T("Test run for %.4f seconds"),p_sql->GetTiming());
@@ -832,7 +832,7 @@ TestReport::PrintResultSQL(StepResultSQL* p_sql)
   PrintLine(text);
 
   // SQLSTATE
-  CString state = p_sql->GetSQLState();
+  XString state = p_sql->GetSQLState();
   if(!state.IsEmpty())
   {
     Indent();
@@ -841,7 +841,7 @@ TestReport::PrintResultSQL(StepResultSQL* p_sql)
   }
 
   // Native error
-  CString error = p_sql->GetNativeStatus();
+  XString error = p_sql->GetNativeStatus();
   if(!error.IsEmpty())
   {
     Indent();

@@ -60,7 +60,6 @@ protected:
   DECLARE_MESSAGE_MAP()
 
   afx_msg void    OnTcnSelchangeTabs(NMHDR* pNMHDR, LRESULT* pResult);
-  afx_msg int     OnCreate(LPCREATESTRUCT lpCreateStruct);
   afx_msg void    OnSize(UINT nType,int cx,int cy);
   afx_msg void    OnPaint();
   afx_msg BOOL    OnEraseBkgnd(CDC* pDC);
@@ -70,6 +69,7 @@ protected:
 
 protected:
   virtual void PreSubclassWindow();
+  virtual bool RegisterAsControlPlane(CWnd* p_plane);
           void PaintError(CDC* pDC, CRect rect);
           void ResizeTab(int p_tab);
 

@@ -29,7 +29,7 @@
 // Service can be started/stopped or installed or removed
 // Service can be run as a stand-alone server
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "Marlin.h"
 #include "ServerMain.h"
 #include "MarlinConfig.h"
@@ -47,14 +47,6 @@
 #include "winerror.h"
 #include <VersionHelpers.h>
 #include <io.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 // Each buffer in a event buffer array has a limit of 32K characters
 // See MSDN: ReportEvent function
@@ -1598,13 +1590,13 @@ int QueryServiceStandAlone()
 //
 //////////////////////////////////////////////////////////////////////////
 
-XString applicationCommand;
+XString g_applicationCommand;
 
 bool
 FindApplicationCommand()
 {
   // See if we already had the MS-Windows application command
-  if(!applicationCommand.IsEmpty())
+  if(!g_applicationCommand.IsEmpty())
   {
     return true;
   }
@@ -1621,7 +1613,7 @@ FindApplicationCommand()
       attrib = GetFileAttributes(pathname);
       if(attrib != INVALID_FILE_ATTRIBUTES)
       {
-        applicationCommand = pathname;
+        g_applicationCommand = pathname;
         return true;
       }
     }
@@ -1640,13 +1632,13 @@ int StartIISApp()
 
   if(FindApplicationCommand())
   {
-    XString fout(_T("Cannot run program ") + applicationCommand);
+    XString fout(_T("Cannot run program ") + g_applicationCommand);
  
     // STARTING THE APPLICATION POOL
     // APPCMD.EXE start APPPOOL <name>
     XString parameter(_T("start APPPOOL "));
     parameter += g_serverName;
-    result = ExecuteProcess(applicationCommand,parameter,false,fout,SW_HIDE,true);
+    result = ExecuteProcess(g_applicationCommand,parameter,false,fout,SW_HIDE,true);
 
     if(result == 0)
     {
@@ -1654,7 +1646,7 @@ int StartIISApp()
       XString site(g_baseURL);
       site.Remove('/');
       parameter = _T("start SITE ") + site;
-      result = ExecuteProcess(applicationCommand,parameter,false,fout,SW_HIDE,true);
+      result = ExecuteProcess(g_applicationCommand,parameter,false,fout,SW_HIDE,true);
     }
   }
   return result;
@@ -1668,7 +1660,7 @@ int StopIISApp()
 
   if(FindApplicationCommand())
   {
-    XString fout(_T("Cannot run program ") + applicationCommand);
+    XString fout(_T("Cannot run program ") + g_applicationCommand);
 
     // STOP THE SITE
     // APPCMD.EXE start SITE <name>
@@ -1676,13 +1668,13 @@ int StopIISApp()
     XString site(g_baseURL);
     site.Remove('/');
     parameter += site;
-    result = ExecuteProcess(applicationCommand,parameter,false,fout,SW_HIDE,true);
+    result = ExecuteProcess(g_applicationCommand,parameter,false,fout,SW_HIDE,true);
 
     // STOP THE APPLICATION POOL
     // APPCMD.EXE start APPPOOL <name>
     parameter = _T("stop APPPOOL ");
     parameter += g_serverName;
-    result    += ExecuteProcess(applicationCommand,parameter,false,fout,SW_HIDE,true);
+    result    += ExecuteProcess(g_applicationCommand,parameter,false,fout,SW_HIDE,true);
   }
   return result;
 }
@@ -1698,7 +1690,7 @@ int QueryIISApp()
     XString parameter(_T("list APPPOOL "));
     parameter += g_serverName;
     XString output;
-    int res = CallProgram_For_String(applicationCommand,parameter,output);
+    int res = CallProgram_For_String(g_applicationCommand,parameter,output);
     if(res == 0 && (output.Find(_T("state:Started")) >= 0))
     {
       // APPCMD.EXE list SITE <baseurl>
@@ -1706,7 +1698,7 @@ int QueryIISApp()
       XString site(g_baseURL);
       site.Remove('/');
       parameter += site;
-      res = CallProgram_For_String(applicationCommand,parameter,output);
+      res = CallProgram_For_String(g_applicationCommand,parameter,output);
       if(res == 0 && (output.Find(_T("state:Started")) >= 0))
       {
         result = SERVICE_RUNNING;

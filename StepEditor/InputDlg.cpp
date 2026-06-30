@@ -129,7 +129,7 @@ InputDlg::OnBnClickedInputParm()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editInput.InsertAtCurPos(variable,0);
     UpdateData();
   }

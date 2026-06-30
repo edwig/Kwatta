@@ -603,6 +603,10 @@ MessageDialog::OnInitDialog()
   // Bring to foreground?
   CreateSetForeground();
 
+  // Never meddle with the last positions
+  // IN case we are the last dialog the application uses
+  SetSaveMonitor(false);
+
   // Set focus on the default button (if any)
   return InitFocus();
 }
@@ -708,8 +712,8 @@ MessageDialog::CreateMakeTextArea(CRect& p_textRect)
   // so the edit control will become big enough to show margins itself
   CRect margins;
   m_edit.GetRect(margins);
-  p_textRect.right  += margins.left * 2;
-  p_textRect.bottom += margins.top  * 2;
+  p_textRect.right  += margins.left * 2 + (2 * offset);
+  p_textRect.bottom += margins.top  * 2 + (2 * offset);
 
   // If it gets to high, constraint it and use an extra scroll bar
   int maxHeight = (monitorHeight * 80) / 100;

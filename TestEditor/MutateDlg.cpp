@@ -30,7 +30,7 @@ using namespace ThemeColor;
 
 IMPLEMENT_DYNAMIC(MutateDlg, StyleDialog)
 
-MutateDlg::MutateDlg(CWnd* p_parent,CString p_object,CString p_filename)
+MutateDlg::MutateDlg(CWnd* p_parent,XString p_object,XString p_filename)
 	        :StyleDialog(IDD_MUTATE,p_parent)
           ,m_object(p_object)
           ,m_orgFilename(p_filename)
@@ -81,9 +81,9 @@ MutateDlg::CheckFilenames()
     return false;
   }
   WinFile file(m_orgFilename);
-  CString orgExtension = file.GetFilenamePartExtension();
+  XString orgExtension = file.GetFilenamePartExtension();
   file.SetFilename(m_newFilename);
-  CString newExtension = file.GetFilenamePartExtension();
+  XString newExtension = file.GetFilenamePartExtension();
   if(orgExtension.CompareNoCase(newExtension))
   {
     m_editNewFilename.SetErrorState(true);
@@ -94,7 +94,7 @@ MutateDlg::CheckFilenames()
   return true;
 }
 
-CString 
+XString 
 MutateDlg::GetFilename()
 {
   return m_orgFilename;
@@ -111,7 +111,7 @@ MutateDlg::OnEnKillfocusOrgFilename()
 void 
 MutateDlg::OnEnKillfocusNewFilename()
 {
-  CString filename = m_newFilename;
+  XString filename = m_newFilename;
   UpdateData();
   if(filename.Compare(m_newFilename))
   {
@@ -132,12 +132,12 @@ MutateDlg::OnBnClickedChange()
     StyleMessageBox(this,_T("Specify a DIFFERENT filename!"),_T(KWATTA),MB_OK|MB_ICONERROR);
     return;
   }
-  CString ask;
+  XString ask;
   ask.Format(_T("Do you want to rename %s [%s] to [%s] ?"),m_object.GetString(),m_orgFilename.GetString(),m_newFilename.GetString());
   if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
   {
-    CString oldfile = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + m_orgFilename;
-    CString newfile = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + m_newFilename;
+    XString oldfile = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + m_orgFilename;
+    XString newfile = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + m_newFilename;
 
     std::error_code error;
     std::filesystem::rename(oldfile.GetString(),newfile.GetString(),error);

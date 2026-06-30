@@ -48,9 +48,9 @@ class StepResultSQL;
 class TestReport
 {
 public:
-  TestReport(CString      p_basepath
-            ,CString      p_filename
-            ,CString      p_name
+  TestReport(XString      p_basepath
+            ,XString      p_filename
+            ,XString      p_name
             ,ReportDepth  p_depth);
 
   bool StartReport();
@@ -66,29 +66,29 @@ private:
   bool  CloseReport();
   void  PrintHeader();
   void  PrintFooter();
-  void  PrintLine(CString p_text,bool p_next = true);
-  void  PrintLine(CString p_part1,const TCHAR* p_part2);
-  void  PrintAtEnd(CString p_text);
+  void  PrintLine(XString p_text,bool p_next = true);
+  void  PrintLine(XString p_part1,const TCHAR* p_part2);
+  void  PrintAtEnd(XString p_text);
   void  PrintLastLine();
   void  PrintLine();
   void  Indent();
   // PRINTING THE TESTS
   void  PrintAllTestSuites();
   void  PrintTestSuite(TestSuite* p_suite);
-  void  PrintTestSet (CString p_directory,CString p_filename);
-  void  PrintTestStep(CString p_directory,CString p_filename);
+  void  PrintTestSet (XString p_directory,XString p_filename);
+  void  PrintTestStep(XString p_directory,XString p_filename);
 
-  void  PrintTestStepCMD(TestStepCMD* p_cmd,CString p_directory,CString p_filename);
-  void  PrintTestStepNET(TestStepNET* p_net,CString p_directory,CString p_filename);
-  void  PrintTestStepSQL(TestStepSQL* p_sql,CString p_directory,CString p_filename);
+  void  PrintTestStepCMD(TestStepCMD* p_cmd,XString p_directory,XString p_filename);
+  void  PrintTestStepNET(TestStepNET* p_net,XString p_directory,XString p_filename);
+  void  PrintTestStepSQL(TestStepSQL* p_sql,XString p_directory,XString p_filename);
 
   void  PrintStepCMDDetails(TestStepCMD* p_cmd);
   void  PrintStepNETDetails(TestStepNET* p_cmd);
   void  PrintStepSQLDetails(TestStepSQL* p_cmd);
 
-  void  PrintStepResultCMD(CString p_directory,CString p_filename);
-  void  PrintStepResultNET(CString p_directory,CString p_filename);
-  void  PrintStepResultSQL(CString p_directory,CString p_filename);
+  void  PrintStepResultCMD(XString p_directory,XString p_filename);
+  void  PrintStepResultNET(XString p_directory,XString p_filename);
+  void  PrintStepResultSQL(XString p_directory,XString p_filename);
   // Details of a result set
   void  PrintResultCMD(StepResultCMD* p_cmd);
   void  PrintResultNET(StepResultNET* p_net);
@@ -96,10 +96,10 @@ private:
 
   // Data
   ReportDepth m_depth;
-  CString     m_basepath;
-  CString     m_fileName;
-  CString     m_name;
-  CString     m_timing;
+  XString     m_basepath;
+  XString     m_fileName;
+  XString     m_name;
+  XString     m_timing;
   WinFile     m_file;
   int         m_page      { 0 };
   int         m_line      { 0 };

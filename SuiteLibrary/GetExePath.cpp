@@ -29,7 +29,7 @@ static char THIS_FILE[] = __FILE__;
 
 static TCHAR g_staticAddress;
 
-CString GetExePath()
+XString GetExePath()
 {
   TCHAR buffer[_MAX_PATH + 1];
 
@@ -45,7 +45,7 @@ CString GetExePath()
 
   // Retrieve the path
   GetModuleFileName(hmodule, buffer, _MAX_PATH);
-  CString applicatiePlusPad = buffer;
+  XString applicatiePlusPad = buffer;
 
   int slashPositie = applicatiePlusPad.ReverseFind('\\');
   if (slashPositie == 0)

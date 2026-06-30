@@ -45,8 +45,8 @@ enum class WinUIAction
 typedef struct
 {
   HWND    m_hwnd;
-  CString m_partialname;
-  CString m_partialClass;
+  XString m_partialname;
+  XString m_partialClass;
   int     m_dialogID;
   bool    m_fromstart;
   bool    m_toend;
@@ -66,12 +66,12 @@ public:
   WinAction() = default;
  ~WinAction() = default;
 
-  int PerformAction(CString& p_log,CString& p_errors,UINT& p_error);
+  int PerformAction(XString& p_log,XString& p_errors,UINT& p_error);
 
   // Helper functions
   [[nodiscard]]        bool FillSearchPattern  (SearchWindow& p_search,int p_part);
-  [[nodiscard]]        bool IterateChildWindows(SearchWindow& p_search,int p_level,CString& p_log,CString& p_errors);
-  [[nodiscard]] static bool MatchWindowName    (SearchWindow* p_search,int p_ctrlID,CString& p_name,CString& p_classname);
+  [[nodiscard]]        bool IterateChildWindows(SearchWindow& p_search,int p_level,XString& p_log,XString& p_errors);
+  [[nodiscard]] static bool MatchWindowName    (SearchWindow* p_search,int p_ctrlID,XString& p_name,XString& p_classname);
 
 private:
   friend TestStepWIN;         // May mutate
@@ -79,41 +79,41 @@ private:
   friend WINRunner;           // May read
 
   // Helper functions
-  void GetSystemKey(CString& p_input,CString& p_tosend,int& p_virtkey);
-  int  FindPattern(bool p_activate,CString& p_log,CString& p_errors,UINT& p_error);
-  int  ActivateWindow(HWND p_hwnd, CString& p_log,CString& p_errors,UINT& p_error);
+  void GetSystemKey(XString& p_input,XString& p_tosend,int& p_virtkey);
+  int  FindPattern(bool p_activate,XString& p_log,XString& p_errors,UINT& p_error);
+  int  ActivateWindow(HWND p_hwnd, XString& p_log,XString& p_errors,UINT& p_error);
 
   // All actions
-  int ActionStartProgram  (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionCloseProgram  (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowPresent (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionActivateWindow(CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowFocus   (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowTxtArea (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionWindowCaretPos(CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionSendOneChar   (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionSendString    (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionMouseClick    (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionMouseDblClick (CString& p_log,CString& p_errors,UINT& p_error);
-  int ActionMouseRClick   (CString& p_log,CString& p_errors,UINT& p_error);
+  int ActionStartProgram  (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionCloseProgram  (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionWindowPresent (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionActivateWindow(XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionWindowFocus   (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionWindowTxtArea (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionWindowCaretPos(XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionSendOneChar   (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionSendString    (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionMouseClick    (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionMouseDblClick (XString& p_log,XString& p_errors,UINT& p_error);
+  int ActionMouseRClick   (XString& p_log,XString& p_errors,UINT& p_error);
 
   // Sending a keyboard character and mouse info
-  int SendSystemKey(CString key,CString& p_log,CString& p_errors,UINT& p_error);
-  int SendString   (CString str,CString& p_log,CString& p_errors,UINT& p_error);
-  int SendMouseClick(bool p_dbl,bool p_left,CString& p_log,CString& p_errors,UINT& p_error);
+  int SendSystemKey(XString key,XString& p_log,XString& p_errors,UINT& p_error);
+  int SendString   (XString str,XString& p_log,XString& p_errors,UINT& p_error);
+  int SendMouseClick(bool p_dbl,bool p_left,XString& p_log,XString& p_errors,UINT& p_error);
   
   WinUIAction m_action;       // Action to perform
-  CString     m_pattern;      // Name pattern to find MS-Window
-  CString     m_argument1;    // Argument 1 as a string
-  CString     m_argument2;    // Argument 2 as a string
-  CString     m_argument3;    // Argument 3 as a string
-  CString     m_wait;         // Wait time after the action
+  XString     m_pattern;      // Name pattern to find MS-Window
+  XString     m_argument1;    // Argument 1 as a string
+  XString     m_argument2;    // Argument 2 as a string
+  XString     m_argument3;    // Argument 3 as a string
+  XString     m_wait;         // Wait time after the action
   // Effective
-  CString     m_effectivePattern;
-  CString     m_effectiveArgument1;
-  CString     m_effectiveArgument2;
-  CString     m_effectiveArgument3;
-  CString     m_effectiveWait;
+  XString     m_effectivePattern;
+  XString     m_effectiveArgument1;
+  XString     m_effectiveArgument2;
+  XString     m_effectiveArgument3;
+  XString     m_effectiveWait;
   // Processing data
   HWND        m_hwnd { NULL };
 };

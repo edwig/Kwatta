@@ -47,7 +47,7 @@ StepResultNET::Reset()
 }
 
 void
-StepResultNET::ReadFromXML(CString p_filename)
+StepResultNET::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   StepResult::ReadFromXML(msg,p_filename);
@@ -86,7 +86,7 @@ StepResultNET::ReadFromXML(CString p_filename)
 }
 
 bool
-StepResultNET::WriteToXML(CString p_filename)
+StepResultNET::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!StepResult::WriteToXML(msg,p_filename))
@@ -99,22 +99,22 @@ StepResultNET::WriteToXML(CString p_filename)
   m_body.Remove('\r');
 
   // Status
-  CString status;
-  CString oserror;
+  XString status;
+  XString oserror;
   status .Format(_T("%d"),m_status);
   oserror.Format(_T("%d"),m_osError);
-  msg.AddElement(root,_T("Status"),       XDT_String,status);
-  msg.AddElement(root,_T("OSError"),      XDT_String,oserror);
-  msg.AddElement(root,_T("OSErrorString"),XDT_String,m_osErrorString);
-  msg.AddElement(root,_T("BearerToken"),  XDT_String,m_bearerToken);
+  msg.AddElement(root,_T("Status"),       status);
+  msg.AddElement(root,_T("OSError"),      oserror);
+  msg.AddElement(root,_T("OSErrorString"),m_osErrorString);
+  msg.AddElement(root,_T("BearerToken"),  m_bearerToken);
 
   // Headers
-  XMLElement* allheaders = msg.AddElement(root,_T("ResponseHeaders"),XDT_String,_T(""));
+  XMLElement* allheaders = msg.AddElement(root,_T("ResponseHeaders"),_T(""));
   for(auto& head : m_headers)
   {
-    XMLElement* header = msg.AddElement(allheaders,_T("Header"),XDT_String,_T(""));
-    msg.AddElement(header,_T("Name"), XDT_String,            head.m_name);
-    msg.AddElement(header,_T("Value"),XDT_String | XDT_CDATA,head.m_value);
+    XMLElement* header = msg.AddElement(allheaders,_T("Header"),_T(""));
+    msg.AddElement(header,_T("Name"), head.m_name);
+    msg.AddElement(header,_T("Value"),head.m_value,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
   }
 
   // Body
@@ -124,19 +124,19 @@ StepResultNET::WriteToXML(CString p_filename)
     XString body(m_body);
     body.Replace(_T("<![CDATA["),_T("&lt;!&#91;CDATA&#91;"));
     body.Replace(_T("]]>"),     _T("&#93;&#93;&gt;"));
-    msg.AddElement(root,_T("ResponseBody"),XDT_CDATA,body);
+    msg.AddElement(root,_T("ResponseBody"),body,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
   }
   else
   {
     // Just save the body
-    msg.AddElement(root,_T("ResponseBody"),XDT_CDATA,m_body);
+    msg.AddElement(root,_T("ResponseBody"),m_body),XmlDataType::XDT_CDATA | XmlDataType::XDT_String;
   }
   // Now save it
   return msg.SaveFile(p_filename);
 }
 
 void
-StepResultNET::CheckFilename(CString p_filename)
+StepResultNET::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -149,8 +149,8 @@ StepResultNET::CheckFilename(CString p_filename)
   }
 }
 
-CString 
-StepResultNET::GetHeader(CString p_header)
+XString 
+StepResultNET::GetHeader(XString p_header)
 {
   for(auto& header : m_headers)
   {
@@ -162,11 +162,11 @@ StepResultNET::GetHeader(CString p_header)
   return _T("");
 }
 
-CString 
+XString 
 StepResultNET::GetRawResponse()
 {
   // Getting the raw HTTP line
-  CString raw;
+  XString raw;
   raw.Format(_T("HTTP/1.1 %d %s\n"),m_status,GetHTTPStatusText(m_status));
 
   // Add the headers

@@ -28,13 +28,13 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-TestSuite::TestSuite(CString p_basedirectory)
+TestSuite::TestSuite(XString p_basedirectory)
           :m_baseDirectory(p_basedirectory)
 {
 }
 
 void
-TestSuite::ReadFromXML(CString p_filename)
+TestSuite::ReadFromXML(XString p_filename)
 {
   // Check for correct extension
   CheckFilename(p_filename);
@@ -55,7 +55,7 @@ TestSuite::ReadFromXML(CString p_filename)
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in XTEST file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -145,31 +145,31 @@ TestSuite::WriteToXML(bool p_force /*=false*/)
   // Global elements
   msg.SetElement(root,_T("Version"),m_version);
   msg.SetElement(root,_T("Name"),   m_name);
-  msg.SetElement(root,_T("Description"),XDT_String|XDT_CDATA,m_description);
+  msg.SetElement(root,_T("Description"),m_description,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Add all global steps
-  XMLElement* steps = msg.AddElement(root,_T("Steps"),XDT_String,_T(""));
+  XMLElement* steps = msg.AddElement(root,_T("Steps"),_T(""));
   for(auto& step : m_globalSteps)
   {
-    XMLElement* xstep = msg.AddElement(steps,_T("Step"),XDT_String,_T(""));
+    XMLElement* xstep = msg.AddElement(steps,_T("Step"),_T(""));
     msg.SetElement(xstep,_T("Name"),step.m_name);
     msg.SetElement(xstep,_T("File"),step.m_filename);
   }
 
   // Add all global validations
-  XMLElement* validations = msg.AddElement(root,_T("Validations"),XDT_String,_T(""));
+  XMLElement* validations = msg.AddElement(root,_T("Validations"),_T(""));
   for(auto& vali : m_globalValidations)
   {
-    XMLElement* xvali = msg.AddElement(validations,_T("Validation"),XDT_String,_T(""));
+    XMLElement* xvali = msg.AddElement(validations,_T("Validation"),_T(""));
     msg.SetElement(xvali,_T("Name"),vali.m_name);
     msg.SetElement(xvali,_T("File"),vali.m_filename);
   }
 
   // Add all TESTS
-  XMLElement* tests = msg.AddElement(root,_T("Tests"),XDT_String,_T(""));
+  XMLElement* tests = msg.AddElement(root,_T("Tests"),_T(""));
   for(auto& test : m_tests)
   {
-    XMLElement* xtest = msg.AddElement(tests,_T("Test"),XDT_String,_T(""));
+    XMLElement* xtest = msg.AddElement(tests,_T("Test"),_T(""));
     msg.SetElement(xtest,_T("Dir"),   test.second.m_directory);
     msg.SetElement(xtest,_T("File"),  test.second.m_filename);
     msg.SetElement(xtest,_T("Name"),  test.second.m_name);
@@ -209,14 +209,14 @@ TestSuite::AddTest(Test& p_test)
 }
 
 void
-TestSuite::SetDescription(CString p_description)
+TestSuite::SetDescription(XString p_description)
 { 
   m_description = p_description; 
   m_changed = true;
 }
 
 Test* 
-TestSuite::FindTest(CString p_testname)
+TestSuite::FindTest(XString p_testname)
 {
   for(Tests::iterator it = m_tests.begin();it != m_tests.end();++it)
   {
@@ -229,7 +229,7 @@ TestSuite::FindTest(CString p_testname)
 }
 
 bool
-TestSuite::RemoveTest(CString p_testname)
+TestSuite::RemoveTest(XString p_testname)
 {
   for(Tests::iterator it = m_tests.begin();it != m_tests.end();++it)
   {
@@ -244,7 +244,7 @@ TestSuite::RemoveTest(CString p_testname)
 }
 
 void
-TestSuite::SetActive(CString p_testname,bool p_active)
+TestSuite::SetActive(XString p_testname,bool p_active)
 {
   Test* test = FindTest(p_testname);
   if(test)
@@ -254,13 +254,13 @@ TestSuite::SetActive(CString p_testname,bool p_active)
 }
 
 void
-TestSuite::SetFilename(CString p_filename)
+TestSuite::SetFilename(XString p_filename)
 {
   m_filename = p_filename;
 }
 
 bool
-TestSuite::ChangeTestDirectory(CString p_testname,CString p_directory)
+TestSuite::ChangeTestDirectory(XString p_testname,XString p_directory)
 {
   Test* test = FindTest(p_testname);
   if(test)
@@ -273,7 +273,7 @@ TestSuite::ChangeTestDirectory(CString p_testname,CString p_directory)
 }
 
 bool
-TestSuite::ChangeTestFilename(CString p_testname,CString p_filename)
+TestSuite::ChangeTestFilename(XString p_testname,XString p_filename)
 {
   Test* test = FindTest(p_testname);
   if(test)
@@ -286,7 +286,7 @@ TestSuite::ChangeTestFilename(CString p_testname,CString p_filename)
 }
 
 bool
-TestSuite::ChangeTestTestname(CString p_testname,CString p_name)
+TestSuite::ChangeTestTestname(XString p_testname,XString p_name)
 {
   Test* test = FindTest(p_testname);
   if(test)
@@ -305,19 +305,19 @@ TestSuite::ChangeTestTestname(CString p_testname,CString p_name)
 //////////////////////////////////////////////////////////////////////////
 
 void
-TestSuite::CheckFilename(CString p_filename)
+TestSuite::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   WinFile file(p_filename);
-  CString extension = file.GetFilenamePartExtension();
+  XString extension = file.GetFilenamePartExtension();
   if(extension.CompareNoCase(_T(".xtest")) != 0)
   {
     throw StdException(_T("A test suite XML definition file must be saved as a *.XTEST"));
   }
 }
 
-CString
-TestSuite::FindElementString(XMLMessage& p_msg,XMLElement* p_start,CString p_name)
+XString
+TestSuite::FindElementString(XMLMessage& p_msg,XMLElement* p_start,XString p_name)
 {
   XMLElement* elem = p_msg.FindElement(p_start,p_name,false);
   if (elem)
@@ -328,7 +328,7 @@ TestSuite::FindElementString(XMLMessage& p_msg,XMLElement* p_start,CString p_nam
 }
 
 bool
-TestSuite::FindElementBoolean(XMLMessage& p_msg,XMLElement* p_start,CString p_name)
+TestSuite::FindElementBoolean(XMLMessage& p_msg,XMLElement* p_start,XString p_name)
 {
   XMLElement* elem = p_msg.FindElement(p_start,p_name,false);
   if (elem)

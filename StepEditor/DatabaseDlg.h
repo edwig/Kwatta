@@ -61,12 +61,12 @@ protected:
   Credentials*  m_credentials{ nullptr };
 
   CString       m_credential;
-  CString       m_datasource;
-  CString       m_user;
-  CString       m_password;
-  CString       m_effDatasource;
-  CString       m_effUser;
-  CString       m_effPassword;
+  XString       m_datasource;
+  XString       m_user;
+  XString       m_password;
+  XString       m_effDatasource;
+  XString       m_effUser;
+  XString       m_effPassword;
 
   StyleComboBox m_comboCredential;
   StyleButton   m_buttonSave;

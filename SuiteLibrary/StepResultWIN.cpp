@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-StepResultWIN::ReadFromXML(CString p_filename)
+StepResultWIN::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   StepResult::ReadFromXML(msg,p_filename);
@@ -43,7 +43,7 @@ StepResultWIN::ReadFromXML(CString p_filename)
 }
 
 bool
-StepResultWIN::WriteToXML(CString p_filename)
+StepResultWIN::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!StepResult::WriteToXML(msg,p_filename))
@@ -52,19 +52,19 @@ StepResultWIN::WriteToXML(CString p_filename)
   }
   XMLElement* root = msg.GetRoot();
 
-  CString error;
+  XString error;
   error.Format(_T("%u"),m_lastOSerror);
 
-  msg.AddElement(root,_T("LastOSError"),  XDT_Integer,error);
-  msg.AddElement(root,_T("ErrorString"),  XDT_String,m_errorString);
-  msg.AddElement(root,_T("ResultLogging"),XDT_String,m_resultLogging);
+  msg.AddElement(root,_T("LastOSError"),  error,XmlDataType::XDT_Integer);
+  msg.AddElement(root,_T("ErrorString"),  m_errorString);
+  msg.AddElement(root,_T("ResultLogging"),m_resultLogging);
 
   // Now save it
   return msg.SaveFile(p_filename);
 }
 
 void
-StepResultWIN::CheckFilename(CString p_filename)
+StepResultWIN::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];

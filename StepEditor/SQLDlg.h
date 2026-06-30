@@ -48,7 +48,7 @@ protected:
   virtual BOOL OnInitDialog() override;
   virtual void SetupDynamicLayout() override;
 
-  CString       m_payload;
+  XString       m_payload;
   StyleButton   m_buttonParam;
   StyleEdit     m_editPayload;
 

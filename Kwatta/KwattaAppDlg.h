@@ -30,7 +30,7 @@ class KwattaAppDlg : public StyleDialog
   DECLARE_DYNAMIC(KwattaAppDlg)
 
 public:
-  KwattaAppDlg(CWnd* p_parent,CString p_suiteFile);
+  KwattaAppDlg(CWnd* p_parent,XString p_suiteFile);
   virtual ~KwattaAppDlg();
 
 protected:
@@ -45,17 +45,17 @@ protected:
   void FillGrid();
   void DoStarter();
   void LoadParameters();
-  void ReadParameters(CString p_file);
-  bool CreateEmptyTestSet(CString p_directory,CString p_testname);
-  bool RemoveTestsetDirectory(CString p_path);
-  void SwitchActive(int p_row,CString p_testname);
+  void ReadParameters(XString p_file);
+  bool CreateEmptyTestSet(XString p_directory,XString p_testname);
+  bool RemoveTestsetDirectory(XString p_path);
+  void SwitchActive(int p_row,XString p_testname);
   void SetUpDownButtons(int p_row);
   void SetResult(int p_row,bool p_ok);
   void SetActive(int p_row,bool p_active);
-  void RunTestset(CString p_testname,int p_index);
+  void RunTestset(XString p_testname,int p_index);
 
-  CString       m_testsuite;
-  CString       m_description;
+  XString       m_testsuite;
+  XString       m_description;
 
   StyleEdit     m_editTestsuite;
   StyleEdit     m_editDescription;

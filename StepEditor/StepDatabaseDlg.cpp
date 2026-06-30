@@ -134,7 +134,7 @@ StepDatabaseDlg::OnInitDialog()
   if (pSysMenu != nullptr)
   {
     BOOL bNameValid;
-    CString strAboutMenu;
+    XString strAboutMenu;
     bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
     ASSERT(bNameValid);
     if (!strAboutMenu.IsEmpty())
@@ -233,7 +233,7 @@ StepDatabaseDlg::InitTabs()
 void
 StepDatabaseDlg::InitStep()
 {
-  CString filename = theApp.GetEffectiveStep();
+  XString filename = theApp.GetEffectiveStep();
 
   // Read in the definition file for a test step
   try
@@ -251,7 +251,7 @@ StepDatabaseDlg::InitStep()
 void
 StepDatabaseDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
+  XString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -259,7 +259,7 @@ StepDatabaseDlg::InitGlobalParameters()
 void
 StepDatabaseDlg::InitParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   // Possibly no parameter file bound to the step!
   if(filename.IsEmpty())
@@ -272,7 +272,7 @@ StepDatabaseDlg::InitParameters()
 void
 StepDatabaseDlg::InitCredentials()
 {
-  CString filename = theApp.GetBaseDirectory() + _T("Credentials.cred");
+  XString filename = theApp.GetBaseDirectory() + _T("Credentials.cred");
 
   try
   {
@@ -287,7 +287,7 @@ StepDatabaseDlg::InitCredentials()
 
 
 void
-StepDatabaseDlg::ReadParameters(CString p_file, bool p_global /*= true*/)
+StepDatabaseDlg::ReadParameters(XString p_file, bool p_global /*= true*/)
 {
   // read the definition of the parameters
   try
@@ -308,7 +308,7 @@ StepDatabaseDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound(_T("Parameters: OK"));
+    XString bound(_T("Parameters: OK"));
 
     // Effectuate the parameters
     StoreVariables();
@@ -377,8 +377,8 @@ StepDatabaseDlg::SaveStep()
   StoreCredentials();
   StoreVariables();
 
-  CString filenameStep = theApp.GetEffectiveStep();
-  CString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filenameStep = theApp.GetEffectiveStep();
+  XString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   try
   {

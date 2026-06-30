@@ -2,8 +2,8 @@
 //
 // File: SQLInfoDB.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,16 +23,10 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLInfoDB.h"
 #include "SQLQuery.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -54,20 +48,23 @@ SQLInfoDB::~SQLInfoDB()
 // Searching for a 'table' like object
 // Can be 'TABLE', 'VIEW', 'ALIAS', 'SYNONYM', 'SYSTEM TABLE' etc
 bool    
-SQLInfoDB::MakeInfoTableObject(MTableMap& p_tables
-                              ,XString&   p_errors
-                              ,XString    p_catalog
-                              ,XString    p_schema
-                              ,XString    p_tablename)
+SQLInfoDB::MakeInfoTableObject(MTableMap&     p_tables
+                              ,      XString& p_errors
+                              ,const XString& p_catalog
+                              ,const XString& p_schema
+                              ,const XString& p_tablename)
 {
   // Clear the results
   p_tables.clear();
   p_errors.Empty();
 
-  XString sql1 = GetCATALOGTableAttributes(p_schema,p_tablename,true);
-  XString sql2 = GetCATALOGViewAttributes (p_schema,p_tablename,true);
-  XString sql3 = GetCATALOGTableSynonyms  (p_schema,p_tablename,true);
-  XString sql4 = GetCATALOGTableCatalog   (p_schema,p_tablename,true);
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
+  XString sql1 = GetCATALOGTableAttributes(schema,tablename,true);
+  XString sql2 = GetCATALOGViewAttributes (schema,tablename,true);
+  XString sql3 = GetCATALOGTableSynonyms  (schema,tablename,true);
+  XString sql4 = GetCATALOGTableCatalog   (schema,tablename,true);
 
   if(sql1.IsEmpty() || sql2.IsEmpty() || sql3.IsEmpty() || sql4.IsEmpty() || m_preferODBC)
   {
@@ -81,8 +78,8 @@ SQLInfoDB::MakeInfoTableObject(MTableMap& p_tables
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
+      if(!schema.IsEmpty())    qry.SetParameter(schema);
+      if(!tablename.IsEmpty()) qry.SetParameter(tablename);
 
       qry.DoSQLStatement(sql1);
       ReadTablesFromQuery(qry,p_tables);
@@ -97,10 +94,10 @@ SQLInfoDB::MakeInfoTableObject(MTableMap& p_tables
         return true;
       }
       // Try standard unquoted identifiers
-      sql1 = GetCATALOGTableAttributes(p_schema,p_tablename);
-      sql2 = GetCATALOGViewAttributes (p_schema,p_tablename);
-      sql3 = GetCATALOGTableSynonyms  (p_schema,p_tablename);
-      sql4 = GetCATALOGTableCatalog   (p_schema,p_tablename);
+      sql1 = GetCATALOGTableAttributes(schema,tablename);
+      sql2 = GetCATALOGViewAttributes (schema,tablename);
+      sql3 = GetCATALOGTableSynonyms  (schema,tablename);
+      sql4 = GetCATALOGTableCatalog   (schema,tablename);
     }
   }
   catch(StdException& er)
@@ -244,13 +241,16 @@ SQLInfoDB::MakeInfoDefaultCollation(XString& p_default)
 }
 
 bool
-SQLInfoDB::MakeInfoTableTable(MTableMap& p_tables
-                             ,XString&   p_errors
-                             ,XString    p_catalog
-                             ,XString    p_schema
-                             ,XString    p_tablename)
+SQLInfoDB::MakeInfoTableTable(MTableMap&     p_tables
+                             ,      XString& p_errors
+                             ,const XString& p_catalog
+                             ,const XString& p_schema
+                             ,const XString& p_tablename)
 {
-  XString sql = GetCATALOGTableAttributes(p_schema,p_tablename,true);
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
+  XString sql = GetCATALOGTableAttributes(schema,tablename,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     // Ask ODBC driver to find tables
@@ -263,8 +263,8 @@ SQLInfoDB::MakeInfoTableTable(MTableMap& p_tables
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty())    qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
+      if(!p_schema.IsEmpty())    qry.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) qry.SetParameter(tablename);
 
       qry.DoSQLStatement(sql);
       if(ReadTablesFromQuery(qry,p_tables))
@@ -284,7 +284,7 @@ SQLInfoDB::MakeInfoTableTable(MTableMap& p_tables
         return true;
       }
       // Try standard identifiers
-      sql = GetCATALOGTableAttributes(p_schema,p_tablename);
+      sql = GetCATALOGTableAttributes(schema,tablename);
     }
   }
   catch(StdException& er)
@@ -296,14 +296,17 @@ SQLInfoDB::MakeInfoTableTable(MTableMap& p_tables
 }
 
 bool    
-SQLInfoDB::MakeInfoTableView(MTableMap& p_tables
-                            ,XString&   p_errors
-                            ,XString    p_catalog
-                            ,XString    p_schema
-                            ,XString    p_tablename)
+SQLInfoDB::MakeInfoTableView(MTableMap&     p_tables
+                            ,      XString& p_errors
+                            ,const XString& p_catalog
+                            ,const XString& p_schema
+                            ,const XString& p_tablename)
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
   // Try quoted identifiers first
-  XString sql = GetCATALOGViewAttributes(p_schema,p_tablename,true);
+  XString sql = GetCATALOGViewAttributes(schema,tablename,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     // Ask ODBC driver to find views
@@ -316,8 +319,8 @@ SQLInfoDB::MakeInfoTableView(MTableMap& p_tables
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
+      if(!p_schema.IsEmpty())    qry.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) qry.SetParameter(tablename);
 
       qry.DoSQLStatement(sql);
       if(ReadTablesFromQuery(qry,p_tables))
@@ -325,7 +328,7 @@ SQLInfoDB::MakeInfoTableView(MTableMap& p_tables
         return true;
       }
       // Try standard identifiers
-      sql = GetCATALOGViewAttributes(p_schema,p_tablename);
+      sql = GetCATALOGViewAttributes(schema,tablename);
     }
   }
   catch(StdException& er)
@@ -337,13 +340,16 @@ SQLInfoDB::MakeInfoTableView(MTableMap& p_tables
 }
 
 bool    
-SQLInfoDB::MakeInfoTableSynonyms(MTableMap& p_tables
-                                ,XString&   p_errors
-                                ,XString    p_catalog
-                                ,XString    p_schema
-                                ,XString    p_tablename)
+SQLInfoDB::MakeInfoTableSynonyms(MTableMap&     p_tables
+                                ,      XString& p_errors
+                                ,const XString& p_catalog
+                                ,const XString& p_schema
+                                ,const XString& p_tablename)
 {
-  XString sql = GetCATALOGTableSynonyms(p_schema,p_tablename,true);
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
+  XString sql = GetCATALOGTableSynonyms(schema,tablename,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     // Ask ODBC driver to find synonyms
@@ -362,8 +368,8 @@ SQLInfoDB::MakeInfoTableSynonyms(MTableMap& p_tables
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
+      if(!p_schema.IsEmpty())    qry.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) qry.SetParameter(tablename);
 
       qry.DoSQLStatement(sql);
       if(ReadTablesFromQuery(qry,p_tables))
@@ -371,7 +377,7 @@ SQLInfoDB::MakeInfoTableSynonyms(MTableMap& p_tables
         return true;
       }
       // Try standard identifiers
-      sql = GetCATALOGTableSynonyms(p_schema,p_tablename);
+      sql = GetCATALOGTableSynonyms(schema,tablename);
     }
   }
   catch(StdException& er)
@@ -383,20 +389,23 @@ SQLInfoDB::MakeInfoTableSynonyms(MTableMap& p_tables
 }
 
 bool    
-SQLInfoDB::MakeInfoTableCatalog(MTableMap&  p_tables
-                               ,XString&    p_errors
-                               ,XString     p_catalog
-                               ,XString     p_schema
-                               ,XString     p_tablename)
+SQLInfoDB::MakeInfoTableCatalog(MTableMap&     p_tables
+                               ,      XString& p_errors
+                               ,const XString& p_catalog
+                               ,const XString& p_schema
+                               ,const XString& p_tablename)
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
   // Try quoted identifiers
-  XString sql = GetCATALOGTableCatalog(p_schema,p_tablename,true);
+  XString sql = GetCATALOGTableCatalog(schema,tablename,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
-    p_schema    = _T("%");
-    p_tablename = _T("%");
+    schema    = _T("%");
+    tablename = _T("%");
     // Ask ODBC driver to find system tables
-    return SQLInfo::MakeInfoTableTable(p_tables,p_errors,p_catalog,p_schema,p_tablename,_T("SYSTEM TABLE"));
+    return SQLInfo::MakeInfoTableTable(p_tables,p_errors,p_catalog,schema,tablename,_T("SYSTEM TABLE"));
   }
 
   try
@@ -405,8 +414,8 @@ SQLInfoDB::MakeInfoTableCatalog(MTableMap&  p_tables
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
+      if(!p_schema.IsEmpty())    qry.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) qry.SetParameter(tablename);
 
       qry.DoSQLStatement(sql);
       if(ReadTablesFromQuery(qry,p_tables))
@@ -414,7 +423,7 @@ SQLInfoDB::MakeInfoTableCatalog(MTableMap&  p_tables
         return true;
       }
       // Try standard identifiers
-      sql = GetCATALOGTableCatalog(p_schema,p_tablename);
+      sql = GetCATALOGTableCatalog(schema,tablename);
     }
   }
   catch(StdException& er)
@@ -426,15 +435,19 @@ SQLInfoDB::MakeInfoTableCatalog(MTableMap&  p_tables
 }
 
 bool    
-SQLInfoDB::MakeInfoTableColumns(MColumnMap& p_columns
-                               ,XString&    p_errors
-                               ,XString     p_catalog
-                               ,XString     p_schema
-                               ,XString     p_tablename
-                               ,XString     p_columnname /*=""*/)
+SQLInfoDB::MakeInfoTableColumns(MColumnMap&    p_columns
+                               ,      XString& p_errors
+                               ,const XString& p_catalog
+                               ,const XString& p_schema
+                               ,const XString& p_tablename
+                               ,const XString& p_columnname /*=""*/)
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+  XString columnname(p_columnname);
+
   // First try in quoted identifier format
-  XString sql = GetCATALOGColumnAttributes(p_schema,p_tablename,p_columnname,true);
+  XString sql = GetCATALOGColumnAttributes(schema,tablename,columnname,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     return SQLInfo::MakeInfoTableColumns(p_columns,p_errors,p_catalog,p_schema,p_tablename,p_columnname);
@@ -446,9 +459,9 @@ SQLInfoDB::MakeInfoTableColumns(MColumnMap& p_columns
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema    .IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_tablename .IsEmpty()) qry.SetParameter(p_tablename);
-      if(!p_columnname.IsEmpty()) qry.SetParameter(p_columnname);
+      if(!p_schema    .IsEmpty()) qry.SetParameter(schema);
+      if(!p_tablename .IsEmpty()) qry.SetParameter(tablename);
+      if(!p_columnname.IsEmpty()) qry.SetParameter(columnname);
 
       qry.DoSQLStatement(sql);
       while(qry.GetRecord())
@@ -490,7 +503,7 @@ SQLInfoDB::MakeInfoTableColumns(MColumnMap& p_columns
       }
     }
     // Second try, now in standard storage format
-    sql = GetCATALOGColumnAttributes(p_schema,p_tablename,p_columnname);
+    sql = GetCATALOGColumnAttributes(schema,tablename,columnname);
   }
   catch(StdException& er)
   {
@@ -501,14 +514,17 @@ SQLInfoDB::MakeInfoTableColumns(MColumnMap& p_columns
 }
 
 bool    
-SQLInfoDB::MakeInfoTablePrimary(MPrimaryMap&  p_primaries
-                               ,XString&      p_errors
-                               ,XString       p_catalog
-                               ,XString       p_schema
-                               ,XString       p_tablename)
+SQLInfoDB::MakeInfoTablePrimary(MPrimaryMap&   p_primaries
+                               ,      XString& p_errors
+                               ,const XString& p_catalog
+                               ,const XString& p_schema
+                               ,const XString& p_tablename)
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
   // First try with quoted identifiers
-  XString sql = GetCATALOGPrimaryAttributes(p_schema,p_tablename,true);
+  XString sql = GetCATALOGPrimaryAttributes(schema,tablename,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     return SQLInfo::MakeInfoTablePrimary(p_primaries,p_errors,p_catalog,p_schema,p_tablename);
@@ -542,7 +558,7 @@ SQLInfoDB::MakeInfoTablePrimary(MPrimaryMap&  p_primaries
         return true;
       }
       // Second try in standard catalog format
-      sql = GetCATALOGPrimaryAttributes(p_schema,p_tablename);
+      sql = GetCATALOGPrimaryAttributes(schema,tablename);
     }
   }
   catch(StdException& er)
@@ -554,16 +570,19 @@ SQLInfoDB::MakeInfoTablePrimary(MPrimaryMap&  p_primaries
 }
 
 bool    
-SQLInfoDB::MakeInfoTableForeign(MForeignMap&  p_foreigns
-                               ,XString&      p_errors
-                               ,XString       p_catalog
-                               ,XString       p_schema
-                               ,XString       p_tablename
-                               ,bool          p_referenced /* = false */) 
+SQLInfoDB::MakeInfoTableForeign(MForeignMap&   p_foreigns
+                               ,      XString& p_errors
+                               ,const XString& p_catalog
+                               ,const XString& p_schema
+                               ,const XString& p_tablename
+                               ,bool           p_referenced /* = false */) 
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
   XString constraint;
+
   // Try quoted identifiers
-  XString sql = GetCATALOGForeignAttributes(p_schema,p_tablename,constraint,p_referenced,true);
+  XString sql = GetCATALOGForeignAttributes(schema,tablename,constraint,p_referenced,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     return SQLInfo::MakeInfoTableForeign(p_foreigns,p_errors,p_catalog,p_schema,p_tablename,p_referenced);
@@ -574,8 +593,8 @@ SQLInfoDB::MakeInfoTableForeign(MForeignMap&  p_foreigns
     {
       SQLQuery query(m_database);
 
-      if(!p_schema   .IsEmpty()) query.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) query.SetParameter(p_tablename);
+      if(!p_schema   .IsEmpty()) query.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) query.SetParameter(tablename);
       if(!constraint .IsEmpty()) query.SetParameter(constraint);
 
       query.DoSQLStatement(sql);
@@ -609,7 +628,7 @@ SQLInfoDB::MakeInfoTableForeign(MForeignMap&  p_foreigns
         return true;
       }
       // Try standard identifiers
-      sql = GetCATALOGForeignAttributes(p_schema,p_tablename,constraint,p_referenced);
+      sql = GetCATALOGForeignAttributes(schema,tablename,constraint,p_referenced);
     }
   }
   catch(StdException& er)
@@ -621,19 +640,23 @@ SQLInfoDB::MakeInfoTableForeign(MForeignMap&  p_foreigns
 }
 
 bool
-SQLInfoDB::MakeInfoTableStatistics(MIndicesMap& p_indices
-                                  ,XString&     p_errors
-                                  ,XString      p_catalog
-                                  ,XString      p_schema
-                                  ,XString      p_tablename
-                                  ,MPrimaryMap* p_keymap
-                                  ,bool         p_all         /*=true*/)
+SQLInfoDB::MakeInfoTableStatistics(MIndicesMap&   p_indices
+                                  ,      XString& p_errors
+                                  ,const XString& p_catalog
+                                  ,const XString& p_schema
+                                  ,const XString& p_tablename
+                                  ,MPrimaryMap*   p_keymap
+                                  ,bool           p_all /*=true*/)
 {
+  XString catalog(p_catalog);
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
   // Try quoted identifiers first
   XString column;
-  XString sql1 = GetCATALOGIndexAttributes(p_schema,p_tablename,column,true);   // Indices
+  XString sql1 = GetCATALOGIndexAttributes(schema,tablename,column,true);   // Indices
   column = "0";
-  XString sql2 = GetCATALOGIndexAttributes(p_schema,p_tablename,column,true);   // Table statistics
+  XString sql2 = GetCATALOGIndexAttributes(schema,tablename,column,true);   // Table statistics
   if(sql1.IsEmpty() || m_preferODBC)
   {
     return SQLInfo::MakeInfoTableStatistics(p_indices,p_errors,p_catalog,p_schema,p_tablename,p_keymap,p_all);
@@ -644,8 +667,8 @@ SQLInfoDB::MakeInfoTableStatistics(MIndicesMap& p_indices
     {
       SQLQuery query(m_database);
 
-      if (!p_schema   .IsEmpty()) query.SetParameter(p_schema);
-      if (!p_tablename.IsEmpty()) query.SetParameter(p_tablename);
+      if (!p_schema   .IsEmpty()) query.SetParameter(schema);
+      if (!p_tablename.IsEmpty()) query.SetParameter(tablename);
       if (!column     .IsEmpty()) query.SetParameter(column);
 
       while(sql1.GetLength())
@@ -684,9 +707,9 @@ SQLInfoDB::MakeInfoTableStatistics(MIndicesMap& p_indices
         return true;
       }
       // Standard identifiers
-      sql1 = GetCATALOGIndexAttributes(p_schema,p_tablename,column);   // Indices
+      sql1 = GetCATALOGIndexAttributes(schema,tablename,column);   // Indices
       column = "0";
-      sql2 = GetCATALOGIndexAttributes(p_schema,p_tablename,column);   // Table statistics
+      sql2 = GetCATALOGIndexAttributes(schema,tablename,column);   // Table statistics
     }
   }
   catch(StdException& er)
@@ -697,24 +720,137 @@ SQLInfoDB::MakeInfoTableStatistics(MIndicesMap& p_indices
   return false;
 }
 
-bool    
-SQLInfoDB::MakeInfoPSMProcedures(MProcedureMap&  p_procedures
-                                ,XString&        p_errors
-                                ,XString         p_catalog
-                                ,XString         p_schema
-                                ,XString         p_procedure)
+bool
+SQLInfoDB::MakeInfoPSMPackages(MPackageMap& p_packages
+                              ,      XString& p_errors
+                              ,const XString& /*p_catalog*/
+                              ,const XString& p_schema
+                              ,const XString& p_package)
 {
+  XString schema(p_schema);
+  XString package(p_package);
+  XString sql;
+
+  if(p_package.IsEmpty() || p_package.Compare(_T("%")) == 0)
+  {
+    // We want a list only
+    sql = GetPSMPackageList(schema,package,true);
+  }
+  else
+  {
+    // Try quoted identifier case
+    sql = GetPSMPackageAttributes(schema,package,true);
+  }
+
+  try
+  {
+    for(int ind = 0;ind < 2;++ind)
+    {
+      SQLQuery qry(m_database);
+
+      if(!p_schema.IsEmpty())  qry.SetParameter(schema);
+      if(!p_package.IsEmpty()) qry.SetParameter(package);
+
+      qry.DoSQLStatement(sql);
+      while(qry.GetRecord())
+      {
+        MetaPackage pac;
+
+        pac.m_catalogName = (XString)qry[MetaPackage_catalogname];
+        pac.m_schemaName  = (XString)qry[MetaPackage_schemaname];
+        pac.m_packageName = (XString)qry[MetaPackage_packagename];
+        if(qry.GetNumberOfColumns() > 3)
+        {
+          pac.m_remarks     = (XString)qry[MetaPackage_remarks];
+          pac.m_source      = (XString)qry[MetaPackage_source];
+          pac.m_bodySource  = (XString)qry[MetaPackage_bodysource];
+          pac.m_asDefiner   = (int)    qry[MetaPackage_asDefiner];
+        }
+        p_packages.push_back(pac);
+      }
+      if(!p_packages.empty())
+      {
+        return true;
+      }
+      // Try standard identifier case
+      if (p_package.IsEmpty() || p_package.Compare(_T("%")) == 0)
+      {
+        sql = GetPSMPackageList(schema,package);
+      }
+      else
+      {
+        sql = GetPSMPackageAttributes(schema,package);
+      }
+    }
+  }
+  catch (StdException& er)
+  {
+    ReThrowSafeException(er);
+    p_errors += er.GetErrorMessage();
+  }
+  return false;
+}
+
+bool
+SQLInfoDB::MakeInfoPSMPackageModules(MPackMemberMap& p_modules
+                                    ,      XString&  /*p_errors*/
+                                    ,const XString&  /*p_catalog*/
+                                    ,const XString&  p_schema
+                                    ,const XString&  p_package)
+{
+  XString schema(p_schema);
+  XString package(p_package);
+  
+  XString sql = GetPSMPackageListModules(schema,package,true);
+  if(!sql.IsEmpty())
+  {
+    for(int ind = 0;ind < 2;++ind)
+    {
+      SQLQuery query(m_database);
+      query.DoSQLStatement(sql);
+      while(query.GetRecord())
+      {
+        MetaPackageMember module;
+
+        module.m_packageName = (XString) query[MetaPackMember_packagename];
+        module.m_memberName  = (XString) query[MetaPackMember_membername];
+        module.m_private     = (bool)    query[MetaPackMember_private];
+        module.m_type        = (XString) query[MetaPackMember_type];
+
+        p_modules.push_back(module);
+      }
+      if(!p_modules.empty())
+      {
+        return true;
+      }
+      // Try standard unquoted identifiers
+      sql = GetPSMPackageListModules(schema,package);
+    }
+  }
+  return false;
+}
+
+bool    
+SQLInfoDB::MakeInfoPSMProcedures(MProcedureMap& p_procedures
+                                ,      XString& p_errors
+                                ,const XString& p_catalog
+                                ,const XString& p_schema
+                                ,const XString& p_procedure)
+{
+  XString schema(p_schema);
+  XString procedure(p_procedure);
+  XString package;
   XString sql;
 
   if(p_procedure.IsEmpty() || p_procedure.Compare(_T("%")) == 0)
   {
     // We want a list only
-    sql = GetPSMProcedureList(p_schema,p_procedure,true);
+    sql = GetPSMProcedureList(schema,package,procedure,true);
   }
   else
   {
     // Try quoted identifier case
-    sql = GetPSMProcedureAttributes(p_schema,p_procedure,true);
+    sql = GetPSMProcedureAttributes(schema,package,procedure,true);
   }
 
   // Let ODBC handle the call
@@ -729,8 +865,8 @@ SQLInfoDB::MakeInfoPSMProcedures(MProcedureMap&  p_procedures
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema   .IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_procedure.IsEmpty()) qry.SetParameter(p_procedure);
+      if(!p_schema   .IsEmpty()) qry.SetParameter(schema);
+      if(!p_procedure.IsEmpty()) qry.SetParameter(procedure);
 
       qry.DoSQLStatement(sql);
     
@@ -780,11 +916,11 @@ SQLInfoDB::MakeInfoPSMProcedures(MProcedureMap&  p_procedures
       // Try standard identifier case
       if(p_procedure.IsEmpty() || p_procedure.Compare(_T("%")) == 0)
       {
-        sql = GetPSMProcedureList(p_schema,p_procedure);
+        sql = GetPSMProcedureList(schema,package,procedure);
       }
       else
       {
-        sql = GetPSMProcedureAttributes(p_schema,p_procedure);
+        sql = GetPSMProcedureAttributes(schema,package,procedure);
       }
     }
   }
@@ -797,10 +933,11 @@ SQLInfoDB::MakeInfoPSMProcedures(MProcedureMap&  p_procedures
 }
 
 XString
-SQLInfoDB::MakeInfoPSMSourcecode(XString /*p_catalog*/,XString p_schema, XString p_procedure)
+SQLInfoDB::MakeInfoPSMSourcecode(const XString& /*p_catalog*/,const XString& p_schema,const XString& p_procedure)
 {
   XString sourcecode;
-  XString sql = GetPSMProcedureSourcecode(p_schema,p_procedure,true);
+  XString package;
+  XString sql = GetPSMProcedureSourcecode(p_schema,package,p_procedure,true);
   if(!sql.IsEmpty())
   {
     for(int ind = 0;ind < 2;++ind)
@@ -817,7 +954,7 @@ SQLInfoDB::MakeInfoPSMSourcecode(XString /*p_catalog*/,XString p_schema, XString
         return sourcecode;
       }
       // Try standard unquoted identifiers
-      sql = GetPSMProcedureSourcecode(p_schema,p_procedure);
+      sql = GetPSMProcedureSourcecode(p_schema,package,p_procedure);
     }
   }
   return sourcecode;
@@ -825,13 +962,17 @@ SQLInfoDB::MakeInfoPSMSourcecode(XString /*p_catalog*/,XString p_schema, XString
 
 bool    
 SQLInfoDB::MakeInfoPSMParameters(MParameterMap& p_parameters
-                                ,XString&       p_errors
-                                ,XString        p_catalog
-                                ,XString        p_schema
-                                ,XString        p_procedure)
+                                ,      XString& p_errors
+                                ,const XString& p_catalog
+                                ,const XString& p_schema
+                                ,const XString& p_procedure)
 {
+  XString schema(p_schema);
+  XString procedure(p_procedure);
+  XString package;
+
   // Try quoted identifiers
-  XString sql = GetPSMProcedureParameters(p_schema,p_procedure,true);
+  XString sql = GetPSMProcedureParameters(schema,package,procedure,true);
   if(sql.IsEmpty() || m_preferODBC)
   {
     // No SQL, let ODBC handle the parameters
@@ -843,8 +984,8 @@ SQLInfoDB::MakeInfoPSMParameters(MParameterMap& p_parameters
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema   .IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_procedure.IsEmpty()) qry.SetParameter(p_procedure);
+      if(!p_schema   .IsEmpty()) qry.SetParameter(schema);
+      if(!p_procedure.IsEmpty()) qry.SetParameter(procedure);
 
       qry.DoSQLStatement(sql);
       while(qry.GetRecord())
@@ -855,7 +996,7 @@ SQLInfoDB::MakeInfoPSMParameters(MParameterMap& p_parameters
         param.m_schema        = (XString) qry[MetaParameter_schemaname];
         param.m_procedure     = (XString) qry[MetaParameter_procedurename];
         param.m_parameter     = (XString) qry[MetaParameter_parametername];
-        param.m_columnType    = (long)    qry[MetaParameter_columntype];
+        param.m_columnType    = (SQLParamType) (int) qry[MetaParameter_columntype];
         param.m_datatype      = (long)    qry[MetaParameter_datatype];
         param.m_typeName      = (XString) qry[MetaParameter_typename];
         param.m_columnSize    = (long)    qry[MetaParameter_columnsize];
@@ -871,7 +1012,9 @@ SQLInfoDB::MakeInfoPSMParameters(MParameterMap& p_parameters
         param.m_position      = (long)    qry[MetaParameter_position];
         param.m_isNullable    = (XString) qry[MetaParameter_isnullable];
         // Trimming
-        param.m_typeName = param.m_typeName.Trim();
+        param.m_default    = param.m_default.Trim();
+        param.m_typeName   = param.m_typeName.Trim();
+        param.m_isNullable = param.m_isNullable.Trim();
 
         p_parameters.push_back(param);
       }
@@ -880,7 +1023,7 @@ SQLInfoDB::MakeInfoPSMParameters(MParameterMap& p_parameters
         return true;
       }
       // Try standard identifiers
-      sql = GetPSMProcedureParameters(p_schema,p_procedure);
+      sql = GetPSMProcedureParameters(schema,package,procedure);
     }
   }
   catch(StdException& er)
@@ -894,22 +1037,26 @@ SQLInfoDB::MakeInfoPSMParameters(MParameterMap& p_parameters
 // Getting the info for the triggers is not a part of the standard
 // ODBC function set. It needs a RDBMS driver, so it is not in DBInfo but in DBInfoDB
 bool
-SQLInfoDB::MakeInfoTableTriggers(MTriggerMap& p_triggers
-                                ,XString& p_errors
-                                ,XString  p_catalog
-                                ,XString  p_schema
-                                ,XString  p_tablename /*= ""*/
-                                ,XString  p_trigger   /*= ""*/)
+SQLInfoDB::MakeInfoTableTriggers(MTriggerMap&   p_triggers
+                                ,      XString& p_errors
+                                ,const XString& p_catalog
+                                ,const XString& p_schema
+                                ,const XString& p_tablename /*= ""*/
+                                ,const XString& p_trigger   /*= ""*/)
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+  XString triggername(p_trigger);
+
   // Getting the database dependent SQL string
   XString sql;
   if(!p_tablename.IsEmpty() && p_trigger.IsEmpty())
   {
-    sql = GetCATALOGTriggerList(p_schema,p_tablename,true);
+    sql = GetCATALOGTriggerList(schema,tablename,true);
   }
   else
   {
-    sql = GetCATALOGTriggerAttributes(p_schema,p_tablename,p_trigger,true);
+    sql = GetCATALOGTriggerAttributes(schema,tablename,triggername,true);
   }
   if(sql.IsEmpty())
   {
@@ -923,9 +1070,9 @@ SQLInfoDB::MakeInfoTableTriggers(MTriggerMap& p_triggers
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema   .IsEmpty()) qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
-      if(!p_trigger  .IsEmpty()) qry.SetParameter(p_trigger);
+      if(!p_schema   .IsEmpty()) qry.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) qry.SetParameter(tablename);
+      if(!p_trigger  .IsEmpty()) qry.SetParameter(triggername);
 
       qry.DoSQLStatement(sql);
       while(qry.GetRecord())
@@ -966,7 +1113,7 @@ SQLInfoDB::MakeInfoTableTriggers(MTriggerMap& p_triggers
         return true;
       }
       // Try default catalog identifiers
-      sql = GetCATALOGTriggerAttributes(p_schema,p_tablename,p_trigger);
+      sql = GetCATALOGTriggerAttributes(schema,tablename,triggername);
     }
   }
   catch(StdException& er)
@@ -978,14 +1125,17 @@ SQLInfoDB::MakeInfoTableTriggers(MTriggerMap& p_triggers
 }
 
 bool 
-SQLInfoDB::MakeInfoTableSequences(MSequenceMap& p_sequences
-                                 ,XString&      p_errors
-                                 ,XString     /*p_catalog*/
-                                 ,XString       p_schema
-                                 ,XString       p_tablename)
+SQLInfoDB::MakeInfoTableSequences(MSequenceMap&  p_sequences
+                                 ,      XString& p_errors
+                                 ,const XString& /*p_catalog*/
+                                 ,const XString& p_schema
+                                 ,const XString& p_tablename)
 {
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
   // Getting the database dependent SQL string (quoted identifiers first)
-  XString sql = GetCATALOGSequenceList(p_schema,p_tablename,true);
+  XString sql = GetCATALOGSequenceList(schema,tablename,true);
   if(sql.IsEmpty())
   {
     // No sequences to be gotten from this RDBMS
@@ -998,8 +1148,8 @@ SQLInfoDB::MakeInfoTableSequences(MSequenceMap& p_sequences
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty())    qry.SetParameter(p_schema);
-      if(!p_tablename.IsEmpty()) qry.SetParameter(p_tablename);
+      if(!p_schema.IsEmpty())    qry.SetParameter(schema);
+      if(!p_tablename.IsEmpty()) qry.SetParameter(tablename);
 
       qry.DoSQLStatement(sql);
       while(qry.GetRecord())
@@ -1021,11 +1171,11 @@ SQLInfoDB::MakeInfoTableSequences(MSequenceMap& p_sequences
         {
           // A sequence without an increment is NO sequence.
           // Try to get hold of the values through the attributes call
-          XString sql2 = GetCATALOGSequenceAttributes(p_schema,sequence.m_sequenceName,ind == 0 ? true : false);
+          XString sql2 = GetCATALOGSequenceAttributes(schema,sequence.m_sequenceName,ind == 0 ? true : false);
           if(!sql2.IsEmpty())
           {
             SQLQuery query2(m_database);
-            if(!p_schema.IsEmpty())    query2.SetParameter(p_schema);
+            if(!p_schema.IsEmpty()) query2.SetParameter(schema);
             query2.SetParameter(sequence.m_sequenceName);
             query2.DoSQLStatement(sql2);
             if(query2.GetRecord())
@@ -1046,7 +1196,7 @@ SQLInfoDB::MakeInfoTableSequences(MSequenceMap& p_sequences
         return true;
       }
       // Now try standard identifiers
-      sql = GetCATALOGSequenceList(p_schema,p_tablename);
+      sql = GetCATALOGSequenceList(schema,tablename);
     }
   }
   catch(StdException& er)
@@ -1068,12 +1218,15 @@ SQLInfoDB::MakeInfoTableSequences(MSequenceMap& p_sequences
 
 bool    
 SQLInfoDB::MakeInfoTablePrivileges(MPrivilegeMap& p_privileges
-                                  ,XString&       p_errors
-                                  ,XString        p_catalog
-                                  ,XString        p_schema
-                                  ,XString        p_tablename)
+                                  ,      XString& p_errors
+                                  ,const XString& p_catalog
+                                  ,const XString& p_schema
+                                  ,const XString& p_tablename)
 {
-  XString sql = GetCATALOGTablePrivileges(p_schema,p_tablename);   // Table privileges query
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+
+  XString sql = GetCATALOGTablePrivileges(schema,tablename);   // Table privileges query
   if(sql.IsEmpty() || m_preferODBC)
   {
     return SQLInfo::MakeInfoTablePrivileges(p_privileges,p_errors,p_catalog,p_schema,p_tablename);
@@ -1083,8 +1236,8 @@ SQLInfoDB::MakeInfoTablePrivileges(MPrivilegeMap& p_privileges
   {
     SQLQuery query(m_database);
 
-    if(!p_schema    .IsEmpty()) query.SetParameter(p_schema);
-    if(!p_tablename .IsEmpty()) query.SetParameter(p_tablename);
+    if(!p_schema    .IsEmpty()) query.SetParameter(schema);
+    if(!p_tablename .IsEmpty()) query.SetParameter(tablename);
 
     query.DoSQLStatement(sql);
     while(query.GetRecord())
@@ -1113,13 +1266,17 @@ SQLInfoDB::MakeInfoTablePrivileges(MPrivilegeMap& p_privileges
 
 bool
 SQLInfoDB::MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges
-                                   ,XString&       p_errors
-                                   ,XString        p_catalog
-                                   ,XString        p_schema
-                                   ,XString        p_tablename
-                                   ,XString        p_columnname /*= ""*/)
+                                   ,      XString& p_errors
+                                   ,const XString& p_catalog
+                                   ,const XString& p_schema
+                                   ,const XString& p_tablename
+                                   ,const XString& p_columnname /*= ""*/)
 {
-  XString sql = GetCATALOGColumnPrivileges(p_schema,p_tablename,p_columnname);   // Column privileges query
+  XString schema(p_schema);
+  XString tablename(p_tablename);
+  XString columnname(p_columnname);
+
+  XString sql = GetCATALOGColumnPrivileges(schema,tablename,columnname);   // Column privileges query
   if(sql.IsEmpty() || m_preferODBC)
   {
     return SQLInfo::MakeInfoColumnPrivileges(p_privileges,p_errors,p_catalog,p_schema,p_tablename,p_columnname);
@@ -1129,9 +1286,9 @@ SQLInfoDB::MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges
   {
     SQLQuery query(m_database);
 
-    if(!p_schema    .IsEmpty()) query.SetParameter(p_schema);
-    if(!p_tablename .IsEmpty()) query.SetParameter(p_tablename);
-    if(!p_columnname.IsEmpty()) query.SetParameter(p_columnname);
+    if(!p_schema    .IsEmpty()) query.SetParameter(schema);
+    if(!p_tablename .IsEmpty()) query.SetParameter(tablename);
+    if(!p_columnname.IsEmpty()) query.SetParameter(columnname);
 
     query.DoSQLStatement(sql);
     while(query.GetRecord())
@@ -1162,13 +1319,16 @@ SQLInfoDB::MakeInfoColumnPrivileges(MPrivilegeMap& p_privileges
 bool    
 SQLInfoDB::MakeInfoViewDefinition(XString& p_defintion
                                  ,XString& p_errors
-                                 ,XString  /*p_catalog*/
-                                 ,XString  p_schema
-                                 ,XString  p_viewname)
+                                 ,const XString&  /*p_catalog*/
+                                 ,const XString&  p_schema
+                                 ,const XString&  p_viewname)
 {
+  XString schema(p_schema);
+  XString viewname(p_viewname);
+
   bool result = false;
   // Try quoted identifiers first
-  XString sql = GetCATALOGViewText(p_schema,p_viewname,true);
+  XString sql = GetCATALOGViewText(schema,viewname,true);
   if(!sql.IsEmpty())
   {
     try
@@ -1189,7 +1349,7 @@ SQLInfoDB::MakeInfoViewDefinition(XString& p_defintion
           return true;
         }
         // Try standard identifiers
-        sql = GetCATALOGViewText(p_schema,p_viewname);
+        sql = GetCATALOGViewText(schema,viewname);
       }
     }
     catch(StdException& er)
@@ -1254,13 +1414,16 @@ SQLInfoDB::ReadTablesFromQuery(SQLQuery& p_query,MTableMap& p_tables)
 
 // Getting all the user defined datatypes
 bool
-SQLInfoDB::MakeInfoUserTypes(MUserTypeMap& p_usertypes
-                            ,XString&      p_errors
-                            ,XString       /*p_catalog*/
-                            ,XString       p_schema
-                            ,XString       p_usertype)
+SQLInfoDB::MakeInfoUserTypes(MUserTypeMap&  p_usertypes
+                            ,      XString& p_errors
+                            ,const XString& /*p_catalog*/
+                            ,const XString& p_schema
+                            ,const XString& p_usertype)
 {
-  XString sql = GetCATALOGTypeAttributes(p_schema,p_usertype,true);
+  XString schema(p_schema);
+  XString usertype(p_usertype);
+
+  XString sql = GetCATALOGTypeAttributes(schema,usertype,true);
   if(sql.IsEmpty())
   {
     // No user-types to be gotten from this RDBMS
@@ -1272,8 +1435,8 @@ SQLInfoDB::MakeInfoUserTypes(MUserTypeMap& p_usertypes
     {
       SQLQuery qry(m_database);
 
-      if(!p_schema.IsEmpty())   qry.SetParameter(p_schema);
-      if(!p_usertype.IsEmpty()) qry.SetParameter(p_usertype);
+      if(!p_schema.IsEmpty())   qry.SetParameter(schema);
+      if(!p_usertype.IsEmpty()) qry.SetParameter(usertype);
 
       qry.DoSQLStatement(sql);
       while(qry.GetRecord())
@@ -1294,7 +1457,7 @@ SQLInfoDB::MakeInfoUserTypes(MUserTypeMap& p_usertypes
 
         if(type.m_source.Compare(_T("<@>")) == 0 && type.m_ordinal == 1)
         {
-          XString source = GetCATALOGTypeSource(p_schema,type.m_typeName,ind == 0 ? true : false);
+          XString source = GetCATALOGTypeSource(schema,type.m_typeName,ind == 0 ? true : false);
           if(!source.IsEmpty())
           {
             SQLQuery qry2(m_database);
@@ -1313,7 +1476,7 @@ SQLInfoDB::MakeInfoUserTypes(MUserTypeMap& p_usertypes
         return true;
       }
       // Try standard catalog identifiers
-      sql = GetCATALOGTypeAttributes(p_schema,p_usertype);
+      sql = GetCATALOGTypeAttributes(schema,usertype);
     }
   }
   catch(StdException& er)

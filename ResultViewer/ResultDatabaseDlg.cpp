@@ -98,7 +98,7 @@ ResultDatabaseDlg::OnInitDialog()
 	if (pSysMenu != nullptr)
 	{
 		BOOL bNameValid;
-		CString strAboutMenu;
+		XString strAboutMenu;
 		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
 		ASSERT(bNameValid);
 		if (!strAboutMenu.IsEmpty())
@@ -162,7 +162,7 @@ ResultDatabaseDlg::InitTabs()
 void
 ResultDatabaseDlg::InitResult()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetResultFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetResultFilename();
 
   // Read in the definition file for a test step
   try

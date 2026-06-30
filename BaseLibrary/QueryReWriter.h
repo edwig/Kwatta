@@ -4,8 +4,8 @@
 //
 // BaseLibrary: Indispensable general objects and functions
 // 
-// Copyright (c) 2014-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 2014-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
@@ -37,6 +37,7 @@ enum class Token
  ,TK_DQUOTE         // Double quote string
  ,TK_POINT          // .
  ,TK_COMMA          // ,
+ ,TK_ADD            // +
  ,TK_MINUS          // -
  ,TK_DIVIDE         // /
  ,TK_COMM_SQL       // --    Comments SQL wise
@@ -45,8 +46,8 @@ enum class Token
  ,TK_PAR_OPEN       // (
  ,TK_PAR_CLOSE      // )
  ,TK_PAR_OUTER      // (+)   Oracle outer join
- ,TK_PAR_ADD        // +
- ,TK_PAR_CONCAT     // ||    SQL String concatenation
+ ,TK_PAR_AMPER      // @     Oracle database link
+ ,TK_CONCAT         // ||    SQL String concatenation
  ,TK_SPACE          // ' '   Single space
  ,TK_TAB            // '\t'  Tabulate character
  ,TK_CR             // '\r'  Carriage return
@@ -74,8 +75,10 @@ enum class SROption
   ,SRO_CONCAT_TO_ADD  = 0x0001   // ISO SQL || to MS-SQL + for two strings
   ,SRO_ADD_TO_CONCAT  = 0x0002   // MS-SQL + to ISO SQL || for two strings
   ,SRO_WARN_OUTER     = 0x0004   // Warn for Oracle (+) Outer joins
+  ,SRO_REMOVE_SCHEMA  = 0x0008   // Remove schema name
+  ,SRO_RESOLVE_DBLINK = 0x0010   // Oracle "table@link" => "schema.table"
 
-  ,SRO_LAST_OPTION    = 0x0007
+  ,SRO_LAST_OPTION    = 0x001F
 };
 
 enum class OdbcEsc
@@ -115,16 +118,20 @@ using SQLWords = std::map<XString,SQLWord,StringICompare>;
 class QueryReWriter
 {
 public:
-  explicit QueryReWriter(XString p_schema);
+  explicit QueryReWriter(const XString& p_schema);
   // Our primary function
-  XString Parse(XString p_input);
+  XString Parse(const XString& p_input);
 
   // Settings 
   bool    SetOption(SROption p_option);
-  bool    AddSQLWord(XString p_word,XString p_replacement,XString p_schema = _T(""),Token p_token = Token::TK_EOS,OdbcEsc p_odbc = OdbcEsc::None);
-  bool    AddSQLWord(SQLWord& p_word);
-  bool    AddSQLWords(SQLWords& p_words);
-  bool    AddSQLWordsFromFile(XString p_filename);
+  bool    AddSQLWord(const XString& p_word
+                    ,const XString& p_replacement
+                    ,const XString  p_schema = _T("")
+                    ,      Token    p_token  = Token::TK_EOS
+                    ,      OdbcEsc  p_odbc   = OdbcEsc::None);
+  bool    AddSQLWord(const SQLWord& p_word);
+  bool    AddSQLWords(const SQLWords& p_words);
+  bool    AddSQLWordsFromFile(const XString& p_filename);
   // Getters
   int     GetReplaced() { return m_replaced; }
   int     GetOptions()  { return m_options;  }
@@ -137,8 +144,9 @@ private:
   Token   GetToken();
   void    PrintToken();
   void    PrintOuterJoin();
+  void    PrintDatabaseLink();
   Token   FindToken();
-  void    AppendSchema();
+  void    ProcessSchema();
 
   void    SkipSpaceAndComment();
   Token   CommentSQL();
@@ -160,6 +168,7 @@ private:
   int       m_position    { 0       };
   Token     m_token       { Token::TK_EOS };
   XString   m_tokenString;
+  XString   m_lastTokenString;
   int       m_level       { 0       };
   int       m_ungetch     { 0       };
   Token     m_inStatement { Token::TK_EOS };

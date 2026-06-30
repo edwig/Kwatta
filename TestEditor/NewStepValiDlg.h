@@ -37,8 +37,8 @@ public:
   virtual bool SaveStyleTab (void* p_data) override;
 
   bool         GetValiGlobal()  { return m_valiGlobal;  }
-  CString      GetValiName()    { return m_valiName;    }
-  CString      GetValiFile()    { return m_valiFile;    }
+  XString      GetValiName()    { return m_valiName;    }
+  XString      GetValiFile()    { return m_valiFile;    }
 
   // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -49,7 +49,7 @@ protected:
   virtual void DoDataExchange(CDataExchange* pDX) override;
   virtual void SetupDynamicLayout() override;
 
-  CString StripExtension(CString p_filename);
+  XString StripExtension(XString p_filename);
   void    ResetPage();
   void    CheckValiFile();
   void    PresetFilenames();
@@ -59,8 +59,8 @@ protected:
   StyleEdit    m_editName;
   StyleEdit    m_editFile;
   
-  CString      m_valiName;
-  CString      m_valiFile;
+  XString      m_valiName;
+  XString      m_valiFile;
   bool         m_valiGlobal { false };
 
   DECLARE_MESSAGE_MAP()

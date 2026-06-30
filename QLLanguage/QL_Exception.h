@@ -14,16 +14,16 @@ class QLException
 public:
   QLException(TCHAR* p_message);
   QLException(TCHAR* p_message, int p_code);
-  QLException(CString p_message,int p_code);
+  QLException(XString p_message,int p_code);
  ~QLException();
 
   // Get the message
-  CString GetMessage()  { return m_message; };
+  XString GetMessage()  { return m_message; };
   // Get the code
   int     GetCode()     { return m_code; };
   // Get the error
-  CString GetErrorMessage();
+  XString GetErrorMessage();
 private:
   int     m_code;
-  CString m_message;
+  XString m_message;
 };

@@ -172,8 +172,8 @@ URLParameterDlg::StoreVariables()
 
   for(int ind = 1; ind < m_list.GetRowCount(); ++ind)
   {
-    CString param = m_list.GetCell(ind,0)->GetText();
-    CString value = m_list.GetCell(ind,1)->GetText();
+    XString param = m_list.GetCell(ind,0)->GetText();
+    XString value = m_list.GetCell(ind,1)->GetText();
 
     m_step->SetParameter(param,value);
   }
@@ -211,10 +211,10 @@ URLParameterDlg::OnBnClickedDelete()
     CGridCellBase* cell = m_list.GetCell(row, 0);
     if(cell)
     {
-      CString variable = cell->GetText();
+      XString variable = cell->GetText();
       if(!variable.IsEmpty())
       {
-        CString ask;
+        XString ask;
         ask.Format(_T("Do you want to delete the URL parameter [%s] ?"), variable.GetString());
         if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
         {
@@ -251,8 +251,8 @@ URLParameterDlg::OnBnClickedParmParm()
       SearchVarDlg dlg(this,m_parameters,true,true,true,true);
       if(dlg.DoModal() == IDOK || dlg.GetSaved())
       {
-        CString variable = dlg.GetVariable();
-        CString txt = cell->GetText() + variable;
+        XString variable = dlg.GetVariable();
+        XString txt = cell->GetText() + variable;
         cell->SetText(txt);
         m_list.Refresh();
 
@@ -288,7 +288,7 @@ URLParameterDlg::OnBnClickedAnchorParm()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editAnchor.InsertAtCurPos(variable,0);
     OnEnKillfocusAnchor();
   }

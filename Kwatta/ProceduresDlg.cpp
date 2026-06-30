@@ -28,7 +28,7 @@
 
 IMPLEMENT_DYNAMIC(ProceduresDlg, StyleDialog)
 
-ProceduresDlg::ProceduresDlg(CWnd* p_parent,CString p_baseDirectory)
+ProceduresDlg::ProceduresDlg(CWnd* p_parent,XString p_baseDirectory)
 	            :StyleDialog(IDD_PROCEDURES,p_parent)
               ,m_baseDirectory(p_baseDirectory)
 {
@@ -116,7 +116,7 @@ ProceduresDlg::OnBnClickedReset()
 void 
 ProceduresDlg::OnBnClickedReport()
 {
-  CString reportName(_T("Report.txt"));
+  XString reportName(_T("Report.txt"));
 
   CWaitCursor takeAsigh;
   TestReport report(m_baseDirectory,reportName,_T("KWATTA Test Report"),m_depth);

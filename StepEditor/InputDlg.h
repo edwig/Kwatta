@@ -47,8 +47,8 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
-  CString     m_input;
-  CString     m_effective;
+  XString     m_input;
+  XString     m_effective;
   StyleEdit   m_editInput;
   StyleEdit   m_editEffective;
   StyleButton m_buttonInputParm;

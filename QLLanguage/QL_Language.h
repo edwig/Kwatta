@@ -94,23 +94,23 @@ typedef _TUCHAR shortint;
 typedef struct _method
 {
   int       m_datatype;
-  CString   m_methodname;
+  XString   m_methodname;
   Internal  m_internal;
 }
 Method;
 
 // Name mapping for global objects in the virtual machine
-typedef std::map<CString, MemObject*>     NameMap;
-typedef std::map<CString, Class*>         ClassMap;
-typedef std::multimap<CString, Method*>   MethodMap;
+typedef std::map<XString, MemObject*>     NameMap;
+typedef std::map<XString, Class*>         ClassMap;
+typedef std::multimap<XString, Method*>   MethodMap;
 
 // Globals for the QL library
 extern int    qlargc;       // Rest of the startup parameters
 extern TCHAR** qlargv;       // All startup parameters
 
-extern CString db_database; // Default database name
-extern CString db_user;     // Default user name for the database
-extern CString db_password; // Default password for the database user
+extern XString db_database; // Default database name
+extern XString db_user;     // Default user name for the database
+extern XString db_password; // Default password for the database user
 
 // Forward declarations
 // Implementations must provide these!

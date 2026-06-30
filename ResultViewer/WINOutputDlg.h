@@ -46,8 +46,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
   int       m_returnValue;
-  CString   m_winErrors;
-  CString   m_winLogging;
+  XString   m_winErrors;
+  XString   m_winLogging;
   StyleEdit m_editReturn;
   StyleEdit m_editLogging;
   StyleEdit m_editErrors;

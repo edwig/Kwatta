@@ -51,8 +51,8 @@ protected:
   TestStep*     m_step       { nullptr };
   Parameters*   m_parameters { nullptr };
   ScriptStatus  m_status     { ScriptStatus::NoScript };
-  CString       m_statusOK;
-  CString       m_script;
+  XString       m_statusOK;
+  XString       m_script;
 
   StyleComboBox m_comboStatus;
   StyleEdit     m_editStatusOK;

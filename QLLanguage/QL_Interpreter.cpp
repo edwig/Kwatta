@@ -124,7 +124,7 @@ QLInterpreter::DestroyStack()
 
 // execute from an entry point function 
 int 
-QLInterpreter::Execute(CString p_name)
+QLInterpreter::Execute(XString p_name)
 {
   // Check initialization of the VM
   m_vm->CheckInit();
@@ -192,7 +192,7 @@ QLInterpreter::Interpret(Object* p_object,Function* p_function)
   int           pop     = 0;
   bool          newline = true;
   bcd           floating;
-  CString       selector;
+  XString       selector;
   Class*        vClass;
 
   // initialize
@@ -1070,8 +1070,8 @@ QLInterpreter::inter_strstr_operator(BYTE p_operator)
 
   switch(p_operator)
   {
-    case OP_ADD: {  CString left  = *m_stack_pointer[1]->m_value.v_string;
-                    CString right = *m_stack_pointer[0]->m_value.v_string;
+    case OP_ADD: {  XString left  = *m_stack_pointer[1]->m_value.v_string;
+                    XString right = *m_stack_pointer[0]->m_value.v_string;
                     SetString(left + right);
                  }
                  break;
@@ -1104,8 +1104,8 @@ void
 QLInterpreter::inter_intstr_operator(BYTE p_operator)
 {
   int   number = m_stack_pointer[1]->m_value.v_integer;
-  CString* str = m_stack_pointer[0]->m_value.v_string;
-  CString result;
+  XString* str = m_stack_pointer[0]->m_value.v_string;
+  XString result;
 
   switch(p_operator)
   {
@@ -1206,7 +1206,7 @@ QLInterpreter::inter_strint_operator(BYTE p_operator)
   bool yesno = false;
   int left   = _ttoi(*m_stack_pointer[1]->m_value.v_string);
   int right  =       m_stack_pointer[0]->m_value.v_integer;
-  CString str;
+  XString str;
 
   switch(p_operator)
   {
@@ -1246,7 +1246,7 @@ QLInterpreter::inter_strint_operator(BYTE p_operator)
 void
 QLInterpreter::inter_bcdstr_operator(BYTE p_operator)
 {
-  CString str;
+  XString str;
   int  number;
   bool  yesno;
   bcd* left = m_stack_pointer[1]->m_value.v_floating;
@@ -1320,8 +1320,8 @@ void
 QLInterpreter::inter_strvar_operator(BYTE p_operator)
 {
   bool yesno = false;
-  CString left = *m_stack_pointer[1]->m_value.v_string;
-  CString  right( m_stack_pointer[0]->m_value.v_variant->GetAsChar());
+  XString left = *m_stack_pointer[1]->m_value.v_string;
+  XString  right( m_stack_pointer[0]->m_value.v_variant->GetAsChar());
 
   switch(p_operator)
   {
@@ -1615,7 +1615,7 @@ QLInterpreter::Equal(MemObject* p_left,MemObject* p_right)
                           case DTYPE_INTEGER: return _ttoi(*p_left->m_value.v_string) ==  p_right->m_value.v_integer;
                           case DTYPE_STRING:  return *p_left->m_value.v_string       == *p_right->m_value.v_string;
                           case DTYPE_BCD:     return bcd(*p_left->m_value.v_string)  == *p_right->m_value.v_floating;
-                          case DTYPE_VARIANT: return *p_left->m_value.v_string       == CString(p_right->m_value.v_variant->GetAsChar());
+                          case DTYPE_VARIANT: return *p_left->m_value.v_string       == XString(p_right->m_value.v_variant->GetAsChar());
                         }
                         break;
     case DTYPE_BCD:     switch(p_right->m_type)
@@ -1629,7 +1629,7 @@ QLInterpreter::Equal(MemObject* p_left,MemObject* p_right)
     case DTYPE_VARIANT: switch(p_right->m_type)
                         {
                           case DTYPE_INTEGER: return         p_left->m_value.v_variant->GetAsSLong() ==  p_right->m_value.v_integer;
-                          case DTYPE_STRING:  return CString(p_left->m_value.v_variant->GetAsChar()) == *p_right->m_value.v_string;
+                          case DTYPE_STRING:  return XString(p_left->m_value.v_variant->GetAsChar()) == *p_right->m_value.v_string;
                           case DTYPE_BCD:     return p_left->m_value.v_variant->GetAsBCD()           == *p_right->m_value.v_floating;
                           case DTYPE_VARIANT: return *p_left->m_value.v_variant                      == *p_right->m_value.v_variant;
                         }
@@ -1734,7 +1734,7 @@ QLInterpreter::VectorRef()
 void
 QLInterpreter::StringRef()
 {
-  CString* string = m_stack_pointer[1]->m_value.v_string;
+  XString* string = m_stack_pointer[1]->m_value.v_string;
   int      index  = m_stack_pointer[0]->m_value.v_integer;
 
   int cc = 0;
@@ -1779,7 +1779,7 @@ QLInterpreter::VectorSet()
 void
 QLInterpreter::StringSet()
 {
-  CString* string = m_stack_pointer[2]->m_value.v_string;
+  XString* string = m_stack_pointer[2]->m_value.v_string;
   int      index  = m_stack_pointer[1]->m_value.v_integer;
   int      cc     = m_stack_pointer[0]->m_value.v_integer;
 
@@ -1807,7 +1807,7 @@ void
 QLInterpreter::DoSendInternal(int p_offset)
 {
   int     type =  m_stack_pointer[p_offset  ]->m_type;
-  CString name = *m_stack_pointer[p_offset-1]->m_value.v_string;
+  XString name = *m_stack_pointer[p_offset-1]->m_value.v_string;
 
   Method* method = m_vm->FindMethod(name,type);
   if(method)
@@ -1845,10 +1845,10 @@ static TCHAR *tnames[] =
 };
 
 // typename - get the name of a type 
-CString
+XString
 QLInterpreter::GetTypename(int type)
 {
-  CString buffer;
+  XString buffer;
   if(type >= _DTMIN && type <= _DTMAX)
   {
     return (tnames[type]);
@@ -1861,8 +1861,8 @@ QLInterpreter::GetTypename(int type)
 int
 QLInterpreter::BadType(int off,int expected_type)
 {
-  CString type1 = GetTypename(m_stack_pointer[off]->m_type);
-  CString type2 = GetTypename(expected_type);
+  XString type1 = GetTypename(m_stack_pointer[off]->m_type);
+  XString type2 = GetTypename(expected_type);
   m_vm->Info(_T("PC: %04x, Offset %d, Type %s, Expected %s"),(int)(m_pc - m_code),off,type1,type2);
   m_vm->Error(_T("Bad argument type"));
   return 0;
@@ -1891,7 +1891,7 @@ OpNames opnames[] =
  ,{ 0,        NULL                  }
 };
 
-CString
+XString
 QLInterpreter::OperatorName(int p_opcode)
 {
   OpNames* oper = opnames;
@@ -1899,7 +1899,7 @@ QLInterpreter::OperatorName(int p_opcode)
   {
     if(oper->opcode == p_opcode)
     {
-      return CString(oper->oper);
+      return XString(oper->oper);
     }
     ++oper;
   }
@@ -1909,9 +1909,9 @@ QLInterpreter::OperatorName(int p_opcode)
 void
 QLInterpreter::BadOperator(int p_oper)
 {
-  CString operName  = OperatorName(p_oper);
-  CString typeName1 = GetTypename(m_stack_pointer[1]->m_type);
-  CString typeName2 = GetTypename(m_stack_pointer[0]->m_type);
+  XString operName  = OperatorName(p_oper);
+  XString typeName1 = GetTypename(m_stack_pointer[1]->m_type);
+  XString typeName2 = GetTypename(m_stack_pointer[0]->m_type);
 
   m_vm->Info(_T("PC: %04x, Bad types/operator combination: %s %s %s"),(int)(m_pc - m_code),typeName1,operName,typeName2);
   m_vm->Error(_T("Bad operator type"));
@@ -1919,7 +1919,7 @@ QLInterpreter::BadOperator(int p_oper)
 
 // Report a failure to find a method for a selector
 void 
-QLInterpreter::NoMethod(CString selector)
+QLInterpreter::NoMethod(XString selector)
 {
   m_vm->Error(_T("No method for selector '%s'"),selector);
 }
@@ -1928,7 +1928,7 @@ QLInterpreter::NoMethod(CString selector)
 void
 QLInterpreter::BadMemberArgument(Object* p_object,int p_member)
 {
-  CString classname = p_object->GetClass()->GetName();
+  XString classname = p_object->GetClass()->GetName();
   m_vm->Error(_T("Object of class [%s] does not have %d members"),classname,p_member);
 }
 
@@ -2003,7 +2003,7 @@ QLInterpreter::SetInteger(int p_value)
 
 // Set TOS to a STRING
 void
-QLInterpreter::SetString(CString p_string)
+QLInterpreter::SetString(XString p_string)
 {
   MemObject* object = m_vm->AllocMemObject(DTYPE_STRING);
   *object->m_value.v_string = p_string;
@@ -2097,10 +2097,10 @@ QLInterpreter::GetIntegerArgument(int p_num)
 }
 
 // Getting an argument as a STRING
-CString
+XString
 QLInterpreter::GetStringArgument(int p_num)
 {
-  CString str;
+  XString str;
   switch(m_stack_pointer[p_num]->m_type)
   {
     case DTYPE_STRING:  str = *m_stack_pointer[p_num]->m_value.v_string;

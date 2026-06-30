@@ -33,7 +33,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-TestStepNET::ReadFromXML(CString p_filename)
+TestStepNET::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   TestStep::ReadFromXML(msg, p_filename);
@@ -43,7 +43,7 @@ TestStepNET::ReadFromXML(CString p_filename)
   XMLElement* typ = msg.FindElement(root, _T("Type"), false);
   if (typ)
   {
-    CString type = typ->GetValue();
+    XString type = typ->GetValue();
     if (type.Compare(_T("Internet")))
     {
       throw StdException(_T("IRUN file is not an internet test: ") + p_filename);
@@ -134,7 +134,7 @@ TestStepNET::ReadFromXML(CString p_filename)
 }
 
 bool
-TestStepNET::WriteToXML(CString p_filename)
+TestStepNET::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if (!TestStep::WriteToXML(msg, p_filename))
@@ -144,67 +144,67 @@ TestStepNET::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,_T("Type"),XDT_String,_T("Internet"));
+  msg.AddElement(root,_T("Type"),_T("Internet"));
 
-  XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
+  XMLElement* def = msg.AddElement(root,_T("Definition"),_T(""));
 
   // Main elements
-  msg.AddElement(def,_T("VERB"),  XDT_String,m_verb);
-  msg.AddElement(def,_T("URL"),   XDT_String |XDT_CDATA,m_url);
-  msg.AddElement(def,_T("Anchor"),XDT_String |XDT_CDATA,m_anchor);
+  msg.AddElement(def,_T("VERB"),  m_verb);
+  msg.AddElement(def,_T("URL"),   m_url,   XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(def,_T("Anchor"),m_anchor,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   msg.SetElement(def,_T("UseStatus"), m_useStatus);
   msg.SetElement(def,_T("UseHeaders"),m_useHeaders);
   msg.SetElement(def,_T("UseBody"),   m_useBody);
 
   // Parameters
-  XMLElement* params = msg.AddElement(def,_T("Parameters"),XDT_String,_T(""));
+  XMLElement* params = msg.AddElement(def,_T("Parameters"),_T(""));
   for(auto& parm : m_parameters)
   {
-    XMLElement* param = msg.AddElement(params,_T("Parameter"),XDT_String,_T(""));
-    msg.AddElement(param,_T("Name"), XDT_String,          parm.m_name);
-    msg.AddElement(param,_T("Value"),XDT_String|XDT_CDATA,parm.m_value);
+    XMLElement* param = msg.AddElement(params,_T("Parameter"),_T(""));
+    msg.AddElement(param,_T("Name"), parm.m_name);
+    msg.AddElement(param,_T("Value"),parm.m_value,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
   }
 
   // Headers
-  XMLElement* allheaders = msg.AddElement(def,_T("Headers"),XDT_String,_T(""));
+  XMLElement* allheaders = msg.AddElement(def,_T("Headers"),_T(""));
   for(auto& head : m_headers)
   {
-    XMLElement* header = msg.AddElement(allheaders,_T("Header"),XDT_String,_T(""));
-    msg.AddElement(header,_T("Name"),XDT_String,           head.m_name);
-    msg.AddElement(header,_T("Value"),XDT_String|XDT_CDATA,head.m_value);
+    XMLElement* header = msg.AddElement(allheaders,_T("Header"),_T(""));
+    msg.AddElement(header,_T("Name"), head.m_name);
+    msg.AddElement(header,_T("Value"),head.m_value,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
   }
 
   // Authentication
-  XMLElement* auth = msg.AddElement(def,_T("Authentication"),XDT_String,_T(""));
-  msg.AddElement(auth,_T("Credentials"),XDT_String,m_credential);
+  XMLElement* auth = msg.AddElement(def,_T("Authentication"),_T(""));
+  msg.AddElement(auth,_T("Credentials"),m_credential);
   if(m_credential.IsEmpty())
   {
-    msg.AddElement(auth,_T("Type"),          XDT_String,m_authType);
-    msg.AddElement(auth,_T("Username"),      XDT_String,m_userName);
-    msg.AddElement(auth,_T("Password"),      XDT_String,m_password);
-    msg.AddElement(auth,_T("OAuthGrant"),    XDT_String,m_oauthGrant);
-    msg.AddElement(auth,_T("TokenServer"),   XDT_String,m_tokenServer);
-    msg.AddElement(auth,_T("ClientID"),      XDT_String,m_clientID);
-    msg.AddElement(auth,_T("ClientKey"),     XDT_String,m_clientKey);
-    msg.AddElement(auth,_T("ClientScope"),   XDT_String,m_clientScope);
-    msg.AddElement(auth,_T("KeyHeaderName"), XDT_String,m_keyHeader);
-    msg.AddElement(auth,_T("KeyHeaderValue"),XDT_String,m_keyValue);
+    msg.AddElement(auth,_T("Type"),          m_authType);
+    msg.AddElement(auth,_T("Username"),      m_userName);
+    msg.AddElement(auth,_T("Password"),      m_password);
+    msg.AddElement(auth,_T("OAuthGrant"),    m_oauthGrant);
+    msg.AddElement(auth,_T("TokenServer"),   m_tokenServer);
+    msg.AddElement(auth,_T("ClientID"),      m_clientID);
+    msg.AddElement(auth,_T("ClientKey"),     m_clientKey);
+    msg.AddElement(auth,_T("ClientScope"),   m_clientScope);
+    msg.AddElement(auth,_T("KeyHeaderName"), m_keyHeader);
+    msg.AddElement(auth,_T("KeyHeaderValue"),m_keyValue);
   }
   // And our payload body
-  msg.AddElement(def,_T("MimeType"),        XDT_String, m_mimeType);
-  msg.AddElement(def,_T("BodyInputIsFile"), XDT_Boolean,m_bodyInputIsFile  ? _T("true") : _T("false") );
-  msg.AddElement(def,_T("BodyOutputIsFile"),XDT_Boolean,m_bodyOutputIsFile ? _T("true") : _T("false") );
-  msg.AddElement(def,_T("FileInput"),       XDT_String, m_filenameInput);
-  msg.AddElement(def,_T("FileOutput"),      XDT_String, m_filenameOutput);
-  msg.AddElement(def,_T("Body"),            XDT_String|XDT_CDATA,m_body);
+  msg.AddElement(def,_T("MimeType"),        m_mimeType);
+  msg.AddElement(def,_T("BodyInputIsFile"), m_bodyInputIsFile  ? _T("true") : _T("false"),XmlDataType::XDT_Boolean);
+  msg.AddElement(def,_T("BodyOutputIsFile"),m_bodyOutputIsFile ? _T("true") : _T("false"),XmlDataType::XDT_Boolean);
+  msg.AddElement(def,_T("FileInput"),       m_filenameInput);
+  msg.AddElement(def,_T("FileOutput"),      m_filenameOutput);
+  msg.AddElement(def,_T("Body"),            m_body,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Timeouts
-  XMLElement* timeouts = msg.AddElement(def,_T("Timeouts"),XDT_String,_T(""));
-  msg.AddElement(timeouts,_T("TimeoutResolve"), XDT_Integer,IntegerToString(m_timeoutResolve));
-  msg.AddElement(timeouts,_T("TimeoutConnect"), XDT_Integer,IntegerToString(m_timeoutConnect));
-  msg.AddElement(timeouts,_T("TimeoutSend"),    XDT_Integer,IntegerToString(m_timeoutSend));
-  msg.AddElement(timeouts,_T("TimeoutReceive"), XDT_Integer,IntegerToString(m_timeoutReceive));
+  XMLElement* timeouts = msg.AddElement(def,_T("Timeouts"),_T(""));
+  msg.AddElement(timeouts,_T("TimeoutResolve"), IntegerToString(m_timeoutResolve).GetString(),XmlDataType::XDT_Integer);
+  msg.AddElement(timeouts,_T("TimeoutConnect"), IntegerToString(m_timeoutConnect).GetString(),XmlDataType::XDT_Integer);
+  msg.AddElement(timeouts,_T("TimeoutSend"),    IntegerToString(m_timeoutSend)   .GetString(),XmlDataType::XDT_Integer);
+  msg.AddElement(timeouts,_T("TimeoutReceive"), IntegerToString(m_timeoutReceive).GetString(),XmlDataType::XDT_Integer);
 
   // Now save it
   return msg.SaveFile(p_filename);
@@ -228,7 +228,7 @@ TestStepNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
   m_effectiveParameters.clear();
   m_effectiveHeaders.clear();
 
-  CString result;
+  XString result;
   for(auto& param : m_parameters)
   {
     unbound += p_parameters->Replace(param.m_value,result,p_forDisplay);
@@ -245,7 +245,7 @@ TestStepNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 }
 
 void
-TestStepNET::CheckFilename(CString p_filename)
+TestStepNET::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -258,8 +258,8 @@ TestStepNET::CheckFilename(CString p_filename)
   }
 }
 
-CString
-TestStepNET::GetParameter(CString p_parameter)
+XString
+TestStepNET::GetParameter(XString p_parameter)
 {
   for(auto& param : m_parameters)
   {
@@ -268,11 +268,11 @@ TestStepNET::GetParameter(CString p_parameter)
       return param.m_value;
     }
   }
-  return CString();
+  return XString();
 }
 
-CString
-TestStepNET::GetHeader(CString p_header)
+XString
+TestStepNET::GetHeader(XString p_header)
 {
   for(auto& head : m_headers)
   {
@@ -281,11 +281,11 @@ TestStepNET::GetHeader(CString p_header)
       return head.m_value;
     }
   }
-  return CString();
+  return XString();
 }
 
 void
-TestStepNET::SetParameter(CString p_parameter,CString p_value)
+TestStepNET::SetParameter(XString p_parameter,XString p_value)
 {
   for(auto& param : m_parameters)
   {
@@ -300,7 +300,7 @@ TestStepNET::SetParameter(CString p_parameter,CString p_value)
 }
 
 void
-TestStepNET::DeleteParameter(CString p_parameter)
+TestStepNET::DeleteParameter(XString p_parameter)
 {
   UrlParameters::iterator it = m_parameters.begin();
   while(it != m_parameters.end())
@@ -315,7 +315,7 @@ TestStepNET::DeleteParameter(CString p_parameter)
 }
 
 void
-TestStepNET::SetHeader(CString p_header,CString p_value)
+TestStepNET::SetHeader(XString p_header,XString p_value)
 {
   for(auto& head : m_headers)
   {
@@ -329,10 +329,10 @@ TestStepNET::SetHeader(CString p_header,CString p_value)
   m_headers.push_back(pair);
 }
 
-CString
+XString
 TestStepNET::GetEffectiveCombinedURL()
 {
-  CString url = CrackedURL::EncodeURLChars(m_effectiveUrl);
+  XString url = CrackedURL::EncodeURLChars(m_effectiveUrl);
 
   // Add URL parameters
   if(!m_effectiveParameters.empty())
@@ -363,10 +363,10 @@ TestStepNET::GetEffectiveCombinedURL()
   return url;
 }
 
-CString
+XString
 TestStepNET::GetRawRequest()
 {
-  CString raw(m_verb);
+  XString raw(m_verb);
   raw += _T(" ");
   raw += GetEffectiveCombinedURL();
 
@@ -385,7 +385,7 @@ TestStepNET::GetRawRequest()
   // Header body separator
   raw += _T("\r\n");
 
-  CString body(m_effectiveBody);
+  XString body(m_effectiveBody);
   body.Replace(_T("\n"),_T("\r\n"));
   raw += body;
 
@@ -405,7 +405,7 @@ TestStepNET::ResetEffective()
 }
 
 void
-TestStepNET::SetCredential(CString p_credential)
+TestStepNET::SetCredential(XString p_credential)
 {
   // Remember credential template
   m_credential = p_credential;

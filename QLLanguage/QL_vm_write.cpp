@@ -37,7 +37,7 @@ QLVirtualMachine::WriteFile(TCHAR* p_filename,bool p_trace)
   FILE* file = NULL;
 
   // check that name ends in .qob
-  CString filename(p_filename);
+  XString filename(p_filename);
   if(filename.Right(3).CompareNoCase(_T(".ql")) == 0)
   {
     filename = filename.Left(filename.GetLength() - 3);
@@ -135,7 +135,7 @@ QLVirtualMachine::TracingText(bool p_trace,const TCHAR* p_text,...)
   {
     return;
   }
-  CString str;
+  XString str;
   va_list txt;
 
   // Format our comment
@@ -200,17 +200,17 @@ QLVirtualMachine::WriteInteger(FILE* p_fp,bool p_trace,int n)
 }
 
 void
-QLVirtualMachine::WriteString(FILE* p_fp,bool p_trace,CString* p_string,TCHAR* p_extra /*=nullptr*/)
+QLVirtualMachine::WriteString(FILE* p_fp,bool p_trace,XString* p_string,TCHAR* p_extra /*=nullptr*/)
 {
   // Actual string data
   const TCHAR* pnt = p_string->GetString();
-  CString extra;
+  XString extra;
 
   // String type + the string itself
   Putc(DTYPE_STRING,p_fp,p_trace);
   if(p_extra)
   {
-    extra = p_extra + CString(_T(" : [")) + *p_string + _T("]");
+    extra = p_extra + XString(_T(" : [")) + *p_string + _T("]");
   }
   else
   {
@@ -271,7 +271,7 @@ QLVirtualMachine::WriteFloat(FILE* p_fp,bool p_trace,bcd* p_float)
 void
 QLVirtualMachine::WriteFileName(FILE* p_fp,bool p_trace,MemObject* p_object)
 {
-  CString name = FindSymbolName(p_object);
+  XString name = FindSymbolName(p_object);
 
   Putc(DTYPE_FILE,p_fp,p_trace);
   TracingText(p_trace,_T("FILENAME"));
@@ -286,8 +286,8 @@ QLVirtualMachine::WriteArray(FILE* p_fp,bool p_trace,Array* p_array,TCHAR* p_ext
   if(p_array == nullptr)
   {
     Putc(DTYPE_NIL,p_fp,p_trace);
-    CString extra(_T("EMPTY ARRAY"));
-    if(p_extra) extra = CString(_T("NO ")) + p_extra;
+    XString extra(_T("EMPTY ARRAY"));
+    if(p_extra) extra = XString(_T("NO ")) + p_extra;
     TracingText(p_trace,extra);
     return;
   }
@@ -304,7 +304,7 @@ QLVirtualMachine::WriteArray(FILE* p_fp,bool p_trace,Array* p_array,TCHAR* p_ext
     WriteMemObject(p_fp,p_trace,p_array->GetEntry(ind),p_doScripts);
   }
   // End array marker
-  CString end(_T("END "));
+  XString end(_T("END "));
   end += p_extra ? p_extra : _T("ARRAY");
   TracingText(p_trace,end);
 }
@@ -338,8 +338,8 @@ void
 QLVirtualMachine::WriteClass(FILE* p_fp,bool p_trace,Class* p_class)
 {
   Class* baseClass = p_class->GetBaseClass();
-  CString className = p_class->GetName();
-  CString baseName;
+  XString className = p_class->GetName();
+  XString baseName;
   if(baseClass)
   {
     baseName = baseClass->GetName();
@@ -389,8 +389,8 @@ QLVirtualMachine::WriteScript(FILE* p_fp,bool p_trace,Function*  p_script)
   }
   p_script->SetWriting(true);
 
-  CString className;
-  CString functionName;
+  XString className;
+  XString functionName;
   Class*  theClass = p_script->GetClass();
 
   // Getting the names
@@ -436,7 +436,7 @@ QLVirtualMachine::WriteTypes(FILE* p_fp,bool p_trace,ArgTypes& p_types)
 void
 QLVirtualMachine::WriteInternal(FILE* p_fp,bool p_trace,MemObject* p_internal)
 {
-  CString name = FindSymbolName(p_internal);
+  XString name = FindSymbolName(p_internal);
 
   Putc(DTYPE_INTERNAL,p_fp,p_trace);
   TracingText(p_trace,_T("INTERNAL"));
@@ -444,7 +444,7 @@ QLVirtualMachine::WriteInternal(FILE* p_fp,bool p_trace,MemObject* p_internal)
 }
 
 void
-QLVirtualMachine::WriteExternal(FILE* p_fp,bool p_trace,CString* p_external)
+QLVirtualMachine::WriteExternal(FILE* p_fp,bool p_trace,XString* p_external)
 {
   Putc(DTYPE_EXTERNAL,p_fp,p_trace);
   TracingText(p_trace,_T("EXTERNAL"));
@@ -454,7 +454,7 @@ QLVirtualMachine::WriteExternal(FILE* p_fp,bool p_trace,CString* p_external)
 void
 QLVirtualMachine::WriteReference(FILE* p_fp,bool p_trace,MemObject* p_object)
 {
-  CString name;
+  XString name;
 
   switch(p_object->m_type)
   {
@@ -480,7 +480,7 @@ QLVirtualMachine::WriteReference(FILE* p_fp,bool p_trace,MemObject* p_object)
   }
 
   // Reference is stored in the stream with the type
-  CString objecttype = datatype_names[p_object->m_type];
+  XString objecttype = datatype_names[p_object->m_type];
   int type = p_object->m_type | DTYPE_REFERENCE;
   Putc(type,p_fp,p_trace);
   TracingText(p_trace,_T("REFERENCE TO %s"),objecttype);
@@ -559,7 +559,7 @@ QLVirtualMachine::WriteNameMap(FILE* p_fp,bool p_trace,NameMap& p_map,const TCHA
   }
 
   // Getting the name
-  CString mapname(p_name);
+  XString mapname(p_name);
   mapname.AppendFormat(_T(" (Size: %d)"),size);
 
   // Write size of the map
@@ -577,6 +577,6 @@ QLVirtualMachine::WriteNameMap(FILE* p_fp,bool p_trace,NameMap& p_map,const TCHA
     }
   }
 
-  mapname = CString(_T("END OF ")) + p_name;
+  mapname = XString(_T("END OF ")) + p_name;
   TracingText(p_trace,mapname);
 }

@@ -31,7 +31,7 @@ using namespace ThemeColor;
 
 IMPLEMENT_DYNAMIC(MutateNamesDlg, StyleDialog)
 
-MutateNamesDlg::MutateNamesDlg(CWnd* p_parent,CString p_directory,CString p_filename)
+MutateNamesDlg::MutateNamesDlg(CWnd* p_parent,XString p_directory,XString p_filename)
                :StyleDialog(IDD_MUTATENAMES,p_parent)
                ,m_origDirectory(p_directory)
                ,m_origFilename(p_filename)
@@ -154,15 +154,15 @@ MutateNamesDlg::OnBnClickedDoDirectory()
 {
   if(CheckDirectory())
   {
-    CString ask;
+    XString ask;
     ask.Format(_T("Do you want to change the directory for the testset from [%s] to [%s] ?"),m_origDirectory.GetString(),m_newDirectory.GetString());
     if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
     {
       return;
     }
 
-    CString oldname = theApp.GetBaseDirectory() + m_origDirectory;
-    CString newname = theApp.GetBaseDirectory() + m_newDirectory;
+    XString oldname = theApp.GetBaseDirectory() + m_origDirectory;
+    XString newname = theApp.GetBaseDirectory() + m_newDirectory;
 
     std::error_code error;
     std::filesystem::rename(oldname.GetString(),newname.GetString(),error);
@@ -172,7 +172,7 @@ MutateNamesDlg::OnBnClickedDoDirectory()
       m_origDirectory = m_newDirectory;
       UpdateData(FALSE);
 
-      CString msg;
+      XString msg;
       msg.Format(_T("The directory has been changed to: %s"),m_origDirectory.GetString());
       StyleMessageBox(this,msg,_T(KWATTA),MB_OK|MB_ICONEXCLAMATION);
     }
@@ -184,15 +184,15 @@ MutateNamesDlg::OnBnClickedDoFilename()
 {
   if(CheckFilename())
   {
-    CString ask;
+    XString ask;
     ask.Format(_T("Do you want to change the file for the testset from [%s] to [%s] ?"),m_origFilename.GetString(),m_newFilename.GetString());
     if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
     {
       return;
     }
 
-    CString oldname = theApp.GetBaseDirectory() + m_origDirectory + _T("\\") + m_origFilename;
-    CString newname = theApp.GetBaseDirectory() + m_origDirectory + _T("\\") + m_newFilename;
+    XString oldname = theApp.GetBaseDirectory() + m_origDirectory + _T("\\") + m_origFilename;
+    XString newname = theApp.GetBaseDirectory() + m_origDirectory + _T("\\") + m_newFilename;
 
     std::error_code error;
     std::filesystem::rename(oldname.GetString(),newname.GetString(),error);
@@ -209,7 +209,7 @@ MutateNamesDlg::OnBnClickedDoFilename()
       SetTestName();
       UpdateData(FALSE);
 
-      CString msg;
+      XString msg;
       msg.Format(_T("The filename has been changed to: %s"),m_origFilename.GetString());
       StyleMessageBox(this,msg,_T(KWATTA),MB_OK|MB_ICONEXCLAMATION);
     }

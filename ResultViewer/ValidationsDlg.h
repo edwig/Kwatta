@@ -49,7 +49,7 @@ protected:
   virtual BOOL PreTranslateMessage(MSG* pMsg) override;
   virtual void SetupDynamicLayout() override;
           void InitLijst();
-          void SetTextImage(int p_row,int p_col,CString p_text,int p_image);
+          void SetTextImage(int p_row,int p_col,XString p_text,int p_image);
 
 	DECLARE_MESSAGE_MAP()
 

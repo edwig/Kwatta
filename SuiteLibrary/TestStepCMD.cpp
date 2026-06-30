@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-TestStepCMD::ReadFromXML(CString p_filename)
+TestStepCMD::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   TestStep::ReadFromXML(msg,p_filename);
@@ -42,7 +42,7 @@ TestStepCMD::ReadFromXML(CString p_filename)
   XMLElement* typ = msg.FindElement(root,_T("Type"),false);
   if(typ)
   {
-    CString type = typ->GetValue();
+    XString type = typ->GetValue();
     if (type.Compare(_T("CommandLine")))
     {
       throw StdException(_T("XRUN file is not a Command-Line test: ") + p_filename);
@@ -62,10 +62,10 @@ TestStepCMD::ReadFromXML(CString p_filename)
     m_commandLine   = FindElementString(msg,def,_T("CommandLine"));
     m_streamCharset = FindElementString(msg,def,_T("StreamCharset"));
 
-    CString input = FindElementString(msg,def,_T("StandardInput"));
+    XString input = FindElementString(msg,def,_T("StandardInput"));
     if(input.GetLength())
     {
-      m_standardInput.SetBuffer((_TUCHAR*)input.GetBuffer(), input.GetLength());
+      m_standardInput.SetBuffer((_TUCHAR*)input.GetString(), input.GetLength());
     }
 
     XMLElement* env = msg.FindElement(root,_T("Environment"),false);
@@ -77,8 +77,8 @@ TestStepCMD::ReadFromXML(CString p_filename)
         XMLAttribute* attrib = msg.FindAttribute(envvar,_T("Name"));
         if(attrib)
         {
-          CString name = attrib->m_value;
-          CString value = envvar->GetValue();
+          XString name = attrib->m_value;
+          XString value = envvar->GetValue();
 
           m_environment.insert(std::make_pair(name, value));
         }
@@ -106,7 +106,7 @@ TestStepCMD::ReadFromXML(CString p_filename)
 }
 
 bool
-TestStepCMD::WriteToXML(CString p_filename)
+TestStepCMD::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!TestStep::WriteToXML(msg, p_filename))
@@ -116,13 +116,13 @@ TestStepCMD::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,_T("Type"),XDT_String,_T("CommandLine"));
+  msg.AddElement(root,_T("Type"),_T("CommandLine"));
 
-  XMLElement* definition = msg.AddElement(root, _T("Definition"), XDT_String, _T(""));
-  msg.AddElement(definition, _T("Directory"),     XDT_String, m_directoryPath);
-  msg.AddElement(definition, _T("Runtimer"),      XDT_String, m_runtimer);
-  msg.AddElement(definition, _T("CommandLine"),   XDT_String, m_commandLine);
-  msg.AddElement(definition, _T("StreamCharset"), XDT_String, m_streamCharset);
+  XMLElement* definition = msg.AddElement(root, _T("Definition"), _T(""));
+  msg.AddElement(definition, _T("Directory"),     m_directoryPath);
+  msg.AddElement(definition, _T("Runtimer"),      m_runtimer);
+  msg.AddElement(definition, _T("CommandLine"),   m_commandLine);
+  msg.AddElement(definition, _T("StreamCharset"), m_streamCharset);
 
   XMLElement* parameters = msg.FindElement(root,_T("Parameters"));
   msg.SetElement(parameters, _T("WaitForIdle"),       m_waitForIdle);
@@ -138,11 +138,11 @@ TestStepCMD::WriteToXML(CString p_filename)
   // Add environment variables (if any)
   if(!m_environment.empty())
   {
-    XMLElement* env = msg.AddElement(root, _T("Environment"), XDT_String, _T(""));
+    XMLElement* env = msg.AddElement(root, _T("Environment"),_T(""));
 
     for (auto& parm : m_environment)
     {
-      XMLElement* envvar = msg.AddElement(env, _T("EnvironmentVariable"), XDT_String, parm.second);
+      XMLElement* envvar = msg.AddElement(env, _T("EnvironmentVariable"),parm.second);
       msg.SetAttribute(envvar, _T("Name"), parm.first);
     }
   }
@@ -150,7 +150,7 @@ TestStepCMD::WriteToXML(CString p_filename)
   // Add input stream buffer (if any)
   if(m_standardInput.GetUse())
   {
-    msg.AddElement(definition, _T("StandardInput"), XDT_CDATA, GetStandardInput());
+    msg.AddElement(definition, _T("StandardInput"), GetStandardInput(),XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
   }
 
   // Now save it
@@ -158,18 +158,18 @@ TestStepCMD::WriteToXML(CString p_filename)
 }
 
 
-CString
+XString
 TestStepCMD::GetStandardInput()
 {
   _TUCHAR* buffer = nullptr;
   unsigned int   length = 0;
   m_standardInput.GetBuffer(buffer, length);
 
-  return CString(buffer);
+  return XString(buffer);
 }
 
 void
-TestStepCMD::SetStandardInput(CString p_input)
+TestStepCMD::SetStandardInput(XString p_input)
 {
   m_standardInput.SetBuffer((_TUCHAR*)p_input.GetString(), p_input.GetLength());
 }
@@ -179,7 +179,7 @@ int
 TestStepCMD::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 {
   int unbound = TestStep::EffectiveReplacements(p_parameters,p_forDisplay);
-  CString input = GetStandardInput();
+  XString input = GetStandardInput();
 
   unbound += p_parameters->Replace(m_directoryPath,m_effectiveDirectory,  p_forDisplay);
   unbound += p_parameters->Replace(m_runtimer,     m_effectiveRuntimer,   p_forDisplay);
@@ -190,7 +190,7 @@ TestStepCMD::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 }
 
 void
-TestStepCMD::CheckFilename(CString p_filename)
+TestStepCMD::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];

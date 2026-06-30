@@ -301,12 +301,12 @@ WinActionsDlg::StoreVariables()
 
   for(int ind = 1; ind < m_list.GetRowCount(); ++ind)
   {
-    CString action    = m_list.GetCell(ind,0)->GetText();
-    CString pattern   = m_list.GetCell(ind,1)->GetText();
-    CString argument1 = m_list.GetCell(ind,2)->GetText();
-    CString argument2 = m_list.GetCell(ind,3)->GetText();
-    CString argument3 = m_list.GetCell(ind,4)->GetText();
-    CString wait      = m_list.GetCell(ind,5)->GetText();
+    XString action    = m_list.GetCell(ind,0)->GetText();
+    XString pattern   = m_list.GetCell(ind,1)->GetText();
+    XString argument1 = m_list.GetCell(ind,2)->GetText();
+    XString argument2 = m_list.GetCell(ind,3)->GetText();
+    XString argument3 = m_list.GetCell(ind,4)->GetText();
+    XString wait      = m_list.GetCell(ind,5)->GetText();
 
     WinAction* act   = new WinAction();
     act->m_action    = m_step->StringToWinUIAction(action);
@@ -350,10 +350,10 @@ WinActionsDlg::OnBnClickedDelete()
     CGridCellBase* cell = m_list.GetCell(row, 0);
     if(cell)
     {
-      CString variable = cell->GetText();
+      XString variable = cell->GetText();
       if(!variable.IsEmpty())
       {
-        CString ask;
+        XString ask;
         ask.Format(_T("Do you want to delete the action [%s] ?"), variable.GetString());
         if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
         {
@@ -390,8 +390,8 @@ WinActionsDlg::OnBnClickedParm()
       SearchVarDlg dlg(this,m_parameters,true,true,true,true);
       if(dlg.DoModal() == IDOK || dlg.GetSaved())
       {
-        CString variable = dlg.GetVariable();
-        CString txt = cell->GetText() + variable;
+        XString variable = dlg.GetVariable();
+        XString txt = cell->GetText() + variable;
         cell->SetText(txt);
         m_list.Refresh();
 
@@ -469,7 +469,7 @@ WinActionsDlg::OnEndInPlaceEdit(NMHDR* pNMHDR,LRESULT* pResult)
   GV_DISPINFO* pgvDispInfo = (GV_DISPINFO*)pNMHDR;
   GV_ITEM* pgvItem = &pgvDispInfo->item;
 
-  CString  actionStr = m_list.GetCell(pgvItem->row,0)->GetText();
+  XString  actionStr = m_list.GetCell(pgvItem->row,0)->GetText();
   WinUIAction action = m_step->StringToWinUIAction(actionStr);
 
   if(action != WinUIAction::WA_Nothing)

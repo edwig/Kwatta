@@ -46,7 +46,7 @@ protected:
   void PumpMessage();
 
   StyleEdit m_editText;
-  CString   m_text;
+  XString   m_text;
 
 	DECLARE_MESSAGE_MAP()
 

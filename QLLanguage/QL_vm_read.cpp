@@ -36,7 +36,7 @@ QLVirtualMachine::LoadFile(TCHAR* p_filename,bool p_trace)
 {
   bool result = false;
   FILE* file = NULL;
-  CString filename(p_filename);
+  XString filename(p_filename);
   if(filename.Right(4).CompareNoCase(_T(".qob")))
   {
     filename += _T(".qob");
@@ -215,7 +215,7 @@ QLVirtualMachine::MustReadInteger(FILE* p_fp, bool p_trace, long* n, TCHAR* p_er
   return res;
 }
 
-CString     
+XString     
 QLVirtualMachine::ReadString(FILE* p_fp, bool p_trace)
 {
   long size = 0;
@@ -224,7 +224,7 @@ QLVirtualMachine::ReadString(FILE* p_fp, bool p_trace)
   {
     TracingText(p_trace,_T("String size: %d"),size);
 
-    CString theString;
+    XString theString;
 
     for(int ind = 0; ind < size; ++ind)
     {
@@ -244,7 +244,7 @@ QLVirtualMachine::ReadString(FILE* p_fp, bool p_trace)
   return _T("");
 }
 
-CString 
+XString 
 QLVirtualMachine::MustReadString(FILE* p_fp,bool p_trace,TCHAR* p_errorMessage)
 {
   int type = Getc(p_fp,p_trace);
@@ -299,21 +299,21 @@ QLVirtualMachine::MustReadFloat(FILE* p_fp,bool p_trace,TCHAR* p_message)
 FILE*
 QLVirtualMachine::ReadFileName(FILE* p_fp, bool p_trace)
 {
-  CString name = MustReadString(p_fp,p_trace,_T("Misread file stream name!"));
+  XString name = MustReadString(p_fp,p_trace,_T("Misread file stream name!"));
 
   MemObject* fp = FindSymbol(name);
   if(fp && fp->m_type == DTYPE_FILE)
   {
     return fp->m_value.v_file;
   }
-  throw QLException(CString(_T("File pointer not found: ")) + name,DTYPE_FILE);
+  throw QLException(XString(_T("File pointer not found: ")) + name,DTYPE_FILE);
   return nullptr;
 }
 
 Array*
 QLVirtualMachine::ReadArray(FILE* p_fp, bool p_trace,Array* p_array /*=nullptr*/,TCHAR* p_name /*=nullptr*/)
 {
-  CString name = p_name ? p_name : _T("ARRAY");
+  XString name = p_name ? p_name : _T("ARRAY");
   TracingText(p_trace,_T("READING %s"),name);
 
   // Get the array size
@@ -350,7 +350,7 @@ Object*
 QLVirtualMachine::ReadObject(FILE* p_fp, bool p_trace)
 {
   // Read the class name
-  CString className = MustReadString(p_fp,p_trace,_T("Misread object class name"));
+  XString className = MustReadString(p_fp,p_trace,_T("Misread object class name"));
   Class*  theClass  = FindClass(className);
   Object* object = new Object(theClass);
 
@@ -377,8 +377,8 @@ QLVirtualMachine::ReadClass(FILE* p_fp,bool p_trace)
     throw QLException(_T("Misread class in stream!"));
   }
 
-  CString className = MustReadString(p_fp,p_trace,_T("Misread class name!"));
-  CString  baseName = MustReadString(p_fp,p_trace,_T("Misread base class name!"));
+  XString className = MustReadString(p_fp,p_trace,_T("Misread class name!"));
+  XString  baseName = MustReadString(p_fp,p_trace,_T("Misread base class name!"));
 
   Class* baseClass = nullptr;
   if(!baseName.IsEmpty())
@@ -460,9 +460,9 @@ QLVirtualMachine::ReadScript(FILE* p_fp, bool p_trace)
   Class* theClass = nullptr;
 
   // Write the function name
-  CString functionName = MustReadString(p_fp, p_trace,_T("Misread script function name!"));
+  XString functionName = MustReadString(p_fp, p_trace,_T("Misread script function name!"));
   // Write class name (if any)
-  CString className    = MustReadString(p_fp, p_trace,_T("Misread member class name!"));
+  XString className    = MustReadString(p_fp, p_trace,_T("Misread member class name!"));
   if(!className.IsEmpty())
   {
     theClass = FindClass(className);
@@ -525,7 +525,7 @@ Internal
 QLVirtualMachine::ReadInternal(FILE* p_fp, bool p_trace)
 {
   // Read the internal name
-  CString funcName = MustReadString(p_fp,p_trace,_T("Misread internal function name!"));
+  XString funcName = MustReadString(p_fp,p_trace,_T("Misread internal function name!"));
   MemObject* object = FindSymbol(funcName);
 
   if(object->m_type == DTYPE_INTERNAL)
@@ -536,21 +536,21 @@ QLVirtualMachine::ReadInternal(FILE* p_fp, bool p_trace)
   return nullptr;
 }
 
-CString*
+XString*
 QLVirtualMachine::ReadExternal(FILE* p_fp, bool p_trace)
 {
-  CString name = MustReadString(p_fp,p_trace,_T("Misread external system function name!"));
-  return new CString(name);
+  XString name = MustReadString(p_fp,p_trace,_T("Misread external system function name!"));
+  return new XString(name);
 }
 
 void
 QLVirtualMachine::ReadReference(FILE* p_fp,bool p_trace,MemObject* p_object)
 {
-  CString type = datatype_names[p_object->m_type & DTYPE_MASK];
+  XString type = datatype_names[p_object->m_type & DTYPE_MASK];
   TracingText(p_trace,_T("REFERENCE TO %s"),type);
 
-  CString name = MustReadString(p_fp,p_trace,_T("Misreading reference name!"));
-  p_object->m_value.v_string = new CString(name);
+  XString name = MustReadString(p_fp,p_trace,_T("Misreading reference name!"));
+  p_object->m_value.v_string = new XString(name);
 }
 
 MemObject*
@@ -572,7 +572,7 @@ QLVirtualMachine::ReadMemObject(FILE* p_fp,bool p_trace)
                           TracingText(p_trace,_T("Integer: %d"),object->m_value.v_integer);
                           break;
     case DTYPE_STRING:    TracingText(p_trace,_T("STRING"));
-                          object->m_value.v_string = new CString(ReadString(p_fp,p_trace));
+                          object->m_value.v_string = new XString(ReadString(p_fp,p_trace));
                           object->m_flags |= FLAG_DEALLOC;
                           break;
     case DTYPE_BCD:       TracingText(p_trace,_T("BCD"));
@@ -633,7 +633,7 @@ QLVirtualMachine::ReadNameMap(FILE* p_fp, bool p_trace, NameMap&  p_map,TCHAR* p
 
   for(int ind = 0;ind < size; ++ind)
   {
-    CString name;
+    XString name;
     MemObject* object = ReadMemObject(p_fp,p_trace);
 
     if(object->m_type == DTYPE_STRING)
@@ -675,10 +675,10 @@ QLVirtualMachine::Thunking()
     if(object->m_type & DTYPE_REFERENCE)
     {
       // Getting the actual name
-      CString name = *object->m_value.v_string;
+      XString name = *object->m_value.v_string;
 
       // Remember and clearing the read-in string
-      CString* str = object->m_value.v_string;
+      XString* str = object->m_value.v_string;
       object->m_value.v_all = 0;
 
       // Find the reference

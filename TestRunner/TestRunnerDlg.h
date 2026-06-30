@@ -27,8 +27,8 @@ class TestRunnerDlg : public StyleDialog
 public:
 	TestRunnerDlg(CWnd* pParent = nullptr);	// standard constructor
 
-  void SetTest(CString p_test);
-  void SetStep(CString p_step);
+  void SetTest(XString p_test);
+  void SetStep(XString p_step);
   void SetTotal   (int p_percent);
   void SetProgress(int p_percent);
 
@@ -49,8 +49,8 @@ protected:
 
   StyleProgressCtrl m_total;
   StyleProgressCtrl m_progress;
-  CString           m_test;
-  CString           m_step;
+  XString           m_test;
+  XString           m_step;
   StyleEdit         m_editTest;
   StyleEdit         m_editStep;
 

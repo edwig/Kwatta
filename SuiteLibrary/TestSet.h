@@ -28,9 +28,9 @@ class XMLElement;
 // All validations of a test run
 typedef struct  
 {
-  CString m_filename;
+  XString m_filename;
   bool    m_global;
-  CString m_name;
+  XString m_name;
 }
 TRValidation;
 
@@ -39,11 +39,11 @@ using TSValSet = std::vector<TRValidation>;
 // Definition of a test run
 typedef   struct
 {
-  CString   m_filename;
+  XString   m_filename;
   bool      m_global;
-  CString   m_name;
+  XString   m_name;
   TSValSet  m_validations;
-  CString   m_lastResult;
+  XString   m_lastResult;
 }
 TRun;
 
@@ -55,35 +55,35 @@ public:
   TestSet() = default;
 
   // Interface with the file system
-  void      ReadFromXML(CString p_filename);  // Throws in case of an error
+  void      ReadFromXML(XString p_filename);  // Throws in case of an error
   bool      WriteToXML ();
 
   // GETTERS
-  CString   GetName()          { return m_name;          }
-  CString   GetDocumentation() { return m_documentation; }
+  XString   GetName()          { return m_name;          }
+  XString   GetDocumentation() { return m_documentation; }
   TRunSet&  GetTestRuns()      { return m_testruns;      }
   TRun&     GetTestRun(int p_run);
   bool      GetTotalResult();
-  TRun*     GetRun(CString p_filename);
-  TSValSet* GetValidationsByName(CString p_name);
-  TSValSet* GetValidationsByFile(CString p_filename);
+  TRun*     GetRun(XString p_filename);
+  TSValSet* GetValidationsByName(XString p_name);
+  TSValSet* GetValidationsByFile(XString p_filename);
 
   // SETTERS
-  void      SetName(CString p_name)         { m_name           = p_name; }
-  void      SetDocumentation(CString p_doc) { m_documentation  = p_doc;  }
-  void      SetFilename(CString p_file)     { m_filename       = p_file; }
+  void      SetName(XString p_name)         { m_name           = p_name; }
+  void      SetDocumentation(XString p_doc) { m_documentation  = p_doc;  }
+  void      SetFilename(XString p_file)     { m_filename       = p_file; }
 
   // FUNCTIONS
-  TRun*     AddTestStep(CString p_stepname,CString p_filename,bool p_global);
+  TRun*     AddTestStep(XString p_stepname,XString p_filename,bool p_global);
   void      DeleteStep(int p_step);
-  int       CopyStep(CString p_directory,CString p_filename,CString p_name);
+  int       CopyStep(XString p_directory,XString p_filename,XString p_name);
 
 protected:
-  void      CheckFilename(CString p_filename);
-  CString   FindElementString(XMLMessage& p_msg,XMLElement* p_start,CString p_name);
+  void      CheckFilename(XString p_filename);
+  XString   FindElementString(XMLMessage& p_msg,XMLElement* p_start,XString p_name);
 
-  CString   m_filename;
-  CString   m_name;
-  CString   m_documentation;
+  XString   m_filename;
+  XString   m_name;
+  XString   m_documentation;
   TRunSet   m_testruns;
 };

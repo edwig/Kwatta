@@ -31,20 +31,20 @@ public:
   TestStepWIN() = default;
   virtual ~TestStepWIN();
 
-  virtual void    ReadFromXML(CString p_filename) override;
-  virtual bool    WriteToXML (CString p_filename) override;
+  virtual void    ReadFromXML(XString p_filename) override;
+  virtual bool    WriteToXML (XString p_filename) override;
   // RE-Calculate the effective strings, returning the number of unbound parameters
   virtual int     EffectiveReplacements(Parameters* p_parameters, bool p_forDisplay);
   // Check our filenames extension
-  virtual void    CheckFilename(CString p_filename);
+  virtual void    CheckFilename(XString p_filename);
   // Reset effective parameter replacements
   virtual void    ResetEffective();
   // Reset the list with actions
   virtual void    ResetActions();
 
   // Translate ui-action to-from a string
-  CString         WinUIActionToString(WinUIAction p_action);
-  WinUIAction     StringToWinUIAction(CString p_action);
+  XString         WinUIActionToString(WinUIAction p_action);
+  WinUIAction     StringToWinUIAction(XString p_action);
 
   // GETTERS
   WinActionList&  GetActions();

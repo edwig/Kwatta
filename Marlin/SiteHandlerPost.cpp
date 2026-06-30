@@ -25,20 +25,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SiteHandlerPost.h"
 #include "HTTPMessage.h"
 #include "HTTPSite.h"
 #include "HTTPServer.h"
 #include <winhttp.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 bool
 SiteHandlerPost::PreHandle(HTTPMessage* /*p_message*/)
@@ -104,7 +96,7 @@ SiteHandlerPost::PostHandle(HTTPMessage* p_message)
 // DO NOTHING: OVVERRIDE ME!
 // IMPLEMENT YOURSELF: YOUR IMPLEMENTATION HERE
 bool
-SiteHandlerPost::DoPostAction(XString p_filename,XString p_body,const CrackedURL& p_full)
+SiteHandlerPost::DoPostAction(const XString& p_filename,const XString& p_body,const CrackedURL& p_full)
 {
   UNREFERENCED_PARAMETER(p_filename);
   UNREFERENCED_PARAMETER(p_body);

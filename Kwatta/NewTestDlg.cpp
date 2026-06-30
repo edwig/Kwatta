@@ -84,7 +84,7 @@ NewTestDlg::CheckInput()
     return false;
   }
 
-  CString path = theApp.GetBaseDirectoryClean();
+  XString path = theApp.GetBaseDirectoryClean();
   path += _T("\\");
   path += m_directory;
   if(_taccess(path,0) == 0)

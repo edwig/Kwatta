@@ -52,9 +52,9 @@ protected:
 
   bool           m_useCheckRows { false };
   ReturnOperator m_rowsOperator { ReturnOperator::ROP_NOP };
-  CString        m_returnedRows;
-  CString        m_effectiveReturnedRows;
-  CString        m_returnedRowsVariable;
+  XString        m_returnedRows;
+  XString        m_effectiveReturnedRows;
+  XString        m_returnedRowsVariable;
 
   StyleEdit      m_editRows;
   StyleEdit      m_editEffective;

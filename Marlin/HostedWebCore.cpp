@@ -37,7 +37,7 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#include "stdafx.h"
+#include "pch.h"
 #include "HostedWebCore.h"
 #include "ServerApp.h"
 #include "LogAnalysis.h"
@@ -46,14 +46,6 @@
 #include <conio.h>
 #include <string>
 #include <io.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 using std::wstring;
 
@@ -397,7 +389,7 @@ void
 PrintMenu()
 {
   XString line;
-  for(int ind = 0; ind < 51; ++ind) line += "-";
+  for(int ind = 0; ind < 51; ++ind) line += _T("-");
 
   _tprintf(_T("+%s+\n"),line.GetString());
   _tprintf(_T("| %-50s|\n"),_T("MENU HOSTED WEBCORE"));

@@ -30,9 +30,9 @@ static char THIS_FILE[] = __FILE__;
 int     qlargc = 0;
 TCHAR** qlargv = NULL;
 
-CString db_database;
-CString db_user;
-CString db_password;
+XString db_database;
+XString db_user;
+XString db_password;
 
 QLVirtualMachine::QLVirtualMachine()
 {
@@ -104,7 +104,7 @@ QLVirtualMachine::SetGCThreshold(int p_threshold)
 /*static*/ void
 QLVirtualMachine::Error(LPCTSTR p_format,...)
 {
-  CString text;
+  XString text;
 
   va_list  argList;
   va_start(argList, p_format);
@@ -119,7 +119,7 @@ QLVirtualMachine::Error(LPCTSTR p_format,...)
 void
 QLVirtualMachine::Info(LPCTSTR p_format,...)
 {
-  CString text;
+  XString text;
 
   va_list  argList;
   va_start(argList, p_format);
@@ -177,7 +177,7 @@ QLVirtualMachine::CompileFile(LPCTSTR p_filename,bool p_trace)
   }
 
   // check that name ends in .ql
-  CString filename(p_filename);
+  XString filename(p_filename);
   if(filename.Right(3).CompareNoCase(_T(".ql")))
   {
     filename += _T(".ql");
@@ -205,7 +205,7 @@ bool
 QLVirtualMachine::IsObjectFile(const TCHAR* p_filename)
 {
   bool result = false;
-  CString filename(p_filename);
+  XString filename(p_filename);
 
   if(_taccess(p_filename,04) != 0)
   {
@@ -239,7 +239,7 @@ QLVirtualMachine::IsObjectFile(const TCHAR* p_filename)
 bool
 QLVirtualMachine::IsSourceFile(const TCHAR* p_filename)
 {
-  CString filename(p_filename);
+  XString filename(p_filename);
 
   if(_taccess(p_filename,04) == 0)
   {
@@ -385,7 +385,7 @@ QLVirtualMachine::AllocMemObject(const MemObject* p_other)
                           break;
     case DTYPE_INTEGER:   object->m_value.v_integer   = p_other->m_value.v_integer;
                           break;
-    case DTYPE_STRING:    object->m_value.v_string    = new CString(*p_other->m_value.v_string);
+    case DTYPE_STRING:    object->m_value.v_string    = new XString(*p_other->m_value.v_string);
                           break;
     case DTYPE_BCD:       object->m_value.v_floating  = new bcd(*p_other->m_value.v_floating);
                           break;
@@ -475,7 +475,7 @@ QLVirtualMachine::MemObjectSetType(MemObject* p_object,int p_type)
 //////////////////////////////////////////////////////////////////////////
 
 Class*
-QLVirtualMachine::FindClass(CString& p_name)
+QLVirtualMachine::FindClass(XString& p_name)
 {
   ClassMap::iterator it = m_classes.find(p_name);
   if(it == m_classes.end())
@@ -486,7 +486,7 @@ QLVirtualMachine::FindClass(CString& p_name)
 }
 
 Function*
-QLVirtualMachine::AddScript(CString p_name)
+QLVirtualMachine::AddScript(XString p_name)
 {
   MemObject* entry = AddEntry(m_scripts,p_name,ST_SFUNCTION);
   if(entry->m_type == DTYPE_STRING)
@@ -499,7 +499,7 @@ QLVirtualMachine::AddScript(CString p_name)
 }
 
 MemObject*  
-QLVirtualMachine::AddInternal(CString p_name)
+QLVirtualMachine::AddInternal(XString p_name)
 {
   MemObject* intern = AllocMemObject(DTYPE_INTERNAL);
   m_symbols.insert(std::make_pair(p_name,intern));
@@ -507,7 +507,7 @@ QLVirtualMachine::AddInternal(CString p_name)
 }
 
 MemObject*
-QLVirtualMachine::FindSymbol(CString p_name)
+QLVirtualMachine::FindSymbol(XString p_name)
 {
   NameMap::iterator it = m_symbols.find(p_name);
   if(it != m_symbols.end())
@@ -518,7 +518,7 @@ QLVirtualMachine::FindSymbol(CString p_name)
 }
 
 Function*
-QLVirtualMachine::FindScript(CString p_name)
+QLVirtualMachine::FindScript(XString p_name)
 {
   NameMap::iterator it = m_scripts.find(p_name);
   if(it != m_scripts.end())
@@ -534,8 +534,8 @@ QLVirtualMachine::FindScript(CString p_name)
   int pos = p_name.Find(_T("::"));
   if(pos > 0)
   {
-    CString classname  = p_name.Left(pos);
-    CString membername = p_name.Mid(pos + 2);
+    XString classname  = p_name.Left(pos);
+    XString membername = p_name.Mid(pos + 2);
 
     Class* theClass = FindClass(classname);
     if(theClass)
@@ -552,7 +552,7 @@ QLVirtualMachine::FindScript(CString p_name)
 
 // Add an entry to a dictionary 
 MemObject*
-QLVirtualMachine::AddEntry(NameMap& dict,CString p_key,int p_storage)
+QLVirtualMachine::AddEntry(NameMap& dict,XString p_key,int p_storage)
 {
   MemObject* entry;
   NameMap::iterator it = dict.find(p_key);
@@ -583,7 +583,7 @@ QLVirtualMachine::AddLiteral(MemObject* p_object)
 
 // addsymbol
 MemObject*
-QLVirtualMachine::AddSymbol(CString p_name)
+QLVirtualMachine::AddSymbol(XString p_name)
 {
   return AddEntry(m_symbols,p_name,ST_SDATA);
 }
@@ -591,7 +591,7 @@ QLVirtualMachine::AddSymbol(CString p_name)
 void
 QLVirtualMachine::AddClass(Class* p_class)
 {
-  CString className = p_class->GetName();
+  XString className = p_class->GetName();
   m_classes.insert(std::make_pair(className,p_class));
 }
 
@@ -623,7 +623,7 @@ QLVirtualMachine::DestroyObject(MemObject* p_object)
 
 // Find existing global for the compiler
 int
-QLVirtualMachine::FindGlobal(CString p_name)
+QLVirtualMachine::FindGlobal(XString p_name)
 {
   for (int ind = 0; ind < m_globals->GetSize(); ++ind)
   {
@@ -640,7 +640,7 @@ QLVirtualMachine::FindGlobal(CString p_name)
 }
 
 int
-QLVirtualMachine::AddGlobal(MemObject* p_object,CString p_name)
+QLVirtualMachine::AddGlobal(MemObject* p_object,XString p_name)
 {
   int n = FindGlobal(p_name);
 
@@ -690,7 +690,7 @@ QLVirtualMachine::GetLiteral(unsigned p_index)
 }
 
 
-CString
+XString
 QLVirtualMachine::FindSymbolName(MemObject* p_object)
 {
   for(auto& sym : m_symbols)
@@ -701,11 +701,11 @@ QLVirtualMachine::FindSymbolName(MemObject* p_object)
       return sym.first;
     }
   }
-  return CString(_T("<Symbol-not-found>"));
+  return XString(_T("<Symbol-not-found>"));
 }
 
 Method*
-QLVirtualMachine::FindMethod(CString p_name, int p_type)
+QLVirtualMachine::FindMethod(XString p_name, int p_type)
 {
   MethodMap::iterator iter1 = m_methods.lower_bound(p_name);
   MethodMap::iterator iter2 = m_methods.upper_bound(p_name);
@@ -723,7 +723,7 @@ QLVirtualMachine::FindMethod(CString p_name, int p_type)
 }
 
 Method*
-QLVirtualMachine::AddMethod(CString p_name, int p_type)
+QLVirtualMachine::AddMethod(XString p_name, int p_type)
 {
   Method* found = FindMethod(p_name,p_type);
   if(found == nullptr)
@@ -772,7 +772,7 @@ int
 QLVirtualMachine::Print(FILE* p_fp,int p_quoteFlag,MemObject* p_value)
 {
   int len = 0;
-  CString value;
+  XString value;
 
   if(p_fp == nullptr)
   {

@@ -146,7 +146,7 @@ KwattaApp::ParseCommandLine()
     return true;
   }
   WinFile file(m_suiteFilename);
-  CString extension = file.GetFilenamePartExtension();
+  XString extension = file.GetFilenamePartExtension();
 
   if(extension.CompareNoCase(EXTENSION_SUITE))
   {
@@ -160,7 +160,7 @@ KwattaApp::ParseCommandLine()
 void
 KwattaApp::Usage()
 {
-  CString usage = _T("USAGE of this program:\n")
+  XString usage = _T("USAGE of this program:\n")
                   _T("\n")
                   _T("Kwatta.exe [/h] [testsuite.xtest]\n")
                   _T("\n")
@@ -184,7 +184,7 @@ void KwattaApp::OnAppAbout()
 void KwattaApp::PreLoadState()
 {
 	BOOL bNameValid;
-	CString strName;
+	XString strName;
 	bNameValid = strName.LoadString(IDS_EDIT_MENU);
 	ASSERT(bNameValid);
 	GetContextMenuManager()->AddMenu(strName, IDR_POPUP_EDIT);
@@ -203,18 +203,18 @@ void KwattaApp::SaveCustomState()
 
 // CTestSuiteApp message handlers
 
-CString 
+XString 
 KwattaApp::GetBaseDirectoryClean()
 {
-  CString clean(m_baseDirectory);
+  XString clean(m_baseDirectory);
   clean.TrimRight('\\');
   return clean;
 }
 
-CString
-KwattaApp::GetParameterFilename(CString p_testname)
+XString
+KwattaApp::GetParameterFilename(XString p_testname)
 {
-  CString parameters(p_testname);
+  XString parameters(p_testname);
   int pos = p_testname.ReverseFind('.');
   if(pos > 0)
   {
@@ -223,10 +223,10 @@ KwattaApp::GetParameterFilename(CString p_testname)
   return parameters;
 }
 
-CString
+XString
 KwattaApp::StandardParameters(HWND p_wnd,int p_row)
 {
-  CString param;
+  XString param;
   param.Format(_T("/BASE:\"%s\" /HWND:%I64d /ROW:%d"),GetBaseDirectoryClean().GetString(),p_wnd,p_row);
   return param;
 }
@@ -235,15 +235,15 @@ int
 KwattaApp::StartTestEditor(Test& p_test,HWND p_hwnd,int p_row)
 {
   // Construct program name
-  CString program(_T("TestEditor.exe"));
+  XString program(_T("TestEditor.exe"));
   // Construct parameters
-  CString parameters = StandardParameters(p_hwnd,p_row);
+  XString parameters = StandardParameters(p_hwnd,p_row);
   parameters.AppendFormat(_T(" /TDIR:\"%s\""),p_test.m_directory.GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetParameterFilename(p_test.m_filename).GetString());
   parameters.AppendFormat(_T(" /TEST:\"%s\""),p_test.m_filename.GetString());
 
   // Call program
-  TRACE(_T("Call: %s %s\n"),program,parameters);
+  TRACE(_T("Call: %s %s\n"),program.GetString(), parameters.GetString());
   int result = StartProgram(program,parameters,true,false,false);
 
   // Logging what we just started, and what the result was
@@ -260,9 +260,9 @@ KwattaApp::StartTestRunner(Test& p_test,HWND p_hwnd,int p_row)
     return -1;
   }
   // Construct program name
-  CString program(_T("TestRunner.exe"));
+  XString program(_T("TestRunner.exe"));
   // Construct parameters
-  CString parameters = StandardParameters(p_hwnd,p_row);
+  XString parameters = StandardParameters(p_hwnd,p_row);
   parameters.AppendFormat(_T(" /TDIR:\"%s\""),p_test.m_directory.GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetParameterFilename(p_test.m_filename).GetString());
   parameters.AppendFormat(_T(" /XSET:\"%s\""),p_test.m_filename.GetString());

@@ -28,7 +28,7 @@
 
 IMPLEMENT_DYNAMIC(FormDataDlg, StyleDialog)
 
-FormDataDlg::FormDataDlg(CWnd* p_parent,CString p_body,CString p_content)
+FormDataDlg::FormDataDlg(CWnd* p_parent,XString p_body,XString p_content)
             :StyleDialog(IDD_FORMDATA, p_parent)
             ,m_orignalBody(p_body)
             ,m_contentType(p_content)
@@ -197,16 +197,16 @@ FormDataDlg::FillGrid()
 void
 FormDataDlg::FillRow(MultiPart* p_part,int p_row,bool p_new /*=true*/)
 {
-  CString size;
+  XString size;
   size.Format(_T("%d"),(int)p_part->GetSize());
 
   if(p_new)
   {
-    CString heading;
+    XString heading;
     heading.Format(_T("%d"), p_row);
     int row = m_grid.InsertRow(heading);
   }
-  CString content = FindMimeTypeInContentType(p_part->GetContentType());
+  XString content = FindMimeTypeInContentType(p_part->GetContentType());
 
   m_grid.GetCell(p_row,1)->SetText(p_part->GetName());
   m_grid.GetCell(p_row,2)->SetText(content);
@@ -292,7 +292,7 @@ FormDataDlg::OnBnClickedDelete()
     MultiPart* part = m_buffer.GetPart(cell.row - 1);
     if(part)
     {
-      CString question;
+      XString question;
       question.Format(_T("Do you want to delete the buffer part [%s]"),part->GetName().GetString());
       if(StyleMessageBox(this,question,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
       {
@@ -302,7 +302,7 @@ FormDataDlg::OnBnClickedDelete()
       m_buffer.DeletePart(part);
       m_grid.DeleteRow(cell.row);
       // Renumber the headings of the rows
-      CString heading;
+      XString heading;
       for(int index = 1;index < m_grid.GetRowCount();++index)
       {
         heading.Format(_T("%d"),index);

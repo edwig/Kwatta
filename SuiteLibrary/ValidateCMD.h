@@ -28,17 +28,17 @@ public:
   virtual ~ValidateCMD() = default;
 
   // Interface with the file system
-  virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error
-  virtual bool    WriteToXML (CString p_filename) override;
+  virtual void    ReadFromXML(XString p_filename) override;  // Throws in case of an error
+  virtual bool    WriteToXML (XString p_filename) override;
   // RE-Calculate the effective strings, returning the number of unbound parameters
   virtual int     EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay);
   // Check our filenames extension
-  virtual void    CheckFilename(CString p_filename) override;
+  virtual void    CheckFilename(XString p_filename) override;
 
   // OUR MAIN FUNCTION: Performing our VALIDATIONS
   bool            ValidateReturnValue(int p_value);
-  bool            ValidateOutputBuffer(CString p_buffer);
-  bool            ValidateErrorBuffer(CString p_buffer);
+  bool            ValidateOutputBuffer(XString p_buffer);
+  bool            ValidateErrorBuffer(XString p_buffer);
 
   // GETTERS
   bool            GetReturnValueIsSigned()  { return m_returnIsSigned;    }
@@ -48,12 +48,12 @@ public:
   ReturnOperator  GetReturnOperator()       { return m_returnOperator;    }
   BufferOperator  GetOutputOperator()       { return m_outputOperator;    }
   BufferOperator  GetErrorOperator()        { return m_errorOperator;     }
-  CString         GetExpectedReturn()       { return m_expectedReturn;    }
-  CString         GetExpectedOutput()       { return m_expectedOutput;    }
-  CString         GetExpectedError()        { return m_expectedError;     }
-  CString         GetEffectiveReturn()      { return m_effectiveReturn;   }
-  CString         GetEffectiveOutput()      { return m_effectiveOutput;   }
-  CString         GetEffectiveError()       { return m_effectiveError;    }
+  XString         GetExpectedReturn()       { return m_expectedReturn;    }
+  XString         GetExpectedOutput()       { return m_expectedOutput;    }
+  XString         GetExpectedError()        { return m_expectedError;     }
+  XString         GetEffectiveReturn()      { return m_effectiveReturn;   }
+  XString         GetEffectiveOutput()      { return m_effectiveOutput;   }
+  XString         GetEffectiveError()       { return m_effectiveError;    }
 
   // SETTERS
   void            SetReturnValueIsSigned(bool p_signed)   { m_returnIsSigned    = p_signed;   }
@@ -63,9 +63,9 @@ public:
   void            SetReturnOperator(ReturnOperator p_oper){ m_returnOperator    = p_oper;     }
   void            SetOutputOperator(BufferOperator p_oper){ m_outputOperator    = p_oper;     }
   void            SetErrorOperator (BufferOperator p_oper){ m_errorOperator     = p_oper;     }
-  void            SetExpectedReturn(CString p_retval)     { m_expectedReturn    = p_retval;   }
-  void            SetExpectedOutput(CString p_buffer)     { m_expectedOutput    = p_buffer;   }
-  void            SetExpectedError (CString p_buffer)     { m_expectedError     = p_buffer;   }
+  void            SetExpectedReturn(XString p_retval)     { m_expectedReturn    = p_retval;   }
+  void            SetExpectedOutput(XString p_buffer)     { m_expectedOutput    = p_buffer;   }
+  void            SetExpectedError (XString p_buffer)     { m_expectedError     = p_buffer;   }
 
 protected:
 
@@ -79,11 +79,11 @@ protected:
   BufferOperator  m_outputOperator { BufferOperator::BOP_EXACT   };
   BufferOperator  m_errorOperator  { BufferOperator::BOP_ISEMPTY };
 
-  CString         m_expectedReturn;
-  CString         m_expectedOutput;
-  CString         m_expectedError;
+  XString         m_expectedReturn;
+  XString         m_expectedOutput;
+  XString         m_expectedError;
 
-  CString         m_effectiveReturn;
-  CString         m_effectiveOutput;
-  CString         m_effectiveError;
+  XString         m_effectiveReturn;
+  XString         m_effectiveOutput;
+  XString         m_effectiveError;
 };

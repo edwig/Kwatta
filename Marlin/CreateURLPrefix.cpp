@@ -25,18 +25,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "StdAfx.h"
+#include "pch.h"
 #include <ws2tcpip.h>
 #include "CreateURLPrefix.h"
 #include <winhttp.h>
 
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
+#pragma comment(lib,"ws2_32.lib")
 
 // Host name can be cached. 
 // Machine is going nowhere while program is running :-)

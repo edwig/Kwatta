@@ -24,7 +24,7 @@
 extern int g_keyboardSleep;
 
 // Translate name to virtual-keycode. e.g "F1" -> VK_F1
-int  GetVirtualKeyCode(CString p_name);
+int  GetVirtualKeyCode(XString p_name);
 // Calculate mouse coordinates from screen pixel coordinates
 void MapScreenPositionToMousePosition(int& p_x,int& p_y,HWND p_hwnd = NULL);
 

@@ -54,8 +54,8 @@ protected:
 	
   bool						m_useData        { false };
   BufferOperator	m_dataOperator   { BufferOperator::BOP_NOP };
-  CString					m_effectiveData;
-  CString					m_returnedDataVariable;
+  XString					m_effectiveData;
+  XString					m_returnedDataVariable;
 
 	StyleCheckbox		m_checkData;
 	StyleGridCtrl   m_list;

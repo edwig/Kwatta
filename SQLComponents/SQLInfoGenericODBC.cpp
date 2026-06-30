@@ -2,8 +2,8 @@
 //
 // File: SQLInfoGenericODBC.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,16 +23,10 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLInfoGenericODBC.h"
 #include "SQLQuery.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -136,6 +130,13 @@ SQLInfoGenericODBC::GetRDBMSSupportsODBCCallNamedParameters() const
   return true;
 }
 
+// Supports the ODBC call procedure with named parameters
+bool
+SQLInfoGenericODBC::GetRDBMSSupportsNamedParameters() const
+{
+  return true;
+}
+
 // If the database does not support the datatype TIME, it can be implemented as a DECIMAL
 bool
 SQLInfoGenericODBC::GetRDBMSSupportsDatatypeTime() const
@@ -201,6 +202,13 @@ int
 SQLInfoGenericODBC::GetRDBMSMaxVarchar() const
 {
   return 1000;
+}
+
+// Return parameters from a PSM procedure module can be a result set (SUSPEND)
+bool
+SQLInfoGenericODBC::GetRDBMSResultSetFromPSM() const
+{
+  return false;
 }
 
 #include <sql.h>
@@ -289,7 +297,7 @@ SQLInfoGenericODBC::GetKEYWORDParameterPrefix() const
 // Get select part to add new record identity to a table
 // Can be special column like 'OID' or a sequence select
 XString
-SQLInfoGenericODBC::GetKEYWORDIdentityString(XString& /*p_tablename*/,XString /*p_postfix*/ /*= "_seq"*/) const
+SQLInfoGenericODBC::GetKEYWORDIdentityString(const XString& /*p_tablename*/,const XString& /*p_postfix*/ /*= "_seq"*/) const
 {
   // Undetermined: return nothing
   return XString();
@@ -297,7 +305,7 @@ SQLInfoGenericODBC::GetKEYWORDIdentityString(XString& /*p_tablename*/,XString /*
 
 // Gets the UPPER function
 XString
-SQLInfoGenericODBC::GetKEYWORDUpper(XString& p_expression) const
+SQLInfoGenericODBC::GetKEYWORDUpper(const XString& p_expression) const
 {
   return _T("{fn UCASE(") + p_expression + _T(")}");
 }
@@ -312,7 +320,7 @@ SQLInfoGenericODBC::GetKEYWORDInterval1MinuteAgo() const
 
 // Gets the Not-NULL-Value statement of the database
 XString
-SQLInfoGenericODBC::GetKEYWORDStatementNVL(XString& p_test,XString& p_isnull) const
+SQLInfoGenericODBC::GetKEYWORDStatementNVL(const XString& p_test,const XString& p_isnull) const
 {
   return _T("{fn IFNULL(") + p_test + _T(",") + p_isnull + _T(")}");
 }
@@ -333,14 +341,14 @@ SQLInfoGenericODBC::GetKEYWORDCurrentUser() const
 
 // Connects to a default schema in the database/instance
 XString
-SQLInfoGenericODBC::GetSQLDefaultSchema(XString /*p_user*/,XString /*p_schema*/) const
+SQLInfoGenericODBC::GetSQLDefaultSchema(const XString& /*p_user*/,const XString& /*p_schema*/) const
 {
   return XString();
 }
 
 // Gets the construction for inline generating a key within an INSERT statement
 XString
-SQLInfoGenericODBC::GetSQLNewSerial(XString /*p_table*/, XString /*p_sequence*/) const
+SQLInfoGenericODBC::GetSQLNewSerial(const XString& /*p_table*/,const XString& /*p_sequence*/) const
 {
   // Insert a zero in an IDENTITY column
   return _T("0");
@@ -348,14 +356,14 @@ SQLInfoGenericODBC::GetSQLNewSerial(XString /*p_table*/, XString /*p_sequence*/)
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoGenericODBC::GetSQLGenerateSerial(XString /*p_table*/) const
+SQLInfoGenericODBC::GetSQLGenerateSerial(const XString& /*p_table*/) const
 {
   // NO WAY OF KNOWNING THIS / And no need to
   return _T("0");
 }
 
 XString
-SQLInfoGenericODBC::GetSQLGenerateSequence(XString /*p_sequence*/) const
+SQLInfoGenericODBC::GetSQLGenerateSequence(const XString& /*p_sequence*/) const
 {
   // Not supported
   return _T("");
@@ -363,7 +371,7 @@ SQLInfoGenericODBC::GetSQLGenerateSequence(XString /*p_sequence*/) const
 
 // Gets the construction / select for the resulting effective generated serial
 XString
-SQLInfoGenericODBC::GetSQLEffectiveSerial(XString p_identity) const
+SQLInfoGenericODBC::GetSQLEffectiveSerial(const XString& p_identity) const
 {
   // THIS IS MOST LIKELY NOT THE CORRECT VALUE.
   // NO WAY OF DETERMINING THIS
@@ -372,21 +380,21 @@ SQLInfoGenericODBC::GetSQLEffectiveSerial(XString p_identity) const
 
 // Gets the sub-transaction commands
 XString
-SQLInfoGenericODBC::GetSQLStartSubTransaction(XString /*p_savepointName*/) const
+SQLInfoGenericODBC::GetSQLStartSubTransaction(const XString& /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetSQLCommitSubTransaction(XString /*p_savepointName*/) const
+SQLInfoGenericODBC::GetSQLCommitSubTransaction(const XString& /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetSQLRollbackSubTransaction(XString /*p_savepointName*/) const
+SQLInfoGenericODBC::GetSQLRollbackSubTransaction(const XString& /*p_savepointName*/) const
 {
   // Generic ODBC does not known about sub transactions!
   return XString();
@@ -402,7 +410,7 @@ SQLInfoGenericODBC::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoGenericODBC::GetSQLLockTable(XString p_schema, XString p_tablename,bool p_exclusive,int /*p_waittime*/) const
+SQLInfoGenericODBC::GetSQLLockTable(const XString& p_schema,const XString& p_tablename,bool p_exclusive,int /*p_waittime*/) const
 {
   // Standard ISO SQL Syntax
   XString query = _T("LOCK TABLE ") + p_schema + _T(".") + p_tablename + _T(" IN ");
@@ -413,14 +421,14 @@ SQLInfoGenericODBC::GetSQLLockTable(XString p_schema, XString p_tablename,bool p
 
 // Get query to optimize the table statistics
 XString
-SQLInfoGenericODBC::GetSQLOptimizeTable(XString /*p_schema*/, XString /*p_tablename*/) const
+SQLInfoGenericODBC::GetSQLOptimizeTable(const XString& /*p_schema*/,const XString& /*p_tablename*/) const
 {
   return XString();
 }
 
 // Transform query to select top <n> rows
 XString
-SQLInfoGenericODBC::GetSQLTopNRows(XString p_sql,int /*p_top*/,int /*p_skip = 0*/) const
+SQLInfoGenericODBC::GetSQLTopNRows(const XString& p_sql,int /*p_top*/,int /*p_skip = 0*/) const
 {
   // Does nothing
   return p_sql;
@@ -434,7 +442,7 @@ SQLInfoGenericODBC::GetSelectForUpdateTableClause(unsigned /*p_lockWaitTime*/) c
 }
 
 XString
-SQLInfoGenericODBC::GetSelectForUpdateTrailer(XString p_select,unsigned /*p_lockWaitTime*/) const
+SQLInfoGenericODBC::GetSelectForUpdateTrailer(const XString& p_select,unsigned /*p_lockWaitTime*/) const
 {
   return p_select + "\nFOR UPDATE";
 }
@@ -449,13 +457,13 @@ SQLInfoGenericODBC::GetPing() const
 
 // Pre- and postfix statements for a bulk import
 XString
-SQLInfoGenericODBC::GetBulkImportPrefix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+SQLInfoGenericODBC::GetBulkImportPrefix(const XString& /*p_schema*/,const XString& /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
 {
   return _T("");
 }
 
 XString
-SQLInfoGenericODBC::GetBulkImportPostfix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+SQLInfoGenericODBC::GetBulkImportPostfix(const XString& /*p_schema*/,const XString& /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
 {
   return _T("");
 }
@@ -525,21 +533,21 @@ SQLInfoGenericODBC::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_da
 
 // Makes an catalog identifier string (possibly quoted on both sides)
 XString
-SQLInfoGenericODBC::GetSQLDDLIdentifier(XString p_identifier) const
+SQLInfoGenericODBC::GetSQLDDLIdentifier(const XString& p_identifier) const
 {
   return p_identifier;
 }
 
 // Get the name of a temp table (local temporary or global temporary)
 XString
-SQLInfoGenericODBC::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool /*p_local*/) const
+SQLInfoGenericODBC::GetTempTablename(const XString& /*p_schema*/,const XString& p_tablename,bool /*p_local*/) const
 {
   return p_tablename;
 }
 
 // Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
 bool
-SQLInfoGenericODBC::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+SQLInfoGenericODBC::DoBindParameterFixup(SQLVariant* /*p_var*/,SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& /*p_sqlDatatype*/,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
 {
   return false;
 }
@@ -1297,9 +1305,24 @@ SQLInfoGenericODBC::GetCATALOGViewText(XString& /*p_schema*/,XString& /*p_viewna
 }
 
 XString
-SQLInfoGenericODBC::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents,bool /*p_ifexists = true*/) const
+SQLInfoGenericODBC::GetCATALOGViewCreate(XString p_schema,XString p_viewname,MColumnMap& p_columns,XString p_contents,bool /*p_ifexists = true*/) const
 {
-  return _T("CREATE VIEW ") + p_schema + _T(".") + p_viewname + _T("\n") + p_contents;
+  XString sql = _T("CREATE VIEW ") + p_schema + _T(".") + p_viewname + _T("\n(  ");
+
+  bool next(false);
+  for(auto& column : p_columns)
+  {
+    if(next)
+    {
+      sql += _T(" ,");
+    }
+    sql += column.m_column;
+    sql += _T("\n");
+    next = true;
+  }
+
+  sql += _T(")\nAS\n") + p_contents;
+  return sql;
 }
 
 XString 
@@ -1461,26 +1484,63 @@ SQLInfoGenericODBC::GetCATALOGCommentCreate(XString p_schema,XString p_object,XS
 //
 //////////////////////////////////////////////////////////////////////////
 
+// All package functions
 XString
-SQLInfoGenericODBC::GetPSMProcedureExists(XString /*p_schema*/, XString /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMPackageExists(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoGenericODBC::GetPSMPackageList(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoGenericODBC::GetPSMPackageListModules(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString 
+SQLInfoGenericODBC::GetPSMPackageAttributes(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoGenericODBC::GetPSMPackageCreate(MetaPackage& /*p_package*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoGenericODBC::GetPSMPackageDrop(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoGenericODBC::GetPSMProcedureExists(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureList(XString& /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMProcedureList(XString& /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureAttributes(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMProcedureAttributes(XString& /*p_schema*/,XString& /*p_package*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureSourcecode(XString /*p_schema*/, XString /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMProcedureSourcecode(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
@@ -1492,27 +1552,27 @@ SQLInfoGenericODBC::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureDrop(XString /*p_schema*/, XString /*p_procedure*/,bool /* p_function /*=false*/) const
+SQLInfoGenericODBC::GetPSMProcedureDrop(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /* p_function /*=false*/) const
 {
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedureErrors(XString /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMProcedureErrors(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   // ISO SQL does not support procedure errors
   return XString();
 }
 
 XString
-SQLInfoGenericODBC::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_package*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
 
 // And it's parameters
 XString
-SQLInfoGenericODBC::GetPSMProcedureParameters(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoGenericODBC::GetPSMProcedureParameters(XString& /*p_schema*/,XString& /*p_package*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return XString();
 }
@@ -1714,14 +1774,14 @@ SQLInfoGenericODBC::GetSESSIONConstraintsImmediate() const
 
 // Calling a stored function or procedure if the RDBMS does not support ODBC call escapes
 SQLVariant*
-SQLInfoGenericODBC::DoSQLCall(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/)
+SQLInfoGenericODBC::DoSQLCall(SQLQuery* /*p_query*/,const XString& /*p_schema*/,const XString& /*p_procedure*/)
 {
   return nullptr;
 }
 
 // Calling a stored function with named parameters, returning a value
 SQLVariant* 
-SQLInfoGenericODBC::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_function = true*/)
+SQLInfoGenericODBC::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,const XString& /*p_schema*/,const XString& /*p_procedure*/,bool /*p_function = true*/)
 {
   return nullptr;
 }

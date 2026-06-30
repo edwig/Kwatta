@@ -29,10 +29,10 @@ class GlobalFileDlg : public StyleDialog
 	DECLARE_DYNAMIC(GlobalFileDlg)
 
 public:
-	GlobalFileDlg(CWnd* p_parent,bool p_step,StepType p_type,CString p_directory);
+	GlobalFileDlg(CWnd* p_parent,bool p_step,StepType p_type,XString p_directory);
 	virtual ~GlobalFileDlg();
 
-	CString GetChosenFile() { return m_chosen; }
+	XString GetChosenFile() { return m_chosen; }
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -47,9 +47,9 @@ protected:
 
 	bool          m_step;
 	StepType      m_type;
-	CString       m_directory;
-	CString       m_pattern;
-	CString       m_chosen;
+	XString       m_directory;
+	XString       m_pattern;
+	XString       m_chosen;
 
 	StyleGridCtrl m_grid;
 	StyleButton   m_buttonOK;

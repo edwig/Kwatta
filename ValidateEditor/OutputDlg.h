@@ -49,8 +49,8 @@ protected:
 
   bool            m_useOutput;
   BufferOperator  m_outputOperator;
-  CString         m_expectedOutput;
-  CString         m_effectiveOutput;
+  XString         m_expectedOutput;
+  XString         m_effectiveOutput;
 
   StyleCheckbox   m_buttonUseOutput;
   StyleComboBox   m_comboOperator;

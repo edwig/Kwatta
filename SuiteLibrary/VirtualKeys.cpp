@@ -141,7 +141,7 @@ static VirtualKey vkeys[] =
 };
 
 // Performance mapping to be used runtime
-using  VKeyMap = std::map<CString,int>;
+using  VKeyMap = std::map<XString,int>;
 static VKeyMap g_vkeymap;
 
 // Init the key map
@@ -162,7 +162,7 @@ static void InitVirtualKeymap()
 
 // Translate name to virtual-key code
 // e.g "F1" -> VK_F1
-int GetVirtualKeyCode(CString p_name)
+int GetVirtualKeyCode(XString p_name)
 {
   int vkey = -1;
 

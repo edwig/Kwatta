@@ -30,21 +30,21 @@ public:
   virtual ~StepResultWIN() = default;
 
   // Interface with the file system
-  virtual void ReadFromXML(CString p_filename);  // Throws in case of an error
-  virtual bool WriteToXML(CString p_filename);
-  virtual void CheckFilename(CString p_filename);
+  virtual void ReadFromXML(XString p_filename);  // Throws in case of an error
+  virtual bool WriteToXML(XString p_filename);
+  virtual void CheckFilename(XString p_filename);
   virtual void ResetEffective();
   // SETTERS
   void    SetLastOSError(UINT p_error)      { m_lastOSerror    = p_error; }
-  void    SetErrorString(CString p_error)   { m_errorString    = p_error; }
-  void    AddErrorString(CString p_error)   { m_errorString   += p_error; }
-  void    AddResultString(CString p_result) { m_resultLogging += p_result; }
+  void    SetErrorString(XString p_error)   { m_errorString    = p_error; }
+  void    AddErrorString(XString p_error)   { m_errorString   += p_error; }
+  void    AddResultString(XString p_result) { m_resultLogging += p_result; }
   // GETTERS
   int     GetLastOSError()  { return m_lastOSerror;   }
-  CString GetErrorString()  { return m_errorString;   }
-  CString GetResultString() { return m_resultLogging; }
+  XString GetErrorString()  { return m_errorString;   }
+  XString GetResultString() { return m_resultLogging; }
 protected:
-  CString m_resultLogging;
-  CString m_errorString;
+  XString m_resultLogging;
+  XString m_errorString;
   UINT    m_lastOSerror { 0 };
 };

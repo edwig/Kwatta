@@ -79,7 +79,7 @@ ConsoleDlg::Move()
 LRESULT
 ConsoleDlg::OnConsoleTitle(WPARAM wParam,LPARAM lParam)
 {
-  CString title(_T("Console"));
+  XString title(_T("Console"));
   const TCHAR* text = reinterpret_cast<const TCHAR*>(lParam);
   if(*text)
   {

@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "ServerApp.h"
 #include "WebConfigIIS.h"
 #include "HTTPSite.h"
@@ -35,14 +35,6 @@
 #include <assert.h>
 #include <string>
 #include <set>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 #define DETAILLOGV(text,...)    m_httpServer->DetailLogV(_T(__FUNCTION__),LogType::LOG_INFO,text,__VA_ARGS__)
 #define WARNINGLOG(text,...)    m_httpServer->DetailLogV(_T(__FUNCTION__),LogType::LOG_WARN,text,__VA_ARGS__)
@@ -94,7 +86,7 @@ bool _stdcall InitServerApp(ServerApp* p_application,IHttpApplication* p_httpapp
     }
     catch(StdException& ex)
     {
-      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while initializing the server application: ") + ex.GetErrorMessage());
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("ERROR while initializing the server application: ")) + ex.GetErrorMessage());
     }
   }
   return false;
@@ -119,7 +111,7 @@ void _stdcall ExitServerApp(ServerApp* p_application)
     }
     catch(StdException& ex)
     {
-      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while stopping the server application: ") + ex.GetErrorMessage());
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("ERROR while stopping the server application: ")) + ex.GetErrorMessage());
     }
   }
 }
@@ -139,7 +131,7 @@ HTTPSite* _stdcall FindHTTPSite(ServerApp* p_application,int p_port, PCWSTR p_ur
     }
     catch(StdException& ex)
     {
-      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while finding HTTP Site: ") + ex.GetErrorMessage());
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("ERROR while finding HTTP Site: ")) + ex.GetErrorMessage());
       site = nullptr;
     }
   }
@@ -162,7 +154,7 @@ int _stdcall GetStreamFromRequest(ServerApp* p_application,IHttpContext* p_conte
     }
     catch(StdException& ex)
     {
-      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while getting new event stream: ") + ex.GetErrorMessage());
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("ERROR while getting new event stream: ")) + ex.GetErrorMessage());
       gotstream = 0;
     }
   }
@@ -191,7 +183,7 @@ HTTPMessage* _stdcall GetHTTPMessageFromRequest(ServerApp*    p_application
     }
     catch(StdException& ex)
     {
-      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while getting a new HTTPMessage: ") + ex.GetErrorMessage());
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("ERROR while getting a new HTTPMessage: ")) + ex.GetErrorMessage());
       msg = nullptr;
     }
   }
@@ -226,7 +218,7 @@ bool _stdcall HandleHTTPMessage(ServerApp* p_application,HTTPSite* p_site,HTTPMe
     }
     catch(StdException& ex)
     {
-      SvcReportErrorEvent(0,false,_T(__FUNCTION__),_T("ERROR while handeling a HTTPMessage: ") + ex.GetErrorMessage());
+      SvcReportErrorEvent(0,false,_T(__FUNCTION__),XString(_T("ERROR while handeling a HTTPMessage: ")) + ex.GetErrorMessage());
       handled = false;
     }
   }
@@ -290,7 +282,7 @@ void
 ServerApp::InitInstance()
 {
   // Create a marlin HTTPServer object for IIS
-  m_httpServer = new HTTPServerIIS(m_applicationName);
+  m_httpServer = alloc_new HTTPServerIIS(m_applicationName);
   m_httpServer->SetWebroot(m_webroot);
 
   // Reading our IIS web.config and ApplicationHost.config info
@@ -305,7 +297,7 @@ ServerApp::InitInstance()
   // Create our error report
   if(g_report == nullptr)
   {
-    g_report      = new ErrorReport();
+    g_report      = alloc_new ErrorReport();
     m_errorReport = g_report;
     m_ownReport   = true;
   }
@@ -579,7 +571,7 @@ ServerApp::LoadSites(IHttpApplication* p_app,PCWSTR p_physicalPath)
       sites->get_Count(&count);
       for(int i = 0; i < (int)count; ++i)
       {
-        IISSiteConfig* iisConfig = new IISSiteConfig();
+        IISSiteConfig* iisConfig = alloc_new IISSiteConfig();
         iisConfig->m_id       = 0;
         iisConfig->m_physical = physicalPath;
         
@@ -652,7 +644,7 @@ ServerApp::ReadHandlers(CComBSTR& p_configPath,IISSiteConfig& p_config)
           {
             modules = WStringToString(vvar.bstrVal);
           }
-          if (m_modules.find(modules.MakeLower()) == m_modules.end())
+          if(m_modules.find(modules.MakeLower()) == m_modules.end())
           {
             continue;
           }
@@ -834,7 +826,7 @@ ServerAppFactory::CreateServerApp(IHttpServer*  p_iis
                                  ,const PCWSTR  p_webroot
                                  ,const PCWSTR  p_appName)
 {
-  return new ServerApp(p_iis,p_webroot,p_appName);
+  return alloc_new ServerApp(p_iis,p_webroot,p_appName);
 }
 
 ServerAppFactory* appFactory = nullptr;

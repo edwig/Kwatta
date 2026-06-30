@@ -46,7 +46,7 @@ using namespace ThemeColor;
 
 IMPLEMENT_DYNAMIC(KwattaAppDlg, StyleDialog)
 
-KwattaAppDlg::KwattaAppDlg(CWnd* p_parent,CString p_suiteFilename)
+KwattaAppDlg::KwattaAppDlg(CWnd* p_parent,XString p_suiteFilename)
              :StyleDialog(IDD_TESTSUITE, p_parent)
              ,m_testsuite(p_suiteFilename)
 {
@@ -252,7 +252,7 @@ KwattaAppDlg::DoStarter()
     INT_PTR res = starter.DoModal();
     if(res == IDOK)
     {
-      CString path = starter.GetChosenSuite();
+      XString path = starter.GetChosenSuite();
       if(!path.IsEmpty())
       {
         m_testsuite = path;
@@ -282,7 +282,7 @@ KwattaAppDlg::ReadSuite()
   try
   {
     WinFile file(m_testsuite);
-    CString base = file.GetFilenamePartDirectory();
+    XString base = file.GetFilenamePartDirectory();
     Reset();
     m_suite = new TestSuite(base);
 
@@ -295,7 +295,7 @@ KwattaAppDlg::ReadSuite()
   }
   catch(StdException& ex)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot read the test suite definition file: %s\n")
                  _T("Error found: %s")
                  ,m_testsuite.GetString()
@@ -361,7 +361,7 @@ KwattaAppDlg::FillGrid()
                 break;
         case 2: item.strText = test.m_name;
                 break;
-        case 3: item.strText = test.m_lastResult.IsEmpty() ? CString(_T("(No result yet)")) : test.m_lastResult;
+        case 3: item.strText = test.m_lastResult.IsEmpty() ? XString(_T("(No result yet)")) : test.m_lastResult;
                 item.mask |= GVIF_IMAGE;
                 item.iImage = test.m_lastResult == _T("OK") ? 1 : 0;
                 break;
@@ -388,7 +388,7 @@ KwattaAppDlg::FillGrid()
 }
 
 void
-KwattaAppDlg::ReadParameters(CString p_file)
+KwattaAppDlg::ReadParameters(XString p_file)
 {
   // read the definition of the GLOBAL (!) parameters
   try
@@ -403,9 +403,9 @@ KwattaAppDlg::ReadParameters(CString p_file)
 }
 
 bool
-KwattaAppDlg::CreateEmptyTestSet(CString p_directory,CString p_testname)
+KwattaAppDlg::CreateEmptyTestSet(XString p_directory,XString p_testname)
 {
-  CString path = theApp.GetBaseDirectoryClean();
+  XString path = theApp.GetBaseDirectoryClean();
   path += _T("\\");
   path += p_directory;
 
@@ -416,7 +416,7 @@ KwattaAppDlg::CreateEmptyTestSet(CString p_directory,CString p_testname)
   }
   TestSet set;
   set.SetName(p_testname);
-  CString filename = path + _T("\\") + p_testname + _T(".xset");
+  XString filename = path + _T("\\") + p_testname + _T(".xset");
   set.SetFilename(filename);
 
   if(!set.WriteToXML())
@@ -428,7 +428,7 @@ KwattaAppDlg::CreateEmptyTestSet(CString p_directory,CString p_testname)
 }
 
 bool 
-KwattaAppDlg::RemoveTestsetDirectory(CString p_path)
+KwattaAppDlg::RemoveTestsetDirectory(XString p_path)
 {
   TCHAR buffer[MAX_PATH];
   memset(&buffer,0,MAX_PATH);
@@ -444,8 +444,8 @@ KwattaAppDlg::RemoveTestsetDirectory(CString p_path)
   operation.pFrom  = (PCZZTSTR) buffer;
   if(SHFileOperation(&operation) != 0 && GetLastError())
   {
-    CString reason = GetLastErrorAsString();
-    CString warning;
+    XString reason = GetLastErrorAsString();
+    XString warning;
     warning.Format(_T("Could not remove the test directory: [%s] Reason: %s"),p_path.GetString(),reason.GetString());
     StyleMessageBox(this,warning,_T("Kwatta"),MB_OK|MB_ICONERROR);
     return false;
@@ -454,7 +454,7 @@ KwattaAppDlg::RemoveTestsetDirectory(CString p_path)
 }
 
 void 
-KwattaAppDlg::SwitchActive(int p_row,CString p_testname)
+KwattaAppDlg::SwitchActive(int p_row,XString p_testname)
 {
   Test* test = m_suite->FindTest(p_testname);
   if(!test)
@@ -510,14 +510,14 @@ KwattaAppDlg::LoadParameters()
   if(m_parameters == nullptr)
   {
     m_parameters = new Parameters();
-    CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
+    XString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
     ReadParameters(filename);
   }
 }
 
 void 
-KwattaAppDlg::RunTestset(CString p_testname,int p_index)
+KwattaAppDlg::RunTestset(XString p_testname,int p_index)
 {
   // Find the test and start it
   Test* test = m_suite->FindTest(p_testname);
@@ -589,7 +589,7 @@ KwattaAppDlg::OnBnClickedButChoose()
   AutoFocus focus;
   if(dlg.DoModal() == IDOK)
   {
-    CString path = dlg.GetChosenFile();
+    XString path = dlg.GetChosenFile();
     if(!path.IsEmpty())
     {
       m_testsuite = path;
@@ -649,7 +649,7 @@ void
 KwattaAppDlg::OnGridDblClick(NMHDR* pNMHDR, LRESULT* pResult)
 {
   LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
-  CString testname = m_list.GetItemText(pNMLV->iItem, 2 /*NAME*/);
+  XString testname = m_list.GetItemText(pNMLV->iItem, 2 /*NAME*/);
 
   if(!m_suite)
   {
@@ -683,7 +683,7 @@ KwattaAppDlg::OnBnClickedButRun()
   }
 
   CCellID cell = m_list.GetFocusCell();
-  CString testname = m_list.GetItemText(cell.row,2);
+  XString testname = m_list.GetItemText(cell.row,2);
 
   RunTestset(testname,cell.row);
 }
@@ -699,7 +699,7 @@ KwattaAppDlg::OnBnClickedButAll()
   int rows = m_list.GetRowCount();
   for(int index = 1; index < rows; ++index)
   {
-    CString testname = m_list.GetItemText(index,2);
+    XString testname = m_list.GetItemText(index,2);
     RunTestset(testname,index);
   }
 }
@@ -708,7 +708,7 @@ void
 KwattaAppDlg::OnBnClickedButEdit()
 {
   CCellID cell = m_list.GetFocusCell();
-  CString testname = m_list.GetItemText(cell.row, 2 /*NAME*/);
+  XString testname = m_list.GetItemText(cell.row, 2 /*NAME*/);
 
   if(!m_suite)
   {
@@ -736,15 +736,15 @@ KwattaAppDlg::OnBnClickedButNew()
   {
     return;
   }
-  CString directory = dlg.GetDirectory();
-  CString testname  = dlg.GetTestName();
+  XString directory = dlg.GetDirectory();
+  XString testname  = dlg.GetTestName();
   bool    active    = dlg.GetActive();
 
   // Add the test to the display list
   int row = m_list.InsertRow(_T("Test"));
-  CString testnumber;
+  XString testnumber;
   testnumber.Format(_T("Test %d"),row);
-  CString activeTxt = active ? _T("Active") : _T("Inactive");
+  XString activeTxt = active ? _T("Active") : _T("Inactive");
 
   m_list.GetCell(row,0)->SetText(testnumber);
   m_list.GetCell(row,1)->SetText(activeTxt);
@@ -778,9 +778,9 @@ void
 KwattaAppDlg::OnBnClickedButRemove()
 {
   CCellID id = m_list.GetFocusCell();
-  CString testname = m_list.GetCell(id.row,2)->GetText();
+  XString testname = m_list.GetCell(id.row,2)->GetText();
 
-  CString question;
+  XString question;
   question.Format(_T("Do you wish to completely remove test set [%s] ?"),testname.GetString());
   if(StyleMessageBox(this,question,_T("Kwatta"),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
@@ -794,7 +794,7 @@ KwattaAppDlg::OnBnClickedButRemove()
     StyleMessageBox(this,_T("Cannot find the test in the test suite"),_T("Kwatta"),MB_OK|MB_ICONERROR);
     return;
   }
-  CString path = theApp.GetBaseDirectoryClean() + _T("\\") + test->m_directory;
+  XString path = theApp.GetBaseDirectoryClean() + _T("\\") + test->m_directory;
   if(!RemoveTestsetDirectory(path))
   {
     return;
@@ -839,8 +839,8 @@ KwattaAppDlg::OnBnClickedButUP()
     Test& upper = set[row - 0];
     std::swap(lower,upper);
 
-    CString name = m_list.GetCell(row - 1, 1)->GetText();
-    CString file = m_list.GetCell(row - 1, 2)->GetText();
+    XString name = m_list.GetCell(row - 1, 1)->GetText();
+    XString file = m_list.GetCell(row - 1, 2)->GetText();
 
     m_list.GetCell(row - 1, 1)->SetText(m_list.GetCell(row, 1)->GetText());
     m_list.GetCell(row - 1, 2)->SetText(m_list.GetCell(row, 2)->GetText());
@@ -874,8 +874,8 @@ KwattaAppDlg::OnBnClickedButDN()
     std::swap(lower, upper);
 
 
-    CString name = m_list.GetCell(row + 1, 1)->GetText();
-    CString file = m_list.GetCell(row + 1, 2)->GetText();
+    XString name = m_list.GetCell(row + 1, 1)->GetText();
+    XString file = m_list.GetCell(row + 1, 2)->GetText();
 
     m_list.GetCell(row + 1, 1)->SetText(m_list.GetCell(row, 1)->GetText());
     m_list.GetCell(row + 1, 2)->SetText(m_list.GetCell(row, 2)->GetText());
@@ -901,7 +901,7 @@ KwattaAppDlg::OnBnClickedButMutate()
 {
   AutoFocus focus;
   CCellID cell = m_list.GetFocusCell();
-  CString testname = m_list.GetItemText(cell.row,2 /*NAME*/);
+  XString testname = m_list.GetItemText(cell.row,2 /*NAME*/);
 
   if(!m_suite)
   {
@@ -912,15 +912,15 @@ KwattaAppDlg::OnBnClickedButMutate()
   Test* test = m_suite->FindTest(testname);
   if(test)
   {
-    CString directory = test->m_directory;
-    CString filename  = test->m_filename;
+    XString directory = test->m_directory;
+    XString filename  = test->m_filename;
 
     MutateNamesDlg dlg(this,directory,filename);
     dlg.DoModal();
 
-    CString newDirectory = dlg.GetDirectory();
-    CString newFilename  = dlg.GetFilename();
-    CString newTestname  = dlg.GetTestname();
+    XString newDirectory = dlg.GetDirectory();
+    XString newFilename  = dlg.GetFilename();
+    XString newTestname  = dlg.GetTestname();
 
     if(directory.CompareNoCase(newDirectory) || filename.CompareNoCase(newFilename))
     {
@@ -945,7 +945,7 @@ KwattaAppDlg::OnReadyTestSet(WPARAM wParam,LPARAM lParam)
   }
   int row    = (int)wParam;
   int result = (int)lParam;
-  CString testname = m_list.GetItemText(row, 2 /*NAME*/);
+  XString testname = m_list.GetItemText(row, 2 /*NAME*/);
 
   // Find the test update the status
   for(auto& test : m_suite->GetAllTests())
@@ -957,7 +957,7 @@ KwattaAppDlg::OnReadyTestSet(WPARAM wParam,LPARAM lParam)
 
       // Show on the grid: Name first
       TestSet set;
-      CString path = theApp.GetBaseDirectory() + test.second.m_directory + _T("\\") + test.second.m_filename;
+      XString path = theApp.GetBaseDirectory() + test.second.m_directory + _T("\\") + test.second.m_filename;
       set.ReadFromXML(path);
       m_list.GetCell(row, 2)->SetText(set.GetName());
       test.second.m_name = set.GetName();

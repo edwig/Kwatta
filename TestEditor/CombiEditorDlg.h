@@ -28,7 +28,7 @@ class CombiEditorDlg : public StyleDialog
 	DECLARE_DYNAMIC(CombiEditorDlg)
 
 public:
-  CombiEditorDlg(CWnd* p_parent,TestSet& p_testset,CString p_stepname,int p_row);
+  CombiEditorDlg(CWnd* p_parent,TestSet& p_testset,XString p_stepname,int p_row);
 	virtual ~CombiEditorDlg();
   
   bool GetIsChanged() { return m_changed; }
@@ -41,14 +41,14 @@ protected:
 	virtual BOOL OnInitDialog() override;
           void FillGrid();
           void InitButtons();
-          void SetTextImage(int p_row,int p_col,CString p_text,int p_image);
+          void SetTextImage(int p_row,int p_col,XString p_text,int p_image);
           void TryChangeValiGlobalLocal(int p_row);
 
   int           m_row;
   bool          m_changed;
-  CString       m_name;
-  CString       m_documentation;
-  CString       m_stepName;
+  XString       m_name;
+  XString       m_documentation;
+  XString       m_stepName;
   StepType      m_stepType { StepType::Step_unknown };
 
   TestSet&      m_testSet;

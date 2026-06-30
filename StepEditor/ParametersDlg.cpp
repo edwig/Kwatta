@@ -126,7 +126,7 @@ ParametersDlg::InitControls()
   m_editEffWaitAfter .SetMutable(false);
   m_editEffWaitExec  .SetMutable(false);
 
-  CString current;
+  XString current;
   current.Format(_T("Current (%s)"),CodepageToCharset(GetACP()).GetString());
   m_comboCharset.AddString(current);
   m_comboCharset.AddString(_T("UTF-8"));
@@ -169,7 +169,7 @@ ParametersDlg::InitTab(TestStepCMD* p_step,Parameters* p_param)
   // Get compound values
   m_effectiveRuntimer    = m_step->GetEffectiveDirectory();
   m_effectiveCommandline = m_step->GetEffectiveCommandLine();
-  if(m_effectiveRuntimer.Right(1) != '\\')
+  if(m_effectiveRuntimer.Right(1) != _T("\\"))
   {
     m_effectiveRuntimer.Append(_T("\\"));
   }
@@ -297,7 +297,7 @@ ParametersDlg::OnBnClickedBefore()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editWaitBeforeRun.InsertAtCurPos(variable, 0);
     UpdateData();
     Effectuate();
@@ -311,7 +311,7 @@ ParametersDlg::OnBnClickedExec()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editMaxExecution.InsertAtCurPos(variable, 0);
     UpdateData();
     Effectuate();
@@ -325,7 +325,7 @@ ParametersDlg::OnBnClickedAfter()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editWaitAfterRun.InsertAtCurPos(variable, 0);
     UpdateData();
     Effectuate();

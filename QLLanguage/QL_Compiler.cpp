@@ -54,7 +54,7 @@ bool
 QLCompiler::CompileDefinitions(int (*getcf)(void*),void *getcd)
 {
   bool result = true;
-  CString name;
+  XString name;
   int tkn;
 
   // initialize the scanner
@@ -114,7 +114,7 @@ QLCompiler::do_global_declaration()
     {
       // Fetch datatype
       FetchRequireToken(T_IDENTIFIER);
-      CString datatype = m_scanner->GetTokenAsString();
+      XString datatype = m_scanner->GetTokenAsString();
       int type = FindDataType(datatype);
       if(type == DTYPE_NIL)
       {
@@ -122,7 +122,7 @@ QLCompiler::do_global_declaration()
       }
       // Get local variable name
       FetchRequireToken(T_IDENTIFIER);
-      CString variable = m_scanner->GetTokenAsString();
+      XString variable = m_scanner->GetTokenAsString();
       int global = m_vm->AddGlobal(nullptr,variable);
 
       if((tkn = m_scanner->GetToken()) == '=')
@@ -166,8 +166,8 @@ QLCompiler::do_global_declaration()
 void 
 QLCompiler::do_class()
 {
-  CString     className;
-  CString     member;
+  XString     className;
+  XString     member;
   int         type;
   int         tkn;
   Class*      theClass  = nullptr;
@@ -181,7 +181,7 @@ QLCompiler::do_class()
   if ((tkn = m_scanner->GetToken()) == ':') 
   {
     FetchRequireToken(T_IDENTIFIER);
-    CString baseClassName = m_scanner->GetTokenAsString();
+    XString baseClassName = m_scanner->GetTokenAsString();
     baseClass = get_class(baseClassName);
     if(m_decode)
     {
@@ -275,7 +275,7 @@ QLCompiler::do_class()
 
 // handle function declarations
 void 
-QLCompiler::do_function(CString p_name)
+QLCompiler::do_function(XString p_name)
 {
   switch (m_scanner->GetToken()) 
   {
@@ -290,7 +290,7 @@ QLCompiler::do_function(CString p_name)
 
 // parse a regular function definition 
 void 
-QLCompiler::do_regular_function(CString p_name)
+QLCompiler::do_regular_function(XString p_name)
 {
   // enter the function name 
 //   if(decode)
@@ -314,8 +314,8 @@ QLCompiler::do_regular_function(CString p_name)
 void 
 QLCompiler::do_member_function(Class* p_class)
 {
-  CString name;
-  CString selector;
+  XString name;
+  XString selector;
   MemObject* entry;
     
   // get the selector
@@ -428,7 +428,7 @@ QLCompiler::do_code(Function* p_function)
 
 // Get the class associated with a symbol
 Class* 
-QLCompiler::get_class(CString p_name)
+QLCompiler::get_class(XString p_name)
 {
   Class* sym = m_vm->FindClass(p_name);
   if (sym == nullptr)
@@ -1333,7 +1333,7 @@ QLCompiler::do_postincrement(PVAL* pv,int op)
 void 
 QLCompiler::do_new(PVAL* pv)
 {
-  CString selector;
+  XString selector;
   MemObject* lit = nullptr;
   Class* v_class;
 
@@ -1357,7 +1357,7 @@ QLCompiler::do_new(PVAL* pv)
 void
 QLCompiler::do_delete(PVAL* pv)
 {
-  CString object;
+  XString object;
 
   do_expr15(pv);
   // Getting it. Cross our fingers it's an object
@@ -1372,7 +1372,7 @@ QLCompiler::do_delete(PVAL* pv)
 void 
 QLCompiler::do_expr15(PVAL* pv)
 {
-  CString selector;
+  XString selector;
   int tkn;
   do_primary(pv);
   while ((tkn = m_scanner->GetToken()) == _T('(')
@@ -1404,7 +1404,7 @@ QLCompiler::do_expr15(PVAL* pv)
 void 
 QLCompiler::do_primary(PVAL* pv)
 {
-  CString id;
+  XString id;
   Class*  v_class = nullptr;
   int     tkn = 0;
 
@@ -1483,7 +1483,7 @@ QLCompiler::do_call(PVAL* pv)
 
 // compile a message sending expression
 void 
-QLCompiler::do_send(CString selector,PVAL* pv)
+QLCompiler::do_send(XString selector,PVAL* pv)
 {
   MemObject *lit = nullptr;
   int tkn = 0;
@@ -1548,14 +1548,14 @@ QLCompiler::GetArgumentList(Function* p_function)
     do 
     {
       FetchRequireToken(T_IDENTIFIER);
-      CString datatype = m_scanner->GetTokenAsString();
+      XString datatype = m_scanner->GetTokenAsString();
       int type = FindDataType(datatype);
       if(type == DTYPE_NIL)
       {
         m_scanner->ParseError(_T("Expected a valid argument data type"));
       }
       FetchRequireToken(T_IDENTIFIER);
-      CString argument = m_scanner->GetTokenAsString();
+      XString argument = m_scanner->GetTokenAsString();
       if(p_function)
       {
         p_function->AddArgument(type);
@@ -1583,7 +1583,7 @@ const TCHAR* internal_datatypes[]
 };
 
 int
-QLCompiler::FindDataType(CString p_name)
+QLCompiler::FindDataType(XString p_name)
 {
   int index = DTYPE_INTEGER;
   for(auto& name : internal_datatypes)
@@ -1603,13 +1603,13 @@ QLCompiler::FindDataType(CString p_name)
 
 // add a formal argument
 void 
-QLCompiler::AddArgument(CString p_name)
+QLCompiler::AddArgument(XString p_name)
 {
   m_arguments.push_back(p_name);
 }
 
 void
-QLCompiler::AddTemporary(CString p_name)
+QLCompiler::AddTemporary(XString p_name)
 {
   m_temporaries.push_back(p_name);
 }
@@ -1623,7 +1623,7 @@ QLCompiler::freelist(ARGUMENT* p_list)
 
 // find an argument offset 
 int 
-QLCompiler::FindArgument(CString p_name)
+QLCompiler::FindArgument(XString p_name)
 {
   int ind = 0;
   for(auto& arg : m_arguments)
@@ -1639,7 +1639,7 @@ QLCompiler::FindArgument(CString p_name)
 
 // Find a temporary variable offset
 int 
-QLCompiler::FindTemporary(CString p_name)
+QLCompiler::FindTemporary(XString p_name)
 {
   int ind = 0;
   for(auto& tmp : m_temporaries)
@@ -1655,7 +1655,7 @@ QLCompiler::FindTemporary(CString p_name)
 
 // Find a class data member
 MemObject*
-QLCompiler::FindDataMember(CString p_name)
+QLCompiler::FindDataMember(XString p_name)
 {
   if(m_methodclass != nullptr)
   {
@@ -1666,7 +1666,7 @@ QLCompiler::FindDataMember(CString p_name)
 
 // add a literal
 int 
-QLCompiler::AddLiteral(int p_type,MemObject** p_result,CString p_name/*=""*/,int p_value /*= 0*/)
+QLCompiler::AddLiteral(int p_type,MemObject** p_result,XString p_name/*=""*/,int p_value /*= 0*/)
 {
   if(m_literals == nullptr)
   {
@@ -1726,7 +1726,7 @@ QLCompiler::FetchRequireToken(int rtkn)
 void 
 QLCompiler::RequireToken(int tkn,int rtkn)
 {
-  CString message;
+  XString message;
 
   if (tkn != rtkn) 
   {
@@ -1756,14 +1756,14 @@ QLCompiler::do_lit_float(bcd fl)
 
 // compile a literal string
 void 
-QLCompiler::do_lit_string(CString str)
+QLCompiler::do_lit_string(XString str)
 {
   code_literal(make_lit_string(str));
 }
 
 // make a literal string
 int 
-QLCompiler::make_lit_string(CString p_string)
+QLCompiler::make_lit_string(XString p_string)
 {
   MemObject* lit = nullptr;
   int n = AddLiteral(DTYPE_STRING,&lit,p_string);
@@ -1806,7 +1806,7 @@ QLCompiler::make_lit_variable(MemObject* p_sym)
 
 // Find a variable
 void 
-QLCompiler::FindVariable(CString p_name,PVAL* pv)
+QLCompiler::FindVariable(XString p_name,PVAL* pv)
 {    
   int n = 0;
 
@@ -1838,7 +1838,7 @@ QLCompiler::FindVariable(CString p_name,PVAL* pv)
 
 // find a class member variable 
 int 
-QLCompiler::FindClassVariable(Class* p_class,CString p_name,PVAL* pv)
+QLCompiler::FindClassVariable(Class* p_class,XString p_name,PVAL* pv)
 {
   int offset = 0;
   MemObject* entry = p_class->RecursiveFindMember(p_name);

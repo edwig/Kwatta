@@ -52,9 +52,9 @@ protected:
 
   bool           m_useCheckState    { false };
   BufferOperator m_sqlStateOperator { BufferOperator::BOP_NOP };
-  CString        m_SQLState;
-  CString        m_effectiveSQLState;
-  CString        m_SQLStateVariable;
+  XString        m_SQLState;
+  XString        m_effectiveSQLState;
+  XString        m_SQLStateVariable;
 
   StyleEdit      m_editSQLState;
   StyleEdit      m_editEffective;

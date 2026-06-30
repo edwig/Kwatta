@@ -39,7 +39,7 @@
 typedef struct _newstep
 {
   StepType m_type;
-  CString  m_default;
+  XString  m_default;
 }
 NewStepInfo;
 
@@ -50,8 +50,8 @@ class TestEditorDlg : public StyleDialog
 public:
 	TestEditorDlg(CWnd* pParent = nullptr);	// standard constructor
 
-  int  MakeNewTest(StepType p_type,bool p_global,CString p_name,CString p_filename);
-  void MakeNewVali(StepType p_type,bool p_global,CString p_name,CString p_filename,int p_row);
+  int  MakeNewTest(StepType p_type,bool p_global,XString p_name,XString p_filename);
+  void MakeNewVali(StepType p_type,bool p_global,XString p_name,XString p_filename,int p_row);
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -82,16 +82,16 @@ protected:
   void            DeleteResult(int p_row);
   void            DeleteValidation(int p_row);
   void            DeleteTestStep(int p_row);
-  CString         ExtendFilename(CString p_filename);
+  XString         ExtendFilename(XString p_filename);
   void            SetUpDownButtons(int p_row);
   void            SetResult(int p_row,bool p_ok);
-  void            SetTextImage(int p_row,int p_col,CString p_text,int p_image);
+  void            SetTextImage(int p_row,int p_col,XString p_text,int p_image);
   void            TryChangeTestGlobalLocal(int p_row,TRun& p_test);
   void            TryChangeValiGlobalLocal(int p_row,TRValidation& p_vali);
   void            PumpMessage();
 
-  CString         m_name;
-  CString         m_documentation;
+  XString         m_name;
+  XString         m_documentation;
   TestSet         m_testset;
   bool            m_changed;
   StyleEdit       m_editName;

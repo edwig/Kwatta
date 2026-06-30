@@ -30,13 +30,13 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-StepResultCMD::ReadFromXML(CString p_filename)
+StepResultCMD::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   StepResult::ReadFromXML(msg,p_filename);
 
   // Load result of the step
-  CString timing;
+  XString timing;
   XMLElement* output = msg.FindElement(_T("Output"));
   if(output)
   {
@@ -47,7 +47,7 @@ StepResultCMD::ReadFromXML(CString p_filename)
 }
 
 bool 
-StepResultCMD::WriteToXML(CString p_filename)
+StepResultCMD::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!StepResult::WriteToXML(msg,p_filename))
@@ -56,21 +56,21 @@ StepResultCMD::WriteToXML(CString p_filename)
   }
   XMLElement* root = msg.GetRoot();
 
-  XMLElement* output = msg.AddElement(root,_T("Output"),XDT_String,_T(""));
+  XMLElement* output = msg.AddElement(root,_T("Output"),_T(""));
   msg.SetElement(output,_T("ReturnValue"),m_returnValue);
 
   m_standardOutput.Remove('\r');
   m_standardError.Remove('\r');
 
-  msg.AddElement(output,_T("StandardOutput"),XDT_CDATA,m_standardOutput);
-  msg.AddElement(output,_T("StandardError"), XDT_CDATA,m_standardError);
+  msg.AddElement(output,_T("StandardOutput"),m_standardOutput,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(output,_T("StandardError"), m_standardError, XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Now save it
   return msg.SaveFile(p_filename);
 }
 
 void
-StepResultCMD::CheckFilename(CString p_filename)
+StepResultCMD::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];

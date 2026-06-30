@@ -25,21 +25,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SiteHandlerGet.h"
 #include "HTTPMessage.h"
 #include "HTTPSite.h"
 #include <WinFile.h>
 #include <winhttp.h>
 #include <io.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 bool
 SiteHandlerGet::PreHandle(HTTPMessage* /*p_message*/)
@@ -128,9 +120,9 @@ SiteHandlerGet::FileNameTransformations(XString & p_filename)
 {
   // Almost **ALL** webservers in the world fall back to 'index.html'
   // if no resource given for a site or a subsite
-  if(p_filename.Right(1) == '/')
+  if(p_filename.Right(1) == _T("/"))
   {
-    p_filename += BASE_INDEX_PAGE;
+    p_filename += _T(BASE_INDEX_PAGE);
     return true;
   }
   return FileNameRestrictions(p_filename);

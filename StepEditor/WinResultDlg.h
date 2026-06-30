@@ -46,8 +46,8 @@ protected:
           void InitTextFields();
 
   int         m_status { 0 };
-  CString     m_errors;
-  CString     m_logging;
+  XString     m_errors;
+  XString     m_logging;
 
   StyleEdit   m_editStatus;
   StyleEdit   m_editErrors;

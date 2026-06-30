@@ -25,18 +25,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "HTTPURLGroup.h"
 #include "HTTPSite.h"
 #include "LogAnalysis.h"
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 // Logging via the server
 #define DETAILLOG(text,...)       if(m_server->GetLogfile()) m_server->GetLogfile()->AnalysisLog(_T(__FUNCTION__),LogType::LOG_INFO,true,text,__VA_ARGS__)
@@ -47,11 +39,11 @@ static char THIS_FILE[] = __FILE__;
                                   }
 
 HTTPURLGroup::HTTPURLGroup(HTTPServerMarlin* p_server
-                          ,XString p_authName
-                          ,ULONG   p_authScheme
-                          ,bool    p_cache
-                          ,XString p_realm
-                          ,XString p_domain)
+                          ,const XString& p_authName
+                          ,ULONG          p_authScheme
+                          ,bool           p_cache
+                          ,const XString& p_realm
+                          ,const XString& p_domain)
              :m_server(p_server)
              ,m_authName(p_authName)
              ,m_authScheme(p_authScheme)
@@ -191,7 +183,7 @@ HTTPURLGroup::RegisterSite(HTTPSite* p_site)
   if(it != m_sites.end())
   {
     // Already registered
-    ERRORLOG(ERROR_ALREADY_ASSIGNED,_T("Cannot register site in URL-Group: ") + p_site->GetSite());
+    ERRORLOG(ERROR_ALREADY_ASSIGNED,XString(_T("Cannot register site in URL-Group: ")) + p_site->GetSite());
     return;
   }
   // Register this site

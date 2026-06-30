@@ -84,7 +84,7 @@ NewSuiteDlg::OnInitDialog()
   return FALSE;
 }
 
-CString 
+XString 
 NewSuiteDlg::GetNewTestsuiteFile()
 {
   return m_directory + _T("\\") + m_suiteName;
@@ -128,7 +128,7 @@ NewSuiteDlg::CheckSuiteName()
   m_editSuiteName.SetErrorState(false);
 
   WinFile file(m_suiteName);
-  CString extension = file.GetFilenamePartExtension();
+  XString extension = file.GetFilenamePartExtension();
   if(extension.IsEmpty())
   {
     m_suiteName += EXTENSION_SUITE;
@@ -148,7 +148,7 @@ NewSuiteDlg::CheckSuiteName()
 bool
 NewSuiteDlg::CreateEmptySuite()
 {
-  CString path = GetNewTestsuiteFile();
+  XString path = GetNewTestsuiteFile();
   TestSuite suite(m_directory);
   suite.SetFilename(path);
   return suite.WriteToXML(true);
@@ -197,7 +197,7 @@ NewSuiteDlg::OnBnClickedChooseFile()
   DocFileDialog dlg(GetSafeHwnd(),false,_T("Choose a new test suite filename"),EXTENSION_SUITE,_T(""),0,_T("Kwatta test suite *.xtest|*.xtest"));
   if(dlg.DoModal())
   {
-    CString filename = dlg.GetChosenFile();
+    XString filename = dlg.GetChosenFile();
     WinFile file(filename);
     m_directory = file.GetFilenamePartDirectory();
     m_suiteName = file.GetFilenamePartFilename();

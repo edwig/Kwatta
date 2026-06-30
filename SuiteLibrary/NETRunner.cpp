@@ -35,10 +35,10 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-NETRunner::NETRunner(CString      p_baseDirectory
-                    ,CString      p_testDirectory
-                    ,CString      p_testStepFilename
-                    ,CString      p_parametersFilename
+NETRunner::NETRunner(XString      p_baseDirectory
+                    ,XString      p_testDirectory
+                    ,XString      p_testStepFilename
+                    ,XString      p_parametersFilename
                     ,ValiSteps&   p_localValidations
                     ,ValiSteps&   p_globalValidations
                     ,HWND         p_reportHWND
@@ -214,7 +214,7 @@ NETRunner::ParameterProcessing()
   // Cannot perform a test step if still unbound parameters exists
   if(unbound)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
@@ -253,7 +253,7 @@ void
 NETRunner::StartingLogfile()
 {
   int loglevel = _ttoi(m_parameters.FindSystemParameter(_T("Loglevel")));
-  CString logfile =    m_parameters.FindSystemParameter(_T("Logfile"));
+  XString logfile =    m_parameters.FindSystemParameter(_T("Logfile"));
 
   if(loglevel > 0 && !logfile.IsEmpty())
   {
@@ -278,7 +278,7 @@ NETRunner::PerformAuthentication()
   PerformStep(_T("Setting the authentication"));
 
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
-  CString auth = step->GetAuthType();
+  XString auth = step->GetAuthType();
   if(auth.Find(CREDNAME_BASIC) >= 0)
   {
     SetBasicAuthentication();
@@ -314,7 +314,7 @@ NETRunner::PrepareMessage()
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
 
   // VERB URL
-  CString url = step->GetEffectiveCombinedURL();
+  XString url = step->GetEffectiveCombinedURL();
   m_message->SetVerb(step->GetVerb());
   m_message->SetURL(url);
 
@@ -327,7 +327,7 @@ NETRunner::PrepareMessage()
   // Getting the body of the message
   if(step->GetBodyInputIsFile())
   {
-    CString file = m_baseDirectory + step->GetFilenameInput();
+    XString file = m_baseDirectory + step->GetFilenameInput();
     m_message->GetFileBuffer()->SetFileName(file);
   }
   else
@@ -335,7 +335,7 @@ NETRunner::PrepareMessage()
     m_message->SetBody(step->GetEffectiveBody());
   }
 
-  CString accept = m_message->GetHeader(_T("Accept"));
+  XString accept = m_message->GetHeader(_T("Accept"));
   if(accept.Find(_T("json")) >= 0)
   {
     m_isJson = true;
@@ -403,7 +403,7 @@ NETRunner::ExamineMessage()
   StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
 
   // Getting the OS status for the HTTP call
-  CString message;
+  XString message;
   int error = m_client->GetError(&message);
 
   result->SetOSError(error);
@@ -424,7 +424,7 @@ NETRunner::ExamineMessage()
   // Keep the body of the message
   if(step->GetBodyOutputIsFile())
   {
-    CString file = m_baseDirectory + step->GetFilenameOutput();
+    XString file = m_baseDirectory + step->GetFilenameOutput();
        m_message->GetFileBuffer()->SetFileName(file);
     if(m_message->GetFileBuffer()->WriteFile())
     {
@@ -447,7 +447,7 @@ void
 NETRunner::PerformAllValidations()
 {
   StepResultNET* stepresult = reinterpret_cast<StepResultNET*>(m_result);
-  CString documentation;
+  XString documentation;
   bool totalresult = true;
 
   int step = 1;
@@ -473,7 +473,7 @@ NETRunner::PerformAllValidations()
     }
     if(validate->GetCheckHeader())
     {
-      CString header = stepresult->GetHeader(validate->GetVerifyHeader());
+      XString header = stepresult->GetHeader(validate->GetVerifyHeader());
       if(!validate->ValidateHeaderValue(&m_parameters,header))
       {
         result = false;
@@ -519,13 +519,13 @@ NETRunner::SaveTestResults()
   PerformStep(_T("Saving the test results"));
   StepResultNET* result = reinterpret_cast<StepResultNET*>(m_result);
 
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  XString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(_T(".irun"),_T(".ires"));
 
   if(result->WriteToXML(filename) == false)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
@@ -566,7 +566,7 @@ NETRunner::ReadTestStep()
 {
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
   // Read in the definition file for a test step
-  CString filename = GetEffectiveStepFilename();
+  XString filename = GetEffectiveStepFilename();
   step->ReadFromXML(filename);
 }
 
@@ -576,14 +576,14 @@ NETRunner::ReadValidations()
   for(auto& filename : m_localValidations)
   {
     Validate* validate = new ValidateNET();
-    CString file = m_baseDirectory + m_testDirectory + filename;
+    XString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
     m_validations.push_back(validate);
   }
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateNET();
-    CString file = m_baseDirectory + _T("Validations\\") + filename;
+    XString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -634,9 +634,9 @@ NETRunner::CheckStatusOK(int p_returnCode)
 }
 
 void  
-NETRunner::CreateQLErrorMessage(CString p_error)
+NETRunner::CreateQLErrorMessage(XString p_error)
 {
-  CString error;
+  XString error;
   if(m_isJson)
   {
     error = _T("{ \"error\" : \"QL Language script: ") + p_error + _T("\" }");
@@ -668,12 +668,12 @@ NETRunner::GetStepResult()
 void
 NETRunner::SetBasicAuthentication()
 {
-  CString calluser;
-  CString callpswd;
+  XString calluser;
+  XString callpswd;
 
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
-  CString user = step->GetAuthUser();
-  CString pswd = step->GetAuthPassword();
+  XString user = step->GetAuthUser();
+  XString pswd = step->GetAuthPassword();
 
   // Allow for parameter replacements (but not the complete buffer!)
   m_parameters.Replace(user, calluser, false, ParType::PAR_BUFFER);
@@ -708,10 +708,10 @@ NETRunner::SetOAuth2Authentication()
     return;
   }
   // Getting our parameters
-  CString tokenServer;
-  CString clientID;
-  CString clientKey;
-  CString clientScope;
+  XString tokenServer;
+  XString clientID;
+  XString clientKey;
+  XString clientScope;
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
 
   m_parameters.Replace(step->GetAuthTokenServer(),tokenServer,false,ParType::PAR_BUFFER);
@@ -733,8 +733,8 @@ NETRunner::SetOAuth2Authentication()
 void
 NETRunner::SetKeyHeaderAuthentication()
 {
-  CString headerName;
-  CString headerValue;
+  XString headerName;
+  XString headerValue;
   TestStepNET* step = reinterpret_cast<TestStepNET*>(m_testStep);
   
   m_parameters.Replace(step->GetKeyHeaderName(), headerName, false,ParType::PAR_BUFFER);

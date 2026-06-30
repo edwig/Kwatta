@@ -224,11 +224,11 @@ RequestDlg::StoreVariables()
 {
   UpdateData();
 
-  CString payload(m_payload);
+  XString payload(m_payload);
   payload.Remove('\r');
 
   m_testStep->SetBody(payload);
-  m_testStep->SetMimeType(m_mimeType);
+  m_testStep->SetMimeType(m_mimeType.GetString());
   m_testStep->SetBodyInputIsFile(m_useFile);
   m_testStep->SetFilenameInput(m_inputFile);
   m_testStep->SetBodyOutputIsFile(m_saveFile);
@@ -243,7 +243,7 @@ RequestDlg::CheckXML()
 
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString warning;
+    XString warning;
     warning.Format(_T("BEWARE: Body payload has an XML error in it!\n%s"),msg.GetInternalErrorString().GetString());
     StyleMessageBox(this,warning,_T("WARNING"),MB_OK|MB_ICONERROR);
     return;
@@ -259,7 +259,7 @@ RequestDlg::CheckJSON()
 
   if(msg.GetErrorState())
   {
-    CString warning;
+    XString warning;
     warning.Format(_T("BEWARE: Body payload has an JSON error in it!\n%s"),msg.GetLastError().GetString());
     StyleMessageBox(this,warning,_T("WARNING"),MB_OK | MB_ICONERROR);
     return;
@@ -268,7 +268,7 @@ RequestDlg::CheckJSON()
 }
 
 void 
-RequestDlg::UpdateStepHeader(CString p_contentType)
+RequestDlg::UpdateStepHeader(XString p_contentType)
 {
   for(auto& head : m_testStep->GetHeaders())
   {
@@ -317,7 +317,7 @@ RequestDlg::OnBnClickedParam()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editPayload.InsertAtCurPos(variable,0);
     OnEnKillfocusPayload();
   }
@@ -327,7 +327,7 @@ void
 RequestDlg::OnBnClickedMulti()
 {
   //  Get a content type
-  CString content = m_testStep->GetHeader(_T("Content-Type"));
+  XString content = m_testStep->GetHeader(_T("Content-Type"));
   if(content.IsEmpty())
   {
     content = m_mimeType;
@@ -342,7 +342,7 @@ RequestDlg::OnBnClickedMulti()
   m_payload  = msg.GetBody();
   m_mimeType = msg.GetContentType();
 
-  UpdateStepHeader(m_mimeType);
+  UpdateStepHeader(m_mimeType.GetString());
 
   int pos = m_mimeType.Find(';');
   if (pos)
@@ -377,7 +377,7 @@ RequestDlg::OnEnKillfocusInputFile()
 void 
 RequestDlg::OnBnClickedChooseFile()
 {
-  CString filter;
+  XString filter;
   filter  = _T("All files *.*|*.*");
   filter += _T("|PNG Image files *.png|*.png");
   filter += _T("|JPG Image files *.jpg|*.jpg");
@@ -390,11 +390,11 @@ RequestDlg::OnBnClickedChooseFile()
   DocFileDialog doc(GetSafeHwnd(),true,_T("Choose file to input as body"),_T(""),m_inputFile,0,filter);
   if(doc.DoModal() == IDOK)
   {
-    CString file = doc.GetChosenFile();
+    XString file = doc.GetChosenFile();
     WinFile ens(file);
 
-    CString relative;
-    CString basedir = theApp.GetBaseDirectory();
+    XString relative;
+    XString basedir = theApp.GetBaseDirectory();
     ens.MakeRelativePathname(basedir,file,relative);
     relative.Replace(_T("/"),_T("\\"));
     m_inputFile = relative;
@@ -419,7 +419,7 @@ RequestDlg::OnEnKillfocusOutputFile()
 void 
 RequestDlg::OnBnClickedOutputFile()
 {
-  CString filter;
+  XString filter;
   filter  = _T("All files *.*|*.*");
   filter += _T("|PNG Image files *.png|*.png");
   filter += _T("|JPG Image files *.jpg|*.jpg");
@@ -432,11 +432,11 @@ RequestDlg::OnBnClickedOutputFile()
   DocFileDialog doc(GetSafeHwnd(),false,_T("Choose file to output the body to"),_T(""),m_outputFile,0,filter);
   if(doc.DoModal() == IDOK)
   {
-    CString file = doc.GetChosenFile();
+    XString file = doc.GetChosenFile();
     WinFile ens(file);
 
-    CString relative;
-    CString basedir = theApp.GetBaseDirectory();
+    XString relative;
+    XString basedir = theApp.GetBaseDirectory();
     ens.MakeRelativePathname(basedir,file,relative);
     relative.Replace(_T("/"),_T("\\"));
     m_outputFile = relative;
@@ -447,8 +447,8 @@ RequestDlg::OnBnClickedOutputFile()
 void 
 RequestDlg::OnBnClickedShowInfile()
 {
-  CString error;
-  CString filename = theApp.GetBaseDirectory() + m_inputFile;
+  XString error;
+  XString filename = theApp.GetBaseDirectory() + m_inputFile;
   WinFile file(filename);
   if(file.Exists())
   {
@@ -459,8 +459,8 @@ RequestDlg::OnBnClickedShowInfile()
 void 
 RequestDlg::OnBnClickedShowOutfile()
 {
-  CString error;
-  CString filename = theApp.GetBaseDirectory() + m_outputFile;
+  XString error;
+  XString filename = theApp.GetBaseDirectory() + m_outputFile;
   WinFile file(filename);
   if(file.Exists())
   {

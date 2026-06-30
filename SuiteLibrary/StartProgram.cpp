@@ -30,8 +30,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 int
-StartProgram(CString p_program
-            ,CString p_arguments
+StartProgram(XString p_program
+            ,XString p_arguments
             ,bool    p_currentdir
             ,bool    p_waitForIdle
             ,bool    p_waitForExit
@@ -40,13 +40,13 @@ StartProgram(CString p_program
 {
   if(p_currentdir)
   {
-    CString pad = GetExePath();
+    XString pad = GetExePath();
     p_program = pad + p_program;
 
     if(_taccess(p_program,04) == -1)
     {
       // We do not find a program
-      CString error;
+      XString error;
       error.Format(_T("Cannot find the program: %s"),p_program.GetString());
       StyleMessageBox(NULL,error,_T("ERROR"),MB_OK|MB_ICONERROR);
       return -3;
@@ -100,7 +100,7 @@ StartProgram(CString p_program
   else
   {
     // Cannot start! Rights?
-    CString error;
+    XString error;
     error.Format(_T("Cannot start the program: %s"),p_program.GetString());
     StyleMessageBox(NULL,error,_T("ERROR"),MB_OK|MB_ICONERROR);
     exitCode = (DWORD)-3;

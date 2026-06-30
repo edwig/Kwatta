@@ -32,9 +32,9 @@ using SQLComponents::SQLDatabase;
 #include "resource.h"		// main symbols
 
 // Database user and password
-extern CString db_database;
-extern CString db_user;
-extern CString db_password;
+extern XString db_database;
+extern XString db_user;
+extern XString db_password;
 
 // Start parameters, starting at the default
 extern int    qlargc;
@@ -42,7 +42,7 @@ extern TCHAR** qlargv;
 
 
 #define PRODUCT_NAME _T("Testrunner")
-using ValiSteps = std::vector<CString>;
+using ValiSteps = std::vector<XString>;
 
 class HTTPClient;
 class OAuth2Cache;
@@ -67,11 +67,11 @@ public:
   void          StartRunner();
   void          EndApplication(int p_result);
   // Interface from the command line
-  CString       GetTeststepFilename()   { return m_stepFilename;  }
-  CString       GetTestSetFilename()    { return m_xsetFilename;  }
-  CString       GetParametersFilename() { return m_paramFilename; }
-  CString       GetBaseDirectory()      { return m_baseDirectory; }
-  CString       GetTestDirectory()      { return m_testDirectory; }
+  XString       GetTeststepFilename()   { return m_stepFilename;  }
+  XString       GetTestSetFilename()    { return m_xsetFilename;  }
+  XString       GetParametersFilename() { return m_paramFilename; }
+  XString       GetBaseDirectory()      { return m_baseDirectory; }
+  XString       GetTestDirectory()      { return m_testDirectory; }
   ValiSteps&    GetValidations()        { return m_validations;   }
   ValiSteps&    GetGlobalValidations()  { return m_globalValid;   }
   HWND          GetConsoleHandle()      { return m_console->GetSafeHwnd(); }
@@ -87,7 +87,7 @@ public:
   // SETTERS
 
   RunTestType   DeduceTestType();
-  void          SetTeststepFilename(CString p_file) { m_stepFilename = p_file; }
+  void          SetTeststepFilename(XString p_file) { m_stepFilename = p_file; }
   void          SetLastTest(bool p_last)            { m_last         = p_last; }
 
   // FUNCTIONS
@@ -102,11 +102,11 @@ private:
   void          Usage();
 
   // Data to remember
-  CString       m_stepFilename;
-  CString       m_xsetFilename;
-  CString       m_paramFilename;
-  CString       m_baseDirectory;
-  CString       m_testDirectory;
+  XString       m_stepFilename;
+  XString       m_xsetFilename;
+  XString       m_paramFilename;
+  XString       m_baseDirectory;
+  XString       m_testDirectory;
   ValiSteps     m_validations;
   ValiSteps     m_globalValid;
   RunTestType   m_type        { RunTestType::RunTest_Unknown };

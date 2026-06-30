@@ -2,8 +2,8 @@
 //
 // File: SQLDataSet.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,20 +23,15 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLDataSet.h"
 #include "SQLDataType.h"
 #include "SQLQuery.h"
 #include "SQLVariantFormat.h"
 #include "SQLInfoDB.h"
+#include <time.h>
 #include <algorithm>
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -93,7 +88,7 @@ SQLDataSet::SQLDataSet()
 {
 }
 
-SQLDataSet::SQLDataSet(XString p_name,SQLDatabase* p_database /*=NULL*/)
+SQLDataSet::SQLDataSet(const XString& p_name,SQLDatabase* p_database /*=NULL*/)
            :m_name(p_name)
            ,m_database(p_database)
 {
@@ -184,11 +179,11 @@ SQLDataSet::Close()
   // Forget the data
   Forget(true);
   ResetFilters();
+  ResetParameters();
 
   // Forget all caches
   m_names.clear();
   m_types.clear();
-  m_parameters.clear();
   m_primaryKey.clear();
 
   // Forget the query
@@ -297,15 +292,25 @@ SQLDataSet::SetParameter(const XString& p_name,const SQLVariant& p_value)
     if(m_parameters[ind].m_name == p_name)
     {
       // Found it: set a new value
-      m_parameters[ind].m_value = p_value;
+      m_parameters[ind].m_value = alloc_new SQLVariant(p_value);
       return;
     }
   }
   // New parameter
   SQLParameter par;
   par.m_name   = p_name;
-  par.m_value  = p_value;
+  par.m_value  = alloc_new SQLVariant(p_value);
   m_parameters.push_back(par);
+}
+
+void
+SQLDataSet::ResetParameters()
+{
+  for(auto& parm : m_parameters)
+  {
+    delete parm.m_value;
+  }
+  m_parameters.clear();
 }
 
 void
@@ -334,7 +339,7 @@ SQLDataSet::SetFilter(const SQLFilter& p_filter)
 {
   if(!m_filters)
   {
-    m_filters = new SQLFilterSet();
+    m_filters = alloc_new SQLFilterSet();
     m_ownFilters = true;
   }
   m_filters->AddFilter(p_filter);
@@ -368,7 +373,7 @@ SQLDataSet::GetParameter(const XString& p_name)
   {
     if(m_parameters[ind].m_name == p_name)
     {
-      return &(m_parameters[ind].m_value);
+      return m_parameters[ind].m_value;
     }
   }
   return NULL;
@@ -393,7 +398,7 @@ SQLDataSet::GetSequenceName()
 }
 
 void
-SQLDataSet::SetQuery(XString& p_query)
+SQLDataSet::SetQuery(const XString& p_query)
 {
   // Setting the total query supersedes these
   m_selection.Empty();
@@ -409,56 +414,56 @@ SQLDataSet::SetQuery(XString& p_query)
 }
 
 void
-SQLDataSet::SetSelection(XString p_selection)
+SQLDataSet::SetSelection(const XString& p_selection)
 {
   m_query.Empty();
   m_selection = p_selection;
 }
 
 void
-SQLDataSet::SetFromTables(XString p_from)
+SQLDataSet::SetFromTables(const XString& p_from)
 {
   m_query.Empty();
   m_fromTables = p_from;
 }
 
 void
-SQLDataSet::SetWhereCondition(XString p_condition)
+SQLDataSet::SetWhereCondition(const XString& p_condition)
 {
   m_query.Empty();
   m_whereCondition = p_condition;
 }
 
 void
-SQLDataSet::SetGroupBy(XString p_groupby)
+SQLDataSet::SetGroupBy(const XString& p_groupby)
 {
   m_query.Empty();
   m_groupby = p_groupby;
 }
 
 void
-SQLDataSet::SetOrderBy(XString p_orderby)
+SQLDataSet::SetOrderBy(const XString& p_orderby)
 {
   m_query.Empty();
   m_orderby = p_orderby;
 }
 
 void
-SQLDataSet::AddGroupby(XString p_groupby)
+SQLDataSet::AddGroupby(const XString& p_groupby)
 {
   if(!m_groupby.IsEmpty())
   {
-    m_groupby += ", ";
+    m_groupby += _T(", ");
   }
   m_groupby += p_groupby;
 }
 
 void
-SQLDataSet::AddOrderBy(XString p_orderby)
+SQLDataSet::AddOrderBy(const XString& p_orderby)
 {
   if(!m_orderby.IsEmpty())
   {
-    m_orderby += ", ";
+    m_orderby += _T(", ");
   }
   m_orderby += p_orderby;
 }
@@ -512,14 +517,22 @@ SQLDataSet::ParseQuery()
     }
     if(c == '$' && !inAphos && !inQuote)
     {
+      ++pos;
       XString parNaam;
-      do 
+      while(true)
       {
-        c = m_query.GetAt(++pos);
-        parNaam += (char) c;
-      } 
-      while (isalnum(c) || c == '_');
-      parNaam = parNaam.Left(parNaam.GetLength() - 1);
+        if(pos < m_query.GetLength())
+        {
+          c = m_query.GetAt(pos);
+          if(isalnum(c) || c == _T('_'))
+          {
+            parNaam += (TCHAR)c;
+            ++pos;
+          }
+          else break;
+        }
+        else break;
+      }
       // Found parameter name
       SQLVariant* par = GetParameter(parNaam);
       if(par)
@@ -576,14 +589,14 @@ SQLDataSet::ParseSelection(SQLQuery& p_query)
   {
     sql += (count++ == 0) ? _T("\n WHERE ") : _T("\n   AND ");
     sql += info ? info->QueryIdentifierQuotation(it->m_name) : it->m_name;
-    if(it->m_value.IsNULL())
+    if(it->m_value->IsNULL())
     {
       sql += _T(" IS NULL");
     }
     else
     {
       sql += _T(" = ?");
-      p_query.SetParameter(++number,&(it->m_value));
+      p_query.SetParameter(++number,it->m_value);
     }
   }
 
@@ -605,10 +618,10 @@ SQLDataSet::ParseFilters(SQLQuery& p_query,XString p_sql)
   if(!condition.IsEmpty())
   {
     // Offset in the WHERE clause
-    query += whereFound ? _T("\n   AND ") : _T("\n WHERE ");
-    query += condition;
+    p_sql += whereFound ? _T("\n   AND ") : _T("\n WHERE ");
+    p_sql += condition;
   }
-  return query;
+  return p_sql;
 }
 
 // Construct the selection SQL for opening the dataset
@@ -992,7 +1005,7 @@ bool
 SQLDataSet::ReadRecordFromQuery(SQLQuery& p_query,bool p_modifiable,bool p_append /*=false*/)
 {
   // Make a new record
-  SQLRecord* record = new SQLRecord(this,p_modifiable);
+  SQLRecord* record = alloc_new SQLRecord(this,p_modifiable);
 
   // Get all the columns of the record
   int num = p_query.GetNumberOfColumns();
@@ -1278,7 +1291,7 @@ SQLDataSet::FindObjectFilter(bool p_primary /*=false*/)
 RecordSet* 
 SQLDataSet::FindRecordSet()
 {
-  RecordSet* records = new RecordSet();
+  RecordSet* records = alloc_new RecordSet();
 
   // Walk the chain of records
   for(auto& rec : m_records)
@@ -1326,7 +1339,7 @@ SQLDataSet::GetFieldType(int p_num)
 
 // Get a field number
 int
-SQLDataSet::GetFieldNumber(XString p_name)
+SQLDataSet::GetFieldNumber(const XString& p_name)
 {
   for(unsigned int ind = 0; ind < m_names.size(); ++ind)
   {
@@ -1358,7 +1371,7 @@ SQLDataSet::GetCurrentField(int p_num)
 SQLRecord* 
 SQLDataSet::InsertRecord()
 {
-  SQLRecord* record = new SQLRecord(this,true);
+  SQLRecord* record = alloc_new SQLRecord(this,true);
   m_records.push_back(record);
   m_current = (int)(m_records.size() - 1);
   m_status |= SQL_Insertions;
@@ -1368,7 +1381,7 @@ SQLDataSet::InsertRecord()
 
 // Insert new field in new record
 int
-SQLDataSet::InsertField(XString p_name,const SQLVariant* p_value)
+SQLDataSet::InsertField(const XString& p_name,const SQLVariant* p_value)
 {
   if(m_current >= 0 && m_current < (int)m_records.size())
   {
@@ -1538,6 +1551,116 @@ SQLDataSet::Synchronize(int p_mutationID /*=0*/,bool p_throw /*=false*/)
     ReThrowSafeException(er);
     // Automatic rollback will be done now
     XString error = _T("Database synchronization stopped: ") + er.GetErrorMessage();
+    if(p_throw)
+    {
+      throw StdException(error);
+    }
+    m_database->LogPrint(error);
+    // Restore original status of the dataset, reduce never done
+    m_status = oldStatus;
+    return false;
+  }
+  // Ready
+  return true;
+}
+
+// Bulk insert / update / delete records from the database (array binding)
+// Falls back to row-by-row if bulk fails for any mutation type
+bool
+SQLDataSet::SynchronizeBulk(int p_mutationID /*=0*/,bool p_throw /*=false*/)
+{
+  // Needs the primary table name of the dataset
+  if(m_primaryTableName.IsEmpty())
+  {
+    return false;
+  }
+  // Check if we have mutations
+  if((m_status & (SQL_Record_Insert | SQL_Record_Deleted | SQL_Record_Updated)) == 0)
+  {
+    // Nothing to do: all OK.
+    return true;
+  }
+  if(m_status & (SQL_Record_Deleted | SQL_Record_Updated))
+  {
+    if(!GetPrimaryKeyInfo()     ||    // Needs primary key info for doing updates/deletes
+       !CheckPrimaryKeyColumns())     // Needs all of the primary key columns
+    {
+      // No primary key, cannot do updates/deletes
+      return false;
+    }
+  }
+
+  // Save status before a possible throw
+  int oldStatus = m_status;
+
+  try
+  {
+    // Transaction on the stack for all mutations
+    // Defer all constraint checking to the 'real' commit
+    SQLTransaction trans(m_database,m_name);
+    trans.SetTransactionDeferred();
+
+    // Do all operations: try bulk, fall back to row-by-row
+    if(m_status & SQL_Record_Deleted)
+    {
+      try
+      {
+        BulkDeletes(p_mutationID);
+      }
+      catch(StdException& er)
+      {
+        ReThrowSafeException(er);
+        if(m_database && m_database->WilLog())
+        {
+          m_database->LogPrint(_T("[SynchronizeBulk] Bulk deletes failed, falling back to row-by-row: ") + er.GetErrorMessage());
+        }
+        Deletes(p_mutationID);
+      }
+    }
+    if(m_status & SQL_Record_Updated)
+    {
+      try
+      {
+        BulkUpdates(p_mutationID);
+      }
+      catch(StdException& er)
+      {
+        ReThrowSafeException(er);
+        if(m_database && m_database->WilLog())
+        {
+          m_database->LogPrint(_T("[SynchronizeBulk] Bulk updates failed, falling back to row-by-row: ") + er.GetErrorMessage());
+        }
+        Updates(p_mutationID);
+      }
+    }
+    if(m_status & SQL_Record_Insert)
+    {
+      try
+      {
+        BulkInserts(p_mutationID);
+      }
+      catch(StdException& er)
+      {
+        ReThrowSafeException(er);
+        if(m_database && m_database->WilLog())
+        {
+          m_database->LogPrint(_T("[SynchronizeBulk] Bulk inserts failed, falling back to row-by-row: ") + er.GetErrorMessage());
+        }
+        Inserts(p_mutationID);
+      }
+    }
+
+    // Commit the changes to the database
+    trans.Commit();
+
+    // After the commit we throw away our changes
+    Reduce(p_mutationID);
+  }
+  catch(StdException& er)
+  {
+    ReThrowSafeException(er);
+    // Automatic rollback will be done now
+    XString error = _T("Database bulk synchronization stopped: ") + er.GetErrorMessage();
     if(p_throw)
     {
       throw StdException(error);
@@ -1759,6 +1882,363 @@ SQLDataSet::Reduce(int p_mutationID)
   }
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+// BULK WRITEBACK OPERATIONS
+//
+//////////////////////////////////////////////////////////////////////////
+
+void
+SQLDataSet::BulkDeletes(int p_mutationID)
+{
+  SQLInfoDB* info = m_database ? m_database->GetSQLInfoDB() : nullptr;
+
+  // Collect delete-pending records
+  std::vector<SQLRecord*> records;
+  int total = 0;
+
+  for(auto& record : m_records)
+  {
+    if(record->GetStatus() & SQL_Record_Deleted)
+    {
+      ++total;
+      MutType type = record->MixedMutations(p_mutationID);
+      switch(type)
+      {
+        case MUT_OnlyOthers: break;
+        case MUT_Mixed:      throw StdException(_T("Mixed mutations"));
+        case MUT_NoMutation: // Fall through
+        case MUT_MyMutation: records.push_back(record);
+                             break;
+      }
+    }
+  }
+
+  // If fewer than 2 eligible records, fall back to row-by-row
+  if(records.size() < 2)
+  {
+    Deletes(p_mutationID);
+    return;
+  }
+
+  // Build DELETE FROM table WHERE pk1=? [AND pk2=?...]
+  XString table = info ? info->QueryIdentifierQuotation(m_primaryTableName) : m_primaryTableName;
+  XString sql(_T("DELETE FROM ") + table + _T(" WHERE "));
+
+  bool more = false;
+  for(auto& key : m_primaryKey)
+  {
+    if(more)
+    {
+      sql += _T(" AND ");
+    }
+    more = true;
+    sql += info ? info->QueryIdentifierQuotation(key) : key;
+    sql += _T(" = ?");
+  }
+
+  // Build parameter arrays for PK columns
+  int rowCount = (int)records.size();
+  SQLQuery query(m_database);
+  query.DoSQLPrepare(sql);
+  query.SetParameterArraySize(rowCount);
+
+  // Allocate variant arrays for each PK column
+  std::vector<std::vector<SQLVariant*>> pkArrays(m_primaryKey.size());
+  for(size_t k = 0; k < m_primaryKey.size(); ++k)
+  {
+    int colNum = GetFieldNumber(m_primaryKey[k]);
+    pkArrays[k].resize(rowCount);
+    for(int r = 0; r < rowCount; ++r)
+    {
+      pkArrays[k][r] = records[r]->GetField(colNum);
+    }
+    query.SetParameterArrayData(pkArrays[k].data(),rowCount);
+  }
+
+  // Execute bulk delete
+  query.DoSQLExecuteBulk();
+  query.Close(false);
+
+  // Forget all deleted records
+  for(auto& record : records)
+  {
+    ForgetRecord(record,true);
+  }
+
+  // Adjust the current record if necessary
+  if(m_current >= (int)m_records.size())
+  {
+    m_current = (int)m_records.size() - 1;
+  }
+
+  // If we did all records, no more deletes are present
+  if(total == (int)records.size())
+  {
+    m_status &= ~SQL_Deletions;
+  }
+}
+
+void
+SQLDataSet::BulkUpdates(int p_mutationID)
+{
+  SQLInfoDB* info = m_database ? m_database->GetSQLInfoDB() : nullptr;
+  XString table = info ? info->QueryIdentifierQuotation(m_primaryTableName) : m_primaryTableName;
+
+  // Collect update-pending records and group by modified-column set
+  std::map<std::vector<int>,std::vector<SQLRecord*>> groups;
+  int total  = 0;
+  int update = 0;
+
+  for(auto& record : m_records)
+  {
+    if(record->GetStatus() & SQL_Record_Updated)
+    {
+      ++total;
+      MutType type = record->MixedMutations(p_mutationID);
+      switch(type)
+      {
+        case MUT_NoMutation: // Fall through
+        case MUT_OnlyOthers: break;
+        case MUT_Mixed:      throw StdException(_T("Mixed mutations"));
+        case MUT_MyMutation: {
+                               // Build modified-column index list
+                               std::vector<int> modCols;
+                               for(unsigned ind = 0; ind < m_names.size(); ++ind)
+                               {
+                                 bool allowUpdate = true;
+                                 if(!m_updateColumns.empty())
+                                 {
+                                   allowUpdate = false;
+                                   for(auto& column : m_updateColumns)
+                                   {
+                                     if(m_names[ind].CompareNoCase(column) == 0)
+                                     {
+                                       allowUpdate = true;
+                                       break;
+                                     }
+                                   }
+                                 }
+                                 if(allowUpdate && record->IsModified(ind))
+                                 {
+                                   modCols.push_back((int)ind);
+                                 }
+                               }
+                               if(!modCols.empty())
+                               {
+                                 groups[modCols].push_back(record);
+                               }
+                             }
+                             break;
+      }
+    }
+  }
+
+  // Process each group
+  for(auto& group : groups)
+  {
+    const std::vector<int>&        modCols = group.first;
+    const std::vector<SQLRecord*>& recs    = group.second;
+
+    // If fewer than 2 in group, use row-by-row
+    if(recs.size() < 2)
+    {
+      SQLQuery query(m_database);
+      for(auto& record : recs)
+      {
+        XString sql = GetSQLUpdate(&query,record);
+        query.DoSQLStatement(sql);
+        ++update;
+      }
+      continue;
+    }
+
+    // Build UPDATE table SET col1=?, col2=? WHERE pk1=? [AND pk2=?]
+    XString sql(_T("UPDATE ") + table + _T("\n"));
+    bool first = true;
+    for(int colIdx : modCols)
+    {
+      sql += first ? _T("   SET ") : _T("      ,");
+      sql += info ? info->QueryIdentifierQuotation(m_names[colIdx]) : m_names[colIdx];
+      sql += _T(" = ?\n");
+      first = false;
+    }
+    sql += _T(" WHERE ");
+    bool more = false;
+    for(auto& key : m_primaryKey)
+    {
+      if(more)
+      {
+        sql += _T("\n   AND ");
+      }
+      more = true;
+      sql += info ? info->QueryIdentifierQuotation(key) : key;
+      sql += _T(" = ?");
+    }
+
+    int rowCount = (int)recs.size();
+    SQLQuery query(m_database);
+    query.DoSQLPrepare(sql);
+    query.SetParameterArraySize(rowCount);
+
+    // Build arrays for SET columns
+    std::vector<std::vector<SQLVariant*>> setArrays(modCols.size());
+    for(size_t c = 0; c < modCols.size(); ++c)
+    {
+      setArrays[c].resize(rowCount);
+      for(int r = 0; r < rowCount; ++r)
+      {
+        setArrays[c][r] = recs[r]->GetField(modCols[c]);
+      }
+      query.SetParameterArrayData(setArrays[c].data(),rowCount);
+    }
+
+    // Build arrays for WHERE (PK) columns
+    std::vector<std::vector<SQLVariant*>> pkArrays(m_primaryKey.size());
+    for(size_t k = 0; k < m_primaryKey.size(); ++k)
+    {
+      int colNum = GetFieldNumber(m_primaryKey[k]);
+      pkArrays[k].resize(rowCount);
+      for(int r = 0; r < rowCount; ++r)
+      {
+        pkArrays[k][r] = recs[r]->GetField(colNum);
+      }
+      query.SetParameterArrayData(pkArrays[k].data(),rowCount);
+    }
+
+    query.DoSQLExecuteBulk();
+    query.Close(false);
+    update += rowCount;
+  }
+
+  // If we did all records, no more updates are present
+  if(total == update)
+  {
+    m_status &= ~SQL_Updates;
+  }
+}
+
+void
+SQLDataSet::BulkInserts(int p_mutationID)
+{
+  SQLInfoDB* info = m_database ? m_database->GetSQLInfoDB() : nullptr;
+  XString table = info ? info->QueryIdentifierQuotation(m_primaryTableName) : m_primaryTableName;
+
+  // Collect insert-pending records, separating generator records
+  std::vector<SQLRecord*> bulkRecords;
+  std::vector<SQLRecord*> generatorRecords;
+  int total = 0;
+
+  for(auto& record : m_records)
+  {
+    if(record->GetStatus() & SQL_Record_Insert)
+    {
+      ++total;
+      MutType type = record->MixedMutations(p_mutationID);
+      switch(type)
+      {
+        case MUT_NoMutation: // Fall through
+        case MUT_OnlyOthers: break;
+        case MUT_Mixed:      throw StdException(_T("Mixed mutations"));
+        case MUT_MyMutation: if(record->GetGenerator() >= 0)
+                             {
+                               generatorRecords.push_back(record);
+                             }
+                             else
+                             {
+                               bulkRecords.push_back(record);
+                             }
+                             break;
+      }
+    }
+  }
+
+  // Handle generator records via row-by-row (they need per-row sequence retrieval)
+  if(!generatorRecords.empty())
+  {
+    SQLQuery query(m_database);
+    for(auto& record : generatorRecords)
+    {
+      XString sql = GetSQLInsert(&query,record);
+      query.DoSQLStatement(sql);
+
+      // For an active generator, fill in the retrieved value
+      if(record->GetGenerator() >= 0 && !m_serial.IsEmpty())
+      {
+        int value = m_database->GetSQL_EffectiveSerial(m_serial);
+        SQLVariant val(value);
+        record->SetField(record->GetGenerator(),&val,0);
+      }
+    }
+  }
+
+  // If fewer than 2 bulk-eligible records, handle them row-by-row too
+  if(bulkRecords.size() < 2)
+  {
+    if(!bulkRecords.empty())
+    {
+      SQLQuery query(m_database);
+      for(auto& record : bulkRecords)
+      {
+        XString sql = GetSQLInsert(&query,record);
+        query.DoSQLStatement(sql);
+      }
+    }
+    // Check if all inserts are done
+    if(total == (int)(generatorRecords.size() + bulkRecords.size()))
+    {
+      m_status &= ~SQL_Insertions;
+    }
+    return;
+  }
+
+  // Build INSERT INTO table(col1,col2,...) VALUES(?,?,...)
+  // Include ALL columns (fixed column list for bulk)
+  XString fields(_T("("));
+  XString params(_T("("));
+
+  for(unsigned ind = 0; ind < m_names.size(); ++ind)
+  {
+    if(ind > 0)
+    {
+      fields += _T(",");
+      params += _T(",");
+    }
+    fields += info ? info->QueryIdentifierQuotation(m_names[ind]) : m_names[ind];
+    params += _T("?");
+  }
+  fields += _T(")");
+  params += _T(")");
+
+  XString sql = _T("INSERT INTO ") + table + fields + _T("\nVALUES ") + params;
+
+  int rowCount = (int)bulkRecords.size();
+  SQLQuery query(m_database);
+  query.DoSQLPrepare(sql);
+  query.SetParameterArraySize(rowCount);
+
+  // Build arrays for each column
+  std::vector<std::vector<SQLVariant*>> colArrays(m_names.size());
+  for(unsigned ind = 0; ind < m_names.size(); ++ind)
+  {
+    colArrays[ind].resize(rowCount);
+    for(int r = 0; r < rowCount; ++r)
+    {
+      colArrays[ind][r] = bulkRecords[r]->GetField(ind);
+    }
+    query.SetParameterArrayData(colArrays[ind].data(),rowCount);
+  }
+
+  query.DoSQLExecuteBulk();
+  query.Close(false);
+
+  // Check if all inserts are done
+  if(total == (int)(generatorRecords.size() + bulkRecords.size()))
+  {
+    m_status &= ~SQL_Insertions;
+  }
+}
+
 // In case synchronize doesn't work, ask for mixed mutations
 int
 SQLDataSet::AllMixedMutations(MutationIDS& p_list,int p_mutationID)
@@ -1931,7 +2411,7 @@ SQLDataSet::GetWhereClause(SQLQuery* p_query,const SQLRecord* p_record,int& p_pa
 //////////////////////////////////////////////////////////////////////////
 
 bool
-SQLDataSet::XMLSave(XString p_filename,XString p_name,Encoding p_encoding /*= Encoding::UTF8*/)
+SQLDataSet::XMLSave(const XString& p_filename,const XString& p_name,Encoding p_encoding /*= Encoding::UTF8*/)
 {
   XMLMessage msg;
   msg.SetRootNodeName(p_name);
@@ -1941,7 +2421,7 @@ SQLDataSet::XMLSave(XString p_filename,XString p_name,Encoding p_encoding /*= En
 }
 
 bool
-SQLDataSet::XMLLoad(XString p_filename)
+SQLDataSet::XMLLoad(const XString& p_filename)
 {
   XMLMessage msg;
   if(msg.LoadFile(p_filename))
@@ -1959,8 +2439,8 @@ SQLDataSet::XMLLoad(XString p_filename)
 void
 SQLDataSet::XMLSave(XMLMessage* p_msg,XMLElement* p_dataset)
 {
-                          p_msg->AddElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_NAME],XDT_String,m_name);
-  XMLElement* structure = p_msg->AddElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_STRUCTURE],XDT_String,"");
+                          p_msg->AddElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_NAME],m_name);
+  XMLElement* structure = p_msg->AddElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_STRUCTURE],_T(""));
   XString nameField = dataset_names[g_defaultLanguage][DATASET_FIELD];
 
   // Add record structure
@@ -1973,7 +2453,7 @@ SQLDataSet::XMLSave(XMLMessage* p_msg,XMLElement* p_dataset)
       const SQLVariant* var = record->GetField(ind);
       int type = var->GetDataType();
 
-      XMLElement* field = p_msg->AddElement(structure,nameField,XDT_String,fieldname);
+      XMLElement* field = p_msg->AddElement(structure,nameField,fieldname);
       p_msg->SetAttribute(field,dataset_names[g_defaultLanguage][DATASET_ID],(int)ind);
       p_msg->SetAttribute(field,dataset_names[g_defaultLanguage][DATASET_TYPE],type);
       p_msg->SetAttribute(field,dataset_names[g_defaultLanguage][DATASET_TYPENAME],SQLDataType::FindDatatype(type));
@@ -1987,7 +2467,7 @@ SQLDataSet::XMLSave(XMLMessage* p_msg,XMLElement* p_dataset)
       int type = m_types[ind];
       SQLVariant var;
 
-      XMLElement* field = p_msg->AddElement(structure,nameField,XDT_String,fieldname);
+      XMLElement* field = p_msg->AddElement(structure,nameField,fieldname);
       p_msg->SetAttribute(field,dataset_names[g_defaultLanguage][DATASET_ID],(int)ind);
       p_msg->SetAttribute(field,dataset_names[g_defaultLanguage][DATASET_TYPE],type);
       p_msg->SetAttribute(field,dataset_names[g_defaultLanguage][DATASET_TYPENAME],SQLDataType::FindDatatype(type));
@@ -1996,7 +2476,7 @@ SQLDataSet::XMLSave(XMLMessage* p_msg,XMLElement* p_dataset)
 
 
   // Add records of the dataset
-  XMLElement* records = p_msg->AddElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_RECORDS],XDT_String,"");
+  XMLElement* records = p_msg->AddElement(p_dataset,dataset_names[g_defaultLanguage][DATASET_RECORDS],_T(""));
   for(unsigned int ind = 0;ind < m_records.size(); ++ind)
   {
     m_records[ind]->XMLSave(p_msg,records);

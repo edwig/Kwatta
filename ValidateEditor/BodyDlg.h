@@ -51,9 +51,9 @@ protected:
 
   bool            m_useBody      { false };
   BufferOperator  m_bodyOperator { BufferOperator::BOP_NOP };
-  CString         m_expectedBody;
-  CString         m_effectiveBody;
-  CString         m_bodyVariable;
+  XString         m_expectedBody;
+  XString         m_effectiveBody;
+  XString         m_bodyVariable;
 
   StyleCheckbox   m_buttonUseBody;
   StyleComboBox   m_comboOperator;

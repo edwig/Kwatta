@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void 
-StepResultSQL::ReadFromXML(CString p_filename)
+StepResultSQL::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   StepResult::ReadFromXML(msg, p_filename);
@@ -50,8 +50,8 @@ StepResultSQL::ReadFromXML(CString p_filename)
     XMLElement* column = msg.FindElement(data,_T("Column"));
     while(column)
     {
-      CString name  = msg.GetElement(column,_T("Name"));
-      CString value = msg.GetElement(column,_T("Value"));
+      XString name  = msg.GetElement(column,_T("Name"));
+      XString value = msg.GetElement(column,_T("Value"));
       m_data[name] = value;
 
       // Next column
@@ -61,7 +61,7 @@ StepResultSQL::ReadFromXML(CString p_filename)
 }
 
 bool 
-StepResultSQL::WriteToXML(CString p_filename)
+StepResultSQL::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!StepResult::WriteToXML(msg,p_filename))
@@ -70,28 +70,28 @@ StepResultSQL::WriteToXML(CString p_filename)
   }
   XMLElement* root = msg.GetRoot();
 
-  CString rows;
-  CString cols;
-  CString speed;
+  XString rows;
+  XString cols;
+  XString speed;
   rows.Format(_T("%d"),m_resultRows);
   cols.Format(_T("%d"),m_resultCols);
 
-  msg.AddElement(root,_T("Succeeded"),    XDT_Boolean,m_succeeded ? _T("true") : false);
-  msg.AddElement(root,_T("ResultRows"),   XDT_Integer,rows);
-  msg.AddElement(root,_T("ResultColumns"),XDT_Integer,cols);
-  msg.AddElement(root,_T("SQLState"),     XDT_String, m_sqlState);
-  msg.AddElement(root,_T("NativeStatus"), XDT_String, m_nativeStatus);
-  msg.AddElement(root,_T("NativeStatus"), XDT_String, m_nativeStatus);
+  msg.AddElement(root,_T("Succeeded"),    m_succeeded ? _T("true") : _T("false"), XmlDataType::XDT_Boolean);
+  msg.AddElement(root,_T("ResultRows"),   rows,XmlDataType::XDT_Integer);
+  msg.AddElement(root,_T("ResultColumns"),cols,XmlDataType::XDT_Integer);
+  msg.AddElement(root,_T("SQLState"),     m_sqlState);
+  msg.AddElement(root,_T("NativeStatus"), m_nativeStatus);
+  msg.AddElement(root,_T("NativeStatus"), m_nativeStatus);
 
   // Add the result data set
   if(!m_data.empty())
   {
-    XMLElement* data = msg.AddElement(root,_T("Data"),XDT_String,_T(""));
+    XMLElement* data = msg.AddElement(root,_T("Data"),_T(""));
     for(auto& value : m_data)
     {
-      XMLElement* column = msg.AddElement(data,_T("Column"),XDT_String,_T(""));
-      msg.AddElement(column,_T("Name"),XDT_String,           value.first);
-      msg.AddElement(column,_T("Value"),XDT_String|XDT_CDATA,value.second);
+      XMLElement* column = msg.AddElement(data,_T("Column"),_T(""));
+      msg.AddElement(column,_T("Name"), value.first);
+      msg.AddElement(column,_T("Value"),value.second,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
     }
   }
 
@@ -100,7 +100,7 @@ StepResultSQL::WriteToXML(CString p_filename)
 }
 
 void 
-StepResultSQL::CheckFilename(CString p_filename)
+StepResultSQL::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -127,7 +127,7 @@ StepResultSQL::ResetEffective()
 }
 
 void
-StepResultSQL::AddResult(CString p_name, CString p_value)
+StepResultSQL::AddResult(XString p_name, XString p_value)
 {
   ResultMap::iterator it = m_data.find(p_name);
   if(it != m_data.end())
@@ -140,12 +140,12 @@ StepResultSQL::AddResult(CString p_name, CString p_value)
   }
 }
 
-CString 
+XString 
 StepResultSQL::GetFirstData()
 {
   if(m_data.size() == 1)
   {
     return m_data.begin()->second;
   }
-  return CString();
+  return XString();
 }

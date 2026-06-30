@@ -2,8 +2,8 @@
 //
 // File: SQLInfoMariaDB.h
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -57,7 +57,10 @@ public:
   int GetRDBMSMaxVarchar() const override;
 
   // Identifier rules differ per RDBMS
-  bool IsIdentifier(XString p_identifier) const override;
+  bool IsIdentifier(const XString& p_identifier) const override;
+
+  // Return parameters from a PSM procedure module can be a result set (SUSPEND)
+  bool GetRDBMSResultSetFromPSM() const override;
 
   // KEYWORDS
 
@@ -75,21 +78,21 @@ public:
 
   // Get select part to add new record identity to a table
   // Can be special column like 'OID' or a sequence select
-  XString GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix = "_seq") const override;
+  XString GetKEYWORDIdentityString(const XString& p_tablename,const XString& p_postfix = "_seq") const override;
 
   // SQL
 
   // Gets the construction for inline generating a key within an INSERT statement
-  XString GetSQLNewSerial(XString p_table, XString p_sequence) const override;
+  XString GetSQLNewSerial(const XString& p_table,const XString& p_sequence) const override;
 
   // Gets the construction / select for generating a new serial identity
-  XString GetSQLGenerateSerial(XString p_table) const override;
-  XString GetSQLGenerateSequence(XString p_sequence) const override;
+  XString GetSQLGenerateSerial(const XString& p_table) const override;
+  XString GetSQLGenerateSequence(const XString& p_sequence) const override;
 
   // Gets the sub-transaction commands
-  XString GetSQLStartSubTransaction   (XString p_savepointName) const override;
-  XString GetSQLCommitSubTransaction  (XString p_savepointName) const override;
-  XString GetSQLRollbackSubTransaction(XString p_savepointName) const override;
+  XString GetSQLStartSubTransaction   (const XString& p_savepointName) const override;
+  XString GetSQLCommitSubTransaction  (const XString& p_savepointName) const override;
+  XString GetSQLRollbackSubTransaction(const XString& p_savepointName) const override;
 
   // FROM-Part for a query to select only 1 (one) record / or empty!
   XString GetSQLFromDualClause() const override;
@@ -119,6 +122,9 @@ public:
   XString GetCATALOGSequenceCreate    (MetaSequence& p_sequence) const override;
   XString GetCATALOGSequenceDrop      (XString  p_schema,XString  p_sequence) const override;
   
+  // All table functions
+  XString GetCATALOGTableCreatePostfix(MetaTable& p_table,MetaColumn& p_column) const override;
+
   //////////////////////////////////////////////////////////////////////////
   //
   // SQL/PSM PERSISTENT STORED MODULES 
@@ -128,7 +134,7 @@ public:
   //////////////////////////////////////////////////////////////////////////
 
   // All procedure functions
-  XString GetPSMProcedureSourcecode(XString  p_schema,XString  p_procedure,bool p_quoted = false) const override;
+  XString GetPSMProcedureSourcecode(XString p_schema,XString& p_package,XString  p_procedure,bool p_quoted = false) const override;
 
   
 private:

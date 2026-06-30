@@ -21,15 +21,15 @@
 #pragma once
 #include <vector>
 
-using FileList = std::vector<CString>;
+using FileList = std::vector<XString>;
 
 class ResetAll
 {
 public:
-  ResetAll(CString p_baseDirectory,CString p_testDirectory,CString p_step);
+  ResetAll(XString p_baseDirectory,XString p_testDirectory,XString p_step);
 
   bool      Reset(bool p_interface);
-  CString   LastError() { return m_error; }
+  XString   LastError() { return m_error; }
 
 private:
   void      ResetSuite();
@@ -37,11 +37,11 @@ private:
   void      ResetTestStep();
   void      DeleteList();
 
-  CString   m_baseDirectory;
-  CString   m_testDirectory;
-  CString   m_testStep;
+  XString   m_baseDirectory;
+  XString   m_testDirectory;
+  XString   m_testStep;
   bool      m_interface { false };
-  CString   m_error;
+  XString   m_error;
   FileList  m_toBeDeleted;
 };
 

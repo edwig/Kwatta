@@ -33,7 +33,7 @@ public:
   void SetUse(bool p_use);
   bool GetUse() { return m_use; };
 
-//  CString AsCDataNode();
+//  XString AsCDataNode();
 
 private:
   bool         m_use    { false   };

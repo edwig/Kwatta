@@ -325,10 +325,10 @@ AuthenticateDlg::IsFilled()
 void 
 AuthenticateDlg::StoreVariables()
 {
-  m_testStep->SetAuthType(m_authType);
+  m_testStep->SetAuthType(m_authType.GetString());
   m_testStep->SetAuthUser(m_userName);
   m_testStep->SetAuthPassword(m_password);
-  m_testStep->SetAuthGrant(m_oauthGrant);
+  m_testStep->SetAuthGrant(m_oauthGrant.GetString());
   m_testStep->SetAuthTokenServer(m_tokenServer);
   m_testStep->SetAuthClientID(m_clientID);
   m_testStep->SetAuthClientKey(m_clientKey);
@@ -339,7 +339,7 @@ AuthenticateDlg::StoreVariables()
 }
 
 void 
-AuthenticateDlg::SetResult(CString p_token)
+AuthenticateDlg::SetResult(XString p_token)
 {
   if(!p_token.IsEmpty() && p_token.Compare(m_bearerToken))
   {
@@ -378,7 +378,7 @@ AuthenticateDlg::EffectiveParameters()
 CredType
 AuthenticateDlg::CalcAuthenticationType()
 {
-  return Credentials::StringToCredType(m_authType);
+  return Credentials::StringToCredType(m_authType.GetString());
 }
 
 void 
@@ -430,7 +430,7 @@ AuthenticateDlg::ChooseVariable(StyleEdit& p_edit)
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     p_edit.InsertAtCurPos(variable,0);
     UpdateData();
   }
@@ -448,23 +448,25 @@ AuthenticateDlg::SaveCredentials()
   {
     return;
   }
-  Credential* cred = m_credentials->FindCredential(m_identifier);
+  XString identifier(m_identifier);
+  Credential* cred = m_credentials->FindCredential(identifier);
   if(cred)
   {
-    m_credentials->DeleteCredentials(m_identifier);
+    m_credentials->DeleteCredentials(identifier);
   }
 
   CredType type = CalcAuthenticationType();
+
   switch(type)
   {
-    case CredType::BASIC:    m_credentials->SetBasicCredential(m_identifier,m_userName,m_password);
+    case CredType::BASIC:    m_credentials->SetBasicCredential(identifier,m_userName,m_password);
                              break;
     case CredType::NTLM:     [[fallthrough]];
-    case CredType::NTLM_SSO: m_credentials->SetWNTLMCredential(m_identifier,m_userName,m_password);
+    case CredType::NTLM_SSO: m_credentials->SetWNTLMCredential(identifier,m_userName,m_password);
                              break;
-    case CredType::OAUTH2:   m_credentials->SetOAuthCredential(m_identifier,m_oauthGrant,m_tokenServer,m_clientID,m_clientKey,m_clientScope);
+    case CredType::OAUTH2:   m_credentials->SetOAuthCredential(identifier,m_oauthGrant.GetString(),m_tokenServer,m_clientID,m_clientKey,m_clientScope);
                              break;
-    case CredType::HEADER:   m_credentials->SetKeyHdCredential(m_identifier,m_keyHeader,m_keyValue);
+    case CredType::HEADER:   m_credentials->SetKeyHdCredential(identifier,m_keyHeader,m_keyValue);
                              break;
   }
 }
@@ -476,12 +478,13 @@ AuthenticateDlg::DeleteCredentials()
   {
     return;
   }
-  Credential* cred = m_credentials->FindCredential(m_identifier);
+  XString identifier(m_identifier);
+  Credential* cred = m_credentials->FindCredential(identifier);
   if(cred)
   {
     if(StyleMessageBox(this,_T("Do you want to delete the credential set: ") + m_identifier,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
     {
-      m_credentials->DeleteCredentials(m_identifier);
+      m_credentials->DeleteCredentials(identifier);
       int ind = m_comboIdentifier.FindStringExact(0,m_identifier);
       if(ind >= 0)
       {
@@ -509,7 +512,7 @@ AuthenticateDlg::DeleteCredentials()
 void
 AuthenticateDlg::SetCredentials()
 {
-  Credential* cred = m_credentials->FindCredential(m_identifier);
+  Credential* cred = m_credentials->FindCredential(m_identifier.GetString());
   if(cred == nullptr)
   {
     return;
@@ -587,7 +590,7 @@ AuthenticateDlg::AdjustUPHVfields()
 void
 AuthenticateDlg::OnCbnSelchangeIdentifier()
 {
-  CString identifier(m_identifier);
+  XString identifier(m_identifier);
   UpdateData();
 
   if(identifier.IsEmpty() && !m_identifier.IsEmpty() &&
@@ -603,7 +606,7 @@ AuthenticateDlg::OnCbnSelchangeIdentifier()
     }
   }
   // Remember it in the test step
-  m_testStep->SetCredential(m_identifier);
+  m_testStep->SetCredential(m_identifier.GetString());
 
   // Show the new set
   SetCredentials();

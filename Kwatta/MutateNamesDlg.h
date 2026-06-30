@@ -28,12 +28,12 @@ class MutateNamesDlg : public StyleDialog
 	DECLARE_DYNAMIC(MutateNamesDlg)
 
 public:
-	MutateNamesDlg(CWnd* p_parent,CString p_directory,CString p_filename);
+	MutateNamesDlg(CWnd* p_parent,XString p_directory,XString p_filename);
 	virtual ~MutateNamesDlg();
 
-  CString GetDirectory() { return m_origDirectory; }
-  CString GetFilename()  { return m_origFilename;  }
-  CString GetTestname()  { return m_testName;      }
+  XString GetDirectory() { return m_origDirectory; }
+  XString GetFilename()  { return m_origFilename;  }
+  XString GetTestname()  { return m_testName;      }
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -47,11 +47,11 @@ protected:
           bool CheckFilename();
           void SetTestName();
 
-  CString     m_origDirectory;
-  CString     m_newDirectory;
-  CString     m_origFilename;
-  CString     m_newFilename;
-  CString     m_testName;
+  XString     m_origDirectory;
+  XString     m_newDirectory;
+  XString     m_origFilename;
+  XString     m_newFilename;
+  XString     m_testName;
 
   StyleEdit   m_editOrigDirectory;
   StyleEdit   m_editNewDirectory;

@@ -49,19 +49,19 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
-  CString m_effectiveRuntimer;
-  CString m_effectiveCommandline;
+  XString m_effectiveRuntimer;
+  XString m_effectiveCommandline;
   int     m_startWindow       { 0 };
   bool    m_waitForIdle       { false };
   int     m_handleEnvironment { 0 };
   bool    m_killOnTimeout     { false };
-  CString m_waitBeforeRun;
-  CString m_waitAfterRun;
-  CString m_maxExecution;
-  CString m_effectiveBefore;
-  CString m_effectiveExec;
-  CString m_effectiveAfter;
-  CString m_charset;
+  XString m_waitBeforeRun;
+  XString m_waitAfterRun;
+  XString m_maxExecution;
+  XString m_effectiveBefore;
+  XString m_effectiveExec;
+  XString m_effectiveAfter;
+  XString m_charset;
 
   TestStepCMD*   m_step       { nullptr };
   Parameters*   m_parameters { nullptr };

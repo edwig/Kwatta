@@ -61,7 +61,7 @@ protected:
   void InitGlobalParameters();
   void InitParameters();
   void InitCredentials();
-  void ReadParameters(CString p_file, bool p_global = true);
+  void ReadParameters(XString p_file, bool p_global = true);
   bool SaveStep();
   void StoreVariables();
   void StoreCredentials();
@@ -69,9 +69,9 @@ protected:
   void LoadVariablesTabs();
   void Redraw();
 
-  CString           m_name;
-  CString           m_comment;
-  CString           m_bound;
+  XString           m_name;
+  XString           m_comment;
+  XString           m_bound;
 
   StyleEdit         m_editName;
   StyleButton       m_buttonGlobal;

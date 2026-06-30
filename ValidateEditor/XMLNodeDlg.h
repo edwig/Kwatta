@@ -52,10 +52,10 @@ protected:
 
   bool           m_useXML;
   BufferOperator m_xmlOperator;
-  CString        m_xmlPath;
-  CString        m_expectedXML;
-  CString        m_effectiveXML;
-  CString        m_xmlVariable;
+  XString        m_xmlPath;
+  XString        m_expectedXML;
+  XString        m_effectiveXML;
+  XString        m_xmlVariable;
 
   StyleEdit      m_editXmlPath;
   StyleEdit      m_editExpected;

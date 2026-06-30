@@ -24,15 +24,15 @@ public:
   Array(QLvm* p_vm,int p_size);
  ~Array();
 
-  MemObject*   FindEntry(CString p_name);
-  MemObject*   FindEntry(CString p_name,int& p_entryNum);
+  MemObject*   FindEntry(XString p_name);
+  MemObject*   FindEntry(XString p_name,int& p_entryNum);
   int          FindEntry(MemObject* p_object);
-  MemObject*   FindFuncEntry(CString p_name);
-  int          FindStringEntry(CString p_name);
+  MemObject*   FindFuncEntry(XString p_name);
+  int          FindStringEntry(XString p_name);
   int          FindIntegerEntry(int p_value);
 
   // Add an array member (all datamembers)
-  MemObject*   AddEntry(QLvm* p_vm,CString p_string);
+  MemObject*   AddEntry(QLvm* p_vm,XString p_string);
   MemObject*   AddEntry(QLvm* p_vm,int     p_integer);
   MemObject*   AddEntry(MemObject* p_memob);
   MemObject*   AddEntryOfType(QLvm* p_vm,int p_type);
@@ -52,21 +52,21 @@ class Function
 {
 public:
   Function();
-  Function(CString p_name);
+  Function(XString p_name);
  ~Function();
 
   // Operations
   void        AddArgument(int p_type);
-  void        AddLiteral(QLvm* p_vm,CString p_literal);
+  void        AddLiteral(QLvm* p_vm,XString p_literal);
   void        AddLiteral(QLvm* p_vm,MemObject* p_object);
   void        SetBytecode(BYTE* p_bytecode,unsigned p_size);
-  void        SetName(CString p_name);
+  void        SetName(XString p_name);
   void        SetClass(Class* p_class);
   void        SetWriting(bool p_writing);
 
   // Getters
-  CString     GetName();
-  CString     GetFullName();
+  XString     GetName();
+  XString     GetFullName();
   Class*      GetClass();
   int         GetArgument(int p_arg);
   int         GetNumberOfArguments();
@@ -74,7 +74,7 @@ public:
   int         GetBytecodeSize();
   bool        GetWriting();
   MemObject*  GetLiteral      (unsigned p_number);
-  CString     GetLiteralString(unsigned p_number);
+  XString     GetLiteralString(unsigned p_number);
   Array*      GetLiterals();
   int         GetLiteralsSize();
   ArgTypes&   GetArgumentTypes();
@@ -87,7 +87,7 @@ public:
   void        Mark(QLvm* p_vm);
 private:
   Class*      m_class;
-  CString     m_name;
+  XString     m_name;
   ArgTypes    m_arguments;
   int         m_bytecode_size;
   BYTE*       m_bytecode;
@@ -99,29 +99,29 @@ private:
 class Class
 {
 public:
-  Class(CString p_name);
-  Class(CString p_name,Class* p_base);
+  Class(XString p_name);
+  Class(XString p_name,Class* p_base);
  ~Class();
 
   // Add members
-  MemObject*  AddDataMember    (QLvm* p_vm,CString p_name,int p_storage);
-  MemObject*  AddFunctionMember(QLvm* p_vm,CString p_name,int p_storage);
+  MemObject*  AddDataMember    (QLvm* p_vm,XString p_name,int p_storage);
+  MemObject*  AddFunctionMember(QLvm* p_vm,XString p_name,int p_storage);
 
   // Find Operations
-  MemObject*  FindMember(CString p_name);
-  MemObject*  FindFuncMember(CString p_name);
-  MemObject*  FindDataMember(CString p_name);
-  MemObject*  RecursiveFindMember(CString p_name);
-  MemObject*  RecursiveFindFuncMember(CString p_name);
-  MemObject*  RecursiveFindDataMember(CString p_name);
-  MemObject*  RecursiveFindDataMember(CString p_name,int& p_entryNum);
+  MemObject*  FindMember(XString p_name);
+  MemObject*  FindFuncMember(XString p_name);
+  MemObject*  FindDataMember(XString p_name);
+  MemObject*  RecursiveFindMember(XString p_name);
+  MemObject*  RecursiveFindFuncMember(XString p_name);
+  MemObject*  RecursiveFindDataMember(XString p_name);
+  MemObject*  RecursiveFindDataMember(XString p_name,int& p_entryNum);
 
   // Setters
-  void        SetName(CString p_name);
+  void        SetName(XString p_name);
   void        SetSize(unsigned p_size);
   void        SetBaseClass(Class* p_base);
   // Getters
-  CString     GetName();
+  XString     GetName();
   Class*      GetBaseClass();
   Array&      GetMembers();
   Array&      GetAttributes();
@@ -130,7 +130,7 @@ public:
   void        Mark(QLvm* p_vm);
 
 private:
-  CString     m_name;         // Our class name
+  XString     m_name;         // Our class name
   Class*      m_base;         // Pointer to the base class
   Array       m_members;      // Member functions
   unsigned    m_size;         // Size of attributes, including baseclass attributes

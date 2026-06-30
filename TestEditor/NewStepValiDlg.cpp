@@ -97,7 +97,7 @@ NewStepValiDlg::CheckStyleTab(void* p_data)
 {
   if(m_valiName.IsEmpty() || m_valiFile.IsEmpty())
   {
-    CString error(_T("Fill in both a validation name and a valid file name for the validation!"));
+    XString error(_T("Fill in both a validation name and a valid file name for the validation!"));
     if(m_valiName.IsEmpty())
     {
       m_editName.SetErrorState(true,error);
@@ -135,8 +135,8 @@ NewStepValiDlg::PresetFilenames()
 void
 NewStepValiDlg::CheckValiFile()
 {
-  CString path = theApp.GetTestDirectory();
-  CString file(StripExtension(m_valiFile));
+  XString path = theApp.GetTestDirectory();
+  XString file(StripExtension(m_valiFile));
   if(file.IsEmpty())
   {
     return;
@@ -162,8 +162,8 @@ NewStepValiDlg::CheckValiFile()
   UpdateData(FALSE);
 }
 
-CString
-NewStepValiDlg::StripExtension(CString p_filename)
+XString
+NewStepValiDlg::StripExtension(XString p_filename)
 {
   int pos = p_filename.ReverseFind('.');
   if(pos > 0)

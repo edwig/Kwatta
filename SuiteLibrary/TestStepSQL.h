@@ -29,44 +29,44 @@ public:
   virtual ~TestStepSQL() = default;
 
   // Interface with the file system
-  virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error
-  virtual bool    WriteToXML(CString p_filename) override;
+  virtual void    ReadFromXML(XString p_filename) override;  // Throws in case of an error
+  virtual bool    WriteToXML(XString p_filename) override;
   // RE-Calculate the effective strings, returning the number of unbound parameters
   virtual int     EffectiveReplacements(Parameters* p_parameters, bool p_forDisplay);
   // Check our filenames extension
-  virtual void    CheckFilename(CString p_filename);
+  virtual void    CheckFilename(XString p_filename);
   // Reset effective parameter replacements
   virtual void    ResetEffective();
 
   // SETTERS
-  void            SetDatasource(CString p_source)     { m_datasource = p_source;      }
-  void            SetUser(CString p_user)             { m_user       = p_user;        }
-  void            SetPassword(CString p_password)     { m_password   = p_password;    }
-  void            SetSQL(CString p_sql)               { m_sql        = p_sql;         }
-  void            SetCredential(CString p_credential);
+  void            SetDatasource(XString p_source)     { m_datasource = p_source;      }
+  void            SetUser(XString p_user)             { m_user       = p_user;        }
+  void            SetPassword(XString p_password)     { m_password   = p_password;    }
+  void            SetSQL(XString p_sql)               { m_sql        = p_sql;         }
+  void            SetCredential(XString p_credential);
 
   // GETTERS
-  CString         GetDataSource()                     { return m_datasource;          }
-  CString         GetUser()                           { return m_user;                }
-  CString         GetPassword()                       { return m_password;            }
-  CString         GetSQL()                            { return m_sql;                 }
-  CString         GetEffectiveDatasource()            { return m_effectiveDatasource; }
-  CString         GetEffectiveUser()                  { return m_effectiveUser;       }
-  CString         GetEffectivePassword()              { return m_effectivePassword;   }
-  CString         GetEffectiveSQL()                   { return m_effectiveSQL;        }
-  CString         GetCredential()                     { return m_credential;          }
+  XString         GetDataSource()                     { return m_datasource;          }
+  XString         GetUser()                           { return m_user;                }
+  XString         GetPassword()                       { return m_password;            }
+  XString         GetSQL()                            { return m_sql;                 }
+  XString         GetEffectiveDatasource()            { return m_effectiveDatasource; }
+  XString         GetEffectiveUser()                  { return m_effectiveUser;       }
+  XString         GetEffectivePassword()              { return m_effectivePassword;   }
+  XString         GetEffectiveSQL()                   { return m_effectiveSQL;        }
+  XString         GetCredential()                     { return m_credential;          }
 
 protected:
   // Credential template
-  CString         m_credential;
+  XString         m_credential;
   // Credentials
-  CString         m_datasource;
-  CString         m_user;
-  CString         m_password;
-  CString         m_sql;
+  XString         m_datasource;
+  XString         m_user;
+  XString         m_password;
+  XString         m_sql;
   // Effective after parameter replacement
-  CString         m_effectiveDatasource;
-  CString         m_effectiveUser;
-  CString         m_effectivePassword;
-  CString         m_effectiveSQL;
+  XString         m_effectiveDatasource;
+  XString         m_effectiveUser;
+  XString         m_effectivePassword;
+  XString         m_effectiveSQL;
 };

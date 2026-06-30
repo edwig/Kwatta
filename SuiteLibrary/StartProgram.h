@@ -24,8 +24,8 @@
 #define MAX_COMMANDLINE 8192
 
 int
-StartProgram(CString p_program
-            ,CString p_arguments
+StartProgram(XString p_program
+            ,XString p_arguments
             ,bool    p_currentdir
             ,bool    p_waitForIdle
             ,bool    p_waitForExit

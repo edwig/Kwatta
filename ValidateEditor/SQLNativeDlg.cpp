@@ -241,7 +241,7 @@ SQLNativeDlg::OnCbnSelchangeNativeVariable()
   int ind = m_comboVariable.GetCurSel();
   if(ind >= 0)
   {
-    CString var;
+    XString var;
     m_comboVariable.GetLBText(ind,var);
     m_nativeErrorVariable = var;
   }
@@ -254,7 +254,7 @@ SQLNativeDlg::OnBnClickedNewvar()
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {
-    CString newvar = dlg.GetNewName();
+    XString newvar = dlg.GetNewName();
     if(!newvar.IsEmpty())
     {
       m_nativeErrorVariable = newvar;

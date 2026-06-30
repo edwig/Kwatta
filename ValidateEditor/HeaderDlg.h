@@ -52,10 +52,10 @@ protected:
 
   bool           m_useHeaderValue;
   BufferOperator m_headerOperator;
-  CString        m_headerName;
-  CString        m_expectedHeader;
-  CString        m_effectiveHeader;
-  CString        m_headerVariable;
+  XString        m_headerName;
+  XString        m_expectedHeader;
+  XString        m_effectiveHeader;
+  XString        m_headerVariable;
 
   StyleEdit      m_editHeaderName;
   StyleEdit      m_editExpected;

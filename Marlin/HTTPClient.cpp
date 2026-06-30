@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "StdAfx.h"
+#include "pch.h"
 #include "HTTPClient.h"
 #include "CrackURL.h"
 #include "GetLastErrorAsString.h"
@@ -54,14 +54,6 @@
 #define SECURITY_WIN32
 #endif
 #include <Security.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 // Logging macro's
 #undef  DETAILLOG
@@ -415,7 +407,7 @@ HTTPClient::Initialize()
   // Prepare a tracing agent
   if(MUSTLOG(HLL_LOGBODY) && !m_trace && m_log)
   {
-    m_trace = new HTTPClientTracing(this);
+    m_trace = alloc_new HTTPClientTracing(this);
   }
   // Ready initializing
   // Logging and tracing now initialized
@@ -710,7 +702,7 @@ HTTPClient::InitSecurity()
 }
 
 void
-HTTPClient::ReplaceSetting(XString* m_setting,XString p_potential)
+HTTPClient::ReplaceSetting(XString* m_setting,const XString& p_potential)
 {
   if(p_potential.IsEmpty())
   {
@@ -735,7 +727,7 @@ HTTPClient::ReplaceSetting(XString* m_setting,XString p_potential)
 }
 
 bool
-HTTPClient::SetURL(XString p_url)
+HTTPClient::SetURL(const XString& p_url)
 {
   // Keep the complete URL
   m_url = p_url;
@@ -759,7 +751,7 @@ HTTPClient::SetURL(XString p_url)
 
 // Add extra header for the call
 bool 
-HTTPClient::AddHeader(XString p_header)
+HTTPClient::AddHeader(const XString& p_header)
 {
   int pos = p_header.Find(':');
   if (pos > 0)
@@ -775,7 +767,7 @@ HTTPClient::AddHeader(XString p_header)
 
 // Add extra header by name and value pair
 void
-HTTPClient::AddHeader(XString p_name,XString p_value)
+HTTPClient::AddHeader(const XString& p_name,const XString& p_value)
 {
   // Case-insensitive search!
   HeaderMap::iterator it = m_requestHeaders.find(p_name);
@@ -805,7 +797,7 @@ HTTPClient::AddHeader(XString p_name,XString p_value)
 
 // Delete a header
 bool 
-HTTPClient::DelHeader(XString p_name)
+HTTPClient::DelHeader(const XString& p_name)
 {
   HeaderMap::iterator it = m_requestHeaders.find(p_name);
   if(it != m_requestHeaders.end())
@@ -818,14 +810,14 @@ HTTPClient::DelHeader(XString p_name)
 
 // Add extra cookie for the call
 bool 
-HTTPClient::AddCookie(XString p_cookie)
+HTTPClient::AddCookie(const XString& p_cookie)
 {
   m_cookies.AddCookie(p_cookie);
   return true;
 }
 
 bool
-HTTPClient::SetBody(const XString& p_body,const XString p_charset /*=_T("utf-8")*/)
+HTTPClient::SetBody(const XString& p_body,const XString& p_charset /*=_T("utf-8")*/)
 {
   ResetBody();
 
@@ -833,7 +825,7 @@ HTTPClient::SetBody(const XString& p_body,const XString p_charset /*=_T("utf-8")
   if(p_charset.Compare(_T("utf-16")) == 0)
   {
     m_bodyLength = p_body.GetLength() * sizeof(TCHAR);
-    m_requestBody = new BYTE[m_bodyLength + 2];
+    m_requestBody = alloc_new BYTE[m_bodyLength + 2];
     memcpy(m_requestBody,p_body.GetString(),m_bodyLength);
     m_requestBody[m_bodyLength    ] = 0;
     m_requestBody[m_bodyLength + 1] = 0;
@@ -865,12 +857,12 @@ HTTPClient::SetBody(const XString& p_body,const XString p_charset /*=_T("utf-8")
     }
     body = EncodeStringForTheWire(p_body.GetString(),p_charset);
   }
-  m_requestBody = new BYTE[body.GetLength() + 1];
+  m_requestBody = alloc_new BYTE[body.GetLength() + 1];
   m_bodyLength  = body.GetLength();
   memcpy(m_requestBody,body.GetString(),m_bodyLength);
   m_requestBody[m_bodyLength] = 0;
-#endif
   return true;
+#endif
 }
 
 void 
@@ -879,7 +871,7 @@ HTTPClient::SetBody(const void* p_body,unsigned p_length)
   ResetBody();
 
   m_bodyLength  = p_length;
-  m_requestBody = new BYTE[p_length + 1];
+  m_requestBody = alloc_new BYTE[p_length + 1];
   memcpy(m_requestBody,p_body,p_length);
   m_requestBody[m_bodyLength] = 0;
 };
@@ -1315,7 +1307,7 @@ HTTPClient::GetResultHeader(DWORD p_header,DWORD p_index)
 
   if(bResult || ::GetLastError() == ERROR_INSUFFICIENT_BUFFER)
   {
-    wchar_t* szValue = new wchar_t[dwSize];
+    wchar_t* szValue = alloc_new wchar_t[dwSize];
     if (szValue != NULL)
     {
       memset(szValue, 0, dwSize* sizeof(wchar_t));
@@ -1623,7 +1615,7 @@ HTTPClient::SendBodyData()
     {
       // PART 4: SEND FROM A FILE
       // FILE MUST BE OPENED TO SEND FROM
-      BYTE* buffer = new BYTE[INT_BUFFERSIZE + 1];
+      BYTE* buffer = alloc_new BYTE[INT_BUFFERSIZE + 1];
       DWORD dwSize = 0;
       DWORD dwRead = 0;
 
@@ -1734,7 +1726,7 @@ HTTPClient::ReceiveResponseDataFile()
     {
       if(dwSize)
       {
-        BYTE* response = new BYTE[(size_t)dwSize + 2];
+        BYTE* response = alloc_new BYTE[(size_t)dwSize + 2];
         memset(response,0,((size_t)dwSize + 1) * sizeof(BYTE));
         DWORD dwRead = 0;
         if(WinHttpReadData(m_request,response,dwSize,&dwRead))
@@ -1782,7 +1774,7 @@ HTTPClient::ReceiveResponseDataBuffer()
     {
       if(dwSize)
       {
-        BYTE* response = new BYTE[(size_t)dwSize + 2];
+        BYTE* response = alloc_new BYTE[(size_t)dwSize + 2];
         memset(response, 0,(size_t)dwSize + 2);
         DWORD dwRead = 0;
         if (::WinHttpReadData(m_request,
@@ -1793,7 +1785,7 @@ HTTPClient::ReceiveResponseDataBuffer()
           DETAILLOG(_T("Reading response data block. Size: %d"),dwRead);
           if(m_response)
           {
-            BYTE* newResponse = new BYTE[(size_t)m_responseLength + (size_t)dwRead + 2];
+            BYTE* newResponse = alloc_new BYTE[(size_t)m_responseLength + (size_t)dwRead + 2];
             memcpy(newResponse,m_response,m_responseLength);
             memcpy(&newResponse[m_responseLength],response,dwRead);
             delete [] response;
@@ -1869,7 +1861,7 @@ HTTPClient::ReceivePushEvents()
   // Give open signal to event source
   if(m_eventSource->GetReadyState() == CONNECTING)
   {
-    m_eventSource->OnOpen(new ServerEvent(_T("open")));
+    m_eventSource->OnOpen(alloc_new ServerEvent(_T("open")));
     // Event source should now be in 'OPEN' ready state
   }
 
@@ -1888,7 +1880,7 @@ HTTPClient::ReceivePushEvents()
         ErrorLog(_T(__FUNCTION__),_T("Server closed event-stream prematurely. Error [%d] %s"));
         break;
       }
-      BYTE* response = new BYTE[(size_t)dwSize + 2];
+      BYTE* response = alloc_new BYTE[(size_t)dwSize + 2];
       if(response == NULL)
       {
         ERRORLOG(_T("Out of memory"));
@@ -1910,7 +1902,7 @@ HTTPClient::ReceivePushEvents()
         if(m_response)
         {
           // Append to a previous response (not parsed!)
-          BYTE* newResponse = new BYTE[(size_t)m_responseLength + (size_t)dwRead + 2];
+          BYTE* newResponse = alloc_new BYTE[(size_t)m_responseLength + (size_t)dwRead + 2];
           memcpy(newResponse,m_response,m_responseLength);
           memcpy(&newResponse[m_responseLength],response,dwRead);
           delete [] response;
@@ -1991,7 +1983,7 @@ HTTPClient::ReceivePushEvents()
         DETAILLOG(_T("Server close event-stream properly with HTTP 204."));
         if(m_eventSource->GetReadyState() == OPEN)
         {
-          ServerEvent* event = new ServerEvent(_T("close"));
+          ServerEvent* event = alloc_new ServerEvent(_T("close"));
           m_eventSource->OnClose(event);
         }
         return;
@@ -2019,7 +2011,7 @@ HTTPClient::ReceivePushEvents()
       }
 
       // Make error event and dispatch it
-      ServerEvent* event = new ServerEvent(_T("error"));
+      ServerEvent* event = alloc_new ServerEvent(_T("error"));
       event->m_data.Format(_T("OS Error [%lu:%s] HTTP Status [%u] %s"),er,message.GetString(),m_status,GetHTTPStatusText(m_status));
       ERRORLOG(event->m_data);
       m_eventSource->OnError(event);
@@ -2061,7 +2053,7 @@ HTTPClient::Send(const XString& p_url)
 
 // Send HTTP + body to an URL
 bool
-HTTPClient::Send(XString& p_url,XString& p_body)
+HTTPClient::Send(const XString& p_url,const XString& p_body)
 {
   AutoCritSec lock(&m_sendSection);
 
@@ -2326,7 +2318,7 @@ HTTPClient::Send(SOAPMessage* p_msg)
         soapAction = namesp + soapAction;
       }
     }
-    if(soapAction[0] != '\"' && soapAction.Find(':') >= 0)
+    if(soapAction.GetAt(0) != _T('\"') && soapAction.Find(':') >= 0)
     {
       soapAction = _T("\"") + soapAction + _T("\"");
     }
@@ -2405,7 +2397,7 @@ HTTPClient::Send(SOAPMessage* p_msg)
       }
       if(m_response)
       {
-        response += XString(m_response);
+        response += XString((LPCTSTR)m_response);
       }
       ReCreateAsSOAPFault(p_msg,oldVersion,response);
     }
@@ -2650,13 +2642,13 @@ HTTPClient::SendAsJSON(SOAPMessage* p_msg)
 }
 
 EventSource*
-HTTPClient::CreateEventSource(XString p_url)
+HTTPClient::CreateEventSource(const XString& p_url)
 {
   if(m_eventSource)
   {
     delete m_eventSource;
   }
-  return (m_eventSource = new EventSource(this,p_url));
+  return (m_eventSource = alloc_new EventSource(this,p_url));
 }
 
 // Start server push-event stream on this url
@@ -3123,7 +3115,7 @@ HTTPClient::Send()
       m_responseLength = (unsigned int) out_data.size();
 
       delete [] m_response;
-      m_response = new BYTE[(size_t)m_responseLength + 1];
+      m_response = alloc_new BYTE[(size_t)m_responseLength + 1];
       for(size_t ind = 0; ind < m_responseLength; ++ind)
       {
         m_response[ind] = out_data[ind];
@@ -3170,7 +3162,7 @@ HTTPClient::Send()
 
 // Logging the essential sending parameters of the HTTP call
 void
-HTTPClient::LogTheSend(wstring& p_server,int p_port)
+HTTPClient::LogTheSend(const wstring& p_server,int p_port)
 {
   // See if we have anything to do
   if(m_log == nullptr || m_logLevel < HLL_LOGGING)
@@ -3182,7 +3174,7 @@ HTTPClient::LogTheSend(wstring& p_server,int p_port)
 
 
   // Find secure call
-  XString secure = m_secure && m_scheme.Right(1) != _T('s') ? _T("s") : _T("");
+  XString secure = m_secure && m_scheme.Right(1) != _T("s") ? _T("s") : _T("");
 
   // Log in full, do the raw logging call directly
   m_log->AnalysisLog(_T("HTTPClient::Send"),LogType::LOG_INFO,true
@@ -3215,7 +3207,7 @@ HTTPClient::TraceTheSend()
   {
     if(!m_trace)
     {
-      m_trace = new HTTPClientTracing(this);
+      m_trace = alloc_new HTTPClientTracing(this);
     }
     m_trace->Trace(_T("BEFORE SENDING"),m_session,m_request);
   }
@@ -3490,7 +3482,7 @@ HTTPClient::ReadHeaderField(int p_header)
 
   if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
   {
-    WCHAR* buffer = new WCHAR[(size_t)dwSize + 1];
+    WCHAR* buffer = alloc_new WCHAR[(size_t)dwSize + 1];
     if(buffer)
     {
       if (::WinHttpQueryHeaders(m_request,
@@ -3534,7 +3526,7 @@ HTTPClient::ReadAllResponseHeaders()
 
   if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
   {
-    WCHAR* buffer = new WCHAR[dwSize];
+    WCHAR* buffer = alloc_new WCHAR[dwSize];
     if(buffer)
     {
       if(::WinHttpQueryHeaders(m_request
@@ -3581,7 +3573,7 @@ HTTPClient::ReadAllResponseHeaders()
 }
 
 XString  
-HTTPClient::FindHeader(XString p_header)
+HTTPClient::FindHeader(const XString& p_header)
 {
   // Case insensitive find
   HeaderMap::iterator it = m_responseHeaders.find(p_header);
@@ -3607,7 +3599,7 @@ HTTPClient::AddMessageHeaders(HTTPMessage* p_message)
 
   // Copy headers in different format
   XString header;
-  HeaderMap* allheaders = p_message->GetHeaderMap();
+  HeaderMap* allheaders = const_cast<HeaderMap*>(p_message->GetHeaderMap());
   for(HeaderMap::iterator it = allheaders->begin(); it != allheaders->end(); ++it)
   {
     AddHeader(it->first,it->second);
@@ -3732,26 +3724,26 @@ HTTPClient::SetCORSPreFlight(const XString& p_method,const XString& p_headers)
 }
 
 void
-HTTPClient::ReCreateAsSOAPFault(SOAPMessage* p_msg,SoapVersion p_version,XString p_response)
+HTTPClient::ReCreateAsSOAPFault(SOAPMessage* p_msg,SoapVersion p_version,const XString& p_response)
 {
   p_msg->SetSoapVersion(p_version);
   p_msg->Reset();
 
-  XMLElement* fault = p_msg->AddElement(p_msg->GetXMLBodyPart(),_T("Fault"),XDT_String,_T(""));
+  XMLElement* fault = p_msg->AddElement(p_msg->GetXMLBodyPart(),_T("Fault"),_T(""));
   if(p_version == SoapVersion::SOAP_12)
   {
     // SOAP 1.2
-    XMLElement* fcode = p_msg->AddElement(fault,_T("Code"),  XDT_String,_T(""));
-                        p_msg->AddElement(fcode,_T("Value"), XDT_String,_T("Client"));
-    XMLElement* reasn = p_msg->AddElement(fault,_T("Reason"),XDT_String,_T(""));
-                        p_msg->AddElement(reasn,_T("Text"),  XDT_String,p_response);
+    XMLElement* fcode = p_msg->AddElement(fault,_T("Code"),  _T(""));
+                        p_msg->AddElement(fcode,_T("Value"), _T("Client"));
+    XMLElement* reasn = p_msg->AddElement(fault,_T("Reason"),_T(""));
+                        p_msg->AddElement(reasn,_T("Text"),  p_response);
   }
   else
   {
     // SOAP 1.1 or less
-    p_msg->AddElement(fault,_T("faultcode"),  XDT_String,_T("Client"));
-    p_msg->AddElement(fault,_T("faultstring"),XDT_String,_T("Send result"));
-    p_msg->AddElement(fault,_T("detail"),     XDT_String,p_response);
+    p_msg->AddElement(fault,_T("faultcode"),  _T("Client"));
+    p_msg->AddElement(fault,_T("faultstring"),_T("Send result"));
+    p_msg->AddElement(fault,_T("detail"),     p_response);
   }
   p_msg->SetFault(_T("Client"),_T("Client"),_T("Send error"),p_response);
 }
@@ -3763,7 +3755,7 @@ HTTPClient::ReCreateAsSOAPFault(SOAPMessage* p_msg,SoapVersion p_version,XString
 //////////////////////////////////////////////////////////////////////////
 
 void
-HTTPClient::CheckAnswerSecurity(SOAPMessage* p_msg,XString p_answer,XMLEncryption p_security,XString p_password)
+HTTPClient::CheckAnswerSecurity(SOAPMessage* p_msg,const XString& p_answer,XMLEncryption p_security,const XString& p_password)
 {
   if(p_security != p_msg->GetSecurityLevel())
   {
@@ -3783,7 +3775,7 @@ HTTPClient::CheckAnswerSecurity(SOAPMessage* p_msg,XString p_answer,XMLEncryptio
 }
 
 void
-HTTPClient::CheckBodySigning(XString p_password,SOAPMessage* p_message)
+HTTPClient::CheckBodySigning(const XString& p_password,SOAPMessage* p_message)
 {
   // Restore password
   p_message->SetSecurityPassword(p_password);
@@ -3858,7 +3850,7 @@ HTTPClient::CheckBodySigning(XString p_password,SOAPMessage* p_message)
 }
 
 void
-HTTPClient::DecodeBodyEncryption(XString p_password,SOAPMessage* p_msg,XString p_answer)
+HTTPClient::DecodeBodyEncryption(const XString& p_password,SOAPMessage* p_msg,const XString& p_answer)
 {
   XString crypt = p_msg->GetSecurityPassword();
   p_msg->SetSecurityPassword(p_password);
@@ -3912,7 +3904,7 @@ HTTPClient::DecodeBodyEncryption(XString p_password,SOAPMessage* p_msg,XString p
 }
 
 void
-HTTPClient::DecodeMesgEncryption(XString p_password,SOAPMessage* p_msg,XString p_answer)
+HTTPClient::DecodeMesgEncryption(const XString& p_password,SOAPMessage* p_msg,const XString& p_answer)
 {
   XString crypt = p_msg->GetSecurityPassword();
   // Restore password for return answer
@@ -4180,11 +4172,11 @@ HTTPClient::ProcessQueueMessage(HTTPMessage* p_message)
 
   if(Send(p_message))
   {
-    DETAILLOG(_T("Did send queued HTTPMessage to: ") + safeURL);
+    DETAILLOG(XString(_T("Did send queued HTTPMessage to: ")) + safeURL);
   }
   else
   {
-    ERRORLOG(_T("Error while sending queued HTTPMessage to: ") + safeURL);
+    ERRORLOG(XString(_T("Error while sending queued HTTPMessage to: ")) + safeURL);
   }
   // End of the line: Remove the queue message
   delete p_message;
@@ -4215,11 +4207,11 @@ HTTPClient::ProcessQueueMessage(JSONMessage* p_message)
 
   if(Send(p_message))
   {
-    DETAILLOG(_T("Did send queued JSONMessage to: ") + safeURL);
+    DETAILLOG(XString(_T("Did send queued JSONMessage to: ")) + safeURL);
   }
   else
   {
-    ERRORLOG(_T("Error while sending queued JSONMessage to: ") + safeURL);
+    ERRORLOG(XString(_T("Error while sending queued JSONMessage to: ")) + safeURL);
   }
   // End of the line: Remove the queue message
   delete p_message;

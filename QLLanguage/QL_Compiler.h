@@ -61,7 +61,7 @@ struct swentry
   int       label;
 };
 
-typedef std::vector<CString> ARGUMENT;
+typedef std::vector<XString> ARGUMENT;
 
 // forward declarations
 class QLDebugger;
@@ -78,8 +78,8 @@ public:
 private:
   // Language parsing methods
   void    do_global_declaration();
-  void    do_function(CString p_name);
-  void    do_regular_function(CString p_name);
+  void    do_function(XString p_name);
+  void    do_regular_function(XString p_name);
   void    do_member_function(Class* p_class);
   void    do_code(Function* p_function);
   void    do_class();
@@ -118,19 +118,19 @@ private:
   void    do_postincrement(PVAL* pv,int op);
   void    do_new(PVAL* pv);
   void    do_delete(PVAL* pv);
-  void    do_send(CString selector,PVAL* pv);
+  void    do_send(XString selector,PVAL* pv);
   void    do_primary(PVAL* pv);
   void    do_call(PVAL* pv);
   void    do_index(PVAL* pv);
   void    do_lit_integer(long n);
-  void    do_lit_string(CString str);
+  void    do_lit_string(XString str);
   void    do_lit_float(bcd fl);
 
-  int       FindDataType(CString p_name);
-  void      FindVariable(CString p_name,PVAL* pv);
-  int       FindClassVariable(Class* p_class,CString p_name,PVAL* pv);
-  MemObject* FindDataMember(CString p_name);
-  Class*    get_class(CString p_name);
+  int       FindDataType(XString p_name);
+  void      FindVariable(XString p_name,PVAL* pv);
+  int       FindClassVariable(Class* p_class,XString p_name,PVAL* pv);
+  MemObject* FindDataMember(XString p_name);
+  Class*    get_class(XString p_name);
   int*      addbreak(int lbl);
   int       rembreak(int* old,int lbl);
   int*      addcontinue(int lbl);
@@ -138,17 +138,17 @@ private:
   void      rvalue(PVAL* pv);
   void      Check_LValue(PVAL* pv);
   int       GetArgumentList(Function* p_function);
-  void      AddArgument (CString p_name);
-  void      AddTemporary(CString p_name);
+  void      AddArgument (XString p_name);
+  void      AddTemporary(XString p_name);
   void      freelist(ARGUMENT* p_list);
-  int       FindArgument(CString p_name);
-  int       FindTemporary(CString p_name);
-  int       AddLiteral(int p_type,MemObject** p_result,CString p_name = _T(""),int p_value = 0);
+  int       FindArgument(XString p_name);
+  int       FindTemporary(XString p_name);
+  int       AddLiteral(int p_type,MemObject** p_result,XString p_name = _T(""),int p_value = 0);
   void      FreeLiterals();
   void      FetchRequireToken(int rtkn);
   void      RequireToken(int tkn,int rtkn);
   int       make_lit_integer(long n);
-  int       make_lit_string(CString p_string);
+  int       make_lit_string(XString p_string);
   int       make_lit_variable(MemObject* p_sym);
   SWENTRY*  AddSwitch();
   void      RemoveSwitch(SWENTRY *old);

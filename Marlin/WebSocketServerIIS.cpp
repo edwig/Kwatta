@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "WebSocketServerIIS.h"
 #include "HTTPServerIIS.h"
 #include "HTTPMessage.h"
@@ -35,14 +35,6 @@
 #include "ConvertWideString.h"
 #include <iiswebsocket.h>
 #include <ServiceReporting.h>
-
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
 
 #define DETAILLOG1(text)          if(MUSTLOG(HLL_LOGGING) && m_logfile) { DetailLog (_T(__FUNCTION__),LogType::LOG_INFO,text); }
 #define DETAILLOGS(text,extra)    if(MUSTLOG(HLL_LOGGING) && m_logfile) { DetailLogS(_T(__FUNCTION__),LogType::LOG_INFO,text,extra); }
@@ -55,8 +47,8 @@ static char THIS_FILE[] = __FILE__;
 //
 //////////////////////////////////////////////////////////////////////////
 
-WebSocketServerIIS::WebSocketServerIIS(XString p_uri)
-  :WebSocket(p_uri)
+WebSocketServerIIS::WebSocketServerIIS(const XString& p_uri)
+                   :WebSocket(p_uri)
 {
 }
 
@@ -176,7 +168,7 @@ WebSocketServerIIS::WriteFragment(BYTE*  p_buffer
   }
 
   // Store the buffer in a WSFrame for asynchronous storage
-  WSFrame* frame  = new WSFrame();
+  WSFrame* frame  = alloc_new WSFrame();
   frame->m_utf8   = (p_opcode == Opcode::SO_UTF8);
   frame->m_length = p_length;
   frame->m_data   = reinterpret_cast<BYTE*>(malloc((size_t)p_length + WS_OVERHEAD));
@@ -397,7 +389,7 @@ WebSocketServerIIS::SocketListener()
 {
   if(!m_reading)
   {
-    m_reading = new WSFrame();
+    m_reading = alloc_new WSFrame();
     m_reading->m_length = 0;
     BYTE* data = reinterpret_cast<BYTE*>(malloc((size_t)m_fragmentsize + WS_OVERHEAD));
     if(data)
@@ -441,7 +433,7 @@ WebSocketServerIIS::SocketListener()
 }
 
 bool
-WebSocketServerIIS::SendCloseSocket(USHORT p_code,XString p_reason)
+WebSocketServerIIS::SendCloseSocket(USHORT p_code,const XString& p_reason)
 {
   int     length  = 0;
   uchar*  buffer  = nullptr;

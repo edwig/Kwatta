@@ -52,9 +52,9 @@ protected:
 
   bool           m_useSucceeded;
   ReturnOperator m_succeededOperator;
-  CString        m_succeeded;
-  CString        m_effectiveSucceeded;
-  CString        m_succeededVariable;
+  XString        m_succeeded;
+  XString        m_effectiveSucceeded;
+  XString        m_succeededVariable;
 
   StyleEdit      m_editSucceeded;
   StyleEdit      m_editEffective;

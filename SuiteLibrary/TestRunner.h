@@ -34,7 +34,7 @@
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
-using ValiSteps = std::vector<CString>;
+using ValiSteps = std::vector<XString>;
 class TestStep;
 class StepResult;
 class LogAnalysis;
@@ -42,10 +42,10 @@ class LogAnalysis;
 class TestRunner
 {
 public:
-  TestRunner(CString    p_baseDirectory
-            ,CString    p_testDirectory
-            ,CString    p_testStepFilename
-            ,CString    p_parametersFilename
+  TestRunner(XString    p_baseDirectory
+            ,XString    p_testDirectory
+            ,XString    p_testStepFilename
+            ,XString    p_parametersFilename
             ,ValiSteps& p_localValidations
             ,ValiSteps& p_globalValidations
             ,HWND       p_consoleHWND
@@ -62,34 +62,34 @@ public:
   virtual void StopTestProgram() = 0;
 
   // GETTERS
-  CString GetEffectiveStepFilename();
+  XString GetEffectiveStepFilename();
   int     GetMaxRunningTime();
 
 protected:
   // General functions
   void ReadParameters();
   void ReadCredentials();
-  void PerformStep(CString p_stepName);
+  void PerformStep(XString p_stepName);
   void PreCommandWaiting();
   void PostCommandWaiting();
-  void WaitingForATimeout(CString p_stepname, int p_milliseconds);
+  void WaitingForATimeout(XString p_stepname, int p_milliseconds);
 
   // Telling it the outside world
-  void  SetTest(CString p_test);
-  void  SetStep(CString p_step);
+  void  SetTest(XString p_test);
+  void  SetStep(XString p_step);
   void  SetProgress(int p_percent);
   void  EndTesting(int p_result);
 
   // QL Scripting
   virtual int   PerformQLScript(int p_result);
   virtual int   CheckStatusOK(int p_returnCode) = 0;
-  virtual void  CreateQLErrorMessage(CString p_error);
+  virtual void  CreateQLErrorMessage(XString p_error);
 
   // General data for a test step
-  CString     m_baseDirectory;
-  CString     m_testDirectory;
-  CString     m_testStepFilename;
-  CString     m_parametersFilename;
+  XString     m_baseDirectory;
+  XString     m_testDirectory;
+  XString     m_testStepFilename;
+  XString     m_parametersFilename;
   ValiSteps   m_localValidations;
   ValiSteps   m_globalValidations;
 

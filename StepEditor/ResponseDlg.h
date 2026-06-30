@@ -48,9 +48,9 @@ protected:
 
   int         m_status { 0 };
   bool        m_errors { false };
-  CString     m_statusText;
-  CString     m_time;
-  CString     m_payload;
+  XString     m_statusText;
+  XString     m_time;
+  XString     m_payload;
 
   StyleEdit   m_editStatus;
   StyleEdit   m_editStatusText;

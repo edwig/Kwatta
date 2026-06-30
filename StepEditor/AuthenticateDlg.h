@@ -36,7 +36,7 @@ public:
   virtual BOOL OnInitDialog() override;
 
   void InitTab(TestStepNET* p_step,Parameters* p_parameters,Credentials* p_credentials);
-  void SetResult(CString p_token);
+  void SetResult(XString p_token);
   void StoreVariables();
   bool IsFilled();
 
@@ -91,16 +91,16 @@ protected:
 
   CString         m_identifier;
   CString         m_authType;
-  CString         m_userName;
-  CString         m_password;
+  XString         m_userName;
+  XString         m_password;
   CString         m_oauthGrant;
-  CString         m_tokenServer;
-  CString         m_clientID;
-  CString         m_clientKey;
-  CString         m_clientScope;
-  CString         m_bearerToken;
-  CString         m_keyHeader;
-  CString         m_keyValue;
+  XString         m_tokenServer;
+  XString         m_clientID;
+  XString         m_clientKey;
+  XString         m_clientScope;
+  XString         m_bearerToken;
+  XString         m_keyHeader;
+  XString         m_keyValue;
 
 	DECLARE_MESSAGE_MAP()
 public:

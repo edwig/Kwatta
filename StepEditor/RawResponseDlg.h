@@ -46,7 +46,7 @@ protected:
   virtual BOOL OnInitDialog() override;
   virtual void SetupDynamicLayout() override;
 
-  CString     m_payload;
+  XString     m_payload;
   StyleEdit   m_editPayload;
   TestStepNET* m_testStep { nullptr };
 

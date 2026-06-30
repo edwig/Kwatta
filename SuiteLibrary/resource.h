@@ -6,13 +6,15 @@
 #define IDC_SAVE                        3
 #define IDI_REMOVE                      136
 #define IDD_SEARCHVAR                   190
-#define IDD_ABOUT                       192
 #define IDI_TESTING                     193
 #define IDI_ADD                         194
 #define IDB_TEST                        196
-#define IDR_MENU                        197
-#define IDD_GLOBALFILE                  201
-#define IDD_NEWVAR                      206
+
+#define IDR_MENU                        200
+#define IDD_ABOUT                       201
+#define IDD_GLOBALFILE                  202
+#define IDD_NEWVAR                      203
+
 #define IDC_NAME                        1000
 #define IDC_CONTEXT                     1001
 #define IDC_VARGRID                     1002
@@ -37,7 +39,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        203
+#define _APS_NEXT_RESOURCE_VALUE        204
 #define _APS_NEXT_COMMAND_VALUE         40011
 #define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           101

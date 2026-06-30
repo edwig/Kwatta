@@ -48,12 +48,12 @@ protected:
 
 // Implementation
 protected:
-  CString m_name;
-  CString m_documentation;
-  CString m_directory;
-  CString m_runtimer;
-  CString m_commandLine;
-  CString m_bound;
+  XString m_name;
+  XString m_documentation;
+  XString m_directory;
+  XString m_runtimer;
+  XString m_commandLine;
+  XString m_bound;
   int     m_unbound { 0 };
   bool    m_busy    { false };
 
@@ -88,7 +88,7 @@ protected:
   void         InitParameters();
   void         InitGlobalParameters();
   void         InitControls();
-  void         ReadParameters(CString p_file,bool p_global = true);
+  void         ReadParameters(XString p_file,bool p_global = true);
   void         LoadVariables();
   void         LoadVariablesTabs();
   void         StoreVariables();

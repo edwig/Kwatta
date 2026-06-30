@@ -58,9 +58,9 @@ protected:
   void         StoreVariables();
   void         SetFirstUsedTab();
 
-  CString      m_name;
-  CString      m_documentation;
-  CString      m_bound;
+  XString      m_name;
+  XString      m_documentation;
+  XString      m_bound;
 
   StyleEdit    m_editName;
   StyleButton  m_buttonGlobal;

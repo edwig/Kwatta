@@ -28,8 +28,8 @@ class LoadTestDlg : public StyleDialog
 
 public:
   LoadTestDlg(CWnd*     p_parent
-             ,CString   p_name
-             ,CString   p_filename
+             ,XString   p_name
+             ,XString   p_filename
              ,bool      p_global
              ,TSValSet* p_valset
              ,HWND      p_report
@@ -43,8 +43,8 @@ private:
   void SetTotal();
 
   // Test to run
-  CString   m_name;
-  CString   m_testfilename;
+  XString   m_name;
+  XString   m_testfilename;
   bool      m_global;
   TSValSet* m_validationSet;
   HWND      m_reportTo;

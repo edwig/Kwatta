@@ -55,7 +55,7 @@ Credentials::ReadFromXML(XString p_filename)
   // CHeck for XML error
   if(msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in credentials file [%d] %s"),msg.GetInternalError(),msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -181,17 +181,17 @@ Credentials::WriteToXML()
       Crypto crypt;
       headerValue = crypt.Encryption(headerValue,_T(KWATTA_ENCRYPT));
     }
-    msg.AddElement(credelem,_T("TypeName"),   XDT_String,cred.second.m_typeName);
-    msg.AddElement(credelem,_T("Identifier"), XDT_String,cred.second.m_identifier);
-    msg.AddElement(credelem,_T("Username"),   XDT_String,cred.second.m_username);
-    msg.AddElement(credelem,_T("Password"),   XDT_String,password);
-    msg.AddElement(credelem,_T("OAuth2Grant"),XDT_String,cred.second.m_oauthGrant);
-    msg.AddElement(credelem,_T("TokenServer"),XDT_String,cred.second.m_tokenServer);
-    msg.AddElement(credelem,_T("ClientID"),   XDT_String,cred.second.m_clientID);
-    msg.AddElement(credelem,_T("ClientKey"),  XDT_String,clientKey);
-    msg.AddElement(credelem,_T("ClientScope"),XDT_String,cred.second.m_clientScope);
-    msg.AddElement(credelem,_T("KeyHeader"),  XDT_String,cred.second.m_keyHeader);
-    msg.AddElement(credelem,_T("KeyValue"),   XDT_String,headerValue);
+    msg.AddElement(credelem,_T("TypeName"),   cred.second.m_typeName);
+    msg.AddElement(credelem,_T("Identifier"), cred.second.m_identifier);
+    msg.AddElement(credelem,_T("Username"),   cred.second.m_username);
+    msg.AddElement(credelem,_T("Password"),   password);
+    msg.AddElement(credelem,_T("OAuth2Grant"),cred.second.m_oauthGrant);
+    msg.AddElement(credelem,_T("TokenServer"),cred.second.m_tokenServer);
+    msg.AddElement(credelem,_T("ClientID"),   cred.second.m_clientID);
+    msg.AddElement(credelem,_T("ClientKey"),  clientKey);
+    msg.AddElement(credelem,_T("ClientScope"),cred.second.m_clientScope);
+    msg.AddElement(credelem,_T("KeyHeader"),  cred.second.m_keyHeader);
+    msg.AddElement(credelem,_T("KeyValue"),   headerValue);
   }
 
   // Now save all the database connections
@@ -205,10 +205,10 @@ Credentials::WriteToXML()
       Crypto crypt;
       password = crypt.Encryption(password,_T(KWATTA_ENCRYPT));
     }
-    msg.AddElement(connelem,_T("Identifier"), XDT_String,conn.second.m_identifier);
-    msg.AddElement(connelem,_T("Datasource"), XDT_String,conn.second.m_datasource);
-    msg.AddElement(connelem,_T("Username"),   XDT_String,conn.second.m_username);
-    msg.AddElement(connelem,_T("Password"),   XDT_String,password);
+    msg.AddElement(connelem,_T("Identifier"), conn.second.m_identifier);
+    msg.AddElement(connelem,_T("Datasource"), conn.second.m_datasource);
+    msg.AddElement(connelem,_T("Username"),   conn.second.m_username);
+    msg.AddElement(connelem,_T("Password"),   password);
   }
 
   // Now save it to file

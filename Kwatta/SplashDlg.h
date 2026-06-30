@@ -40,7 +40,7 @@ protected:
 
   StyleButton  m_buttonCancel;
   StyleEdit    m_editTitle;
-  CString      m_title;
+  XString      m_title;
   ThemeColor::Themes m_theme;
 
   DECLARE_MESSAGE_MAP()

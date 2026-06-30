@@ -104,7 +104,7 @@ ValidationsDlg::InitLijst()
 }
 
 void
-ValidationsDlg::SetTextImage(int p_row, int p_col, CString p_text, int p_image)
+ValidationsDlg::SetTextImage(int p_row, int p_col, XString p_text, int p_image)
 {
   GV_ITEM item;
   item.mask   = GVIF_IMAGE;
@@ -130,7 +130,7 @@ ValidationsDlg::LoadVariables(StepResult* p_stepResult)
   int count = 0;
   for(auto& val : m_stepResult->GetValidations())
   {
-    CString num;
+    XString num;
     num.Format(_T("%d"), val.m_number);
     int row = m_grid.InsertRow(num);
     m_grid.GetCell(row,COL_NAME)->SetText(val.m_validation);
@@ -164,7 +164,7 @@ ValidationsDlg::OnLvnItemchangedGrid(NMHDR* pNMHDR, LRESULT* pResult)
     {
       if(val.m_number == number)
       {
-        CString filename = val.m_filename;
+        XString filename = val.m_filename;
       }
     }
 
@@ -180,7 +180,7 @@ ValidationsDlg::OnLvnDoubleClickGrid(NMHDR* pNMHDR, LRESULT* pResult)
   if(pNMLV->uNewState)
   {
     int item = pNMLV->iItem;
-    CString validation = m_grid.GetCell(item,COL_NAME)->GetText();
+    XString validation = m_grid.GetCell(item,COL_NAME)->GetText();
 
     for(auto& val : m_stepResult->GetValidations())
     {

@@ -46,10 +46,10 @@ StepResult::Reset()
 }
 
 StepResult*
-ReadStepResult(CString p_filename)
+ReadStepResult(XString p_filename)
 {
   WinFile file(p_filename);
-  CString extension = file.GetFilenamePartExtension(); 
+  XString extension = file.GetFilenamePartExtension(); 
 
   if(extension.CompareNoCase(EXTENSION_RESULT_CMD) == 0)
   {
@@ -103,7 +103,7 @@ ReadStepResult(CString p_filename)
 //////////////////////////////////////////////////////////////////////////
 
 void    
-StepResult::ReadFromXML(XMLMessage& p_msg,CString p_filename)
+StepResult::ReadFromXML(XMLMessage& p_msg,XString p_filename)
 {
   // Check that we have a *.xrun extension
   CheckFilename(p_filename);
@@ -117,7 +117,7 @@ StepResult::ReadFromXML(XMLMessage& p_msg,CString p_filename)
   // CHeck for XML error
   if(p_msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in result file [%d] %s"),p_msg.GetInternalError(),p_msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -131,7 +131,7 @@ StepResult::ReadFromXML(XMLMessage& p_msg,CString p_filename)
   // Find names
   m_name          = p_msg.GetElement(_T("Name"));
   m_documentation = p_msg.GetElement(_T("Documentation"));
-  CString timing  = p_msg.GetElement(_T("Timing"));
+  XString timing  = p_msg.GetElement(_T("Timing"));
   m_seconds = _ttof(timing);
 
   // Load all validations and results
@@ -155,26 +155,26 @@ StepResult::ReadFromXML(XMLMessage& p_msg,CString p_filename)
 }
 
 bool
-StepResult::WriteToXML(XMLMessage& p_msg,CString /*p_filename*/)
+StepResult::WriteToXML(XMLMessage& p_msg,XString /*p_filename*/)
 {
   p_msg.SetRootNodeName(_T("StepResult"));
 
   // Result of the step
-  CString timing;
+  XString timing;
   timing.Format(_T("%.6G"),m_seconds);
 
   m_documentation.Remove('\r');
 
   XMLElement* root = p_msg.GetRoot();
-  p_msg.AddElement(root,_T("Name"),         XDT_String | XDT_CDATA,m_name);
-  p_msg.AddElement(root,_T("Documentation"),XDT_String | XDT_CDATA,m_documentation);
-  p_msg.AddElement(root,_T("Timing"),       XDT_String,            timing);
+  p_msg.AddElement(root,_T("Name"),         m_name,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  p_msg.AddElement(root,_T("Documentation"),m_documentation,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  p_msg.AddElement(root,_T("Timing"),       timing);
 
   // All validation steps and results
-  XMLElement* validations = p_msg.AddElement(root,_T("Validations"),XDT_String,_T(""));
+  XMLElement* validations = p_msg.AddElement(root,_T("Validations"),_T(""));
   for(auto& val : m_validations)
   {
-    XMLElement* vali = p_msg.AddElement(validations,_T("Validation"),XDT_String,_T(""));
+    XMLElement* vali = p_msg.AddElement(validations,_T("Validation"),_T(""));
     p_msg.SetElement(vali,_T("Number"),val.m_number);
     p_msg.SetElement(vali,_T("Name"),  val.m_validation);
     p_msg.SetElement(vali,_T("File"),  val.m_filename);
@@ -202,7 +202,7 @@ StepResult::GetTotalResult()
 
 // Add an extra validation
 void
-StepResult::AddValidation(int p_step,CString p_name,CString p_filename,bool p_result,bool p_global)
+StepResult::AddValidation(int p_step,XString p_name,XString p_filename,bool p_result,bool p_global)
 {
   ValStep step;
   WinFile file(p_filename);

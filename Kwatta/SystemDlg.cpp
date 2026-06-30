@@ -121,8 +121,8 @@ SystemDlg::InitParameters()
 void
 SystemDlg::SaveParameters()
 {
-  CString level;
-  CString hide;
+  XString level;
+  XString hide;
   level.Format(_T("%d"),m_loglevel);
   hide .Format(_T("%d"),m_hidePassword);
 
@@ -151,14 +151,16 @@ SystemDlg::ChangePassword()
 {
   bool localChange(false);
   bool globalChange(false);
-  CString variable(KWATTA_PASSWORD);
+  XString variable(KWATTA_PASSWORD);
 
   Crypto crypt;
-  CString password = crypt.Encryption(m_password,_T(KWATTA_ENCRYPT));
+  XString password = crypt.Encryption(m_password,_T(KWATTA_ENCRYPT));
 
   // Try to change
-  localChange  = SetEnvironmentVariable      (variable,password);
-  globalChange = SetGlobalEnvironmentVariable(variable,password);
+  CString globvar(variable);
+  CString globpwd(password);
+  localChange  = SetEnvironmentVariable(variable,password);
+  globalChange = SetGlobalEnvironmentVariable(globvar,globpwd);;
 
   if(localChange && globalChange)
   {
@@ -203,7 +205,7 @@ SystemDlg::OnCbnCloseupLoglevel()
 void 
 SystemDlg::OnEnKillfocusLogfile()
 {
-  CString logfile = m_logfile;
+  XString logfile = m_logfile;
   UpdateData();
   if(logfile.CompareNoCase(m_logfile))
   {

@@ -33,10 +33,10 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-CMDRunner::CMDRunner(CString    p_baseDirectory
-                    ,CString    p_testDirectory
-                    ,CString    p_testStepFilename
-                    ,CString    p_parametersFilename
+CMDRunner::CMDRunner(XString    p_baseDirectory
+                    ,XString    p_testDirectory
+                    ,XString    p_testStepFilename
+                    ,XString    p_parametersFilename
                     ,ValiSteps& p_localValidations
                     ,ValiSteps& p_globalValidations
                     ,HWND       p_consoleHWND
@@ -192,7 +192,7 @@ CMDRunner::ParameterProcessing()
   // Cannot perform a test step if still unbound parameters exists
   if(unbound)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
@@ -217,16 +217,17 @@ CMDRunner::SetExtraEnvironmentStrings()
   ParMap& environs = step->GetEnvironmentVars();
   for(auto& envi : environs)
   {
-    CString name  = envi.first;
-    CString value = envi.second;
+    XString name  = envi.first;
+    XString value = envi.second;
 
     // Check if name already has a value
     if(handle == 1)
     {
-      CString var;
+      XString var;
       if(!var.GetEnvironmentVariable(name))
       {
-        var = GetGlobalEnvironmentVariable(name);
+        CString varname(name);
+        var = GetGlobalEnvironmentVariable(varname);
       }
       if(!var.IsEmpty())
       {
@@ -252,8 +253,8 @@ CMDRunner::PerformCommand()
   m_result->SetName(m_testStep->GetName());
   m_result->SetDocumentation(m_testStep->GetDocumentation());
 
-  CString     standardout;
-  CString     standarderr;
+  XString     standardout;
+  XString     standarderr;
   HPFCounter  counter;
 
   // See if we must set a boobytrap
@@ -292,10 +293,10 @@ CMDRunner::PerformCommand()
   if(step->GetUseReturnValue())
   {
     result->SetReturnValue(retval);
-    CString var = step->GetReturnVariable();
+    XString var = step->GetReturnVariable();
     if(!var.IsEmpty())
     {
-      CString retvalstring;
+      XString retvalstring;
       retvalstring.Format(_T("%d"),retval);
       m_parameters.OverwriteReturnParameter(var,retvalstring);
     }
@@ -305,7 +306,7 @@ CMDRunner::PerformCommand()
   if(step->GetUseOutputValue())
   {
     result->SetStandardOutput(standardout);
-    CString var = step->GetOutputVariable();
+    XString var = step->GetOutputVariable();
     if(!var.IsEmpty())
     {
       m_parameters.OverwriteBufferParameter(var,standardout);
@@ -321,7 +322,7 @@ CMDRunner::PerformCommand()
   // Save errors to error variable if desired
   if(step->GetUseErrorValue())
   {
-    CString var = step->GetErrorVariable();
+    XString var = step->GetErrorVariable();
     if(!var.IsEmpty())
     {
       m_parameters.OverwriteBufferParameter(var,standarderr);
@@ -334,7 +335,7 @@ CMDRunner::PerformAllValidations()
 {
   int step = 1;
   StepResultCMD* stepresult = reinterpret_cast<StepResultCMD*>(m_result);
-  CString documentation;
+  XString documentation;
   bool totalresult = true;
 
   for(auto& vali : m_validations)
@@ -379,14 +380,14 @@ CMDRunner::SaveTestResults()
 {
   PerformStep(_T("Saving the test results"));
 
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  XString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(_T(".xrun"),_T(".xres"));
 
   StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
   if(result->WriteToXML(filename) == false)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
@@ -407,7 +408,7 @@ CMDRunner::SaveResultParameters()
 
   if(step->GetUseReturnValue() && !step->GetReturnVariable().IsEmpty())
   {
-    CString value;
+    XString value;
     value.Format(_T("%d"),result->GetReturnValue());
     m_parameters.OverwriteReturnParameter(step->GetReturnVariable(),value);
     saved = true;
@@ -448,7 +449,7 @@ CMDRunner::ReadTestStep()
   TestStepCMD* step = reinterpret_cast<TestStepCMD*>(m_testStep);
 
   // Read in the definition file for a test step
-  CString filename = GetEffectiveStepFilename();
+  XString filename = GetEffectiveStepFilename();
   step->ReadFromXML(filename);
 }
 
@@ -460,14 +461,14 @@ CMDRunner::ReadValidations()
   for(auto& filename : m_localValidations)
   {
     Validate* validate = new ValidateCMD();
-    CString file = m_baseDirectory + m_testDirectory + filename;
+    XString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
     m_validations.push_back(validate);
   }
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateCMD();
-    CString file = m_baseDirectory + _T("Validations\\") + filename;
+    XString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -475,11 +476,11 @@ CMDRunner::ReadValidations()
 }
 
 void
-CMDRunner::CreateQLErrorMessage(CString p_error) 
+CMDRunner::CreateQLErrorMessage(XString p_error) 
 {
   StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
 
-  CString error = result->GetStandardError();
+  XString error = result->GetStandardError();
   error += p_error;
   result->SetStandardError(error);
 }

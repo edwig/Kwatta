@@ -34,10 +34,10 @@ class SQLRunner : public TestRunner
 {
 public:
   SQLRunner(SQLDatabase*  p_database
-           ,CString       p_baseDirectory
-           ,CString       p_testDirectory
-           ,CString       p_testStepFilename
-           ,CString       p_parametersFilename
+           ,XString       p_baseDirectory
+           ,XString       p_testDirectory
+           ,XString       p_testStepFilename
+           ,XString       p_parametersFilename
            ,ValiSteps&    p_localValidations
            ,ValiSteps&    p_globalValidations
            ,HWND          p_consoleHWND
@@ -69,7 +69,7 @@ private:
   void  ReadValidations();
   void  ReadResultSet();
   // For a QL test to JSON or XML translation
-  virtual void  CreateQLErrorMessage(CString p_error) override;
+  virtual void  CreateQLErrorMessage(XString p_error) override;
   virtual int   CheckStatusOK(int p_returnCode);
 
   // Data specific to an SQL test step

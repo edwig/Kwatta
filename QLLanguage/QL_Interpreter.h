@@ -39,7 +39,7 @@ public:
   void              SetStacksize(int p_size);
 
   // Execute a bytecode function
-  int               Execute(CString p_name);
+  int               Execute(XString p_name);
   // interpret - interpret bytecode instructions
   int               Interpret(Object* p_object,Function* p_function);
 
@@ -50,14 +50,14 @@ public:
   MemObject**       GetStackPointer();
   QLVirtualMachine* GetVirtualMachine();
   int               GetIntegerArgument(int p_num);
-  CString           GetStringArgument(int p_num);
+  XString           GetStringArgument(int p_num);
   bcd               GetBcdArgument(int p_num);
   SQLVariant*       GetSQLVariantArgument(int p_num);
 
   // Setting TOS with a value/object
   void              SetNil    (int p_offset);
   void              SetInteger(int p_value);
-  void              SetString (CString p_string);
+  void              SetString (XString p_string);
   void              SetFile   (FILE* p_fp);
   void              SetBcd    (bcd p_float);
   void              SetVariant(SQLVariant p_variant);
@@ -130,11 +130,11 @@ private:
   void        Inter_binary(BYTE p_operator);
 
   // typename - get the name of a type
-  CString     GetTypename(int type);
+  XString     GetTypename(int type);
   // Report a failure to find a method for a selector
-  void        NoMethod(CString selector);
+  void        NoMethod(XString selector);
   // Get the name of an operator
-  CString     OperatorName(int p_opcode);
+  XString     OperatorName(int p_opcode);
   // Report bad operator for top 2 types
   void        BadOperator(int p_oper);
   // No such number of members on an object

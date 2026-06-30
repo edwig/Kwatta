@@ -155,11 +155,11 @@ void
 ResponseDlg::FormatPayload(StepResultNET* p_result)
 {
   m_errors = false;
-  CString content = p_result->GetHeader(_T("content-type"));
+  XString content = p_result->GetHeader(_T("content-type"));
   if(content.Find(_T("xml")) >= 0)
   {
     XMLMessage xml;
-    CString payload;
+    XString payload;
     xml.ParseMessage(m_payload);
     if(xml.GetInternalError() == XmlError::XE_NoError)
     {

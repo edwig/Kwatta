@@ -105,10 +105,10 @@ StreamBuffer::SetUse(bool p_use)
 }
 
 
-// CString 
+// XString 
 // StreamBuffer::AsCDataNode()
 // {
-//   CString value;
+//   XString value;
 // 
 //   for(unsigned int ind = 0; ind < m_length; ++ind)
 //   {

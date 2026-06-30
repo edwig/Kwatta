@@ -48,15 +48,15 @@ protected:
 
   MultiPart* m_part;
 
-  CString       m_name;
-  CString       m_charset;
-  CString       m_contentID;
+  XString       m_name;
+  XString       m_charset;
+  XString       m_contentID;
   CString       m_contentType;
-  CString       m_boundary;
+  XString       m_boundary;
   bool          m_isFile;
-  CString       m_LongFilename;
-  CString       m_shortFilename;
-  CString       m_data;
+  XString       m_LongFilename;
+  XString       m_shortFilename;
+  XString       m_data;
 
   StyleEdit     m_editName;
   StyleEdit     m_editCharset;

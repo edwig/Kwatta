@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-ValidateSQL::ReadFromXML(CString p_filename)
+ValidateSQL::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   Validate::ReadFromXML(msg, p_filename);
@@ -100,8 +100,8 @@ ValidateSQL::ReadFromXML(CString p_filename)
       XMLElement* column = msg.FindElement(row,_T("Column"));
       while(column)
       {
-        CString name  = msg.GetElement(column,_T("Name"));
-        CString value = msg.GetElement(column,_T("Data"));
+        XString name  = msg.GetElement(column,_T("Name"));
+        XString value = msg.GetElement(column,_T("Data"));
         // Store this value
         m_data[name] = value;
 
@@ -113,7 +113,7 @@ ValidateSQL::ReadFromXML(CString p_filename)
 }
 
 bool
-ValidateSQL::WriteToXML(CString p_filename)
+ValidateSQL::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!Validate::WriteToXML(msg,p_filename))
@@ -123,51 +123,51 @@ ValidateSQL::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Check the succeeded status
-  XMLElement* elem = msg.AddElement(root,_T("CheckSucceeded"),XDT_String,_T(""));
+  XMLElement* elem = msg.AddElement(root,_T("CheckSucceeded"),_T(""));
   msg.SetElement(elem,_T("Check"),   m_checkSucceeded);
   msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_succeedOperator));
   msg.SetElement(elem,_T("Expected"),m_succeeded);
   msg.SetElement(elem,_T("Variable"),m_succeededVariable);
 
   // Check the number of affected/returned rows
-  elem = msg.AddElement(root,_T("ReturnedRows"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("ReturnedRows"),_T(""));
   msg.SetElement(elem,_T("Check"),   m_checkRows);
   msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_rowsOperator));
   msg.SetElement(elem,_T("Expected"),m_returnedRows);
   msg.SetElement(elem,_T("Variable"),m_returnedRowsVariable);
 
   // Check the number of affected/returned cols
-  elem = msg.AddElement(root,_T("ReturnedColumns"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("ReturnedColumns"),_T(""));
   msg.SetElement(elem,_T("Check"),   m_checkCols);
   msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_colsOperator));
   msg.SetElement(elem,_T("Expected"),m_returnedCols);
   msg.SetElement(elem,_T("Variable"),m_returnedColsVariable);
 
   // ODBC Status
-  elem = msg.AddElement(root,_T("SQLState"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("SQLState"),_T(""));
   msg.SetElement(elem,_T("Check"),   m_checkSQLState);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_stateOperator));
   msg.SetElement(elem,_T("Expected"),m_sqlState);
   msg.SetElement(elem,_T("Variable"),m_returnedSQLStateVariable);
 
   // Native Status
-  elem = msg.AddElement(root,_T("NativeStatus"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("NativeStatus"),_T(""));
   msg.SetElement(elem,_T("Check"),   m_checkNativeStatus);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_nativeOperator));
   msg.SetElement(elem,_T("Expected"),m_nativeStatus);
   msg.SetElement(elem,_T("Variable"),m_returnedNativeVariable);
 
   // Check the returned SQL data
-  elem = msg.AddElement(root,_T("Data"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("Data"),_T(""));
   msg.SetElement(elem,_T("Check"),m_checkData);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_dataOperator));
   msg.SetElement(elem,_T("Variable"),m_returnedDataVariable);
-  elem = msg.AddElement(elem,_T("ROW"),XDT_String,_T(""));
+  elem = msg.AddElement(elem,_T("ROW"),_T(""));
   for (auto& coldat : m_data)
   {
-    XMLElement* cell = msg.AddElement(elem,_T("Column"), XDT_String, _T(""));
+    XMLElement* cell = msg.AddElement(elem,_T("Column"), _T(""));
     msg.SetElement(cell,_T("Name"),coldat.first);
-    msg.AddElement(cell,_T("Data"),XDT_String|XDT_CDATA,coldat.second);
+    msg.AddElement(cell,_T("Data"),coldat.second, XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
   }
 
   // Now save it
@@ -200,7 +200,7 @@ ValidateSQL::EffectiveReplacements(Parameters* p_parameters, bool p_forDisplay)
 
 // Check our filenames extension
 void
-ValidateSQL::CheckFilename(CString p_filename)
+ValidateSQL::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -242,7 +242,7 @@ ValidateSQL::ValidateSucceeded(Parameters* p_parameters,int p_status)
   // Save as result of the test
   if(result && !m_succeededVariable.IsEmpty())
   {
-    CString status;
+    XString status;
     status.Format(_T("%d"),p_status);
     p_parameters->OverwriteReturnParameter(m_succeededVariable,status);
   }
@@ -278,7 +278,7 @@ ValidateSQL::ValidateReturnedRows(Parameters* p_parameters,int p_rows)
   // Save as result of the test
   if(result && !m_returnedRowsVariable.IsEmpty())
   {
-    CString status;
+    XString status;
     status.Format(_T("%d"),p_rows);
     p_parameters->OverwriteReturnParameter(m_returnedRowsVariable,status);
   }
@@ -314,7 +314,7 @@ ValidateSQL::ValidateReturnedCols(Parameters* p_parameters,int p_cols)
   // Save as result of the test
   if(result && !m_returnedColsVariable.IsEmpty())
   {
-    CString status;
+    XString status;
     status.Format(_T("%d"),p_cols);
     p_parameters->OverwriteReturnParameter(m_returnedColsVariable,status);
   }
@@ -322,7 +322,7 @@ ValidateSQL::ValidateReturnedCols(Parameters* p_parameters,int p_cols)
 }
 
 bool
-ValidateSQL::ValidateSQLState(Parameters* p_parameters,CString p_value)
+ValidateSQL::ValidateSQLState(Parameters* p_parameters,XString p_value)
 {
   // See if we must check the output value
   if(!m_checkSQLState)
@@ -353,7 +353,7 @@ ValidateSQL::ValidateSQLState(Parameters* p_parameters,CString p_value)
 }
 
 bool
-ValidateSQL::ValidateNativeStatus(Parameters* p_parameters,CString p_value)
+ValidateSQL::ValidateNativeStatus(Parameters* p_parameters,XString p_value)
 {
   // See if we must check the output value
   if(!m_checkNativeStatus)
@@ -384,7 +384,7 @@ ValidateSQL::ValidateNativeStatus(Parameters* p_parameters,CString p_value)
 }
 
 bool
-ValidateSQL::ValidateFirstData(Parameters* p_parameters,CString p_value)
+ValidateSQL::ValidateFirstData(Parameters* p_parameters,XString p_value)
 {
   // See if we must check the output value
   if(!m_checkData)
@@ -445,7 +445,7 @@ ValidateSQL::ValidateColumnData(ColumnData& p_data)
 }
 
 void
-ValidateSQL::SetData(CString p_column,CString p_value)
+ValidateSQL::SetData(XString p_column,XString p_value)
 {
   ColumnData::iterator it = m_data.find(p_column);
   if(it != m_data.end())
@@ -459,7 +459,7 @@ ValidateSQL::SetData(CString p_column,CString p_value)
 }
 
 bool
-ValidateSQL::DeleteData(CString p_column)
+ValidateSQL::DeleteData(XString p_column)
 {
   ColumnData::iterator it = m_data.begin();
   while(it != m_data.end())

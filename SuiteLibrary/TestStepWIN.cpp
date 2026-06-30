@@ -38,7 +38,7 @@ TestStepWIN::~TestStepWIN()
 }
 
 void
-TestStepWIN::ReadFromXML(CString p_filename)
+TestStepWIN::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   TestStep::ReadFromXML(msg, p_filename);
@@ -48,7 +48,7 @@ TestStepWIN::ReadFromXML(CString p_filename)
   XMLElement* typ = msg.FindElement(root,_T("Type"),false);
   if (typ)
   {
-    CString type = typ->GetValue();
+    XString type = typ->GetValue();
     if (type.Compare(_T("WIN")))
     {
       throw StdException(_T("QRUN file is not a WIN test: ") + p_filename);
@@ -84,7 +84,7 @@ TestStepWIN::ReadFromXML(CString p_filename)
 }
 
 bool
-TestStepWIN::WriteToXML(CString p_filename)
+TestStepWIN::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if (!TestStep::WriteToXML(msg,p_filename))
@@ -94,20 +94,20 @@ TestStepWIN::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // This is our SUB-CLASS type
-  msg.AddElement(root,_T("Type"),XDT_String,_T("WIN"));
+  msg.AddElement(root,_T("Type"),_T("WIN"));
 
   // FILL IN
-  XMLElement* def = msg.AddElement(root,_T("Definition"),XDT_String,_T(""));
+  XMLElement* def = msg.AddElement(root,_T("Definition"),_T(""));
   for (auto& action : m_actions)
   {
-    XMLElement* act = msg.AddElement(def,_T("Line"),XDT_String,_T(""));
+    XMLElement* act = msg.AddElement(def,_T("Line"),_T(""));
 
-    msg.AddElement(act,_T("Action"),   XDT_String,WinUIActionToString(action->m_action));
-    msg.AddElement(act,_T("Pattern"),  XDT_String,action->m_pattern);
-    msg.AddElement(act,_T("Argument1"),XDT_String,action->m_argument1);
-    msg.AddElement(act,_T("Argument2"),XDT_String,action->m_argument2);
-    msg.AddElement(act,_T("Argument3"),XDT_String,action->m_argument3);
-    msg.AddElement(act,_T("Wait"),     XDT_String,action->m_wait);
+    msg.AddElement(act,_T("Action"),   WinUIActionToString(action->m_action));
+    msg.AddElement(act,_T("Pattern"),  action->m_pattern);
+    msg.AddElement(act,_T("Argument1"),action->m_argument1);
+    msg.AddElement(act,_T("Argument2"),action->m_argument2);
+    msg.AddElement(act,_T("Argument3"),action->m_argument3);
+    msg.AddElement(act,_T("Wait"),     action->m_wait);
   }
   // Now save it
   return msg.SaveFile(p_filename);
@@ -133,7 +133,7 @@ TestStepWIN::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 
 // Check our filenames extension
 void
-TestStepWIN::CheckFilename(CString p_filename)
+TestStepWIN::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -161,10 +161,10 @@ TestStepWIN::ResetEffective()
 }
 
 // Translate ui-action to-from a string
-CString
+XString
 TestStepWIN::WinUIActionToString(WinUIAction p_action)
 {
-  CString action;
+  XString action;
   switch (p_action)
   {
     case WinUIAction::WA_Start:       action = _T("Start");               break;
@@ -187,7 +187,7 @@ TestStepWIN::WinUIActionToString(WinUIAction p_action)
 }
 
 WinUIAction
-TestStepWIN::StringToWinUIAction(CString p_action)
+TestStepWIN::StringToWinUIAction(XString p_action)
 {
   if(p_action.CompareNoCase(_T("start"))              == 0) return WinUIAction::WA_Start;
   if(p_action.CompareNoCase(_T("close"))              == 0) return WinUIAction::WA_Close;

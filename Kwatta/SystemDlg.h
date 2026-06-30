@@ -50,9 +50,9 @@ protected:
   bool          m_changed    { false   };
 
   int           m_loglevel;
-  CString       m_logfile;
+  XString       m_logfile;
   bool          m_hidePassword;
-  CString       m_password;
+  XString       m_password;
 
   StyleComboBox m_comboLoglevel;
   StyleEdit     m_editLogfile;

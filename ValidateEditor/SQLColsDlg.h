@@ -52,9 +52,9 @@ protected:
 
   bool           m_useCheckCols { false };
   ReturnOperator m_colsOperator { ReturnOperator::ROP_NOP };
-  CString        m_returnedCols;
-  CString        m_effectiveReturnedCols;
-  CString        m_returnedColsVariable;
+  XString        m_returnedCols;
+  XString        m_effectiveReturnedCols;
+  XString        m_returnedColsVariable;
 
   StyleEdit      m_editCols;
   StyleEdit      m_editEffective;

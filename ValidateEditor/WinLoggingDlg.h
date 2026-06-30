@@ -49,8 +49,8 @@ protected:
 
   bool            m_useOutput      { false };
   BufferOperator  m_outputOperator { BufferOperator::BOP_NOP };
-  CString         m_expectedOutput;
-  CString         m_effectiveOutput;
+  XString         m_expectedOutput;
+  XString         m_effectiveOutput;
 
   StyleCheckbox   m_buttonUseOutput;
   StyleComboBox   m_comboOperator;

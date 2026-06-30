@@ -163,8 +163,8 @@ static int xfopen(QLInterpreter* p_inter,int argc)
   FILE*  fp = NULL;
 
   argcount(p_inter,argc,2);
-  CString fileName = p_inter->GetStringArgument(1);
-  CString mode     = p_inter->GetStringArgument(0);
+  XString fileName = p_inter->GetStringArgument(1);
+  XString mode     = p_inter->GetStringArgument(0);
 
   _tfopen_s(&fp,fileName,mode);
   if (fp == NULL)
@@ -217,7 +217,7 @@ static int xgets(QLInterpreter* p_inter,int argc)
 
   argcount(p_inter,argc,1);
   FILE* fp = sp[0]->m_value.v_file;
-  CString s;
+  XString s;
   while((cc = _gettc(fp)) != _TEOF && cc != '\n')
   {
     s.Append((const TCHAR*) &cc);
@@ -232,7 +232,7 @@ static int xputs(QLInterpreter* p_inter,int argc)
 
   argcount(p_inter,argc,2);
   FILE* fp = sp[0]->m_value.v_file;
-  CString* str = sp[1]->m_value.v_string;
+  XString* str = sp[1]->m_value.v_string;
   p_inter->SetInteger(_fputts(*str,fp));
   return 0;
 }
@@ -296,7 +296,7 @@ static int xgetarg(QLInterpreter* p_inter,int argc)
 static int xsystem(QLInterpreter* p_inter,int argc)
 {
   argcount(p_inter,argc,1);
-  CString command = p_inter->GetStringArgument(0);
+  XString command = p_inter->GetStringArgument(0);
   p_inter->SetInteger(_tsystem(command));
   return 0;
 }
@@ -471,7 +471,7 @@ static int xtobcd(QLInterpreter* p_inter,int argc)
   }
   else if(object->m_type == DTYPE_STRING)
   {
-    CString str = p_inter->GetStringArgument(0);
+    XString str = p_inter->GetStringArgument(0);
     bcd val(str);
     p_inter->SetBcd(val);
   }
@@ -504,7 +504,7 @@ static int xtoint(QLInterpreter* p_inter,int argc)
   }
   else if(object->m_type == DTYPE_STRING)
   {
-    CString str = p_inter->GetStringArgument(0);
+    XString str = p_inter->GetStringArgument(0);
     p_inter->SetInteger(_ttoi(str));
   }
   else if(object->m_type == DTYPE_VARIANT)
@@ -532,19 +532,19 @@ static int xtostr(QLInterpreter* p_inter,int argc)
   if(object->m_type == DTYPE_INTEGER)
   {
     int n = p_inter->GetIntegerArgument(0);
-    CString str;
+    XString str;
     str.Format(_T("%d"),n);
     p_inter->SetString(str);
   }
   else if(object->m_type == DTYPE_BCD)
   {
     bcd n = p_inter->GetBcdArgument(0);
-    CString val = n.AsString();
+    XString val = n.AsString();
     p_inter->SetString(val);
   }
   else if(object->m_type == DTYPE_VARIANT)
   {
-    CString str(p_inter->GetSQLVariantArgument(0)->GetAsChar());
+    XString str(p_inter->GetSQLVariantArgument(0)->GetAsChar());
     p_inter->SetString(str);
   }
   else if(object->m_type == DTYPE_STRING)
@@ -635,15 +635,15 @@ static int xnewdbase(QLInterpreter* p_inter,int argc)
     vm->Error(_T("Too many arguments"));
     return (FALSE);
   }
-  CString database(db_database);
-  CString user    (db_user);
-  CString password(db_password);
+  XString database(db_database);
+  XString user    (db_user);
+  XString password(db_password);
 
   // All arguments must be strings
   if(argc >= 1 && database.IsEmpty()) 
   {
     p_inter->CheckType(0,DTYPE_STRING);
-    CString name = *sp[argc - 1]->m_value.v_string;
+    XString name = *sp[argc - 1]->m_value.v_string;
     if(!name.IsEmpty())
     {
       database = name;
@@ -652,7 +652,7 @@ static int xnewdbase(QLInterpreter* p_inter,int argc)
   if(argc >= 2 && user.IsEmpty()) 
   {
     p_inter->CheckType(1,DTYPE_STRING);
-    CString name = *sp[argc - 2]->m_value.v_string;
+    XString name = *sp[argc - 2]->m_value.v_string;
     if (!name.IsEmpty())
     {
       user = name;
@@ -661,7 +661,7 @@ static int xnewdbase(QLInterpreter* p_inter,int argc)
   if(argc == 3 && password.IsEmpty()) 
   {
     p_inter->CheckType(2,DTYPE_STRING);
-    CString name = *sp[0]->m_value.v_string;
+    XString name = *sp[0]->m_value.v_string;
     if (!name.IsEmpty())
     {
       password = name;
@@ -672,16 +672,16 @@ static int xnewdbase(QLInterpreter* p_inter,int argc)
   if(!database.IsEmpty())
   {
     // Build the connect string
-    CString connect;
+    XString connect;
     connect.Format(_T("DSN=%s;UID=%s;PWD=%s"),database,user,password);
 
     try
     {
       object->m_value.v_database->Open(connect);
     }
-    catch(CString& s)
+    catch(StdException& ex)
     {
-      vm->Info(_T("Open SQL database: %s"),s);
+      vm->Info(_T("Open SQL database: %s"),ex.GetErrorMessage().GetString());
     }
   }
   else
@@ -775,7 +775,7 @@ static int xdbsCommit(QLInterpreter* p_inter,int argc)
       vm->SetSQLTransaction(nullptr);
       result = 1;
     }
-    catch(CString& error)
+    catch(XString& error)
     {
       vm->Info(_T("Transaction error: %s"),error);
     }
@@ -807,13 +807,13 @@ static int xqryDoSQL(QLInterpreter* p_inter,int argc)
 
   int    result = 0;
   SQLQuery* qry =  sp[argc + 1]->m_value.v_query;
-  CString text  = *sp[argc - 1]->m_value.v_string;
+  XString text  = *sp[argc - 1]->m_value.v_string;
   try
   {
     qry->DoSQLStatement(text);
     result = 1;
   }
-  catch(CString& s)
+  catch(XString& s)
   {
     vm->Info(_T("SQL error: %s"),s);
     return 0;
@@ -852,7 +852,7 @@ int xqryRecord(QLInterpreter* p_inter,int argc)
   {
     result = qry->GetRecord();
   }
-  catch(CString& s)
+  catch(XString& s)
   {
     vm->Info(_T("SQL error: %s"),s);
   }
@@ -915,7 +915,7 @@ static int xqryColNumber(QLInterpreter* p_inter,int argc)
   MemObject** sp = p_inter->GetStackPointer();
 
   SQLQuery* qry = sp[2]->m_value.v_query;
-  CString name = *sp[0]->m_value.v_string;
+  XString name = *sp[0]->m_value.v_string;
 
   int number = qry->GetColumnNumber(name);
   p_inter->SetInteger(number);
@@ -924,7 +924,7 @@ static int xqryColNumber(QLInterpreter* p_inter,int argc)
 
 static int xqryColName(QLInterpreter* p_inter,int argc)
 {
-  CString name;
+  XString name;
   argcount(p_inter,argc,1);
   p_inter->CheckType(0,DTYPE_INTEGER);
   p_inter->CheckType(2,DTYPE_QUERY);
@@ -941,7 +941,7 @@ static int xqryColName(QLInterpreter* p_inter,int argc)
   {
     p_inter->GetVirtualMachine()->Error(_T("GetColumnName: Wrong column number: %d"),column);
   }
-  p_inter->SetString(name);
+  p_inter->SetString(name.GetString());
   return 0;
 }
 
@@ -998,7 +998,7 @@ static int xqryError(QLInterpreter* p_inter,int argc)
 
   MemObject** sp = p_inter->GetStackPointer();
   SQLQuery*  qry = sp[1]->m_value.v_query;
-  CString  error = qry->GetError();
+  XString  error = qry->GetError();
 
   p_inter->SetString(error);
   return 0;
@@ -1096,7 +1096,7 @@ static int xstrIndex(QLInterpreter* p_inter,int argc)
   p_inter->CheckType(2,DTYPE_STRING);
   MemObject** sp = p_inter->GetStackPointer();
 
-  CString* string = sp[2]->m_value.v_string;
+  XString* string = sp[2]->m_value.v_string;
   int      index  = sp[0]->m_value.v_integer;
 
   int result = 0;
@@ -1120,8 +1120,8 @@ static int xstrFind(QLInterpreter* p_inter,int argc)
   int position = -1;
   int starting = 0;
   int argument = 0;
-  CString* string = nullptr;
-  CString* find   = nullptr;
+  XString* string = nullptr;
+  XString* find   = nullptr;
 
   MemObject** sp = p_inter->GetStackPointer();
   if(argc == 2)
@@ -1154,7 +1154,7 @@ static int xstrFind(QLInterpreter* p_inter,int argc)
   if(sp[argument]->m_type == DTYPE_STRING)
   {
     // We search for a string
-    CString* find = sp[argument]->m_value.v_string;
+    XString* find = sp[argument]->m_value.v_string;
     position = string->Find(*find,starting);
   }
   else
@@ -1185,8 +1185,8 @@ static int xstrLeft(QLInterpreter* p_inter,int p_argc)
 
   MemObject** sp = p_inter->GetStackPointer();
   int     length = sp[0]->m_value.v_integer;
-  CString*   str = sp[2]->m_value.v_string;
-  CString result = str->Left(length);
+  XString*   str = sp[2]->m_value.v_string;
+  XString result = str->Left(length);
 
   p_inter->SetString(result);
   return 0;
@@ -1200,8 +1200,8 @@ static int xstrRight(QLInterpreter* p_inter,int p_argc)
 
   MemObject** sp = p_inter->GetStackPointer();
   int     length = sp[0]->m_value.v_integer;
-  CString*   str = sp[2]->m_value.v_string;
-  CString result = str->Right(length);
+  XString*   str = sp[2]->m_value.v_string;
+  XString result = str->Right(length);
 
   p_inter->SetString(result);
   return 0;
@@ -1211,7 +1211,7 @@ static int xstrRight(QLInterpreter* p_inter,int p_argc)
 static int xstrSubstring(QLInterpreter* p_inter,int p_argc)
 {
   MemObject** sp = p_inter->GetStackPointer();
-  CString* string;
+  XString* string;
   int start  = 0;
   int length = 0;
 
@@ -1239,7 +1239,7 @@ static int xstrSubstring(QLInterpreter* p_inter,int p_argc)
   {
     p_inter->GetVirtualMachine()->Error(_T("Wrong number of arguments"));
   }
-  CString result = string->Mid(start,length);
+  XString result = string->Mid(start,length);
 
   // Setting the result
   p_inter->SetString(result);
@@ -1251,7 +1251,7 @@ static int xstrUpper(QLInterpreter* p_inter,int p_argc)
 {
   argcount(p_inter,p_argc,0);
   p_inter->CheckType(1,DTYPE_STRING);
-  CString string = p_inter->GetStringArgument(1);
+  XString string = p_inter->GetStringArgument(1);
   string.MakeUpper();
   p_inter->SetString(string);
   return 0;
@@ -1262,7 +1262,7 @@ static int xstrLower(QLInterpreter* p_inter,int p_argc)
 {
   argcount(p_inter,p_argc,0);
   p_inter->CheckType(1,DTYPE_STRING);
-  CString string = p_inter->GetStringArgument(1);
+  XString string = p_inter->GetStringArgument(1);
   string.MakeLower();
   p_inter->SetString(string);
   return 0;

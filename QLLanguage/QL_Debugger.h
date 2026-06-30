@@ -50,6 +50,6 @@ public:
 
 private:
   QLVirtualMachine* m_vm;
-  CString           m_lastFunc;
+  XString           m_lastFunc;
   int               m_printObject;
 };

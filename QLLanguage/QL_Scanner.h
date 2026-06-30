@@ -75,12 +75,12 @@ public:
  ~QLScanner();
 
   int     GetToken();                 // get token
-  CString GetTokenAsString();
+  XString GetTokenAsString();
   int     GetTokenAsInteger();
   bcd     GetTokenAsFloat();
     
   int     SaveToken(int p_token);     // Saved token
-  CString TokenName(int tkn);         // get token name
+  XString TokenName(int tkn);         // get token name
   void    ParseError(const TCHAR* msg);
 
 
@@ -103,13 +103,13 @@ private:
   int     m_save_char;	            // look ahead character
   int     m_last_char;	            // last input character 
   int     m_line_number;	          // line number, lines read
-  CString m_line;                   // Next input line
+  XString m_line;                   // Next input line
   int     m_line_pos;               // Working on this position
 
   // Current scan status
   int     m_tokenAsInteger;	        // Next token as numeric value
   bcd     m_tokenAsFloat;           // Next token as floating point
-  CString m_tokenAsString;          // Next token as a string
+  XString m_tokenAsString;          // Next token as a string
 };
 
 // save token
@@ -119,7 +119,7 @@ QLScanner::SaveToken(int p_token)
   return (m_save_token = p_token);
 }
 
-inline CString
+inline XString
 QLScanner::GetTokenAsString()
 {
   return m_tokenAsString;

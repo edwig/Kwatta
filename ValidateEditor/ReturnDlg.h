@@ -52,8 +52,8 @@ protected:
 
   bool           m_useReturnValue;
   ReturnOperator m_returnOperator;
-  CString        m_expectedReturn;
-  CString        m_effectiveReturn;
+  XString        m_expectedReturn;
+  XString        m_effectiveReturn;
 
   StyleEdit      m_editExpected;
   StyleEdit      m_editEffective;

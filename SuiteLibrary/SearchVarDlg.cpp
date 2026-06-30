@@ -132,11 +132,11 @@ SearchVarDlg::InitPasswordProtect()
 }
 
 bool
-SearchVarDlg::CheckReadPassword(CString& p_name,CString& p_value)
+SearchVarDlg::CheckReadPassword(XString& p_name,XString& p_value)
 {
   if(m_doPasswordProtect)
   {
-    CString name(p_name);
+    XString name(p_name);
     name.MakeLower();
     if(name.Find(_T("password")) >= 0)
     {
@@ -182,9 +182,9 @@ SearchVarDlg::InitGrid()
 }
 
 void 
-SearchVarDlg::InsertRow(ParType p_type,CString p_name,CString p_value)
+SearchVarDlg::InsertRow(ParType p_type,XString p_name,XString p_value)
 {
-  CString type;
+  XString type;
   switch (p_type)
   {
     case ParType::PAR_GLOBAL: type = _T("Global"); break;
@@ -267,11 +267,11 @@ SearchVarDlg::LoadGrid()
 }
 
 void
-SearchVarDlg::CheckSavePassword(CString& p_name,CString& p_value)
+SearchVarDlg::CheckSavePassword(XString& p_name,XString& p_value)
 {
   if(m_doPasswordProtect)
   {
-    CString name(p_name);
+    XString name(p_name);
     name.MakeLower();
     if(name.Find(_T("password")) >= 0)
     {
@@ -286,9 +286,9 @@ SearchVarDlg::SaveParameters()
   int count = m_grid.GetRowCount();
   for(int index = 1;index < count; ++index)
   {
-    CString type  = m_grid.GetCell(index,0)->GetText();
-    CString name  = m_grid.GetCell(index,1)->GetText();
-    CString value = m_grid.GetCell(index,2)->GetText();
+    XString type  = m_grid.GetCell(index,0)->GetText();
+    XString name  = m_grid.GetCell(index,1)->GetText();
+    XString value = m_grid.GetCell(index,2)->GetText();
 
     CheckSavePassword(name,value);
 
@@ -311,10 +311,10 @@ SearchVarDlg::LoadContext()
 }
 
 // THIS IS THE RESULT OF THIS DIALOG!!
-CString
+XString
 SearchVarDlg::GetVariable()
 {
-  CString variable;
+  XString variable;
   switch(m_resultType)
   {
     case ParType::PAR_GLOBAL: variable.Format(_T("$%s$"), m_resultVariable.GetString()); break;
@@ -355,10 +355,10 @@ SearchVarDlg::OnLvnEndLabelEditGrid(NMHDR* pNMHDR,LRESULT* pResult)
   {
     int count = 0;
     int item = pNMLV->iItem;
-    CString var = m_grid.GetCell(item,1)->GetText();
+    XString var = m_grid.GetCell(item,1)->GetText();
     for(int index = 1; index < m_grid.GetRowCount(); ++index)
     {
-      CString name = m_grid.GetCell(index,1)->GetText();
+      XString name = m_grid.GetCell(index,1)->GetText();
       if(name.CompareNoCase(var) == 0)
       {
         ++count;
@@ -366,7 +366,7 @@ SearchVarDlg::OnLvnEndLabelEditGrid(NMHDR* pNMHDR,LRESULT* pResult)
     }
     if(count > 1)
     {
-      CString warning;
+      XString warning;
       warning.Format(_T("BEWARE: Double defined parameter in the list [%s] !!"),var.GetString());
       StyleMessageBox(this,warning,_T(KWATTA),MB_OK|MB_ICONERROR);
     }
@@ -388,9 +388,9 @@ SearchVarDlg::OnBnClickedDelete()
   CCellID id = m_grid.GetFocusCell();
   if(id.row > 0)
   {
-    CString type     = m_grid.GetCell(id.row,0)->GetText();
-    CString variable = m_grid.GetCell(id.row,1)->GetText();
-    CString question;
+    XString type     = m_grid.GetCell(id.row,0)->GetText();
+    XString variable = m_grid.GetCell(id.row,1)->GetText();
+    XString question;
     question.Format(_T("Do you wish to delete variable: %s"),variable.GetString());
     if(StyleMessageBox(this,question,_T("Kwatta"),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDYES)
     {
@@ -438,7 +438,7 @@ SearchVarDlg::OnBnClickedOk()
 
   if(m_chosen > 0 && m_chosen < m_grid.GetRowCount())
   {
-    CString type     = m_grid.GetCell(m_chosen, 0)->GetText();
+    XString type     = m_grid.GetCell(m_chosen, 0)->GetText();
     m_resultVariable = m_grid.GetCell(m_chosen, 1)->GetText();
     if (type == _T("Global")) m_resultType = ParType::PAR_GLOBAL;
     if (type == _T("Local"))  m_resultType = ParType::PAR_LOCAL;

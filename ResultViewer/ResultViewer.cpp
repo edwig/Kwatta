@@ -128,7 +128,7 @@ ResultViewerApp::DeduceValidateType()
   int pos = m_resultFilename.ReverseFind('.');
   if(pos > 0)
   {
-    CString extension = m_resultFilename.Mid(pos);
+    XString extension = m_resultFilename.Mid(pos);
     if(extension.CompareNoCase(EXTENSION_RESULT_CMD) == 0)
     {
       return ResultType::ResultType_Command;
@@ -193,11 +193,11 @@ ResultViewerApp::ParseStartParameters()
     return false;
   }
   // Check formatting of the directories
-  if(m_baseDirectory.Right(1) != '\\')
+  if(m_baseDirectory.Right(1) != _T("\\"))
   {
     m_baseDirectory += _T('\\');
   }
-  if(m_testDirectory.Right(1) != '\\')
+  if(m_testDirectory.Right(1) != _T("\\"))
   {
     m_testDirectory += _T('\\');
   }
@@ -207,30 +207,30 @@ ResultViewerApp::ParseStartParameters()
 void
 ResultViewerApp::Usage()
 {
-  CString usage = _T("USAGE of this program:\n\nResultViewer.exe /BASE:<base-directory> /RES:<filename>.xres");
+  XString usage = _T("USAGE of this program:\n\nResultViewer.exe /BASE:<base-directory> /RES:<filename>.xres");
   StyleMessageBox(NULL, usage.GetString(), PRODUCT_NAME, MB_OK | MB_ICONEXCLAMATION);
 }
 
-CString
+XString
 ResultViewerApp::GetBaseDirectoryClean()
 {
-  CString clean(m_baseDirectory);
+  XString clean(m_baseDirectory);
   clean = clean.TrimRight('\\');
   return clean;
 }
 
-CString
+XString
 ResultViewerApp::GetTestDirectoryClean()
 {
-  CString clean(m_testDirectory);
+  XString clean(m_testDirectory);
   clean = clean.TrimRight('\\');
   return clean;
 }
 
-CString
+XString
 ResultViewerApp::StandardParameters(HWND p_wnd, int p_row,bool p_global)
 {
-  CString param;
+  XString param;
   param.Format(_T("/HWND:%u /ROW:%d "),p_wnd,p_row);
   if(p_global)
   {
@@ -240,12 +240,12 @@ ResultViewerApp::StandardParameters(HWND p_wnd, int p_row,bool p_global)
 }
 
 void
-ResultViewerApp::StartValidateEditor(CString p_validation,bool p_global,HWND p_wnd,int p_row)
+ResultViewerApp::StartValidateEditor(XString p_validation,bool p_global,HWND p_wnd,int p_row)
 {
   // Construct program name
-  CString program = GetExePath() + _T("ValidateEditor.exe");
+  XString program = GetExePath() + _T("ValidateEditor.exe");
   // Construct parameters
-  CString parameters = StandardParameters(p_wnd,p_row,p_global);
+  XString parameters = StandardParameters(p_wnd,p_row,p_global);
   parameters.AppendFormat(_T(" /BASE:\"%s\""), GetBaseDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /TDIR:\"%s\""), GetTestDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),m_paramFilename.GetString());

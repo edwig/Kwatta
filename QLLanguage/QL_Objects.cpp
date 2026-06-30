@@ -89,7 +89,7 @@ MemObject::AllocateType(int p_type)
     case DTYPE_ENDMARK:     break;
     case DTYPE_NIL:         break;
     case DTYPE_INTEGER:     break;
-    case DTYPE_STRING:      m_value.v_string = new CString();
+    case DTYPE_STRING:      m_value.v_string = new XString();
                             m_flags |= FLAG_DEALLOC;
                             break;
     case DTYPE_BCD:         m_value.v_floating = new bcd();
@@ -106,7 +106,7 @@ MemObject::AllocateType(int p_type)
                             m_flags |= FLAG_DEALLOC;
                             break;
     case DTYPE_INTERNAL:    break;
-    case DTYPE_EXTERNAL:    m_value.v_sysname = new CString();
+    case DTYPE_EXTERNAL:    m_value.v_sysname = new XString();
                             m_flags |= FLAG_DEALLOC;
                             break;
     case DTYPE_DATABASE:    m_value.v_database = new SQLDatabase();
@@ -175,7 +175,7 @@ Array::~Array()
 }
 
 MemObject*   
-Array::AddEntry(QLvm* p_vm,CString p_string)
+Array::AddEntry(QLvm* p_vm,XString p_string)
 {
   MemObject* entry = p_vm->AllocMemObject(DTYPE_STRING);
   m_members.push_back(entry);
@@ -210,7 +210,7 @@ Array::AddEntryOfType(QLvm* p_vm,int p_type)
 }
 
 int
-Array::FindStringEntry(CString p_name)
+Array::FindStringEntry(XString p_name)
 {
   for(unsigned ind = 0;ind < m_members.size(); ++ind)
   {
@@ -256,7 +256,7 @@ Array::FindEntry(MemObject* p_object)
 }
 
 MemObject*
-Array::FindEntry(CString p_name)
+Array::FindEntry(XString p_name)
 {
   for (unsigned ind = 0; ind < m_members.size(); ++ind)
   {
@@ -278,7 +278,7 @@ Array::FindEntry(CString p_name)
 }
 
 MemObject*
-Array::FindFuncEntry(CString p_name)
+Array::FindFuncEntry(XString p_name)
 {
   for(unsigned ind = 0; ind < m_members.size(); ++ind)
   {
@@ -295,7 +295,7 @@ Array::FindFuncEntry(CString p_name)
 
 
 MemObject*
-Array::FindEntry(CString p_name,int& p_entryNum)
+Array::FindEntry(XString p_name,int& p_entryNum)
 {
   for(unsigned ind = 0;ind < m_members.size(); ++ind)
   {
@@ -362,14 +362,14 @@ Array::Mark(QLvm* p_vm)
 //
 //////////////////////////////////////////////////////////////////////////
 
-Class::Class(CString p_name)
+Class::Class(XString p_name)
       :m_name(p_name)
       ,m_base(nullptr)
       ,m_size(0)
 {
 }
 
-Class::Class(CString p_name, Class* p_base)
+Class::Class(XString p_name, Class* p_base)
       :m_name(p_name)
       ,m_base(p_base)
       ,m_size(0)
@@ -382,7 +382,7 @@ Class::~Class()
 }
 
 MemObject*
-Class::AddDataMember(QLvm* p_vm,CString p_name,int p_storage)
+Class::AddDataMember(QLvm* p_vm,XString p_name,int p_storage)
 {
   if(p_storage == ST_SDATA)
   {
@@ -402,7 +402,7 @@ Class::AddDataMember(QLvm* p_vm,CString p_name,int p_storage)
 }
 
 MemObject*
-Class::AddFunctionMember(QLvm* p_vm,CString p_name,int p_storage)
+Class::AddFunctionMember(QLvm* p_vm,XString p_name,int p_storage)
 {
   // See if it was already added
   MemObject* member = FindFuncMember(p_name);
@@ -421,7 +421,7 @@ Class::AddFunctionMember(QLvm* p_vm,CString p_name,int p_storage)
 
 // Setters
 void    
-Class::SetName(CString p_name)
+Class::SetName(XString p_name)
 {
   m_name = p_name;
 }
@@ -443,7 +443,7 @@ Class::SetBaseClass(Class* p_base)
 }
 
 // Getters
-CString 
+XString 
 Class::GetName()
 {
   return m_name;
@@ -474,7 +474,7 @@ Class::GetAttributes()
 }
 
 MemObject*  
-Class::FindMember(CString p_name)
+Class::FindMember(XString p_name)
 {
   MemObject* member = m_members.FindEntry(p_name);
   if(member != nullptr)
@@ -485,19 +485,19 @@ Class::FindMember(CString p_name)
 }
 
 MemObject*
-Class::FindFuncMember(CString p_name)
+Class::FindFuncMember(XString p_name)
 {
   return m_members.FindFuncEntry(p_name);
 }
 
 MemObject*  
-Class::FindDataMember(CString p_name)
+Class::FindDataMember(XString p_name)
 {
   return m_members.FindEntry(p_name);
 }
 
 MemObject*
-Class::RecursiveFindMember(CString p_name)
+Class::RecursiveFindMember(XString p_name)
 {
   MemObject* member = FindMember(p_name);
   if(member != nullptr)
@@ -512,7 +512,7 @@ Class::RecursiveFindMember(CString p_name)
 }
 
 MemObject*
-Class::RecursiveFindFuncMember(CString p_name)
+Class::RecursiveFindFuncMember(XString p_name)
 {
   MemObject* entry = m_members.FindEntry(p_name);
   if(entry == nullptr && m_base)
@@ -523,7 +523,7 @@ Class::RecursiveFindFuncMember(CString p_name)
 }
 
 MemObject*  
-Class::RecursiveFindDataMember(CString p_name)
+Class::RecursiveFindDataMember(XString p_name)
 {
   MemObject* member = FindDataMember(p_name);
   if(member == nullptr && m_base)
@@ -534,7 +534,7 @@ Class::RecursiveFindDataMember(CString p_name)
 }
 
 MemObject*  
-Class::RecursiveFindDataMember(CString p_name,int& p_entryNum)
+Class::RecursiveFindDataMember(XString p_name,int& p_entryNum)
 {
   p_entryNum = -1;
   MemObject* entry = m_attributes.FindEntry(p_name,p_entryNum);
@@ -585,7 +585,7 @@ Function::Function()
 {
 }
 
-Function::Function(CString p_name)
+Function::Function(XString p_name)
          :m_name(p_name)
          ,m_literals(nullptr)
          ,m_class(nullptr)
@@ -618,7 +618,7 @@ Function::AddArgument(int p_type)
 }
 
 void    
-Function::AddLiteral(QLvm* p_vm,CString p_literal)
+Function::AddLiteral(QLvm* p_vm,XString p_literal)
 {
   if(m_literals == nullptr)
   {
@@ -646,7 +646,7 @@ Function::SetBytecode(BYTE* p_bytecode, unsigned p_size)
 }
 
 void    
-Function::SetName(CString p_name)
+Function::SetName(XString p_name)
 {
   m_name = p_name;
 }
@@ -658,13 +658,13 @@ Function::SetClass(Class* p_class)
 }
 
 // Getters
-CString
+XString
 Function::GetName()
 {
   return m_name;
 }
 
-CString
+XString
 Function::GetFullName()
 {
   if(m_class)
@@ -719,7 +719,7 @@ Function::GetLiteral(unsigned p_number)
   return nullptr;
 }
 
-CString
+XString
 Function::GetLiteralString(unsigned p_number)
 {
   if(m_literals)
@@ -730,7 +730,7 @@ Function::GetLiteralString(unsigned p_number)
       return *(object->m_value.v_string);
     }
   }
-  return CString(_T(""));
+  return XString(_T(""));
 }
 
 Array*  

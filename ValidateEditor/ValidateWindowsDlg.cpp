@@ -173,7 +173,7 @@ ValidateWindowsDlg::InitButtons()
 void
 ValidateWindowsDlg::InitValidation()
 {
-  CString filename = theApp.GetEffectiveValidation();
+  XString filename = theApp.GetEffectiveValidation();
 
   // Read in the definition file for a test step
   try
@@ -190,8 +190,8 @@ ValidateWindowsDlg::InitValidation()
 void
 ValidateWindowsDlg::InitParameters()
 {
-  CString global = theApp.GetBaseDirectory() + _T("Parameters.xpar");
-  CString local  = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParameterFilename();
+  XString global = theApp.GetBaseDirectory() + _T("Parameters.xpar");
+  XString local  = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParameterFilename();
 
   // read the definition of the parameters
   try

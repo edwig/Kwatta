@@ -253,7 +253,7 @@ BodyDlg::OnCbnSelchangeBodyVariable()
   int ind = m_comboBodyVariable.GetCurSel();
   if(ind >= 0)
   {
-    CString var;
+    XString var;
     m_comboBodyVariable.GetLBText(ind,var);
     m_bodyVariable = var;
   }
@@ -266,7 +266,7 @@ BodyDlg::OnBnClickedBodyParm()
   NewVariableDlg dlg(ParType::PAR_RETURN, m_parameters->GetReturns());
   if (dlg.DoModal() == IDOK)
   {
-    CString newvar = dlg.GetNewName();
+    XString newvar = dlg.GetNewName();
     if (!newvar.IsEmpty())
     {
       m_bodyVariable = newvar;

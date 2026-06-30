@@ -27,8 +27,8 @@ protected:
 	StepResultSQL*  m_result { nullptr };
 	int							m_rows   { 0 };
 	int							m_cols   { 0 };
-	CString					m_SQLState;
-	CString					m_NativeError;
+	XString					m_SQLState;
+	XString					m_NativeError;
 
 	StyleCheckbox   m_checkSucceeded;
 	StyleEdit				m_editRows;

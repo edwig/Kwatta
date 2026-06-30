@@ -174,11 +174,11 @@ StepEditorApp::GetDatabase()
   return m_database;
 }
 
-CString
+XString
 StepEditorApp::GetEffectiveStep()
 {
-  CString filename(m_baseDirectory);
-  filename += m_global ? CString(_T("Steps\\")) : m_testDirectory;
+  XString filename(m_baseDirectory);
+  filename += m_global ? XString(_T("Steps\\")) : m_testDirectory;
   filename += m_stepFilename;
 
   return filename;
@@ -187,8 +187,8 @@ StepEditorApp::GetEffectiveStep()
 void
 StepEditorApp::PromoteTestStep(CWnd* p_wnd)
 {
-  CString stepsDirectory = m_baseDirectory + _T("Steps\\");
-  CString globalStep = stepsDirectory + m_stepFilename;
+  XString stepsDirectory = m_baseDirectory + _T("Steps\\");
+  XString globalStep = stepsDirectory + m_stepFilename;
 
   if(_taccess(globalStep,0) == 0)
   {
@@ -199,10 +199,10 @@ StepEditorApp::PromoteTestStep(CWnd* p_wnd)
   }
 
   CWaitCursor sigh;
-  CString testfile = m_baseDirectory + m_testDirectory + m_stepFilename;
+  XString testfile = m_baseDirectory + m_testDirectory + m_stepFilename;
   if(CopyFile(testfile, globalStep, FALSE) == FALSE)
   {
-    CString error = GetLastErrorAsString(GetLastError());
+    XString error = GetLastErrorAsString(GetLastError());
     StyleMessageBox(p_wnd,_T("Could not create a global step: ") + error,PRODUCT_NAME,MB_OK|MB_ICONERROR);
   }
 }
@@ -333,7 +333,7 @@ StepEditorApp::DeduceStepType()
   int pos = m_stepFilename.ReverseFind('.');
   if (pos > 0)
   {
-    CString extension = m_stepFilename.Mid(pos);
+    XString extension = m_stepFilename.Mid(pos);
     if (extension.CompareNoCase(EXTENSION_TESTSTEP_CMD) == 0)
     {
       return StepType::Step_command;
@@ -355,7 +355,7 @@ StepEditorApp::DeduceStepType()
   return StepType::Step_command;
 }
 
-CString 
+XString 
 StepEditorApp::RefreshBearerToken()
 {
   if(m_cache && m_client)
@@ -391,8 +391,8 @@ StepEditorApp::ParseStartParameters()
       else if (_tcsnicmp(&lpszParam[1], _T("BASE:"), 5) == 0) m_baseDirectory = &lpszParam[6];
       else if (_tcsnicmp(&lpszParam[1], _T("TDIR:"), 5) == 0) m_testDirectory = &lpszParam[6];
       else if (_tcsnicmp(&lpszParam[1], _T("PARAM:"),6) == 0) m_paramFilename = &lpszParam[7];
-      else if (_tcsnicmp(&lpszParam[1], _T("VALI:"), 5) == 0) m_validations.push_back(CString(&lpszParam[6]));
-      else if (_tcsnicmp(&lpszParam[1], _T("GLVAL:"),6) == 0) m_globalValid.push_back(CString(&lpszParam[7]));
+      else if (_tcsnicmp(&lpszParam[1], _T("VALI:"), 5) == 0) m_validations.push_back(XString(&lpszParam[6]));
+      else if (_tcsnicmp(&lpszParam[1], _T("GLVAL:"),6) == 0) m_globalValid.push_back(XString(&lpszParam[7]));
       else if (_tcsnicmp(&lpszParam[1], _T("HWND:"), 5) == 0) m_callingHWND   = _ttoll(&lpszParam[6]);
       else if (_tcsnicmp(&lpszParam[1], _T("ROW:"),  4) == 0) m_callingROW    = _ttol (&lpszParam[5]);
       else if (_tcsnicmp(&lpszParam[1], _T("GLOBAL"),6) == 0) m_global        = true;
@@ -416,12 +416,12 @@ StepEditorApp::ParseStartParameters()
     return false;
   }
   // Check formatting of the base directory
-  if(m_baseDirectory.Right(1) != '\\')
+  if(m_baseDirectory.Right(1) != _T("\\"))
   {
     m_baseDirectory += _T('\\');
   }
   // Check formatting of the test directory
-  if(m_testDirectory.Right(1) != '\\')
+  if(m_testDirectory.Right(1) != _T("\\"))
   {
     m_testDirectory += _T('\\');
   }
@@ -431,7 +431,7 @@ StepEditorApp::ParseStartParameters()
 void
 StepEditorApp::Usage()
 {
-  CString usage = _T("USAGE of this program:\n")
+  XString usage = _T("USAGE of this program:\n")
                   _T("\n")
                   _T("StepEditor.exe <singleOptions> <multple-options>\n")
                   _T("\n")

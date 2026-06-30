@@ -131,7 +131,7 @@ BOOL StepCommandDlg::OnInitDialog()
 	if (pSysMenu != nullptr)
 	{
 		BOOL bNameValid;
-		CString strAboutMenu;
+		XString strAboutMenu;
 		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
 		ASSERT(bNameValid);
 		if (!strAboutMenu.IsEmpty())
@@ -211,7 +211,7 @@ StepCommandDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound(_T("Parameters: OK"));
+    XString bound(_T("Parameters: OK"));
     // Effectuate the parameters
     m_unbound = m_testStep->EffectiveReplacements(&m_parameters,true);
 
@@ -282,7 +282,7 @@ StepCommandDlg::InitControls()
 void
 StepCommandDlg::InitStep()
 {
-  CString filename = theApp.GetEffectiveStep();
+  XString filename = theApp.GetEffectiveStep();
 
   // Read in the definition file for a test step
   try
@@ -300,7 +300,7 @@ StepCommandDlg::InitStep()
 void
 StepCommandDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
+  XString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -308,7 +308,7 @@ StepCommandDlg::InitGlobalParameters()
 void
 StepCommandDlg::InitParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   // Possibly no parameter file bound to the step!
   if(filename.IsEmpty())
@@ -319,7 +319,7 @@ StepCommandDlg::InitParameters()
 }
 
 void
-StepCommandDlg::ReadParameters(CString p_file,bool p_global /*= true*/)
+StepCommandDlg::ReadParameters(XString p_file,bool p_global /*= true*/)
 {
   // read the definition of the parameters
   try
@@ -365,8 +365,8 @@ StepCommandDlg::SaveStep()
 {
   StoreVariables();
 
-  CString filenameStep = theApp.GetEffectiveStep();
-  CString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filenameStep = theApp.GetEffectiveStep();
+  XString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   try
   {
@@ -407,7 +407,7 @@ StepCommandDlg::ChooseVariable(StyleEdit& p_edit)
   SearchVarDlg dlg(this,&m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     p_edit.InsertAtCurPos(variable, 0);
     UpdateData();
   }

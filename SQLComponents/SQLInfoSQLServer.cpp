@@ -2,8 +2,8 @@
 //
 // File: SQLInfoSQLServer.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,17 +23,11 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLInfoSQLServer.h"
 #include "SQLQuery.h"
 #include "sqlncli.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -146,6 +140,13 @@ SQLInfoSQLServer::GetRDBMSSupportsODBCCallNamedParameters() const
   return true;
 }
 
+// Supports the ODBC call procedure with named parameters
+bool
+SQLInfoSQLServer::GetRDBMSSupportsNamedParameters() const
+{
+  return true;
+}
+
 // If the database does not support the datatype TIME, it can be implemented as a DECIMAL
 bool
 SQLInfoSQLServer::GetRDBMSSupportsDatatypeTime() const
@@ -238,7 +239,7 @@ SQLInfoSQLServer::GetRDBMSMaxVarchar() const
 
 // Identifier rules differ per RDBMS
 bool
-SQLInfoSQLServer::IsIdentifier(XString p_identifier) const
+SQLInfoSQLServer::IsIdentifier(const XString& p_identifier) const
 {
   // Cannot be empty and cannot exceed this amount of characters
   if(p_identifier.GetLength() == 0 ||
@@ -247,20 +248,27 @@ SQLInfoSQLServer::IsIdentifier(XString p_identifier) const
     return false;
   }
   // Must start with one alpha char OR AN UNDERSCORE (EXTENSION)
-  if(!_istalpha(p_identifier.GetAt(0)) && p_identifier.GetAt(0) != '_')
+  if(!_istalpha((TCHAR)p_identifier.GetAt(0)) && p_identifier.GetAt(0) != '_')
   {
     return false;
   }
   for(int index = 0;index < p_identifier.GetLength();++index)
   {
     // Can be upper/lower alpha or a number OR an underscore
-    TCHAR ch = p_identifier.GetAt(index);
+    TCHAR ch = (TCHAR) p_identifier.GetAt(index);
     if(!_istalnum(ch) && ch != '_')
     {
       return false;
     }
   }
   return true;
+}
+
+// Return parameters from a PSM procedure module can be a result set (SUSPEND)
+bool
+SQLInfoSQLServer::GetRDBMSResultSetFromPSM() const
+{
+  return false;
 }
 
 // KEYWORDS
@@ -345,7 +353,7 @@ SQLInfoSQLServer::GetKEYWORDParameterPrefix() const
 // Get select part to add new record identity to a table
 // Can be special column like 'OID' or a sequence select
 XString
-SQLInfoSQLServer::GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix /*= "_seq"*/) const
+SQLInfoSQLServer::GetKEYWORDIdentityString(const XString& p_tablename,const XString& p_postfix /*= "_seq"*/) const
 {
   if(m_useSequences)
   {
@@ -359,7 +367,7 @@ SQLInfoSQLServer::GetKEYWORDIdentityString(XString& p_tablename,XString p_postfi
 
 // Gets the UPPER function
 XString
-SQLInfoSQLServer::GetKEYWORDUpper(XString& p_expression) const
+SQLInfoSQLServer::GetKEYWORDUpper(const XString& p_expression) const
 {
   return _T("UPPER(") + p_expression + _T(")");
 }
@@ -373,7 +381,7 @@ SQLInfoSQLServer::GetKEYWORDInterval1MinuteAgo() const
 
 // Gets the Not-NULL-Value statement of the database
 XString
-SQLInfoSQLServer::GetKEYWORDStatementNVL(XString& p_test,XString& p_isnull) const
+SQLInfoSQLServer::GetKEYWORDStatementNVL(const XString& p_test,const XString& p_isnull) const
 {
   return XString(_T("NVL(")) + p_test + _T(",") + p_isnull + _T(")");
 }
@@ -489,14 +497,14 @@ SQLInfoSQLServer::GetKEYWORDCurrentUser() const
 
 // Connects to a default schema in the database/instance
 XString
-SQLInfoSQLServer::GetSQLDefaultSchema(XString p_user,XString p_schema) const
+SQLInfoSQLServer::GetSQLDefaultSchema(const XString& p_user,const XString& p_schema) const
 {
   return _T("ALTER USER ") + p_user + _T(" WITH DEFAULT_SCHEMA = ") + p_schema;
 }
 
 // Gets the construction for inline generating a key within an INSERT statement
 XString
-SQLInfoSQLServer::GetSQLNewSerial(XString p_table,XString p_sequence) const
+SQLInfoSQLServer::GetSQLNewSerial(const XString& p_table,const XString& p_sequence) const
 {
   if(m_useSequences)
   {
@@ -516,7 +524,7 @@ SQLInfoSQLServer::GetSQLNewSerial(XString p_table,XString p_sequence) const
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoSQLServer::GetSQLGenerateSerial(XString p_table) const
+SQLInfoSQLServer::GetSQLGenerateSerial(const XString& p_table) const
 {
   if(m_useSequences)
   {
@@ -530,7 +538,7 @@ SQLInfoSQLServer::GetSQLGenerateSerial(XString p_table) const
 }
 
 XString
-SQLInfoSQLServer::GetSQLGenerateSequence(XString p_sequence) const
+SQLInfoSQLServer::GetSQLGenerateSequence(const XString& p_sequence) const
 {
   if(m_useSequences)
   {
@@ -545,7 +553,7 @@ SQLInfoSQLServer::GetSQLGenerateSequence(XString p_sequence) const
 
 // Gets the construction / select for the resulting effective generated serial
 XString
-SQLInfoSQLServer::GetSQLEffectiveSerial(XString p_identity) const
+SQLInfoSQLServer::GetSQLEffectiveSerial(const XString& p_identity) const
 {
   if(m_useSequences)
   {
@@ -559,19 +567,19 @@ SQLInfoSQLServer::GetSQLEffectiveSerial(XString p_identity) const
 
 // Gets the sub transaction commands
 XString
-SQLInfoSQLServer::GetSQLStartSubTransaction(XString p_savepointName) const
+SQLInfoSQLServer::GetSQLStartSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("SAVE TRANSACTION ")) + p_savepointName;
 }
 
 XString
-SQLInfoSQLServer::GetSQLCommitSubTransaction(XString p_savepointName) const
+SQLInfoSQLServer::GetSQLCommitSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("COMMIT TRANSACTION ")) + p_savepointName;
 }
 
 XString
-SQLInfoSQLServer::GetSQLRollbackSubTransaction(XString p_savepointName) const
+SQLInfoSQLServer::GetSQLRollbackSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("ROLLBACK TRANSACTION ")) + p_savepointName;
 }
@@ -585,7 +593,7 @@ SQLInfoSQLServer::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoSQLServer::GetSQLLockTable(XString p_schema, XString p_tablename, bool p_exclusive,int p_waittime) const
+SQLInfoSQLServer::GetSQLLockTable(const XString& p_schema,const XString& p_tablename, bool p_exclusive,int p_waittime) const
 {
   XString query = _T("SELECT TOP(1) 1 FROM ") + p_schema + _T(".") + p_tablename + _T(" WITH ");
   query += p_exclusive ? _T("(TABLOCKX)") : _T("(TABLOCK)");
@@ -606,7 +614,7 @@ SQLInfoSQLServer::GetSQLLockTable(XString p_schema, XString p_tablename, bool p_
 
 // Get query to optimize the table statistics
 XString
-SQLInfoSQLServer::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
+SQLInfoSQLServer::GetSQLOptimizeTable(const XString& p_schema,const XString& p_tablename) const
 {
   XString query(_T("UPDATE STATISTICS "));
   if (!p_schema.IsEmpty())
@@ -621,41 +629,42 @@ SQLInfoSQLServer::GetSQLOptimizeTable(XString p_schema, XString p_tablename) con
 
 // Transform query to select top <n> rows
 XString
-SQLInfoSQLServer::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) const
+SQLInfoSQLServer::GetSQLTopNRows(const XString& p_sql,int p_top,int p_skip /*= 0*/) const
 {
-  if(p_top > 0 && p_sql.Find(_T("SELECT ")) == 0)
+  XString sql(p_sql);
+  if(p_top > 0 && sql.Find(_T("SELECT ")) == 0)
   {
     if(p_skip)
     {
-      p_sql.AppendFormat(_T("\n OFFSET %d ROWS FETCH NEXT %d ROWS ONLY"),p_skip,p_top);
+      sql.AppendFormat(_T("\n OFFSET %d ROWS FETCH NEXT %d ROWS ONLY"),p_skip,p_top);
     }
     else
     {
       XString selectFirst;
       selectFirst.Format(_T("SELECT TOP %d "),p_top);
-      p_sql.Replace(_T("SELECT "),selectFirst);
+      sql.Replace(_T("SELECT "),selectFirst);
     }
   }
-  return p_sql;
+  return sql;
 }
 
 // Expand a SELECT with an 'FOR UPDATE' lock clause
 XString
 SQLInfoSQLServer::GetSelectForUpdateTableClause(unsigned p_lockWaitTime) const
 {
-  XString clause(" WITH (ROWLOCK,UPDLOCK");
+  XString clause(_T(" WITH (ROWLOCK,UPDLOCK"));
   if(p_lockWaitTime == 0)
   {
-    clause += ",READPAST";
+    clause += _T(",READPAST");
   }
-  clause += ")";
+  clause += _T(")");
   return clause;
 }
 
 XString
-SQLInfoSQLServer::GetSelectForUpdateTrailer(XString p_select,unsigned /*p_lockWaitTime*/) const
+SQLInfoSQLServer::GetSelectForUpdateTrailer(const XString& p_select,unsigned /*p_lockWaitTime*/) const
 {
-  return p_select + "\nFOR UPDATE";
+  return p_select + _T("\nFOR UPDATE");
 }
 
 // Query to perform a keep alive ping
@@ -668,7 +677,7 @@ SQLInfoSQLServer::GetPing() const
 
 // Pre- and postfix statements for a bulk import
 XString
-SQLInfoSQLServer::GetBulkImportPrefix(XString p_schema,XString p_tablename,bool p_identity /*= true*/,bool p_constraints /*= true*/) const
+SQLInfoSQLServer::GetBulkImportPrefix(const XString& p_schema,const XString& p_tablename,bool p_identity /*= true*/,bool p_constraints /*= true*/) const
 {
   XString sql;
 
@@ -705,7 +714,7 @@ SQLInfoSQLServer::GetBulkImportPrefix(XString p_schema,XString p_tablename,bool 
 }
 
 XString
-SQLInfoSQLServer::GetBulkImportPostfix(XString p_schema,XString p_tablename,bool p_identity /*= true*/,bool p_constraints /*= true*/) const
+SQLInfoSQLServer::GetBulkImportPostfix(const XString& p_schema,const XString& p_tablename,bool p_identity /*= true*/,bool p_constraints /*= true*/) const
 {
   XString sql(_T("SET ANSI_PADDING OFF"));
   sql +=  _T(SQL_STATEMENT_SEPARATOR);
@@ -803,15 +812,16 @@ SQLInfoSQLServer::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_day,
 
 // Makes an catalog identifier string (possibly quoted on both sides)
 XString
-SQLInfoSQLServer::GetSQLDDLIdentifier(XString p_identifier) const
+SQLInfoSQLServer::GetSQLDDLIdentifier(const XString& p_identifier) const
 {
   return QIQ(p_identifier);
 }
 
 // Get the name of a temp table (local temporary or global temporary)
 XString
-SQLInfoSQLServer::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool p_local) const
+SQLInfoSQLServer::GetTempTablename(const XString& /*p_schema*/,const XString& p_tablename,bool p_local) const
 {
+  XString tablename(p_tablename);
   if(p_local)
   {
     // LOCAL TEMPORARY
@@ -819,7 +829,7 @@ SQLInfoSQLServer::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool
     {
       if(p_tablename.Left(1).Compare(_T("#")))
       {
-        p_tablename = _T("#") + p_tablename;
+        tablename = _T("#") + p_tablename;
       }
     }
   }
@@ -830,16 +840,16 @@ SQLInfoSQLServer::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool
     {
       if(p_tablename.Left(2).Compare(_T("##")))
       {
-        p_tablename = _T("##") + p_tablename;
+        tablename = _T("##") + p_tablename;
       }
     }
   }
-  return p_tablename;
+  return tablename;
 }
 
 // Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
 bool
-SQLInfoSQLServer::DoBindParameterFixup(SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& p_sqlDatatype,SQLULEN& p_columnSize,SQLSMALLINT& p_scale,SQLLEN& p_bufferSize,SQLLEN* p_indicator) const
+SQLInfoSQLServer::DoBindParameterFixup(SQLVariant* /*p_var*/,SQLSMALLINT& /*p_dataType*/,SQLSMALLINT& p_sqlDatatype,SQLULEN& p_columnSize,SQLSMALLINT& p_scale,SQLLEN& p_bufferSize,SQLLEN* p_indicator) const
 {
   if(*p_indicator == SQL_NULL_DATA)
   {
@@ -1293,6 +1303,7 @@ SQLInfoSQLServer::GetCATALOGTableSynonyms(XString& p_schema,XString& p_tablename
                   _T("            WHEN N'MS_Description' THEN CAST (e.value AS VARCHAR(Max))\n")
                   _T("            ELSE ''\n")
                   _T("       END  AS remarks\n")
+                  _T("      ,s.name + '.' + o.name AS fullname")
                   _T("      ,null AS tablespace\n")
                   _T("      ,0    AS temporary\n")
                   _T("  FROM sys.objects o\n")
@@ -1405,7 +1416,7 @@ SQLInfoSQLServer::GetCATALOGTableDrop(XString p_schema,XString p_tablename,bool 
 XString 
 SQLInfoSQLServer::GetCATALOGTemptableCreate(XString /*p_schema*/,XString p_tablename,XString p_select) const
 {
-  CString sel(p_select);
+  XString sel(p_select);
   sel.MakeLower();
   int pos = sel.Find(_T("from "));
 
@@ -1772,7 +1783,7 @@ SQLInfoSQLServer::GetCATALOGIndexAttributes(XString& p_schema,XString& p_tablena
                   _T("       END       AS asc_or_desc\n")
                   _T("      ,y.rowcnt  AS cardinality\n")
                   _T("      ,y.dpages  AS pages\n")
-                  _T("      ,CAST(i.filter_definition AS varchar) AS filter\n")
+                  _T("      ,CAST(i.filter_definition AS varchar(max)) AS filter\n")
                   _T("  FROM tempdb.sys.indexes i\n")
                   _T("       INNER JOIN tempdb.sys.objects       o ON  o.object_id = i.object_id\n")
                   _T("       INNER JOIN tempdb.sys.index_columns x ON (x.object_id = i.object_id AND x.index_id  = i.index_id)\n")
@@ -2027,20 +2038,16 @@ SQLInfoSQLServer::GetCATALOGForeignExists(XString p_schema,XString p_tablename,X
   IdentifierCorrect(p_tablename);
   IdentifierCorrect(p_constraintname);
 
-  XString sql;
-  sql.Format(_T("SELECT COUNT(*)\n")
-             _T("  FROM sys.foreign_keys fok\n")
-             _T("      ,sys.schemas      sch\n")
-             _T("      ,sys.tables       tab\n")
-             _T(" WHERE fok.type = 'F'\n")
-             _T("   AND fok.parent_object_id = tab.object_id\n")
-             _T("   AND tab.schema_id        = sch.schema_id\n")
-             _T("   AND sch.name             = '") + p_schema + _T("'\n")
-             _T("   AND tab.name             = '") + p_tablename + _T("'\n")
-             _T("   AND fok.name             = '") + p_constraintname + _T("'")
-            ,p_schema.GetString()
-            ,p_tablename.GetString()
-            ,p_constraintname.GetString());
+  XString sql(_T("SELECT COUNT(*)\n")
+              _T("  FROM sys.foreign_keys fok\n")
+              _T("      ,sys.schemas      sch\n")
+              _T("      ,sys.tables       tab\n")
+              _T(" WHERE fok.type = 'F'\n")
+              _T("   AND fok.parent_object_id = tab.object_id\n")
+              _T("   AND tab.schema_id        = sch.schema_id\n")
+              _T("   AND sch.name             = '") + p_schema + _T("'\n")
+              _T("   AND tab.name             = '") + p_tablename + _T("'\n")
+              _T("   AND fok.name             = '") + p_constraintname + _T("'"));
   return sql;
 }
 
@@ -2256,7 +2263,7 @@ SQLInfoSQLServer::GetCATALOGDefaultAttributes(XString& p_schema,XString& p_table
                 _T("      ,o.name    AS constraint_table\n")
                 _T("      ,d.name    AS constraint_name\n")
                 _T("      ,c.name    AS constraint_column\n")
-                _T("      ,CAST(definition AS VARCHAR(Max)) AS constraint_code\n")
+                _T("      ,CAST(definition AS VARCHAR(max)) AS constraint_code\n")
                 _T("  FROM sys.default_constraints d\n")
                 _T("       inner join sys.objects o ON o.object_id = d.parent_object_id\n")
                 _T("       inner join sys.schemas s ON s.schema_id = o.schema_id\n")
@@ -2332,7 +2339,7 @@ SQLInfoSQLServer::GetCATALOGCheckAttributes(XString p_schema,XString p_tablename
                 _T("      ,s.name       AS constraint_schema\n")
                 _T("      ,o.name       AS constraint_table\n")
                 _T("      ,c.name       AS constraint_name\n")
-                _T("      ,c.definition AS constraint_code\n")
+                _T("      ,CAST(c.definition AS VARCHAR(max)) AS constraint_code\n")
                 _T("  FROM sys.check_constraints c\n")
                 _T("       inner join sys.objects o ON o.object_id = c.parent_object_id\n")
                 _T("       inner join sys.schemas s ON o.schema_id = s.schema_id\n")
@@ -2448,7 +2455,7 @@ SQLInfoSQLServer::GetCATALOGTriggerAttributes(XString& p_schema,XString& p_table
               _T("      ,0  AS trigger_rollback\n")
               _T("      ,'' AS trigger_referencing\n")
               _T("  	  ,CASE trg.is_disabled WHEN 0 THEN 1 ELSE 0 END AS trigger_enabled\n")
-              _T("  	  ,mod.definition AS trigger_source\n")
+              _T("  	  ,CAST(mod.definition AS VARCHAR(max)) AS trigger_source\n")
               _T("  FROM sys.triggers    trg\n")
               _T("      ,sys.sql_modules mod\n")
               _T("      ,sys.objects     tab\n")
@@ -2666,7 +2673,7 @@ SQLInfoSQLServer::GetCATALOGViewText(XString& p_schema,XString& p_viewname,bool 
   IdentifierCorrect(p_schema);
   IdentifierCorrect(p_viewname);
 
-  CString sql = _T("SELECT CAST(definition AS varchar(max)) view_text\n")
+  XString sql = _T("SELECT CAST(definition AS varchar(max)) view_text\n")
                 _T("  FROM sys.objects     o\n")
                 _T("       inner join sys.sql_modules m on m.object_id = o.object_id\n")
                 _T("       inner join sys.schemas s     on s.schema_id = o.schema_id\n")
@@ -2677,14 +2684,29 @@ SQLInfoSQLServer::GetCATALOGViewText(XString& p_schema,XString& p_viewname,bool 
 }
 
 XString
-SQLInfoSQLServer::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents,bool p_ifexists /*= true*/) const
+SQLInfoSQLServer::GetCATALOGViewCreate(XString p_schema,XString p_viewname,MColumnMap& p_columns,XString p_contents,bool p_ifexists /*= true*/) const
 {
   XString sql(_T("CREATE "));
   if(p_ifexists)
   {
     sql += _T("OR ALTER ");
   }
-  sql += _T("VIEW ") + QIQ(p_schema) + _T(".") + QIQ(p_viewname) + _T("\n") + p_contents;
+  sql += _T("VIEW ") + QIQ(p_schema) + _T(".") + QIQ(p_viewname) + _T("\n(  ");
+  
+  bool next(false);
+  for(auto& column : p_columns)
+  {
+    if(next)
+    {
+      sql += _T(" ,");
+    }
+    sql += column.m_column;
+    sql += _T("\n");
+    next = true;
+  }
+  
+  sql += _T(")\nAS\n");
+  sql += p_contents;
   return sql;
 }
 
@@ -2709,7 +2731,7 @@ SQLInfoSQLServer::GetCATALOGTablePrivileges(XString& p_schema,XString& p_tablena
   IdentifierCorrect(p_schema);
   IdentifierCorrect(p_tablename);
 
-  CString sql = _T("SELECT db_name() AS table_catalog\n")
+  XString sql = _T("SELECT db_name() AS table_catalog\n")
                 _T("      ,s.name    AS table_schema\n")
                 _T("      ,o.name    AS table_name\n")
                 _T("      ,g.name    AS grantor\n")
@@ -2743,7 +2765,7 @@ XString
 SQLInfoSQLServer::GetCATALOGColumnPrivileges(XString& p_schema,XString& p_tablename,XString& p_columnname) const
 {
   bool p_quoted(true);
-  CString sql = _T("SELECT db_name() AS table_catalog\n")
+  XString sql = _T("SELECT db_name() AS table_catalog\n")
                 _T("      ,s.name    AS table_schema\n")
                 _T("      ,o.name    AS table_name\n")
                 _T("      ,c.name    AS column_name\n")
@@ -2966,8 +2988,45 @@ SQLInfoSQLServer::GetCATALOGCommentCreate(XString p_schema,XString p_object,XStr
 //
 //////////////////////////////////////////////////////////////////////////
 
+// All package functions
 XString
-SQLInfoSQLServer::GetPSMProcedureExists(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoSQLServer::GetPSMPackageExists(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoSQLServer::GetPSMPackageList(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoSQLServer::GetPSMPackageListModules(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString 
+SQLInfoSQLServer::GetPSMPackageAttributes(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoSQLServer::GetPSMPackageCreate(MetaPackage& /*p_package*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoSQLServer::GetPSMPackageDrop(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoSQLServer::GetPSMProcedureExists(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   IdentifierCorrect(p_procedure);
 
@@ -2986,7 +3045,7 @@ SQLInfoSQLServer::GetPSMProcedureExists(XString p_schema, XString p_procedure,bo
 }
 
 XString
-SQLInfoSQLServer::GetPSMProcedureList(XString& p_schema,XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoSQLServer::GetPSMProcedureList(XString& p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString query = _T("SELECT db_name() as catalog_name\n")
                   _T("      ,s.name    as schema_name\n")
@@ -3015,7 +3074,7 @@ SQLInfoSQLServer::GetPSMProcedureList(XString& p_schema,XString p_procedure,bool
 }
 
 XString
-SQLInfoSQLServer::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
+SQLInfoSQLServer::GetPSMProcedureAttributes(XString& p_schema,XString& /*p_package*/,XString& p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql = _T("SELECT db_name() as catalog_name\n")
                 _T("      ,s.name    as schema_name\n")
@@ -3037,7 +3096,7 @@ SQLInfoSQLServer::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedu
                 _T("            WHEN 'FN' THEN 2\n")
                 _T("                      ELSE 3\n")
                 _T("       END AS procedure_type\n")
-                _T("      ,m.definition AS source\n")
+                _T("      ,CAST(m.definition AS VARCHAR(max)) AS source\n")
                 _T("  FROM sys.objects o\n")
                 _T("       INNER JOIN sys.schemas     s ON o.schema_id = s.schema_id\n")
                 _T("       INNER JOIN sys.sql_modules m ON m.object_id = o.object_id\n")
@@ -3061,7 +3120,7 @@ SQLInfoSQLServer::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedu
 }
 
 XString
-SQLInfoSQLServer::GetPSMProcedureSourcecode(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoSQLServer::GetPSMProcedureSourcecode(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   IdentifierCorrect(p_procedure);
   XString query = _T("SELECT s.name as source_schema\n")
@@ -3087,7 +3146,7 @@ SQLInfoSQLServer::GetPSMProcedureCreate(MetaProcedure& /*p_procedure*/) const
 }
 
 XString
-SQLInfoSQLServer::GetPSMProcedureDrop(XString p_schema,XString p_procedure,bool p_function /*=false*/) const
+SQLInfoSQLServer::GetPSMProcedureDrop(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_function /*=false*/) const
 {
   XString object = p_function ? _T("FUNCTION") : _T("PROCEDURE");
   XString sql = _T("DROP ") + object + _T(" IF EXISTS ") + QIQ(p_schema) + _T(".") + QIQ(p_procedure);
@@ -3095,16 +3154,16 @@ SQLInfoSQLServer::GetPSMProcedureDrop(XString p_schema,XString p_procedure,bool 
 }
 
 XString
-SQLInfoSQLServer::GetPSMProcedureErrors(XString /*p_schema*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoSQLServer::GetPSMProcedureErrors(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   // SQL-Server does not support procedure errors
   return _T("");
 }
 
 XString
-SQLInfoSQLServer::GetPSMProcedurePrivilege(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
+SQLInfoSQLServer::GetPSMProcedurePrivilege(XString& p_schema,XString& /*p_package*/,XString& p_procedure,bool p_quoted /*= false*/) const
 {
-  CString sql = _T("SELECT db_name() AS table_catalog\n")
+  XString sql = _T("SELECT db_name() AS table_catalog\n")
                 _T("      ,s.name    AS table_schema\n")
                 _T("      ,o.name    AS table_name\n")
                 _T("      ,g.name    AS grantor\n")
@@ -3138,7 +3197,7 @@ SQLInfoSQLServer::GetPSMProcedurePrivilege(XString& p_schema,XString& p_procedur
 
 // And it's parameters
 XString
-SQLInfoSQLServer::GetPSMProcedureParameters(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
+SQLInfoSQLServer::GetPSMProcedureParameters(XString& p_schema,XString& /*p_package*/,XString& p_procedure,bool p_quoted /*= false*/) const
 {
   IdentifierCorrect(p_procedure);
   XString query = _T("SELECT specific_catalog AS procedure_cat\n")
@@ -3486,7 +3545,7 @@ SQLInfoSQLServer::GetSESSIONConstraintsImmediate() const
 
 // Calling a stored function or procedure if the RDBMS does not support ODBC call escapes
 SQLVariant*
-SQLInfoSQLServer::DoSQLCall(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/)
+SQLInfoSQLServer::DoSQLCall(SQLQuery* /*p_query*/,const XString& /*p_schema*/,const XString& /*p_procedure*/)
 {
   // MS-SQLServer supports standard calls
   return nullptr;
@@ -3494,7 +3553,7 @@ SQLInfoSQLServer::DoSQLCall(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString&
 
 // Calling a stored function with named parameters, returning a value
 SQLVariant*
-SQLInfoSQLServer::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_function = true*/)
+SQLInfoSQLServer::DoSQLCallNamedParameters(SQLQuery* /*p_query*/,const XString& /*p_schema*/,const XString& /*p_procedure*/,bool /*p_function = true*/)
 {
   // MS-SQLServer supports standard calls with named parameters
   return nullptr;

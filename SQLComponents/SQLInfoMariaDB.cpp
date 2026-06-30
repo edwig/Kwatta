@@ -2,8 +2,8 @@
 //
 // File: SQLInfoMariaDB.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,16 +23,10 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLInfoMariaDB.h"
 #include "SQLQuery.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -103,7 +97,7 @@ SQLInfoMariaDB::GetRDBMSMaxVarchar() const
 
 // Identifier rules differ per RDBMS
 bool
-SQLInfoMariaDB::IsIdentifier(XString p_identifier) const
+SQLInfoMariaDB::IsIdentifier(const XString& p_identifier) const
 {
   // Cannot be empty and cannot exceed this amount of characters
   if(p_identifier.GetLength() == 0 ||
@@ -112,7 +106,7 @@ SQLInfoMariaDB::IsIdentifier(XString p_identifier) const
     return false;
   }
   // EXTENSION: Can start with an alpha OR a numeric char
-  if(!_istalnum(p_identifier.GetAt(0)))
+  if(!_istalnum((TCHAR)p_identifier.GetAt(0)))
   {
     return false;
   }
@@ -121,7 +115,7 @@ SQLInfoMariaDB::IsIdentifier(XString p_identifier) const
   {
     // Can be upper/lower alpha or a number OR an underscore
     // EXTENSION: Identifiers can contain the '$' sign
-    TCHAR ch = p_identifier.GetAt(index);
+    TCHAR ch = (TCHAR) p_identifier.GetAt(index);
     if(_istalpha(ch))
     {
       alphaSeen = true;
@@ -133,6 +127,13 @@ SQLInfoMariaDB::IsIdentifier(XString p_identifier) const
   }
   // EXTENSION: Must have at least 1 (one) alpha character
   return alphaSeen;
+}
+
+// Return parameters from a PSM procedure module can be a result set (SUSPEND)
+bool
+SQLInfoMariaDB::GetRDBMSResultSetFromPSM() const
+{
+  return false;
 }
 
 // KEYWORDS
@@ -189,14 +190,14 @@ SQLInfoMariaDB::GetKEYWORDParameterOUT() const
 // Get select part to add new record identity to a table
 // Can be special column like 'OID' or a sequence select
 XString
-SQLInfoMariaDB::GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix /*= "_seq"*/) const
+SQLInfoMariaDB::GetKEYWORDIdentityString(const XString& p_tablename,const XString& p_postfix /*= "_seq"*/) const
 {
   return p_tablename + p_postfix + _T(".nextval");
 }
 
 // Gets the construction for inline generating a key within an INSERT statement
 XString
-SQLInfoMariaDB::GetSQLNewSerial(XString p_table, XString p_sequence) const
+SQLInfoMariaDB::GetSQLNewSerial(const XString& p_table,const XString& p_sequence) const
 {
   if(!m_oracleMode)
   {
@@ -214,7 +215,7 @@ SQLInfoMariaDB::GetSQLNewSerial(XString p_table, XString p_sequence) const
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoMariaDB::GetSQLGenerateSerial(XString p_table) const
+SQLInfoMariaDB::GetSQLGenerateSerial(const XString& p_table) const
 {
   if (m_oracleMode)
   {
@@ -224,7 +225,7 @@ SQLInfoMariaDB::GetSQLGenerateSerial(XString p_table) const
 }
 
 XString
-SQLInfoMariaDB::GetSQLGenerateSequence(XString p_sequence) const
+SQLInfoMariaDB::GetSQLGenerateSequence(const XString& p_sequence) const
 {
   if(m_oracleMode)
   {
@@ -235,19 +236,19 @@ SQLInfoMariaDB::GetSQLGenerateSequence(XString p_sequence) const
 
 // Gets the sub-transaction commands
 XString
-SQLInfoMariaDB::GetSQLStartSubTransaction(XString p_savepointName) const
+SQLInfoMariaDB::GetSQLStartSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("SAVEPOINT ")) + p_savepointName;
 }
 
 XString
-SQLInfoMariaDB::GetSQLCommitSubTransaction(XString p_savepointName) const
+SQLInfoMariaDB::GetSQLCommitSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("RELEASE SAVEPOINT")) = p_savepointName;
 }
 
 XString
-SQLInfoMariaDB::GetSQLRollbackSubTransaction(XString p_savepointName) const
+SQLInfoMariaDB::GetSQLRollbackSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("ROLLBACK TO SAVEPOINT ")) + p_savepointName;
 }
@@ -428,6 +429,23 @@ SQLInfoMariaDB::GetCATALOGSequenceDrop(XString /*p_schema*/,XString p_sequence) 
   return  sql;
 }
 
+// All table functions
+XString 
+SQLInfoMariaDB::GetCATALOGTableCreatePostfix(MetaTable& p_table,MetaColumn& /*p_column*/) const
+{
+  XString sql;
+  if(p_table.m_temporary)
+  {
+    sql += _T("ENGINE = MEMORY");
+  }
+  else
+  {
+    sql += _T("ENGINE = InnoDB");
+  }
+  return sql;
+
+}
+
 //////////////////////////////////////////////////////////////////////////
 //
 // SQL/PSM PERSISTENT STORED MODULES 
@@ -462,7 +480,7 @@ SQLInfoMariaDB::GetCATALOGSequenceDrop(XString /*p_schema*/,XString p_sequence) 
 // 'GROUP BY'       - two extra columns or not needed
 
 XString
-SQLInfoMariaDB::GetPSMProcedureSourcecode(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoMariaDB::GetPSMProcedureSourcecode(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql = _T("SELECT 0 as type\n"
                    "      ,0 as line\n"

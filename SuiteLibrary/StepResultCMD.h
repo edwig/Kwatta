@@ -28,26 +28,26 @@ public:
   virtual ~StepResultCMD() = default;
 
   // Interface with the file system
-  virtual void ReadFromXML(CString p_filename);  // Throws in case of an error
-  virtual bool WriteToXML (CString p_filename);
-  virtual void CheckFilename(CString p_filename);
+  virtual void ReadFromXML(XString p_filename);  // Throws in case of an error
+  virtual bool WriteToXML (XString p_filename);
+  virtual void CheckFilename(XString p_filename);
   virtual void ResetEffective();
 
   // GETTERS
   int       GetReturnValue()    { return m_returnValue; };
-  CString   GetStandardOutput() { return m_standardOutput; };
-  CString   GetStandardError()  { return m_standardError; };
+  XString   GetStandardOutput() { return m_standardOutput; };
+  XString   GetStandardError()  { return m_standardError; };
 
   // SETTERS
   void      SetReturnValue(int p_value)               { m_returnValue    = p_value; }
-  void      SetStandardOutput(CString p_output)       { m_standardOutput = p_output; }
-  void      SetStandardError(CString p_error)         { m_standardError  = p_error; }
+  void      SetStandardOutput(XString p_output)       { m_standardOutput = p_output; }
+  void      SetStandardError(XString p_error)         { m_standardError  = p_error; }
 
 protected:
   // Output Command line
   int       m_returnValue { 0 };
-  CString   m_standardOutput;
-  CString   m_standardError;
+  XString   m_standardOutput;
+  XString   m_standardError;
 
 private:
 };

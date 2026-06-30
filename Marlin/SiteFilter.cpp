@@ -25,18 +25,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SiteFilter.h"
 
-#ifdef _AFX
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
-#endif
-
-SiteFilter::SiteFilter(unsigned p_priority,XString p_name)
+SiteFilter::SiteFilter(unsigned p_priority,const XString& p_name)
            :m_priority(p_priority)
            ,m_name(p_name)
 {

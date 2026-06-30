@@ -34,7 +34,7 @@ public:
 	StarterDlg(CWnd* p_parent = nullptr);   // standard constructor
 	virtual ~StarterDlg();
 
-  CString  GetChosenSuite();
+  XString  GetChosenSuite();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -50,12 +50,12 @@ protected:
           bool SaveTestSuites();
           bool CheckExists(int p_num);
 
-  typedef std::deque<CString> AllSuites;
+  typedef std::deque<XString> AllSuites;
 
-  CString      m_chosenSuite;
+  XString      m_chosenSuite;
   AllSuites    m_suites;
 
-  CString      m_title;
+  XString      m_title;
   StyleEdit    m_editTitle;
   StyleButton  m_buttonSearch;
   StyleButton  m_buttonNewSuite;

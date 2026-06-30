@@ -35,7 +35,7 @@ class OAuth2Cache;
 class StepInternetDlg;
 class StepDatabaseDlg;
 class StepWindowsDlg;
-using ValiSteps = std::vector<CString>;
+using ValiSteps = std::vector<XString>;
 
 using SQLComponents::SQLDatabase;
 
@@ -49,11 +49,11 @@ public:
 	StepEditorApp();
  ~StepEditorApp();
 
-  CString       GetEffectiveStep();
-  CString       GetTestStepFilename()       { return m_stepFilename;  }
-  CString       GetParametersFilename()     { return m_paramFilename; }
-  CString       GetBaseDirectory()          { return m_baseDirectory; }
-  CString       GetTestDirectory()          { return m_testDirectory; }
+  XString       GetEffectiveStep();
+  XString       GetTestStepFilename()       { return m_stepFilename;  }
+  XString       GetParametersFilename()     { return m_paramFilename; }
+  XString       GetBaseDirectory()          { return m_baseDirectory; }
+  XString       GetTestDirectory()          { return m_testDirectory; }
   HTTPClient*   GetHTTPClient()             { return m_client;        }
   OAuth2Cache*  GetOAuth2Cache()            { return m_cache;         }
   ValiSteps&    GetValidations()            { return m_validations;   }
@@ -62,7 +62,7 @@ public:
   int           StartTheInetRunner(StepInternetDlg* p_caller);
   int           StartTheSQLRunner (StepDatabaseDlg* p_caller);
   int           StartTheWINRunner (StepWindowsDlg*  p_caller);
-  CString       RefreshBearerToken();
+  XString       RefreshBearerToken();
   bool          GetBearerTokenIsExpired();
   void          PromoteTestStep(CWnd* p_wnd);
   SQLDatabase*  GetDatabase();
@@ -82,10 +82,10 @@ private:
   StepType  DeduceStepType();
   void      Usage();
 
-  CString m_stepFilename;
-  CString m_paramFilename;
-  CString m_baseDirectory;
-  CString m_testDirectory;
+  XString m_stepFilename;
+  XString m_paramFilename;
+  XString m_baseDirectory;
+  XString m_testDirectory;
   UINT64  m_callingHWND;
   int     m_callingROW;
   int     m_global        { false   };

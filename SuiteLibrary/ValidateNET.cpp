@@ -34,7 +34,7 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 void
-ValidateNET::ReadFromXML(CString p_filename)
+ValidateNET::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   Validate::ReadFromXML(msg,p_filename);
@@ -94,7 +94,7 @@ ValidateNET::ReadFromXML(CString p_filename)
 }
 
 bool
-ValidateNET::WriteToXML(CString p_filename)
+ValidateNET::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if(!Validate::WriteToXML(msg,p_filename))
@@ -104,42 +104,42 @@ ValidateNET::WriteToXML(CString p_filename)
   XMLElement* root = msg.GetRoot();
 
   // Status value
-  XMLElement* elem = msg.AddElement(root,_T("CheckStatus"),XDT_String,_T(""));
+  XMLElement* elem = msg.AddElement(root,_T("CheckStatus"),_T(""));
   msg.SetElement(elem,_T("Check"),m_checkStatus);
   msg.SetElement(elem,_T("Operator"),ReturnOperatorToString(m_statusOperator));
   msg.SetElement(elem,_T("StatusVariable"),m_statusVariable);
-  msg.AddElement(elem,_T("Expected"),XDT_CDATA,m_expectedStatus);
+  msg.AddElement(elem,_T("Expected"),m_expectedStatus,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Header value
-  elem = msg.AddElement(root,_T("CheckHeader"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("CheckHeader"),_T(""));
   msg.SetElement(elem,_T("Check"),m_checkHeader);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_headerOperator));
-  msg.AddElement(elem,_T("Expected"),      XDT_CDATA, m_expectedHeader);
-  msg.AddElement(elem,_T("Header"),        XDT_String,m_verifyHeader);
-  msg.AddElement(elem,_T("HeaderVariable"),XDT_String,m_headerVariable);
+  msg.AddElement(elem,_T("Expected"),      m_expectedHeader,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(elem,_T("Header"),        m_verifyHeader);
+  msg.AddElement(elem,_T("HeaderVariable"),m_headerVariable);
 
   // Body value
-  elem = msg.AddElement(root,_T("CheckBody"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("CheckBody"),_T(""));
   msg.SetElement(elem,_T("Check"),m_checkBody);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_bodyOperator));
-  msg.AddElement(elem,_T("Expected"),    XDT_CDATA,m_expectedBody);
-  msg.AddElement(elem,_T("BodyVariable"),XDT_String,m_bodyVariable);
+  msg.AddElement(elem,_T("Expected"),    m_expectedBody,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(elem,_T("BodyVariable"),m_bodyVariable);
 
   // XML node value
-  elem = msg.AddElement(root,_T("CheckXML"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("CheckXML"),_T(""));
   msg.SetElement(elem,_T("Check"),m_checkXML);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_xmlOperator));
-  msg.AddElement(elem,_T("Expected"),   XDT_CDATA, m_expectedXML);
-  msg.AddElement(elem,_T("XmlPath"),    XDT_String,m_verifyXmlPath);
-  msg.AddElement(elem,_T("XmlVariable"),XDT_String,m_xmlVariable);
+  msg.AddElement(elem,_T("Expected"),   m_expectedXML,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(elem,_T("XmlPath"),    m_verifyXmlPath);
+  msg.AddElement(elem,_T("XmlVariable"),m_xmlVariable);
 
   // JSON pair value
-  elem = msg.AddElement(root,_T("CheckJSON"),XDT_String,_T(""));
+  elem = msg.AddElement(root,_T("CheckJSON"),_T(""));
   msg.SetElement(elem,_T("Check"),m_checkJSON);
   msg.SetElement(elem,_T("Operator"),BufferOperatorToString(m_jsonOperator));
-  msg.AddElement(elem,_T("Expected"),    XDT_CDATA, m_expectedJSON);
-  msg.AddElement(elem,_T("JsonPath"),    XDT_String,m_verifyJSONPath);
-  msg.AddElement(elem,_T("JsonVariable"),XDT_String,m_jsonVariable);
+  msg.AddElement(elem,_T("Expected"),    m_expectedJSON,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
+  msg.AddElement(elem,_T("JsonPath"),    m_verifyJSONPath);
+  msg.AddElement(elem,_T("JsonVariable"),m_jsonVariable);
 
   // Now save it
   return msg.SaveFile(m_filename);
@@ -162,7 +162,7 @@ ValidateNET::EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay)
 
 // Check our filenames extension
 void
-ValidateNET::CheckFilename(CString p_filename)
+ValidateNET::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -204,7 +204,7 @@ ValidateNET::ValidateStatusValue(Parameters* p_parameters,int p_status)
   // Save as result of the test
   if(result && !m_statusVariable.IsEmpty())
   {
-    CString status;
+    XString status;
     status.Format(_T("%d"), p_status);
     p_parameters->OverwriteReturnParameter(m_statusVariable,status);
   }
@@ -212,7 +212,7 @@ ValidateNET::ValidateStatusValue(Parameters* p_parameters,int p_status)
 }
 
 bool
-ValidateNET::ValidateHeaderValue(Parameters* p_parameters,CString p_value)
+ValidateNET::ValidateHeaderValue(Parameters* p_parameters,XString p_value)
 {
   // See if we must check the output value
   if(!m_checkHeader)
@@ -243,7 +243,7 @@ ValidateNET::ValidateHeaderValue(Parameters* p_parameters,CString p_value)
 }
 
 bool
-ValidateNET::ValidateBodyValue(Parameters* p_parameters,CString p_body)
+ValidateNET::ValidateBodyValue(Parameters* p_parameters,XString p_body)
 {
   // See if we must check the output value
   if(!m_checkBody)
@@ -274,7 +274,7 @@ ValidateNET::ValidateBodyValue(Parameters* p_parameters,CString p_body)
 }
 
 bool
-ValidateNET::ValidateXMLValue(Parameters* p_parameters,CString p_xml)
+ValidateNET::ValidateXMLValue(Parameters* p_parameters,XString p_xml)
 {
   // See if we must check the output value
   if(!m_checkXML)
@@ -289,7 +289,7 @@ ValidateNET::ValidateXMLValue(Parameters* p_parameters,CString p_xml)
   {
     return false;
   }
-  CString node;
+  XString node;
 
   XPath path(&msg,m_verifyXmlPath);
   if (path.GetNumberOfMatches() > 0)
@@ -323,7 +323,7 @@ ValidateNET::ValidateXMLValue(Parameters* p_parameters,CString p_xml)
 }
 
 bool
-ValidateNET::ValidateJSONValue(Parameters* p_parameters,CString p_json)
+ValidateNET::ValidateJSONValue(Parameters* p_parameters,XString p_json)
 {
   // See if we must check the output value
   if(!m_checkJSON)
@@ -340,7 +340,7 @@ ValidateNET::ValidateJSONValue(Parameters* p_parameters,CString p_json)
   }
 
   // Find the value from this pair
-  CString value;
+  XString value;
   JSONPath path(msg,m_verifyJSONPath);
   if(path.GetNumberOfMatches() >= 1)
   {

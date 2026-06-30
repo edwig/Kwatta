@@ -48,8 +48,8 @@ protected:
   int       m_succeeded;
   int       m_returnedRows;
   int       m_returnedCols;
-  CString   m_SQLState;
-  CString   m_nativeError;
+  XString   m_SQLState;
+  XString   m_nativeError;
   StyleEdit m_editSucceeded;
   StyleEdit m_editRows;
   StyleEdit m_editCols;

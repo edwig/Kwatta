@@ -93,7 +93,7 @@ NewStepNamesDlg::CheckStyleTab(void* p_data)
 {
   if(m_stepName.IsEmpty() || m_stepFile.IsEmpty())
   {
-    CString error(_T("Fill in both a step name and a valid test step file name!"));
+    XString error(_T("Fill in both a step name and a valid test step file name!"));
     if(m_stepName.IsEmpty())
     {
       m_editName.SetErrorState(true,error);
@@ -109,7 +109,7 @@ NewStepNamesDlg::CheckStyleTab(void* p_data)
   
   // Save the state
   (static_cast<NewStepInfo*>(p_data))->m_type = m_stepType;
-  CString defaultName = StripExtension(m_stepFile);
+  XString defaultName = StripExtension(m_stepFile);
   (static_cast<NewStepInfo*>(p_data))->m_default = defaultName;
 
   return true;
@@ -136,8 +136,8 @@ NewStepNamesDlg::PresetFilenames()
 void
 NewStepNamesDlg::CheckFilename()
 {
-  CString path = theApp.GetTestDirectory();
-  CString file(StripExtension(m_stepFile));
+  XString path = theApp.GetTestDirectory();
+  XString file(StripExtension(m_stepFile));
   if(file.IsEmpty())
   {
     return;
@@ -163,8 +163,8 @@ NewStepNamesDlg::CheckFilename()
   UpdateData(FALSE);
 }
 
-CString
-NewStepNamesDlg::StripExtension(CString p_filename)
+XString
+NewStepNamesDlg::StripExtension(XString p_filename)
 {
   int pos = p_filename.ReverseFind('.');
   if(pos > 0)

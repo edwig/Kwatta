@@ -31,8 +31,8 @@ public:
 	NewTestDlg(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~NewTestDlg();
 
-  CString GetDirectory() { return m_directory; }
-  CString GetTestName()  { return m_testName;  }
+  XString GetDirectory() { return m_directory; }
+  XString GetTestName()  { return m_testName;  }
   bool    GetActive()    { return m_active;    }
 
 // Dialog Data
@@ -45,8 +45,8 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
-  CString       m_directory;
-  CString       m_testName;
+  XString       m_directory;
+  XString       m_testName;
   bool          m_active { true };
 
   StyleEdit     m_editDirectory;

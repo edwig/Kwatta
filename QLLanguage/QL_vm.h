@@ -59,20 +59,20 @@ public:
   void        MarkObject(MemObject* p_object);
 
   // CLASSES SYMBOLS GLOBALS AND SCRIPTS
-  Class*      FindClass  (CString& p_name);
-  Function*   AddScript  (CString  p_name);
-  MemObject*  AddInternal(CString p_name);
-  MemObject*  FindSymbol (CString p_name);
-  Function*   FindScript (CString p_name);
-  Method*     AddMethod  (CString p_name,int p_type);
-  Method*     FindMethod (CString p_name,int p_type);
+  Class*      FindClass  (XString& p_name);
+  Function*   AddScript  (XString  p_name);
+  MemObject*  AddInternal(XString p_name);
+  MemObject*  FindSymbol (XString p_name);
+  Function*   FindScript (XString p_name);
+  Method*     AddMethod  (XString p_name,int p_type);
+  Method*     FindMethod (XString p_name,int p_type);
 
   // Add an entry to a dictionary 
-  MemObject*  AddEntry(NameMap& dict,CString p_key,int p_storage);
+  MemObject*  AddEntry(NameMap& dict,XString p_key,int p_storage);
   // Adding various objects
-  MemObject*  AddSymbol (CString p_name);
+  MemObject*  AddSymbol (XString p_name);
   void        AddClass  (Class* p_class);
-  int         AddGlobal (MemObject* p_object,CString p_name);
+  int         AddGlobal (MemObject* p_object,XString p_name);
   void        AddLiteral(MemObject* p_object);
   void        AddBytecode(BYTE* p_bytecode,unsigned p_size);
   // XTOR and DTOR an object
@@ -83,8 +83,8 @@ public:
   void        SetGlobal(unsigned p_index,MemObject* p_object);
   MemObject*  GetLiteral(unsigned p_index);
   BYTE*       GetBytecode();
-  int         FindGlobal(CString p_name);
-  CString     FindSymbolName(MemObject* p_object);
+  int         FindGlobal(XString p_name);
+  XString     FindSymbolName(MemObject* p_object);
   bool        HasInitCode();
 
   // FILE STREAMING OPERATIONS
@@ -120,7 +120,7 @@ private:
   void        WriteHeader   (FILE* p_fp, bool p_trace);
   void        WriteStream   (FILE* p_fp, bool p_trace, TCHAR* p_message);
   void        WriteInteger  (FILE* p_fp, bool p_trace, int n);
-  void        WriteString   (FILE* p_fp, bool p_trace, CString*   p_string,   TCHAR* p_extra = nullptr);
+  void        WriteString   (FILE* p_fp, bool p_trace, XString*   p_string,   TCHAR* p_extra = nullptr);
   void        WriteFloat    (FILE* p_fp, bool p_trace, bcd*       p_float);
   void        WriteFileName (FILE* p_fp, bool p_trace, MemObject* p_object);
   void        WriteArray    (FILE* p_fp, bool p_trace, Array*     p_array,    TCHAR* p_extra = nullptr,bool p_doScripts = false);
@@ -130,7 +130,7 @@ private:
   void        WriteScript   (FILE* p_fp, bool p_trace, Function*  p_script);
   void        WriteTypes    (FILE* p_fp, bool p_trace, ArgTypes&  p_types);
   void        WriteInternal (FILE* p_fp, bool p_trace, MemObject* p_internal);
-  void        WriteExternal (FILE* p_fp, bool p_trace, CString*   p_external);
+  void        WriteExternal (FILE* p_fp, bool p_trace, XString*   p_external);
   void        WriteReference(FILE* p_fp, bool p_trace, MemObject* p_object);
   void        WriteMemObject(FILE* p_fp, bool p_trace, MemObject* p_object,bool p_ref = false);
   void        WriteClasses  (FILE* p_fp, bool p_trace, ClassMap&  p_map);
@@ -143,8 +143,8 @@ private:
   void        ReadStream      (FILE* p_fp, bool p_trce,  TCHAR* p_errorMessage);
   bool        ReadInteger     (FILE* p_fp, bool p_trace, long* n);
   bool        MustReadInteger (FILE* p_fp, bool p_trace, long* n, TCHAR* p_errorMessage);
-  CString     ReadString      (FILE* p_fp, bool p_trace);
-  CString     MustReadString  (FILE* p_fp, bool p_trace, TCHAR* p_errorMessage);
+  XString     ReadString      (FILE* p_fp, bool p_trace);
+  XString     MustReadString  (FILE* p_fp, bool p_trace, TCHAR* p_errorMessage);
   bcd*        ReadFloat       (FILE* p_fp, bool p_trace);
   bcd*        MustReadFloat   (FILE* p_fp, bool p_trace, TCHAR* p_message);
   FILE*       ReadFileName    (FILE* p_fp, bool p_trace);
@@ -155,7 +155,7 @@ private:
   void        ReadBytecode    (FILE* p_fp, bool p_trace, BYTE** p_bytecode,int* p_size);
   Function*   ReadScript      (FILE* p_fp, bool p_trace);
   Internal    ReadInternal    (FILE* p_fp, bool p_trace);
-  CString*    ReadExternal    (FILE* p_fp, bool p_trace);
+  XString*    ReadExternal    (FILE* p_fp, bool p_trace);
   void        ReadReference   (FILE* p_fp, bool p_trace, MemObject* p_object);
   MemObject*  ReadMemObject   (FILE* p_fp, bool p_trace);
   void        ReadClasses     (FILE* p_fp, bool p_trace, ClassMap& p_map);

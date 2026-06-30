@@ -44,11 +44,11 @@ public:
 	virtual BOOL ExitInstance();
 
   void    PromoteValidation(CWnd* p_wnd);
-  CString GetEffectiveValidation();
-  CString GetValidateFilename()  { return m_validateFilename; }
-  CString GetParameterFilename() { return m_paramFilename;    }
-  CString GetBaseDirectory()     { return m_baseDirectory;    }
-  CString GetTestDirectory()     { return m_testDirectory;    }
+  XString GetEffectiveValidation();
+  XString GetValidateFilename()  { return m_validateFilename; }
+  XString GetParameterFilename() { return m_paramFilename;    }
+  XString GetBaseDirectory()     { return m_baseDirectory;    }
+  XString GetTestDirectory()     { return m_testDirectory;    }
   bool    GetGlobal()            { return m_global;           }
 
 // Implementation
@@ -59,10 +59,10 @@ private:
   void Usage();
   ValidateType DeduceValidateType();
 
-  CString m_validateFilename;
-  CString m_paramFilename;
-  CString m_baseDirectory;
-  CString m_testDirectory;
+  XString m_validateFilename;
+  XString m_paramFilename;
+  XString m_baseDirectory;
+  XString m_testDirectory;
 
   UINT64  m_callingHWND { NULL  };
   int     m_callingROW  { 0     };

@@ -2,8 +2,8 @@
 //
 // File: SQLDatabasePool.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,18 +23,13 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLDatabasePool.h"
 #include "SQLDatabase.h"
+#include "SQLInfoDB.h"
 #include <AutoCritical.h>
 #include <ServiceReporting.h>
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -192,7 +187,7 @@ SQLDatabasePool::Cleanup(bool p_aggressive /*=false*/)
 
 // Return current number of connections
 unsigned
-SQLDatabasePool::GetConnections()
+SQLDatabasePool::GetConnections() const
 {
   // Lock the pool
   AutoCritSec lock(&m_lock);
@@ -214,7 +209,7 @@ SQLDatabasePool::GetConnection(const int p_index)
 
 // Return current number of maximum databases
 unsigned
-SQLDatabasePool::GetMaxDatabases()
+SQLDatabasePool::GetMaxDatabases() const
 {
   // Lock the pool
   AutoCritSec lock(&m_lock);
@@ -224,7 +219,7 @@ SQLDatabasePool::GetMaxDatabases()
 
 // Get the number of free databases
 unsigned
-SQLDatabasePool::GetFreeDatabases()
+SQLDatabasePool::GetFreeDatabases() const
 {
   // Lock the pool
   AutoCritSec lock(&m_lock);
@@ -242,7 +237,7 @@ SQLDatabasePool::GetFreeDatabases()
 
 // List with current connections (meant for logging purposes only)
 void
-SQLDatabasePool::GetListOfConnections(XString& p_list)
+SQLDatabasePool::GetListOfConnections(XString& p_list) const
 {
   // Lock the pool
   AutoCritSec lock(&m_lock);
@@ -289,7 +284,11 @@ SQLDatabasePool::AddParameterRebind(int p_sqlType,int p_cppType)
 }
 
 bool
-SQLDatabasePool::AddConnection(XString p_name,XString p_datasource,XString p_username,XString p_password,XString p_options)
+SQLDatabasePool::AddConnection(const XString& p_name
+                              ,const XString& p_datasource
+                              ,const XString& p_username
+                              ,const XString& p_password
+                              ,const XString& p_options)
 {
   bool added = m_connections.AddConnection(p_name,p_datasource,p_username,p_password,p_options);
   if(!m_isopen && added)
@@ -300,7 +299,7 @@ SQLDatabasePool::AddConnection(XString p_name,XString p_datasource,XString p_use
 }
 
 bool
-SQLDatabasePool::DelConnection(XString p_name)
+SQLDatabasePool::DelConnection(const XString& p_name)
 {
   bool removed = m_connections.DelConnection(p_name);
   if(m_isopen && removed && m_connections.GetConnectionsCount() == 0)
@@ -319,7 +318,7 @@ SQLDatabasePool::DelConnection(XString p_name)
 
 // Get OR make a logged in database connection
 SQLDatabase*
-SQLDatabasePool::GetDatabaseInternally(DbsPool& p_pool,XString& p_connectionName)
+SQLDatabasePool::GetDatabaseInternally(DbsPool& p_pool,const XString& p_connectionName)
 {
   DbsPool::iterator it;
   unsigned retry = CONN_RETRIES;
@@ -411,7 +410,7 @@ SQLDatabasePool::GetDatabaseInternally(DbsPool& p_pool,XString& p_connectionName
 
 // Return a connection to the pool
 void
-SQLDatabasePool::GiveUpInternally(SQLDatabase* p_database,XString& p_connectionName)
+SQLDatabasePool::GiveUpInternally(SQLDatabase* p_database,const XString& p_connectionName)
 {
   // Last time we had an action on this database
   p_database->SetLastActionTime();
@@ -421,7 +420,7 @@ SQLDatabasePool::GiveUpInternally(SQLDatabase* p_database,XString& p_connectionN
   if(it == m_freeDatabases.end())
   {
     // Create a new free list
-    DbsList* list = new DbsList();
+    DbsList* list = alloc_new DbsList();
     list->push_back(p_database);
     m_freeDatabases.insert(std::make_pair(p_connectionName,list));
     return;
@@ -509,10 +508,10 @@ SQLDatabasePool::CleanupInternally(bool p_aggressive)
 
 // Create a new database object
 SQLDatabase*
-SQLDatabasePool::MakeDatabase(XString p_connectionName)
+SQLDatabasePool::MakeDatabase(const XString& p_connectionName)
 {
   // Create the database
-  SQLDatabase* dbs = new SQLDatabase();
+  SQLDatabase* dbs = alloc_new SQLDatabase();
   dbs->SetConnectionName(p_connectionName);
 
   // Preset logging: derive it from the database pool
@@ -530,7 +529,7 @@ SQLDatabasePool::MakeDatabase(XString p_connectionName)
     DbsPool::iterator it = m_allDatabases.find(p_connectionName);
     if(it == m_allDatabases.end())
     {
-      DbsList* list = new DbsList();
+      DbsList* list = alloc_new DbsList();
       list->push_back(dbs);
       m_allDatabases.insert(std::make_pair(p_connectionName,list));
     }
@@ -556,7 +555,7 @@ SQLDatabasePool::MakeDatabase(XString p_connectionName)
 
 // Open the connection to the RDBMS server
 void
-SQLDatabasePool::OpenDatabase(SQLDatabase* p_dbs,XString& p_connectionName)
+SQLDatabasePool::OpenDatabase(SQLDatabase* p_dbs,const XString& p_connectionName)
 {
   // Find the database connection definition
   SQLConnection* conn = m_connections.GetConnection(p_connectionName);
@@ -570,15 +569,22 @@ SQLDatabasePool::OpenDatabase(SQLDatabase* p_dbs,XString& p_connectionName)
   }
   if(conn)
   {
-    // Try to open the database right away
+    // Try to open the database right 
+    // Throws if database cannot be opened
     XString connString = m_connections.GetConnectionString(p_connectionName);
-    p_dbs->Open(connString);
+    p_dbs->Open(connString,m_readOnly);
     p_dbs->SetDatasource(conn->m_datasource);
     p_dbs->SetUserName(conn->m_username);
 
     // Tell it what the standard rebind info is (if any)
     // Can only be done after the open (when SQLDatabase has cleared and set it' rebound info)
     AddRebindsToDatabase(p_dbs);
+
+    // Getting the correct settings and do the discovery
+    SQLInfoDB* info = p_dbs->GetSQLInfoDB();
+    info->SetPreferODBC(m_preferODBC);
+    info->SetUseIdentifierQuotation(m_useQuotation);
+    info->GetInfo();
     
     // Tell it the logfile
     XString text;
@@ -658,7 +664,7 @@ SQLDatabasePool::CleanupAllInternally()
 
 // Support printing to generic logfile
 void
-SQLDatabasePool::LogPrint(LPCTSTR p_text)
+SQLDatabasePool::LogPrint(LPCTSTR p_text) const
 {
   // If the loglevel is above the activation level
   if(m_loggingLevel >= m_logActive)

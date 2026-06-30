@@ -30,7 +30,7 @@
 #include <StdException.h>
 #include <io.h>
 
-ResetAll::ResetAll(CString p_baseDirectory,CString p_testDirectory,CString p_step)
+ResetAll::ResetAll(XString p_baseDirectory,XString p_testDirectory,XString p_step)
          :m_baseDirectory(p_baseDirectory)
          ,m_testDirectory(p_testDirectory)
          ,m_testStep(p_step)
@@ -81,7 +81,7 @@ ResetAll::Reset(bool p_interface)
 void
 ResetAll::ResetSuite()
 {
-  CString pattern = m_baseDirectory + _T("*") + EXTENSION_SUITE;
+  XString pattern = m_baseDirectory + _T("*") + EXTENSION_SUITE;
 
   // Read in all known files
   WIN32_FIND_DATA data;
@@ -90,7 +90,7 @@ ResetAll::ResetSuite()
   {
     do
     {
-      CString filename = CString(data.cFileName);
+      XString filename = XString(data.cFileName);
       try
       {
         TestSuite suite(m_baseDirectory);
@@ -121,7 +121,7 @@ ResetAll::ResetSuite()
 void
 ResetAll::ResetTestSet()
 {
-  CString pattern = m_baseDirectory + m_testDirectory + _T("\\*") + EXTENSION_SET;
+  XString pattern = m_baseDirectory + m_testDirectory + _T("\\*") + EXTENSION_SET;
 
   // Read in all known files
   WIN32_FIND_DATA data;
@@ -130,7 +130,7 @@ ResetAll::ResetTestSet()
   {
     do
     {
-      CString filename = m_baseDirectory + m_testDirectory + _T("\\") + CString(data.cFileName);
+      XString filename = m_baseDirectory + m_testDirectory + _T("\\") + XString(data.cFileName);
       try
       {
         TestSet testset;
@@ -144,7 +144,7 @@ ResetAll::ResetTestSet()
           trun.m_lastResult.Empty();
 
           // Add the result file to the delete list
-          CString deleting = m_baseDirectory + m_testDirectory + _T("\\") + trun.m_filename;
+          XString deleting = m_baseDirectory + m_testDirectory + _T("\\") + trun.m_filename;
           deleting.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
           deleting.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
           deleting.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
@@ -165,7 +165,7 @@ ResetAll::ResetTestSet()
 void
 ResetAll::ResetTestStep()
 {
-  CString path = m_baseDirectory + m_testDirectory + _T("\\") + m_testStep;
+  XString path = m_baseDirectory + m_testDirectory + _T("\\") + m_testStep;
 
   try
   {

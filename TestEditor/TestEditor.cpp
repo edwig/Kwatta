@@ -118,7 +118,7 @@ TestEditorApp::ExitInstance()
 bool
 TestEditorApp::ParseStartParameters()
 {
-  CString commandline(m_lpCmdLine);
+  XString commandline(m_lpCmdLine);
 
   for(int index = 1;index < __argc;++index)
   {
@@ -152,12 +152,12 @@ TestEditorApp::ParseStartParameters()
     return false;
   }
   // Check formatting of the base directory
-  if(m_baseDirectory.Right(1) != '\\')
+  if(m_baseDirectory.Right(1) != _T("\\"))
   {
     m_baseDirectory += _T('\\');
   }
   // Check formatting of the test directory
-  if(m_testDirectory.Right(1) != '\\')
+  if(m_testDirectory.Right(1) != _T("\\"))
   {
     m_testDirectory += _T('\\');
   }
@@ -172,15 +172,15 @@ TestEditorApp::ParseStartParameters()
 void
 TestEditorApp::Usage()
 {
-  CString usage = _T("USAGE of this program:\n\nStepEditor.exe /BASE:<base-directory> /TEST:<filename>.xset [/PARAM:<filename>.xpar]");
+  XString usage = _T("USAGE of this program:\n\nStepEditor.exe /BASE:<base-directory> /TEST:<filename>.xset [/PARAM:<filename>.xpar]");
   StyleMessageBox(NULL, usage.GetString(),PRODUCT_NAME,MB_OK|MB_ICONEXCLAMATION);
 }
 
 bool
-TestEditorApp::PromoteTestStep(CWnd* p_wnd,CString p_filename)
+TestEditorApp::PromoteTestStep(CWnd* p_wnd,XString p_filename)
 {
-  CString stepsDirectory = m_baseDirectory + _T("Steps\\");
-  CString globalStep     = stepsDirectory  + p_filename;
+  XString stepsDirectory = m_baseDirectory + _T("Steps\\");
+  XString globalStep     = stepsDirectory  + p_filename;
 
   if(_taccess(globalStep, 0) == 0)
   {
@@ -193,11 +193,11 @@ TestEditorApp::PromoteTestStep(CWnd* p_wnd,CString p_filename)
 }
 
 bool
-TestEditorApp::DemoteTestStep(CWnd* p_wnd,CString p_filename)
+TestEditorApp::DemoteTestStep(CWnd* p_wnd,XString p_filename)
 {
-  CString stepsDirectory = m_baseDirectory + _T("Steps\\");
-  CString globalStep     = stepsDirectory  + p_filename;
-  CString testfile       = m_baseDirectory + m_testDirectory + p_filename;
+  XString stepsDirectory = m_baseDirectory + _T("Steps\\");
+  XString globalStep     = stepsDirectory  + p_filename;
+  XString testfile       = m_baseDirectory + m_testDirectory + p_filename;
 
   if(_taccess(testfile, 0) == -1)
   {
@@ -208,7 +208,7 @@ TestEditorApp::DemoteTestStep(CWnd* p_wnd,CString p_filename)
     CWaitCursor sigh;
     if(CopyFile(globalStep,testfile,FALSE) == FALSE)
     {
-      CString error = GetLastErrorAsString(GetLastError());
+      XString error = GetLastErrorAsString(GetLastError());
       StyleMessageBox(p_wnd,_T("Could not create a local step: ") + error,PRODUCT_NAME,MB_OK|MB_ICONERROR);
       return false;
     }
@@ -217,10 +217,10 @@ TestEditorApp::DemoteTestStep(CWnd* p_wnd,CString p_filename)
 }
 
 bool
-TestEditorApp::PromoteValidation(CWnd* p_wnd, CString p_filename)
+TestEditorApp::PromoteValidation(CWnd* p_wnd, XString p_filename)
 {
-  CString valiDirectory = m_baseDirectory + _T("Validations\\");
-  CString globalVali    = valiDirectory   + p_filename;
+  XString valiDirectory = m_baseDirectory + _T("Validations\\");
+  XString globalVali    = valiDirectory   + p_filename;
 
   if(_taccess(globalVali, 0) == 0)
   {
@@ -234,11 +234,11 @@ TestEditorApp::PromoteValidation(CWnd* p_wnd, CString p_filename)
 }
 
 bool
-TestEditorApp::DemoteValidation(CWnd* p_wnd, CString p_filename)
+TestEditorApp::DemoteValidation(CWnd* p_wnd, XString p_filename)
 {
-  CString valiDirectory = m_baseDirectory + _T("Validations\\");
-  CString globalVali    = valiDirectory  + p_filename;
-  CString valifile      = m_baseDirectory + m_testDirectory + p_filename;
+  XString valiDirectory = m_baseDirectory + _T("Validations\\");
+  XString globalVali    = valiDirectory  + p_filename;
+  XString valifile      = m_baseDirectory + m_testDirectory + p_filename;
 
   if(_taccess(valifile, 0) == -1)
   {
@@ -249,7 +249,7 @@ TestEditorApp::DemoteValidation(CWnd* p_wnd, CString p_filename)
     CWaitCursor sigh;
     if(CopyFile(globalVali,valifile,FALSE) == FALSE)
     {
-      CString error = GetLastErrorAsString(GetLastError());
+      XString error = GetLastErrorAsString(GetLastError());
       StyleMessageBox(p_wnd,_T("Could not create a local validation: ") + error,PRODUCT_NAME,MB_OK|MB_ICONERROR);
       return false;
     }
@@ -257,18 +257,18 @@ TestEditorApp::DemoteValidation(CWnd* p_wnd, CString p_filename)
   return true;
 }
 
-CString 
+XString 
 TestEditorApp::GetBaseDirectoryClean()
 {
-  CString clean(m_baseDirectory);
+  XString clean(m_baseDirectory);
   clean = clean.TrimRight('\\');
   return clean;
 }
 
-CString 
+XString 
 TestEditorApp::GetTestDirectoryClean()
 {
-  CString clean(m_testFilename);
+  XString clean(m_testFilename);
   int pos = clean.ReverseFind('\\');
   if(pos > 0)
   {
@@ -282,10 +282,10 @@ TestEditorApp::GetTestDirectoryClean()
   return clean;
 }
 
-CString 
+XString 
 TestEditorApp::GetParamFilenameClean()
 {
-  CString clean(m_paramFilename);
+  XString clean(m_paramFilename);
   int pos = clean.ReverseFind('\\');
   if(pos > 0)
   {
@@ -294,10 +294,10 @@ TestEditorApp::GetParamFilenameClean()
   return clean;
 }
 
-CString
+XString
 TestEditorApp::StandardParameters(HWND p_wnd,int p_row,bool p_global)
 {
-  CString param;
+  XString param;
   param.Format(_T("/HWND:%I64d /ROW:%d"),p_wnd,p_row);
   if(p_global)
   {
@@ -307,19 +307,19 @@ TestEditorApp::StandardParameters(HWND p_wnd,int p_row,bool p_global)
 }
 
 void
-TestEditorApp::StartStepEditor(CString p_stepname,bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row)
+TestEditorApp::StartStepEditor(XString p_stepname,bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row)
 {
   // Construct program name
-  CString program = GetExePath() + _T("StepEditor.exe");
+  XString program = GetExePath() + _T("StepEditor.exe");
   // Construct parameters
-  CString parameters = StandardParameters(p_wnd,p_row,p_global);
+  XString parameters = StandardParameters(p_wnd,p_row,p_global);
   parameters.AppendFormat(_T(" /BASE:\"%s\""), GetBaseDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /TDIR:\"%s\""), GetTestDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetParamFilenameClean().GetString());
   parameters.Replace(EXTENSION_SET, EXTENSION_PARAMETERS);
 
   WinFile file(m_testFilename);
-  CString path = file.GetFilenamePartDirectory();
+  XString path = file.GetFilenamePartDirectory();
   parameters.AppendFormat(_T(" /STEP:\"%s\""),p_stepname.GetString());
 
   if(p_validations)
@@ -331,17 +331,17 @@ TestEditorApp::StartStepEditor(CString p_stepname,bool p_global,TSValSet* p_vali
   }
 
   // Call program
-  TRACE(_T("Start step editor: %s %s\n"),program,parameters);
+  TRACE(_T("Start step editor: %s %s\n"),program.GetString(), parameters.GetString());
   int result = StartProgram(program,parameters,false,false,false);
 }
 
 void
-TestEditorApp::StartValidateEditor(CString p_validation,bool p_global,HWND p_wnd,int p_row)
+TestEditorApp::StartValidateEditor(XString p_validation,bool p_global,HWND p_wnd,int p_row)
 {
   // Construct program name
-  CString program = GetExePath() + _T("ValidateEditor.exe");
+  XString program = GetExePath() + _T("ValidateEditor.exe");
   // Construct parameters
-  CString parameters = StandardParameters(p_wnd,p_row,p_global);
+  XString parameters = StandardParameters(p_wnd,p_row,p_global);
   parameters.AppendFormat(_T(" /BASE:\"%s\""), GetBaseDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /TDIR:\"%s\""), GetTestDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetTestFilename().GetString());
@@ -350,17 +350,17 @@ TestEditorApp::StartValidateEditor(CString p_validation,bool p_global,HWND p_wnd
   parameters.AppendFormat(_T(" /VALI:\"%s\""),p_validation.GetString());
 
   // Call program
-  TRACE(_T("Start validate editor: %s %s\n"),program,parameters);
+  TRACE(_T("Start validate editor: %s %s\n"),program.GetString(),parameters.GetString());
   int result = StartProgram(program, parameters,false,false,false);
 }
 
 void
-TestEditorApp::StartResultViewer(CString p_stepname,HWND p_wnd,int p_row)
+TestEditorApp::StartResultViewer(XString p_stepname,HWND p_wnd,int p_row)
 {
   // Construct program name
-  CString program = GetExePath() + _T("ResultViewer.exe");
+  XString program = GetExePath() + _T("ResultViewer.exe");
   // Construct parameters
-  CString parameters = StandardParameters(p_wnd,p_row,false);
+  XString parameters = StandardParameters(p_wnd,p_row,false);
   parameters.AppendFormat(_T(" /BASE:\"%s\""), GetBaseDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /TDIR:\"%s\""), GetTestDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetTestFilename().GetString());
@@ -373,17 +373,17 @@ TestEditorApp::StartResultViewer(CString p_stepname,HWND p_wnd,int p_row)
   parameters.AppendFormat(_T(" /RES:\"%s\""),p_stepname.GetString());
 
   // Call program
-  TRACE(_T("Start result viewer: %s %s\n"),program,parameters);
+  TRACE(_T("Start result viewer: %s %s\n"),program.GetString(),parameters.GetString());
   int result = StartProgram(program,parameters,false,false,false);
 }
 
 int
-TestEditorApp::StartTestRunner(CString p_stepname,bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row,bool p_wait /*=true*/)
+TestEditorApp::StartTestRunner(XString p_stepname,bool p_global,TSValSet* p_validations,HWND p_wnd,int p_row,bool p_wait /*=true*/)
 {
   // Construct program name
-  CString program = GetExePath() + _T("TestRunner.exe");
+  XString program = GetExePath() + _T("TestRunner.exe");
   // Construct parameters
-  CString parameters = StandardParameters(p_wnd,p_row,p_global);
+  XString parameters = StandardParameters(p_wnd,p_row,p_global);
   parameters.AppendFormat(_T(" /BASE:\"%s\""), GetBaseDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /TDIR:\"%s\""), GetTestDirectoryClean().GetString());
   parameters.AppendFormat(_T(" /PARAM:\"%s\""),GetParamFilenameClean().GetString());
@@ -403,6 +403,6 @@ TestEditorApp::StartTestRunner(CString p_stepname,bool p_global,TSValSet* p_vali
   }
 
   // Call program and possibly WAIT FOR EXIT!
-  TRACE(_T("Start test runner: %s %s\n"),program,parameters);
+  TRACE(_T("Start test runner: %s %s\n"),program.GetString(),parameters.GetString());
   return StartProgram(program,parameters,false,false,p_wait);
 }

@@ -123,7 +123,7 @@ StepWindowsDlg::OnInitDialog()
   if (pSysMenu != nullptr)
   {
     BOOL bNameValid;
-    CString strAboutMenu;
+    XString strAboutMenu;
     bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
     ASSERT(bNameValid);
     if (!strAboutMenu.IsEmpty())
@@ -210,7 +210,7 @@ StepWindowsDlg::InitTabs()
 void
 StepWindowsDlg::InitStep()
 {
-  CString filename = theApp.GetEffectiveStep();
+  XString filename = theApp.GetEffectiveStep();
 
   // Read in the definition file for a test step
   try
@@ -228,7 +228,7 @@ StepWindowsDlg::InitStep()
 void
 StepWindowsDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
+  XString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -236,7 +236,7 @@ StepWindowsDlg::InitGlobalParameters()
 void
 StepWindowsDlg::InitParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   // Possibly no parameter file bound to the step!
   if(filename.IsEmpty())
@@ -247,7 +247,7 @@ StepWindowsDlg::InitParameters()
 }
 
 void
-StepWindowsDlg::ReadParameters(CString p_file, bool p_global /*= true*/)
+StepWindowsDlg::ReadParameters(XString p_file, bool p_global /*= true*/)
 {
   // read the definition of the parameters
   try
@@ -268,7 +268,7 @@ StepWindowsDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound(_T("Parameters: OK"));
+    XString bound(_T("Parameters: OK"));
 
     // Effectuate the parameters
     StoreVariables();
@@ -332,8 +332,8 @@ StepWindowsDlg::SaveStep()
 {
   StoreVariables();
 
-  CString filenameStep = theApp.GetEffectiveStep();
-  CString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filenameStep = theApp.GetEffectiveStep();
+  XString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   try
   {

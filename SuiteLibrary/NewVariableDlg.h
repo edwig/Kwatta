@@ -31,7 +31,7 @@ public:
 	NewVariableDlg(ParType p_type,ParMap& p_map,CWnd* pParent = nullptr);   // standard constructor
 	virtual ~NewVariableDlg();
   BOOL     OnInitDialog();
-  CString  GetNewName() { return m_newName; };
+  XString  GetNewName() { return m_newName; };
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -44,8 +44,8 @@ protected:
           bool CheckName();
           void SaveName();
 
-  CString       m_explain;
-  CString       m_newName;
+  XString       m_explain;
+  XString       m_newName;
   ParType       m_type;
   ParMap&       m_map;
   StyleComboBox m_comboExisting;

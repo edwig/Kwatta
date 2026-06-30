@@ -20,4 +20,4 @@
 
 #pragma once
 
-CString GetExePath();
+XString GetExePath();

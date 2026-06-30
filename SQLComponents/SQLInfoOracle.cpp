@@ -2,8 +2,8 @@
 //
 // File: SQLInfoOracle.cpp
 //
-// Copyright (c) 1998-2025 ir. W.E. Huisman
-// All rights reserved
+// Created: 1998-2025 ir. W.E. Huisman
+// MIT License
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy of 
 // this software and associated documentation files (the "Software"), 
@@ -23,16 +23,10 @@
 //
 // Version number: See SQLComponents.h
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "SQLComponents.h"
 #include "SQLInfoOracle.h"
 #include "SQLQuery.h"
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
 
 namespace SQLComponents
 {
@@ -156,6 +150,13 @@ SQLInfoOracle::GetRDBMSSupportsODBCCallNamedParameters() const
   return false;
 }
 
+// Supports the ODBC call procedure with named parameters
+bool
+SQLInfoOracle::GetRDBMSSupportsNamedParameters() const
+{
+  return true;
+}
+
 // If the database does not support the datatype TIME, it can be implemented as a DECIMAL
 bool
 SQLInfoOracle::GetRDBMSSupportsDatatypeTime() const
@@ -261,7 +262,7 @@ SQLInfoOracle::GetRDBMSMaxVarchar() const
 
 // Identifier rules differ per RDBMS
 bool
-SQLInfoOracle::IsIdentifier(XString p_identifier) const
+SQLInfoOracle::IsIdentifier(const XString& p_identifier) const
 {
   // Cannot be empty and cannot exceed this amount of characters
   if(p_identifier.GetLength() == 0 ||
@@ -270,20 +271,27 @@ SQLInfoOracle::IsIdentifier(XString p_identifier) const
     return false;
   }
   // Must start with one alpha char
-  if(!_istalpha(p_identifier.GetAt(0)))
+  if(!_istalpha((TCHAR)p_identifier.GetAt(0)))
   {
     return false;
   }
   for(int index = 0;index < p_identifier.GetLength();++index)
   {
     // Can be upper/lower alpha or a number OR an underscore
-    TCHAR ch = p_identifier.GetAt(index);
+    TCHAR ch = (TCHAR) p_identifier.GetAt(index);
     if(!_istalnum(ch) && ch != '_')
     {
       return false;
     }
   }
   return true;
+}
+
+// Return parameters from a PSM procedure module can be a result set (SUSPEND)
+bool
+SQLInfoOracle::GetRDBMSResultSetFromPSM() const
+{
+  return false;
 }
 
 // KEYWORDS
@@ -369,14 +377,14 @@ SQLInfoOracle::GetKEYWORDParameterPrefix() const
 // Get select part to add new record identity to a table
 // Can be special column like 'OID' or a sequence select
 XString
-SQLInfoOracle::GetKEYWORDIdentityString(XString& p_tablename,XString p_postfix /*= "_seq"*/) const
+SQLInfoOracle::GetKEYWORDIdentityString(const XString& p_tablename,const XString& p_postfix /*= "_seq"*/) const
 {
   return p_tablename + p_postfix + _T(".nextval");
 }
 
 // Gets the UPPER function
 XString
-SQLInfoOracle::GetKEYWORDUpper(XString& p_expression) const
+SQLInfoOracle::GetKEYWORDUpper(const XString& p_expression) const
 {
   return _T("UPPER(") + p_expression + _T(")");
 }
@@ -390,7 +398,7 @@ SQLInfoOracle::GetKEYWORDInterval1MinuteAgo() const
 
 // Gets the Not-NULL-Value statement of the database
 XString
-SQLInfoOracle::GetKEYWORDStatementNVL(XString& p_test,XString& p_isnull) const
+SQLInfoOracle::GetKEYWORDStatementNVL(const XString& p_test,const XString& p_isnull) const
 {
   return XString(_T("NVL(")) + p_test + _T(",") + p_isnull + _T(")");
 }
@@ -474,14 +482,14 @@ SQLInfoOracle::GetKEYWORDCurrentUser() const
 
 // Connects to a default schema in the database/instance
 XString
-SQLInfoOracle::GetSQLDefaultSchema(XString /*p_user*/,XString p_schema) const
+SQLInfoOracle::GetSQLDefaultSchema(const XString& /*p_user*/,const XString& p_schema) const
 {
   return _T("ALTER SESSION SET CURRENT_SCHEMA = ") + p_schema;
 }
 
 // Gets the construction for inline generating a key within an INSERT statement
 XString
-SQLInfoOracle::GetSQLNewSerial(XString p_table, XString p_sequence) const
+SQLInfoOracle::GetSQLNewSerial(const XString& p_table,const XString& p_sequence) const
 {
   XString sequence(p_sequence);
   if (sequence.IsEmpty() && !p_table.IsEmpty())
@@ -495,20 +503,20 @@ SQLInfoOracle::GetSQLNewSerial(XString p_table, XString p_sequence) const
 
 // Gets the construction / select for generating a new serial identity
 XString
-SQLInfoOracle::GetSQLGenerateSerial(XString p_table) const
+SQLInfoOracle::GetSQLGenerateSerial(const XString& p_table) const
 {
   return _T("SELECT ") + p_table + _T("_seq.nextval FROM DUAL");
 }
 
 XString
-SQLInfoOracle::GetSQLGenerateSequence(XString p_sequence) const
+SQLInfoOracle::GetSQLGenerateSequence(const XString& p_sequence) const
 {
   return _T("SELECT ") + p_sequence + _T(".nextval FROM DUAL");
 }
 
 // Gets the construction / select for the resulting effective generated serial
 XString
-SQLInfoOracle::GetSQLEffectiveSerial(XString p_identity) const
+SQLInfoOracle::GetSQLEffectiveSerial(const XString& p_identity) const
 {
   // Just return it, it's the correct value
   return p_identity;
@@ -516,20 +524,20 @@ SQLInfoOracle::GetSQLEffectiveSerial(XString p_identity) const
 
 // Gets the sub transaction commands
 XString
-SQLInfoOracle::GetSQLStartSubTransaction(XString p_savepointName) const
+SQLInfoOracle::GetSQLStartSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("SAVEPOINT ")) + p_savepointName;
 }
 
 XString
-SQLInfoOracle::GetSQLCommitSubTransaction(XString /*p_savepointName*/) const
+SQLInfoOracle::GetSQLCommitSubTransaction(const XString& /*p_savepointName*/) const
 {
   // There is no savepoint commit in Oracle!!
   return _T("");
 }
 
 XString
-SQLInfoOracle::GetSQLRollbackSubTransaction(XString p_savepointName) const
+SQLInfoOracle::GetSQLRollbackSubTransaction(const XString& p_savepointName) const
 {
   return XString(_T("ROLLBACK TO ")) + p_savepointName;
 }
@@ -543,7 +551,7 @@ SQLInfoOracle::GetSQLFromDualClause() const
 
 // Get SQL to lock  a table 
 XString
-SQLInfoOracle::GetSQLLockTable(XString p_schema,XString p_tablename,bool p_exclusive,int /*p_waittime*/) const
+SQLInfoOracle::GetSQLLockTable(const XString& p_schema,const XString& p_tablename,bool p_exclusive,int /*p_waittime*/) const
 {
   XString query(_T("LOCK TABLE "));
   if(!p_schema.IsEmpty())
@@ -558,7 +566,7 @@ SQLInfoOracle::GetSQLLockTable(XString p_schema,XString p_tablename,bool p_exclu
 
 // Get query to optimize the table statistics
 XString
-SQLInfoOracle::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
+SQLInfoOracle::GetSQLOptimizeTable(const XString& p_schema,const XString& p_tablename) const
 {
   XString optim;
   // Optimize the table
@@ -569,8 +577,9 @@ SQLInfoOracle::GetSQLOptimizeTable(XString p_schema, XString p_tablename) const
 // Transform query to select top <n> rows:
 // Works from Oracle 12c and upward!!!
 XString
-SQLInfoOracle::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) const
+SQLInfoOracle::GetSQLTopNRows(const XString& p_sql,int p_top,int p_skip /*= 0*/) const
 {
+  XString sql(p_sql);
   if(p_top > 0)
   {
     XString limit;
@@ -585,9 +594,9 @@ SQLInfoOracle::GetSQLTopNRows(XString p_sql,int p_top,int p_skip /*= 0*/) const
     {
       limit.Format(_T("\n FETCH FIRST %d ROWS ONLY"),p_top);
     }
-    p_sql += limit;
+    sql += limit;
   }
-  return p_sql;
+  return sql;
 }
 
 // Expand a SELECT with an 'FOR UPDATE' lock clause
@@ -598,7 +607,7 @@ SQLInfoOracle::GetSelectForUpdateTableClause(unsigned /*p_lockWaitTime*/) const
 }
 
 XString
-SQLInfoOracle::GetSelectForUpdateTrailer(XString p_select,unsigned p_lockWaitTime) const
+SQLInfoOracle::GetSelectForUpdateTrailer(const XString& p_select,unsigned p_lockWaitTime) const
 {
   XString sql = p_select + _T("\nFOR UPDATE");
   if(p_lockWaitTime)
@@ -622,13 +631,13 @@ SQLInfoOracle::GetPing() const
 
 // Pre- and postfix statements for a bulk import
 XString
-SQLInfoOracle::GetBulkImportPrefix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+SQLInfoOracle::GetBulkImportPrefix(const XString& /*p_schema*/,const XString& /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
 {
   return _T("");
 }
 
 XString
-SQLInfoOracle::GetBulkImportPostfix(XString /*p_schema*/,XString /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
+SQLInfoOracle::GetBulkImportPostfix(const XString& /*p_schema*/,const XString& /*p_tablename*/,bool /*p_identity = true*/,bool /*p_constraints = true*/) const
 {
   return _T("");
 }
@@ -707,21 +716,21 @@ SQLInfoOracle::GetSQLDateTimeStrippedString(int p_year,int p_month,int p_day,int
 
 // Makes an catalog identifier string (possibly quoted on both sides)
 XString
-SQLInfoOracle::GetSQLDDLIdentifier(XString p_identifier) const
+SQLInfoOracle::GetSQLDDLIdentifier(const XString& p_identifier) const
 {
   return p_identifier;
 }
 
 // Get the name of a temp table (local temporary or global temporary)
 XString
-SQLInfoOracle::GetTempTablename(XString /*p_schema*/,XString p_tablename,bool /*p_local*/) const
+SQLInfoOracle::GetTempTablename(const XString& /*p_schema*/,const XString& p_tablename,bool /*p_local*/) const
 {
   return p_tablename;
 }
 
 // Changes to parameters before binding to an ODBC HSTMT handle (returning the At-Exec status)
 bool
-SQLInfoOracle::DoBindParameterFixup(SQLSMALLINT& p_dataType,SQLSMALLINT& p_sqlDatatype,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
+SQLInfoOracle::DoBindParameterFixup(SQLVariant* /*p_var*/,SQLSMALLINT& p_dataType,SQLSMALLINT& p_sqlDatatype,SQLULEN& /*p_columnSize*/,SQLSMALLINT& /*p_scale*/,SQLLEN& /*p_bufferSize*/,SQLLEN* /*p_indicator*/) const
 {
   // Oracle driver can only bind to SQL_DECIMAL
   if(p_dataType == SQL_DECIMAL)
@@ -933,7 +942,7 @@ SQLInfoOracle::GetCATALOGTypeSource(XString& p_schema,XString& p_typename,bool p
     IdentifierCorrect(p_schema);
     sql += _T("   AND owner = '") + p_schema + _T("'\n");
   }
-  if(!p_typename)
+  if(!p_typename.IsEmpty())
   {
     IdentifierCorrect(p_typename);
     sql += _T("   AND name  = '")  + p_typename + _T("'\n");
@@ -1246,9 +1255,10 @@ SQLInfoOracle::GetCATALOGColumnAttributes(XString& p_schema,XString& p_tablename
                 _T("            WHEN 'VARCHAR2'      THEN 12\n")
                 _T("            WHEN 'NCHAR'         THEN -8\n")
                 _T("            WHEN 'NVARCHAR'      THEN -9\n")
-                _T("            WHEN 'NUMBER'        THEN CASE data_scale\n")
-                _T("                                           WHEN 0   THEN 4\n")
-                _T("                                                    ELSE 2\n")
+                _T("            WHEN 'NUMBER'        THEN CASE \n")
+                _T("                                      WHEN data_scale = 0 and data_precision <= 10\n")
+                _T("                                      THEN 4\n")
+                _T("                                      ELSE 2\n")
                 _T("                                      END\n")
                 _T("            WHEN 'FLOAT'         THEN CASE data_precision\n")
                 _T("                                           WHEN 63  THEN 7\n")
@@ -1357,19 +1367,19 @@ SQLInfoOracle::GetCATALOGColumnAttributes(XString& p_schema,XString& p_tablename
   if(!p_schema.IsEmpty())
   {
     IdentifierCorrect(p_schema);
-    sql.AppendFormat(_T(" WHERE col.owner      = '%s'\n"),p_schema.GetString());
+    sql += _T(" WHERE col.owner      = ?\n");
   }
   if(!p_tablename.IsEmpty())
   {
     IdentifierCorrect(p_tablename);
-    sql += p_schema.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
-    sql.AppendFormat(_T("col.table_name = '%s'\n"),p_tablename.GetString());
+    sql += p_schema.IsEmpty() ? _T(" WHERE") : _T("   AND");
+    sql += _T(" col.table_name = ?\n");
   }
   if(!p_columnname.IsEmpty())
   {
     IdentifierCorrect(p_columnname);
-    sql += p_schema.IsEmpty() && p_tablename.IsEmpty() ? _T(" WHERE ") : _T("   AND ");
-    sql.AppendFormat(_T("col.column_name = '%s'\n"),p_columnname.GetString());
+    sql += p_schema.IsEmpty() && p_tablename.IsEmpty() ? _T(" WHERE") : _T("   AND");
+    sql += _T(" col.column_name = ?\n");
   }
   sql += _T(" ORDER BY 1,2,3,17");
   return sql;
@@ -1727,17 +1737,12 @@ SQLInfoOracle::GetCATALOGForeignExists(XString p_schema,XString p_tablename,XStr
   IdentifierCorrect(p_tablename);
   IdentifierCorrect(p_constraintname);
 
-  XString sql;
-  sql.Format(_T("SELECT COUNT(*)\n")
-             _T("  FROM all_constraints con\n")
-             _T(" WHERE con.constraint_type = 'R'")
-             _T("   AND con.owner           = '") + p_schema + _T("'\n")
-             _T("   AND con.table_name      = '") + p_tablename + _T("'\n")
-             _T("   AND con.constraint_name = '") + p_constraintname + _T("'")
-            ,p_schema.GetString()
-            ,p_tablename.GetString()
-            ,p_constraintname.GetString());
-
+  XString sql(_T("SELECT COUNT(*)\n")
+              _T("  FROM all_constraints con\n")
+              _T(" WHERE con.constraint_type = 'R'")
+              _T("   AND con.owner           = '") + p_schema + _T("'\n")
+              _T("   AND con.table_name      = '") + p_tablename + _T("'\n")
+              _T("   AND con.constraint_name = '") + p_constraintname + _T("'"));
   return sql;
 }
 
@@ -2241,7 +2246,7 @@ SQLInfoOracle::GetCATALOGSequenceList(XString& p_schema,XString& p_pattern,bool 
   {
     p_pattern = _T("%") + p_pattern + _T("%");
   }
-  XString sql = _T("SELECT ''              AS catalog_name\n")
+  XString sql = _T("SELECT sys_context('USERENV','DB_NAME') AS catalog_name\n")
                 _T("      ,sequence_owner  AS schema_name\n")
                 _T("      ,sequence_name\n")
                 _T("      ,last_number     AS current_value\n")
@@ -2270,7 +2275,7 @@ SQLInfoOracle::GetCATALOGSequenceList(XString& p_schema,XString& p_pattern,bool 
 XString
 SQLInfoOracle::GetCATALOGSequenceAttributes(XString& p_schema,XString& p_sequence,bool p_quoted /*= false*/) const
 {
-  XString sql = _T("SELECT ''              AS catalog_name\n")
+  XString sql = _T("SELECT sys_context('USERENV','DB_NAME') AS catalog_name\n")
                 _T("      ,sequence_owner  AS schema_name\n")
                 _T("      ,sequence_name\n")
                 _T("      ,last_number     AS current_value\n")
@@ -2365,6 +2370,7 @@ SQLInfoOracle::GetCATALOGViewAttributes(XString& p_schema,XString& p_viewname,bo
                 _T("      ,viw.view_name     AS table_name\n")
                 _T("      ,'VIEW'            AS object_type\n")
                 _T("      ,com.comments      AS remarks\n")
+                _T("      ,viw.owner || '.' || viw.view_name as fullname\n")
                 _T("      ,''                AS tablespace_name\n")
                 _T("      ,0                 AS TEMPORARY\n")
                 _T("  FROM all_views viw LEFT OUTER JOIN all_tab_comments com\n")
@@ -2415,14 +2421,29 @@ SQLInfoOracle::GetCATALOGViewText(XString& p_schema,XString& p_viewname,bool p_q
 }
 
 XString
-SQLInfoOracle::GetCATALOGViewCreate(XString p_schema,XString p_viewname,XString p_contents,bool /*p_ifexists = true*/) const
+SQLInfoOracle::GetCATALOGViewCreate(XString p_schema,XString p_viewname,MColumnMap& p_columns,XString p_contents,bool /*p_ifexists = true*/) const
 {
   XString sql(_T("CREATE OR REPLACE VIEW "));
   if(!p_schema.IsEmpty())
   {
     sql += QIQ(p_schema) + _T(".");
   }
-  sql += QIQ(p_viewname) + _T(" AS\n") + p_contents;
+  sql += QIQ(p_viewname);
+  sql += _T("\n(  ");
+  
+  bool next(false);
+  for(auto& column : p_columns)
+  {
+    if(next)
+    {
+      sql += _T(" ,");
+    }
+    sql += column.m_column;
+    sql += _T("\n");
+    next = true;
+  }
+
+  sql += _T(")\nAS\n") + p_contents;
   return sql;
 }
 
@@ -2671,8 +2692,45 @@ SQLInfoOracle::GetCATALOGCommentCreate(XString p_schema,XString p_object,XString
 //
 //////////////////////////////////////////////////////////////////////////
 
+// All package functions
 XString
-SQLInfoOracle::GetPSMProcedureExists(XString p_schema,XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoOracle::GetPSMPackageExists(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoOracle::GetPSMPackageList(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoOracle::GetPSMPackageListModules(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString 
+SQLInfoOracle::GetPSMPackageAttributes(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoOracle::GetPSMPackageCreate(MetaPackage& /*p_package*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoOracle::GetPSMPackageDrop(XString& /*p_schema*/,XString& /*p_package*/,bool /*p_quoted = false*/) const
+{
+  return _T("");
+}
+
+XString
+SQLInfoOracle::GetPSMProcedureExists(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   IdentifierCorrect(p_schema);
   IdentifierCorrect(p_procedure);
@@ -2686,7 +2744,7 @@ SQLInfoOracle::GetPSMProcedureExists(XString p_schema,XString p_procedure,bool p
 }
 
 XString
-SQLInfoOracle::GetPSMProcedureList(XString& p_schema,XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoOracle::GetPSMProcedureList(XString& p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   IdentifierCorrect(p_schema);
   IdentifierCorrect(p_procedure);
@@ -2748,9 +2806,9 @@ SQLInfoOracle::GetPSMProcedureList(XString& p_schema,XString p_procedure,bool p_
 }
 
 XString
-SQLInfoOracle::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure,bool p_quoted /*= false*/) const
+SQLInfoOracle::GetPSMProcedureAttributes(XString& p_schema,XString& /*p_package*/,XString& p_procedure,bool p_quoted /*= false*/) const
 {
-  CString package;
+  XString package;
 
   int pos = p_procedure.Find('.');
   if(pos > 0)
@@ -2816,7 +2874,7 @@ SQLInfoOracle::GetPSMProcedureAttributes(XString& p_schema,XString& p_procedure,
 }
 
 XString
-SQLInfoOracle::GetPSMProcedureSourcecode(XString p_schema, XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoOracle::GetPSMProcedureSourcecode(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString sql;
 
@@ -2854,13 +2912,13 @@ SQLInfoOracle::GetPSMProcedureCreate(MetaProcedure& p_procedure) const
 }
 
 XString
-SQLInfoOracle::GetPSMProcedureDrop(XString /*p_schema*/, XString /*p_procedure*/,bool /*p_function /*=false*/) const
+SQLInfoOracle::GetPSMProcedureDrop(XString /*p_schema*/,XString& /*p_package*/,XString /*p_procedure*/,bool /*p_function /*=false*/) const
 {
   return _T("");
 }
 
 XString
-SQLInfoOracle::GetPSMProcedureErrors(XString p_schema,XString p_procedure,bool p_quoted /*= false*/) const
+SQLInfoOracle::GetPSMProcedureErrors(XString p_schema,XString& /*p_package*/,XString p_procedure,bool p_quoted /*= false*/) const
 {
   XString query;
   XString errorText;
@@ -2908,14 +2966,14 @@ SQLInfoOracle::GetPSMProcedureErrors(XString p_schema,XString p_procedure,bool p
 }
 
 XString
-SQLInfoOracle::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoOracle::GetPSMProcedurePrivilege(XString& /*p_schema*/,XString& /*p_package*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return _T("");
 }
 
 // And it's parameters
 XString
-SQLInfoOracle::GetPSMProcedureParameters(XString& /*p_schema*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
+SQLInfoOracle::GetPSMProcedureParameters(XString& /*p_schema*/,XString& /*p_package*/,XString& /*p_procedure*/,bool /*p_quoted = false*/) const
 {
   return _T("");
 }
@@ -2969,7 +3027,7 @@ SQLInfoOracle::GetPSMDeclaration(bool    p_first
   {
     line += p_domain;
   }
-  else if(!p_asColumn)
+  else if(!p_asColumn.IsEmpty())
   {
     line += p_asColumn + _T("%TYPE");
   }
@@ -3208,14 +3266,14 @@ SQLInfoOracle::GetSESSIONConstraintsImmediate() const
 
 // Calling a stored function or procedure if the RDBMS does not support ODBC call escapes
 SQLVariant*
-SQLInfoOracle::DoSQLCall(SQLQuery* /*p_query*/,XString& /*p_schema*/,XString& /*p_procedure*/)
+SQLInfoOracle::DoSQLCall(SQLQuery* /*p_query*/,const XString& /*p_schema*/,const XString& /*p_procedure*/)
 {
   return nullptr;
 }
 
 // Calling a stored function with named parameters, returning a value
 SQLVariant*
-SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,XString& p_schema,XString& p_procedure,bool p_function /*= true*/)
+SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,const XString& p_schema,const XString& p_procedure,bool p_function /*= true*/)
 {
   XString sql;
   
@@ -3240,17 +3298,17 @@ SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,XString& p_schema,XStr
   int index = 1;
   while(found)
   {
-    XString name;
-    found = p_query->GetColumnName(index++,name);
-    if(found)
+    SQLParameter* param = p_query->GetInputParameter(index++);
+    if(param == nullptr)
     {
-      if(index > 2)
-      {
-        sql += _T(",");
-      }
-      sql += name;
-      sql += _T(" => ? ");
+      break;
     }
+    if(index > 2)
+    {
+      sql += _T(",");
+    }
+    sql += param->m_name;
+    sql += _T(" => ? ");
   }
   sql += _T(");\n  END;");
   if(p_function)
@@ -3259,14 +3317,14 @@ SQLInfoOracle::DoSQLCallNamedParameters(SQLQuery* p_query,XString& p_schema,XStr
   }
 
   // Add parameter 0 as result parameter
-  if(p_function && p_query->GetParameter(0) == nullptr)
+  if(p_function && p_query->GetParameter(0,SQLParamType::P_SQL_PARAM_OUTPUT) == nullptr)
   {
     SQLVariant ret((int)0);
-    p_query->SetParameter(0,&ret);
+    p_query->SetParameter(0,&ret,SQLParamType::P_SQL_PARAM_OUTPUT);
   }
   // Now find the result
   p_query->DoSQLStatement(sql);
-  return p_query->GetParameter(0);
+  return p_query->GetParameter(0,SQLParamType::P_SQL_PARAM_OUTPUT);
 }
 
 // End of namespace

@@ -28,7 +28,7 @@ class ProceduresDlg : public StyleDialog
 	DECLARE_DYNAMIC(ProceduresDlg)
 
 public:
-	ProceduresDlg(CWnd* p_parent,CString p_baseDirectory);
+	ProceduresDlg(CWnd* p_parent,XString p_baseDirectory);
 	virtual ~ProceduresDlg();
 
   bool GetDoPurge() { return m_purge; }
@@ -43,9 +43,9 @@ protected:
   virtual BOOL OnInitDialog() override;
           void InitButtons();
 
-  CString       m_baseDirectory;
-  CString       m_resetOutcome;
-  CString       m_reportOutcome;
+  XString       m_baseDirectory;
+  XString       m_resetOutcome;
+  XString       m_reportOutcome;
   ReportDepth   m_depth{ ReportDepth::REPORT_TESTS };
   StyleButton   m_buttonReset;
   StyleButton   m_buttonReport;

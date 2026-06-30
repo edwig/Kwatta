@@ -259,7 +259,7 @@ TestEditorDlg::SetColumnWidths()
 void
 TestEditorDlg::InitTestSet()
 {
-  CString filename = theApp.GetTestFilename();
+  XString filename = theApp.GetTestFilename();
 
   // Read in the definition file for a test step
   try
@@ -277,18 +277,18 @@ TestEditorDlg::InitTestSet()
 void
 TestEditorDlg::SetTitle()
 {
-  CString filename = theApp.GetTestFilename();
+  XString filename = theApp.GetTestFilename();
   WinFile file(filename);
-  CString name = file.GetFilenamePartFilename();
+  XString name = file.GetFilenamePartFilename();
 
-  CString title(_T("Testset Editor - "));
+  XString title(_T("Testset Editor - "));
   title += name;
 
   SetWindowText(title);
 }
 
 void
-TestEditorDlg::SetTextImage(int p_row,int p_col,CString p_text,int p_image)
+TestEditorDlg::SetTextImage(int p_row,int p_col,XString p_text,int p_image)
 {
   GV_ITEM item;
   item.mask    = GVIF_IMAGE;
@@ -312,7 +312,7 @@ TestEditorDlg::LoadTest()
   int index = 0;
   for(auto& run : m_testset.GetTestRuns())
   {
-    CString number;
+    XString number;
     number.Format(_T("%d"),++index);
 
     int row = m_grid.InsertRow(number);
@@ -362,7 +362,7 @@ TestEditorDlg::SaveTest()
 void
 TestEditorDlg::TryChangeTestGlobalLocal(int p_row,TRun& p_test)
 {
-  CString ask;
+  XString ask;
   ask.Format(_T("Do you want to change the test step to a [%s] step?"),p_test.m_global ? _T("local") : _T("global"));
   if(StyleMessageBox(this,ask,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
@@ -396,7 +396,7 @@ TestEditorDlg::TryChangeTestGlobalLocal(int p_row,TRun& p_test)
 void
 TestEditorDlg::TryChangeValiGlobalLocal(int p_row,TRValidation& p_vali)
 {
-  CString ask;
+  XString ask;
   ask.Format(_T("Do you want to change the validation to a [%s] validation?"),p_vali.m_global ? _T("local") : _T("global"));
   if (StyleMessageBox(this,ask,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
@@ -507,7 +507,7 @@ TestEditorDlg::EditCell(CCellID p_id)
   }
   else if(p_id.col == COL_GLOBAL_VALI)
   {
-    CString validation = m_grid.GetItemText(p_id.row, COL_NAME_VALI);
+    XString validation = m_grid.GetItemText(p_id.row, COL_NAME_VALI);
     if(validation.Compare(MULTIPLE_VAL))
     {
       TRValidation& val = test.m_validations.front();
@@ -516,8 +516,8 @@ TestEditorDlg::EditCell(CCellID p_id)
   }
   else if(p_id.col == COL_NAME_VALI)
   {
-    CString stepname   = m_grid.GetItemText(p_id.row,COL_NAME_STEP);
-    CString validation = m_grid.GetItemText(p_id.row,COL_NAME_VALI);
+    XString stepname   = m_grid.GetItemText(p_id.row,COL_NAME_STEP);
+    XString validation = m_grid.GetItemText(p_id.row,COL_NAME_VALI);
 
     SHORT shift = GetKeyState(VK_SHIFT) & 0xFF80;
     if(shift || validation.Compare(MULTIPLE_VAL) == 0)
@@ -548,17 +548,17 @@ void
 TestEditorDlg::CopyTest(int p_row)
 {
   TRun& run = m_testset.GetTestRun(p_row - 1);
-  CString directory = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
-  CString filename  = run.m_filename;
-  CString stepname  = run.m_name;
-  CString newfile;
-  CString valiName;
-  CString valiFile;
+  XString directory = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
+  XString filename  = run.m_filename;
+  XString stepname  = run.m_name;
+  XString newfile;
+  XString valiName;
+  XString valiFile;
   bool    stepGlobal = run.m_global;
   bool    valiGlobal = false;
   TestStep* step     = nullptr;
 
-  CString ask;
+  XString ask;
   ask.Format(_T("Do you want to copy the test step: %s?"),stepname.GetString());
   if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
@@ -574,14 +574,14 @@ TestEditorDlg::CopyTest(int p_row)
       // Filename extended with capital 'C' (can throw)
       newfile = ExtendFilename(filename);
 
-      CString copyFrom = directory + filename;
-      CString copyTo   = directory + newfile;
+      XString copyFrom = directory + filename;
+      XString copyTo   = directory + newfile;
       if(CopyFile(copyFrom, copyTo, TRUE) == FALSE)
       {
         throw StdException(_T("New teststep filename already exists. Rename that teststep first!"));
       }
     }
-    CString validate;
+    XString validate;
     if(!run.m_validations.empty())
     {
       valiName   = run.m_validations.front().m_name;
@@ -590,11 +590,11 @@ TestEditorDlg::CopyTest(int p_row)
 
       if(valiGlobal == false)
       {
-        CString newvalifile  = ExtendFilename(valiFile); // can throw
+        XString newvalifile  = ExtendFilename(valiFile); // can throw
         valiName += _T("C");
 
-        CString copyFrom = directory + valiFile;
-        CString copyTo   = directory + newvalifile;
+        XString copyFrom = directory + valiFile;
+        XString copyTo   = directory + newvalifile;
         if(CopyFile(copyFrom,copyTo,TRUE) == FALSE)
         {
           throw StdException(_T("New validate filename already exists. Rename that validation step first!"));
@@ -604,7 +604,7 @@ TestEditorDlg::CopyTest(int p_row)
   }
   catch (StdException& ex)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot copy test step [%s] Error: %s"),stepname.GetString(),ex.GetErrorMessage().GetString());
     StyleMessageBox(this,error,_T(KWATTA),MB_OK|MB_ICONERROR);
     return;
@@ -612,7 +612,7 @@ TestEditorDlg::CopyTest(int p_row)
 
   // Get the new test number
   int rows = m_grid.GetRowCount();
-  CString rownum;
+  XString rownum;
   rownum.Format(_T("%d"),rows);
 
   // Update the grid
@@ -638,14 +638,14 @@ TestEditorDlg::CopyTest(int p_row)
   SaveTest();
 }
 
-CString
-TestEditorDlg::ExtendFilename(CString p_filename)
+XString
+TestEditorDlg::ExtendFilename(XString p_filename)
 {
   int pos = p_filename.ReverseFind('.');
   if(pos)
   {
-    CString basename  = p_filename.Left(pos);
-    CString extension = p_filename.Mid(pos);
+    XString basename  = p_filename.Left(pos);
+    XString extension = p_filename.Mid(pos);
 
     return basename + _T("C") + extension;
   }
@@ -660,9 +660,9 @@ TestEditorDlg::RunTest(CCellID p_id)
     return;
   }
   TRun& run = m_testset.GetTestRun(p_id.row - 1);
-  CString filename = run.m_filename;
+  XString filename = run.m_filename;
   int res = theApp.StartTestRunner(filename,run.m_global,m_testset.GetValidationsByFile(filename),GetSafeHwnd(),p_id.row);
-  CString result = res ? _T("OK") : _T("ERROR");
+  XString result = res ? _T("OK") : _T("ERROR");
 
   SetTextImage(p_id.row,COL_RESULT,result,res ? COL_STATUS_OK : COL_STATUS_ERROR);
   m_grid.Invalidate();
@@ -684,9 +684,9 @@ void
 TestEditorDlg::ReParseTestStep(int p_run)
 {
   TRun&   run      = m_testset.GetTestRun(p_run - 1);
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
   filename        += run.m_filename;
-  CString stepname = run.m_name;
+  XString stepname = run.m_name;
   TestStep* step   = nullptr;
   try
   {
@@ -694,7 +694,7 @@ TestEditorDlg::ReParseTestStep(int p_run)
   }
   catch(StdException& ex)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot read file [%s] Error: %s"),filename.GetString(),ex.GetErrorMessage().GetString());
     StyleMessageBox(this,error,_T("ERROR"),MB_OK|MB_ICONERROR);
     return;
@@ -716,13 +716,13 @@ void
 TestEditorDlg::ReParseValidate(int p_run)
 {
   TRun&   run      = m_testset.GetTestRun(p_run - 1);
-  CString filename = run.m_filename;
+  XString filename = run.m_filename;
   TSValSet* valis  = m_testset.GetValidationsByFile(filename);
   TRValidation& validation = valis->front();
-  CString valiname = validation.m_name;
-  CString valifile = validation.m_filename;
+  XString valiname = validation.m_name;
+  XString valifile = validation.m_filename;
     // Combined filename
-  CString validationFilename = theApp.GetBaseDirectory() + 
+  XString validationFilename = theApp.GetBaseDirectory() + 
                                (validation.m_global ? _T("Validations\\") : theApp.GetTestDirectory()) +
                                valifile;
   Validate* vali = nullptr;
@@ -732,7 +732,7 @@ TestEditorDlg::ReParseValidate(int p_run)
   }
   catch(StdException& ex)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot read file [%s] Error: %s"),valifile.GetString(),ex.GetErrorMessage().GetString());
     StyleMessageBox(this,error,_T("ERROR"),MB_OK|MB_ICONERROR);
     return;
@@ -751,10 +751,10 @@ TestEditorDlg::ReParseValidate(int p_run)
 }
 
 int
-TestEditorDlg::MakeNewTest(StepType p_type,bool p_global,CString p_name,CString p_filename)
+TestEditorDlg::MakeNewTest(StepType p_type,bool p_global,XString p_name,XString p_filename)
 {
   TestStep* step{nullptr};
-  CString file(p_filename);
+  XString file(p_filename);
   file.MakeLower();
 
   // Create test step
@@ -801,7 +801,7 @@ TestEditorDlg::MakeNewTest(StepType p_type,bool p_global,CString p_name,CString 
   // Save to file
   if(p_global)
   {
-    CString checkfile = theApp.GetBaseDirectory() + _T("Steps\\") + p_filename;
+    XString checkfile = theApp.GetBaseDirectory() + _T("Steps\\") + p_filename;
     if(_taccess(checkfile,0) < 0)
     {
       StyleMessageBox(this,_T("Global teststep does not exist: ") + checkfile,_T("ERROR"),MB_OK|MB_ICONERROR);
@@ -822,7 +822,7 @@ TestEditorDlg::MakeNewTest(StepType p_type,bool p_global,CString p_name,CString 
 
   // Put in grid
   int index = m_grid.GetRowCount();
-  CString number;
+  XString number;
   number.Format(_T("%d"),index);
   int row = m_grid.InsertRow(number);
 
@@ -838,7 +838,7 @@ TestEditorDlg::MakeNewTest(StepType p_type,bool p_global,CString p_name,CString 
 }
 
 void
-TestEditorDlg::MakeNewVali(StepType p_type,bool p_global,CString p_name,CString p_filename,int p_row)
+TestEditorDlg::MakeNewVali(StepType p_type,bool p_global,XString p_name,XString p_filename,int p_row)
 {
   // Make testrun validation
   TRValidation vali;
@@ -853,7 +853,7 @@ TestEditorDlg::MakeNewVali(StepType p_type,bool p_global,CString p_name,CString 
   if(!p_global)
   {
     // Create the file
-    CString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + p_filename;
+    XString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + p_filename;
 
     bool result = false;
     if(p_type == StepType::Step_command)
@@ -897,7 +897,7 @@ TestEditorDlg::MakeNewVali(StepType p_type,bool p_global,CString p_name,CString 
   else
   {
     // Check the global file
-    CString path = theApp.GetBaseDirectory() + _T("Validations\\") + p_filename;
+    XString path = theApp.GetBaseDirectory() + _T("Validations\\") + p_filename;
     if(_taccess(path,0) < 0)
     {
       StyleMessageBox(this,_T("Global validation file does not exist: ") + p_filename,_T("ERROR"),MB_OK|MB_ICONERROR);
@@ -907,7 +907,7 @@ TestEditorDlg::MakeNewVali(StepType p_type,bool p_global,CString p_name,CString 
 
   // Put in the grid
   SetTextImage(p_row,COL_GLOBAL_VALI,_T(""),p_global ? COL_STATUS_GLOBAL : COL_STATUS_LOCAL);
-  CString name = m_grid.GetCell(p_row,4)->GetText();
+  XString name = m_grid.GetCell(p_row,4)->GetText();
   if(name.IsEmpty())
   {
     m_grid.GetCell(p_row,4)->SetText(p_name);
@@ -925,13 +925,13 @@ void
 TestEditorDlg::DeleteResult(int p_row)
 {
   TRun&   run  = m_testset.GetTestRun(p_row);
-  CString file = run.m_filename;
+  XString file = run.m_filename;
   file.Replace(EXTENSION_TESTSTEP_CMD,EXTENSION_RESULT_CMD);
   file.Replace(EXTENSION_TESTSTEP_NET,EXTENSION_RESULT_NET);
   file.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
   file.Replace(EXTENSION_TESTSTEP_WIN,EXTENSION_RESULT_WIN);
 
-  CString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
+  XString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
   path += file;
   if(DeleteFile(path))
   {
@@ -950,8 +950,8 @@ TestEditorDlg::DeleteValidation(int p_row)
   {
     if(val.m_global == false)
     {
-      CString file = val.m_filename;
-      CString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
+      XString file = val.m_filename;
+      XString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
       path += file;
       DeleteFile(path);
     }
@@ -967,8 +967,8 @@ TestEditorDlg::DeleteTestStep(int p_row)
 
   if(run.m_global == false)
   {
-    CString file = run.m_filename;
-    CString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
+    XString file = run.m_filename;
+    XString path = theApp.GetBaseDirectory() + theApp.GetTestDirectory();
     path += file;
     DeleteFile(path);
   }
@@ -1189,7 +1189,7 @@ TestEditorDlg::OnBnClickedMulVal()
   // Check for correct row
   if(row < 1) return;
   // Name of the step
-  CString stepname = m_grid.GetItemText(row,COL_NAME_STEP);
+  XString stepname = m_grid.GetItemText(row,COL_NAME_STEP);
 
   AutoFocus focus;
   CombiEditorDlg dlg(this,m_testset,stepname,id.row);
@@ -1230,10 +1230,10 @@ TestEditorDlg::OnBnClickedUp()
     TRunSet& set = m_testset.GetTestRuns();
     std::iter_swap(set.begin() + row - 2,set.begin() + row - 1);
 
-    CString type1 = m_grid.GetCell(row - 1,1)->GetText();
-    CString name  = m_grid.GetCell(row - 1,2)->GetText();
-    CString type2 = m_grid.GetCell(row - 1,3)->GetText();
-    CString vali  = m_grid.GetCell(row - 1,4)->GetText();
+    XString type1 = m_grid.GetCell(row - 1,1)->GetText();
+    XString name  = m_grid.GetCell(row - 1,2)->GetText();
+    XString type2 = m_grid.GetCell(row - 1,3)->GetText();
+    XString vali  = m_grid.GetCell(row - 1,4)->GetText();
 
     m_grid.GetCell(row - 1,1)->SetText(m_grid.GetCell(row,1)->GetText());
     m_grid.GetCell(row - 1,2)->SetText(m_grid.GetCell(row,2)->GetText());
@@ -1268,10 +1268,10 @@ TestEditorDlg::OnBnClickedDown()
     TRunSet& set = m_testset.GetTestRuns();
     std::iter_swap(set.begin() + row,set.begin() + row - 1);
 
-    CString type1 = m_grid.GetCell(row + 1,1)->GetText();
-    CString name  = m_grid.GetCell(row + 1,2)->GetText();
-    CString type2 = m_grid.GetCell(row + 1,3)->GetText();
-    CString vali  = m_grid.GetCell(row + 1,4)->GetText();
+    XString type1 = m_grid.GetCell(row + 1,1)->GetText();
+    XString name  = m_grid.GetCell(row + 1,2)->GetText();
+    XString type2 = m_grid.GetCell(row + 1,3)->GetText();
+    XString vali  = m_grid.GetCell(row + 1,4)->GetText();
 
     m_grid.GetCell(row + 1,1)->SetText(m_grid.GetCell(row,1)->GetText());
     m_grid.GetCell(row + 1,2)->SetText(m_grid.GetCell(row,2)->GetText());
@@ -1313,13 +1313,13 @@ TestEditorDlg::OnBnClickedMutate()
       }
       else
       {
-        CString filename = run.m_filename;
+        XString filename = run.m_filename;
 
         AutoFocus focus;
         MutateDlg dlg(this, _T("testset"), filename);
         dlg.DoModal();
 
-        CString newfile = dlg.GetFilename();
+        XString newfile = dlg.GetFilename();
         if(newfile.CompareNoCase(filename))
         {
           run.m_filename = newfile;
@@ -1329,7 +1329,7 @@ TestEditorDlg::OnBnClickedMutate()
     }
     else if(id.col > 2 && id.col < 5)
     {
-      CString text = m_grid.GetCell(id.row,id.col)->GetText();
+      XString text = m_grid.GetCell(id.row,id.col)->GetText();
       if(text.Compare(MULTIPLE_VAL))
       {
         TRun& run = m_testset.GetTestRuns()[row - 1];
@@ -1341,13 +1341,13 @@ TestEditorDlg::OnBnClickedMutate()
         }
         else
         {
-          CString filename = vali.m_filename;
+          XString filename = vali.m_filename;
 
           AutoFocus focus;
           MutateDlg dlg(this, _T("validation"), filename);
           dlg.DoModal();
 
-          CString newfile = dlg.GetFilename();
+          XString newfile = dlg.GetFilename();
           if (newfile.CompareNoCase(filename))
           {
             vali.m_filename = newfile;
@@ -1372,8 +1372,8 @@ TestEditorDlg::OnBnClickedLoadtest()
   {
     TRun& run = m_testset.GetTestRuns()[row - 1];
 
-    CString   name     = run.m_name;
-    CString   filename = run.m_filename;
+    XString   name     = run.m_name;
+    XString   filename = run.m_filename;
     bool      global   = run.m_global;
     TSValSet* valset   = m_testset.GetValidationsByFile(filename);
     HWND      report   = GetSafeHwnd();

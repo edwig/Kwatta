@@ -46,8 +46,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
   int       m_returnValue;
-  CString   m_standardOutput;
-  CString   m_standardError;
+  XString   m_standardOutput;
+  XString   m_standardError;
   StyleEdit m_editReturn;
   StyleEdit m_editOutput;
   StyleEdit m_editError;

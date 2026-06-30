@@ -34,17 +34,17 @@
 #include <HTTPMessage.h>
 #include <vector>
 
-using ValiSteps = std::vector<CString>;
+using ValiSteps = std::vector<XString>;
 class HTTPClient;
 class OAuth2Cache;
 
 class NETRunner : public TestRunner
 {
 public:
-  NETRunner(CString      p_baseDirectory
-           ,CString      p_testDirectory
-           ,CString      p_testStepFilename
-           ,CString      p_parametersFilename
+  NETRunner(XString      p_baseDirectory
+           ,XString      p_testDirectory
+           ,XString      p_testStepFilename
+           ,XString      p_parametersFilename
            ,ValiSteps&   p_localValidations
            ,ValiSteps&   p_globalValidations
            ,HWND         p_reportHWND
@@ -79,7 +79,7 @@ private:
   void  SetBoobytrap();
   void  StopBoobytrap();
   // For a QL test to JSON or XML translation
-  virtual void  CreateQLErrorMessage(CString p_error) override;
+  virtual void  CreateQLErrorMessage(XString p_error) override;
   virtual int   CheckStatusOK(int p_returnCode);
 
   // Setting authentication

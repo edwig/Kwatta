@@ -37,10 +37,10 @@ static char THIS_FILE[] = __FILE__;
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
-WINRunner::WINRunner(CString      p_baseDirectory
-                    ,CString      p_testDirectory
-                    ,CString      p_testStepFilename
-                    ,CString      p_parametersFilename
+WINRunner::WINRunner(XString      p_baseDirectory
+                    ,XString      p_testDirectory
+                    ,XString      p_testStepFilename
+                    ,XString      p_parametersFilename
                     ,ValiSteps&   p_localValidations
                     ,ValiSteps&   p_globalValidations
                     ,HWND         p_consoleHWND
@@ -196,7 +196,7 @@ WINRunner::ParameterProcessing()
   // Cannot perform a test step if still unbound parameters exists
   if(unbound)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
@@ -227,8 +227,8 @@ WINRunner::PerformCommand()
     }
   }
 
-  CString log;
-  CString errors;
+  XString log;
+  XString errors;
   UINT    error(0);
   try
   {
@@ -277,7 +277,7 @@ WINRunner::PerformAllValidations()
 {
   int step = 1;
   StepResultWIN* stepresult = dynamic_cast<StepResultWIN*>(m_result);
-  CString documentation;
+  XString documentation;
   bool totalresult = true;
 
   for (auto& vali : m_validations)
@@ -323,13 +323,13 @@ WINRunner::SaveTestResults()
   PerformStep(_T("Saving the test results"));
   StepResultWIN* result = dynamic_cast<StepResultWIN*>(m_result);
 
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  XString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(EXTENSION_TESTSTEP_WIN,EXTENSION_RESULT_WIN);
 
   if(result->WriteToXML(filename) == false)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
@@ -365,7 +365,7 @@ WINRunner::ReadTestStep()
 {
   // Read in the definition file for a test step
   TestStepWIN* step = dynamic_cast<TestStepWIN*>(m_testStep);
-  CString filename = GetEffectiveStepFilename();
+  XString filename = GetEffectiveStepFilename();
   step->ReadFromXML(filename);
 }
 
@@ -377,14 +377,14 @@ WINRunner::ReadValidations()
   for(auto& filename : m_localValidations)
   {
     Validate* validate = new ValidateWIN();
-    CString file = m_baseDirectory + m_testDirectory + filename;
+    XString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
     m_validations.push_back(validate);
   }
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateWIN();
-    CString file = m_baseDirectory + _T("Validations\\") + filename;
+    XString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -404,11 +404,11 @@ WINRunner::CheckStatusOK(int p_returnCode)
 }
 
 void
-WINRunner::CreateQLErrorMessage(CString p_error)
+WINRunner::CreateQLErrorMessage(XString p_error)
 {
   StepResultWIN* result = reinterpret_cast<StepResultWIN*>(m_result);
 
-  CString error = result->GetErrorString();
+  XString error = result->GetErrorString();
   error += p_error;
   result->SetErrorString(error);
   result->SetLastOSError(1);

@@ -123,7 +123,7 @@ BOOL ValidateEditorApp::InitInstance()
   }
   else
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot deduce the validation type of file: %s"),m_validateFilename.GetString());
     StyleMessageBox(nullptr,error,_T("Kwatta"),MB_OK|MB_ICONERROR);
   }
@@ -142,11 +142,11 @@ ValidateEditorApp::ExitInstance()
   return CWinAppEx::ExitInstance();
 }
 
-CString
+XString
 ValidateEditorApp::GetEffectiveValidation()
 {
-  CString filename(m_baseDirectory);
-  filename += m_global ? CString(_T("Validations\\")) : m_testDirectory;
+  XString filename(m_baseDirectory);
+  filename += m_global ? XString(_T("Validations\\")) : m_testDirectory;
   filename += m_validateFilename;
 
   return filename;
@@ -155,8 +155,8 @@ ValidateEditorApp::GetEffectiveValidation()
 void
 ValidateEditorApp::PromoteValidation(CWnd* p_wnd)
 {
-  CString valiDirectory = m_baseDirectory + _T("Validations\\");
-  CString globalVali    = valiDirectory + m_validateFilename;
+  XString valiDirectory = m_baseDirectory + _T("Validations\\");
+  XString globalVali    = valiDirectory + m_validateFilename;
 
   if(_taccess(globalVali, 0) == 0)
   {
@@ -167,10 +167,10 @@ ValidateEditorApp::PromoteValidation(CWnd* p_wnd)
   }
 
   CWaitCursor sigh;
-  CString testfile = m_baseDirectory + m_testDirectory + m_validateFilename;
+  XString testfile = m_baseDirectory + m_testDirectory + m_validateFilename;
   if (CopyFile(testfile,globalVali,FALSE) == FALSE)
   {
-    CString error = GetLastErrorAsString(GetLastError());
+    XString error = GetLastErrorAsString(GetLastError());
     StyleMessageBox(p_wnd,_T("Could not create a global validation: ") + error,PRODUCT_NAME,MB_OK|MB_ICONERROR);
   }
 }
@@ -181,7 +181,7 @@ ValidateEditorApp::DeduceValidateType()
   int pos = m_validateFilename.ReverseFind('.');
   if(pos > 0)
   {
-    CString extension = m_validateFilename.Mid(pos);
+    XString extension = m_validateFilename.Mid(pos);
     if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
     {
       return ValidateType::Validate_command;
@@ -247,11 +247,11 @@ ValidateEditorApp::ParseStartParameters()
     return false;
   }
   // Check formatting of the directories
-  if(m_baseDirectory.Right(1) != '\\')
+  if(m_baseDirectory.Right(1) != _T("\\"))
   {
     m_baseDirectory += _T('\\');
   }
-  if(m_testDirectory.Right(1) != '\\')
+  if(m_testDirectory.Right(1) != _T("\\"))
   {
     m_testDirectory += _T('\\');
   }
@@ -261,7 +261,7 @@ ValidateEditorApp::ParseStartParameters()
 void
 ValidateEditorApp::Usage()
 {
-  CString usage = _T("USAGE of this program:\n")
+  XString usage = _T("USAGE of this program:\n")
                   _T("\n")
                   _T("ValidateEditor.exe /BASE:<base-directory> /TDIR:<test-directory> /VALI:<filename>.xval [/PARAM:<filename>.xpar]");
   StyleMessageBox(NULL, usage.GetString(), PRODUCT_NAME, MB_OK | MB_ICONEXCLAMATION);

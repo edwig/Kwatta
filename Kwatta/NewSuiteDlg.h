@@ -31,7 +31,7 @@ public:
 	NewSuiteDlg(CWnd* p_parent);   // standard constructor
 	virtual ~NewSuiteDlg();
 
-  CString GetNewTestsuiteFile();
+  XString GetNewTestsuiteFile();
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -46,9 +46,9 @@ protected:
           bool CreateEmptySuite();
 
   bool    m_init;
-  CString m_explain;
-  CString m_directory;
-  CString m_suiteName;
+  XString m_explain;
+  XString m_directory;
+  XString m_suiteName;
 
   StyleEdit   m_editExplain;
   StyleEdit   m_editDirectory;

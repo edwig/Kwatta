@@ -24,7 +24,7 @@
 #include <map>
 
 // Mapping the column name to the column value
-using ResultMap = std::map<CString,CString>;
+using ResultMap = std::map<XString,XString>;
 
 class StepResultSQL : public StepResult
 {
@@ -33,32 +33,32 @@ public:
   virtual ~StepResultSQL() = default;
 
   // Interface with the file system
-  virtual void ReadFromXML(CString p_filename);  // Throws in case of an error
-  virtual bool WriteToXML(CString p_filename);
-  virtual void CheckFilename(CString p_filename);
+  virtual void ReadFromXML(XString p_filename);  // Throws in case of an error
+  virtual bool WriteToXML(XString p_filename);
+  virtual void CheckFilename(XString p_filename);
   virtual void ResetEffective();
   // SETTERS
   void    SetSucceeded(bool p_success)      { m_succeeded  = p_success; }
   void    SetResultRows(int p_rows)         { m_resultRows = p_rows;    }
   void    SetResultCols(int p_cols)         { m_resultCols = p_cols;    }
-  void    SetSQLState(CString p_state)      { m_sqlState   = p_state;   }
-  void    SetNativeStatus(CString p_native) { m_nativeStatus = p_native;}
-  void    AddResult(CString p_name,CString p_value);
+  void    SetSQLState(XString p_state)      { m_sqlState   = p_state;   }
+  void    SetNativeStatus(XString p_native) { m_nativeStatus = p_native;}
+  void    AddResult(XString p_name,XString p_value);
   // GETTERS
-  CString GetFirstData();
+  XString GetFirstData();
   int     GetSucceeded()    { return m_succeeded;     }
   int     GetResultRows()   { return m_resultRows;    }
   int     GetResultCols()   { return m_resultCols;    }
-  CString GetSQLState()     { return m_sqlState;      }
-  CString GetNativeStatus() { return m_nativeStatus;  }
+  XString GetSQLState()     { return m_sqlState;      }
+  XString GetNativeStatus() { return m_nativeStatus;  }
   ResultMap& GetResultMap() { return m_data;          }
 
 protected:
   bool    m_succeeded  { false };
   int     m_resultRows { 0     };
   int     m_resultCols { 0     };
-  CString m_sqlState;
-  CString m_nativeStatus;
+  XString m_sqlState;
+  XString m_nativeStatus;
 
   // Result data set
   ResultMap m_data;

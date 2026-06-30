@@ -268,7 +268,7 @@ StepInternetDlg::InitVerbs()
 void
 StepInternetDlg::InitStep()
 {
-  CString filename = theApp.GetEffectiveStep();
+  XString filename = theApp.GetEffectiveStep();
 
   // Read in the definition file for a test step
   try
@@ -286,7 +286,7 @@ StepInternetDlg::InitStep()
 void
 StepInternetDlg::InitGlobalParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
+  XString filename = theApp.GetBaseDirectory() + _T("Parameters.xpar");
 
   ReadParameters(filename);
 }
@@ -294,7 +294,7 @@ StepInternetDlg::InitGlobalParameters()
 void
 StepInternetDlg::InitParameters()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   // Possibly no parameter file bound to the step!
   if(filename.IsEmpty())
@@ -307,7 +307,7 @@ StepInternetDlg::InitParameters()
 void
 StepInternetDlg::InitCredentials()
 {
-  CString filename = theApp.GetBaseDirectory() + _T("Credentials.cred");
+  XString filename = theApp.GetBaseDirectory() + _T("Credentials.cred");
 
   // read the credential sets
   try
@@ -357,7 +357,7 @@ StepInternetDlg::InitTooltips()
 }
 
 void
-StepInternetDlg::ReadParameters(CString p_file, bool p_global /*= true*/)
+StepInternetDlg::ReadParameters(XString p_file, bool p_global /*= true*/)
 {
   // read the definition of the parameters
   try
@@ -378,7 +378,7 @@ StepInternetDlg::EffectiveParameters()
   {
     m_busy = true;
 
-    CString bound(_T("Parameters: OK"));
+    XString bound(_T("Parameters: OK"));
 
     // Effectuate the parameters
     StoreVariables();
@@ -462,8 +462,8 @@ StepInternetDlg::SaveStep()
   StoreCredentials();
   StoreVariables();
 
-  CString filenameStep = theApp.GetEffectiveStep();
-  CString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
+  XString filenameStep = theApp.GetEffectiveStep();
+  XString filenameParm = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetParametersFilename();
 
   try
   {
@@ -502,7 +502,7 @@ StepInternetDlg::StoreVariables()
   // General variables above the tabs
   m_testStep->SetName(m_name);
   m_testStep->SetDocumentation(m_comment);
-  m_testStep->SetVerb(m_verb);
+  m_testStep->SetVerb(m_verb.GetString());
   m_testStep->SetURL(m_url);
 
   // Take all the changes from the tabs
@@ -583,7 +583,7 @@ StepInternetDlg::OnBnClickedUrlParm()
   SearchVarDlg dlg(this,&m_parameters,true,true,true,true);
   if(dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editUrl.InsertAtCurPos(variable,0);
     OnEnChangeUrl();
   }
@@ -592,7 +592,7 @@ StepInternetDlg::OnBnClickedUrlParm()
 void
 StepInternetDlg::OnBnClickedErrors()
 {
-  CString errors = m_parameters.GetUnboundErrors();
+  XString errors = m_parameters.GetUnboundErrors();
   if(!errors.IsEmpty())
   {
     StyleMessageBox(this,errors,APPLICATION_NAME,MB_OK|MB_ICONERROR);

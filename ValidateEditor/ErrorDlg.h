@@ -49,8 +49,8 @@ protected:
 
   bool            m_useError;
   BufferOperator  m_errorOperator;
-  CString         m_expectedError;
-  CString         m_effectiveError;
+  XString         m_expectedError;
+  XString         m_effectiveError;
 
   StyleCheckbox   m_buttonUseError;
   StyleComboBox   m_comboOperator;

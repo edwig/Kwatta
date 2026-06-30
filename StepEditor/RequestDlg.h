@@ -51,12 +51,12 @@ protected:
   virtual BOOL OnInitDialog() override;
   virtual void SetupDynamicLayout() override;
 
-  void UpdateStepHeader(CString p_contentType);
+  void UpdateStepHeader(XString p_contentType);
 
   CString       m_mimeType;
-  CString       m_payload;
-  CString       m_inputFile;
-  CString       m_outputFile;
+  XString       m_payload;
+  XString       m_inputFile;
+  XString       m_outputFile;
   bool          m_useFile;
   bool          m_saveFile;
 

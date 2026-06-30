@@ -28,19 +28,19 @@ public:
   virtual ~ValidateNET() = default;
 
   // Interface with the file system
-  virtual void    ReadFromXML(CString p_filename) override;  // Throws in case of an error
-  virtual bool    WriteToXML(CString p_filename) override;
+  virtual void    ReadFromXML(XString p_filename) override;  // Throws in case of an error
+  virtual bool    WriteToXML(XString p_filename) override;
   // RE-Calculate the effective strings, returning the number of unbound parameters
   virtual int     EffectiveReplacements(Parameters* p_parameters,bool p_forDisplay);
   // Check our filenames extension
-  virtual void    CheckFilename(CString p_filename) override;
+  virtual void    CheckFilename(XString p_filename) override;
 
   // OUR MAIN FUNCTION: Performing our VALIDATIONS
   bool            ValidateStatusValue(Parameters* p_parameters,int p_status);
-  bool            ValidateHeaderValue(Parameters* p_parameters,CString p_headerValue);
-  bool            ValidateBodyValue  (Parameters* p_parameters,CString p_body);
-  bool            ValidateXMLValue   (Parameters* p_parameters,CString p_body);
-  bool            ValidateJSONValue  (Parameters* p_parameters,CString p_body);
+  bool            ValidateHeaderValue(Parameters* p_parameters,XString p_headerValue);
+  bool            ValidateBodyValue  (Parameters* p_parameters,XString p_body);
+  bool            ValidateXMLValue   (Parameters* p_parameters,XString p_body);
+  bool            ValidateJSONValue  (Parameters* p_parameters,XString p_body);
 
   // GETTERS
   bool            GetCheckStatus()          { return m_checkStatus;         }
@@ -53,25 +53,25 @@ public:
   BufferOperator  GetBodyOperator()         { return m_bodyOperator;        }
   BufferOperator  GetXMLOperator()          { return m_xmlOperator;         }
   BufferOperator  GetJSONOperator()         { return m_jsonOperator;        }
-  CString         GetExpectedStatus()       { return m_expectedStatus;      }
-  CString         GetVerifyHeader()         { return m_verifyHeader;        }
-  CString         GetExpectedHeaderValue()  { return m_expectedHeader;      }
-  CString         GetExpectedBody()         { return m_expectedBody;        }
-  CString         GetVerifyXmlPath()        { return m_verifyXmlPath;       }
-  CString         GetExpectedXMLValue()     { return m_expectedXML;         }
-  CString         GetVerifyJSONPath()       { return m_verifyJSONPath;      }
-  CString         GetExpectedJSONValue()    { return m_expectedJSON;        }
-  CString         GetStatusVariable()       { return m_statusVariable;      }
-  CString         GetHeaderVariable()       { return m_headerVariable;      }
-  CString         GetBodyVariable()         { return m_bodyVariable;        }
-  CString         GetXmlVariable()          { return m_xmlVariable;         }
-  CString         GetJsonVariable()         { return m_jsonVariable;        }
+  XString         GetExpectedStatus()       { return m_expectedStatus;      }
+  XString         GetVerifyHeader()         { return m_verifyHeader;        }
+  XString         GetExpectedHeaderValue()  { return m_expectedHeader;      }
+  XString         GetExpectedBody()         { return m_expectedBody;        }
+  XString         GetVerifyXmlPath()        { return m_verifyXmlPath;       }
+  XString         GetExpectedXMLValue()     { return m_expectedXML;         }
+  XString         GetVerifyJSONPath()       { return m_verifyJSONPath;      }
+  XString         GetExpectedJSONValue()    { return m_expectedJSON;        }
+  XString         GetStatusVariable()       { return m_statusVariable;      }
+  XString         GetHeaderVariable()       { return m_headerVariable;      }
+  XString         GetBodyVariable()         { return m_bodyVariable;        }
+  XString         GetXmlVariable()          { return m_xmlVariable;         }
+  XString         GetJsonVariable()         { return m_jsonVariable;        }
   // Total effective returned values
-  CString         GetEffectiveStatus()      { return m_effectiveStatus;     }
-  CString         GetEffectiveHeaderValue() { return m_effectiveHeaderValue;}
-  CString         GetEffectiveBody()        { return m_effectiveBody;       }
-  CString         GetEffectiveXMLValue()    { return m_effectiveXMLValue;   }
-  CString         GetEffectiveJSONValue()   { return m_effectiveJSONValue;  }
+  XString         GetEffectiveStatus()      { return m_effectiveStatus;     }
+  XString         GetEffectiveHeaderValue() { return m_effectiveHeaderValue;}
+  XString         GetEffectiveBody()        { return m_effectiveBody;       }
+  XString         GetEffectiveXMLValue()    { return m_effectiveXMLValue;   }
+  XString         GetEffectiveJSONValue()   { return m_effectiveJSONValue;  }
 
   // SETTERS
   void      SetCheckStatus(bool p_check)              { m_checkStatus         = p_check;  }
@@ -84,19 +84,19 @@ public:
   void      SetBodyOperator  (BufferOperator p_oper)  { m_bodyOperator        = p_oper;   }
   void      SetXMLOperator   (BufferOperator p_oper)  { m_xmlOperator         = p_oper;   }
   void      SetJSONOperator  (BufferOperator p_oper)  { m_jsonOperator        = p_oper;   }
-  void      SetExpectedStatus(CString p_status)       { m_expectedStatus      = p_status; }
-  void      SetVerifyHeader(CString p_header)         { m_verifyHeader        = p_header; }
-  void      SetExpectedHeaderValue(CString p_value)   { m_expectedHeader      = p_value;  }
-  void      SetExpectedBody(CString p_body)           { m_expectedBody        = p_body;   }
-  void      SetVerifyXmlPath(CString p_path)          { m_verifyXmlPath       = p_path;   }
-  void      SetExpectedXMLValue(CString p_value)      { m_expectedXML         = p_value;  }
-  void      SetVerifyJSONPath(CString p_path)         { m_verifyJSONPath      = p_path;   }
-  void      SetExpectedJSONValue(CString p_value)     { m_expectedJSON        = p_value;  }
-  void      SetStatusVariable(CString p_value)        { m_statusVariable      = p_value;  }
-  void      SetHeaderVariable(CString p_value)        { m_headerVariable      = p_value;  }
-  void      SetBodyVariable(CString p_value)          { m_bodyVariable        = p_value;  }
-  void      SetXmlVariable(CString p_value)           { m_xmlVariable         = p_value;  }
-  void      SetJsonVariable(CString p_value)          { m_jsonVariable        = p_value;  }
+  void      SetExpectedStatus(XString p_status)       { m_expectedStatus      = p_status; }
+  void      SetVerifyHeader(XString p_header)         { m_verifyHeader        = p_header; }
+  void      SetExpectedHeaderValue(XString p_value)   { m_expectedHeader      = p_value;  }
+  void      SetExpectedBody(XString p_body)           { m_expectedBody        = p_body;   }
+  void      SetVerifyXmlPath(XString p_path)          { m_verifyXmlPath       = p_path;   }
+  void      SetExpectedXMLValue(XString p_value)      { m_expectedXML         = p_value;  }
+  void      SetVerifyJSONPath(XString p_path)         { m_verifyJSONPath      = p_path;   }
+  void      SetExpectedJSONValue(XString p_value)     { m_expectedJSON        = p_value;  }
+  void      SetStatusVariable(XString p_value)        { m_statusVariable      = p_value;  }
+  void      SetHeaderVariable(XString p_value)        { m_headerVariable      = p_value;  }
+  void      SetBodyVariable(XString p_value)          { m_bodyVariable        = p_value;  }
+  void      SetXmlVariable(XString p_value)           { m_xmlVariable         = p_value;  }
+  void      SetJsonVariable(XString p_value)          { m_jsonVariable        = p_value;  }
 
 protected:
 
@@ -115,26 +115,26 @@ protected:
   BufferOperator m_jsonOperator   { BufferOperator::BOP_NOP   };
 
   // What we expect
-  CString   m_expectedStatus;
-  CString   m_verifyHeader;
-  CString   m_expectedHeader;
-  CString   m_expectedBody;
-  CString   m_verifyXmlPath;
-  CString   m_expectedXML;
-  CString   m_verifyJSONPath;
-  CString   m_expectedJSON;
+  XString   m_expectedStatus;
+  XString   m_verifyHeader;
+  XString   m_expectedHeader;
+  XString   m_expectedBody;
+  XString   m_verifyXmlPath;
+  XString   m_expectedXML;
+  XString   m_verifyJSONPath;
+  XString   m_expectedJSON;
 
   // Return variables after the test
-  CString   m_statusVariable;
-  CString   m_headerVariable;
-  CString   m_bodyVariable;
-  CString   m_xmlVariable;
-  CString   m_jsonVariable;
+  XString   m_statusVariable;
+  XString   m_headerVariable;
+  XString   m_bodyVariable;
+  XString   m_xmlVariable;
+  XString   m_jsonVariable;
 
   // What we expect after parameter translation
-  CString   m_effectiveStatus;
-  CString   m_effectiveHeaderValue;
-  CString   m_effectiveBody;
-  CString   m_effectiveXMLValue;
-  CString   m_effectiveJSONValue;
+  XString   m_effectiveStatus;
+  XString   m_effectiveHeaderValue;
+  XString   m_effectiveBody;
+  XString   m_effectiveXMLValue;
+  XString   m_effectiveJSONValue;
 };

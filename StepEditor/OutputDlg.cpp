@@ -136,9 +136,9 @@ OutputDlg::StoreVariables()
   m_step->SetUseOutputValue(m_useOutput);
   m_step->SetUseErrorValue (m_useError);
 
-  m_step->SetReturnVariable(m_varReturn);
-  m_step->SetOutputVariable(m_varOutput);
-  m_step->SetErrorVariable (m_varError);
+  m_step->SetReturnVariable(m_varReturn.GetString());
+  m_step->SetOutputVariable(m_varOutput.GetString());
+  m_step->SetErrorVariable (m_varError .GetString());
 }
 
 void
@@ -204,7 +204,7 @@ OutputDlg::OnCbnSelchangeVarReturn()
   int ind = m_comboReturnVars.GetCurSel();
   if (ind >= 0)
   {
-    CString var;
+    XString var;
     m_comboReturnVars.GetLBText(ind,var);
     m_varReturn = var;
   }
@@ -217,7 +217,7 @@ OutputDlg::OnBnClickedNewReturn()
   NewVariableDlg dlg(ParType::PAR_RETURN,m_parameters->GetReturns());
   if(dlg.DoModal() == IDOK)
   {
-    CString newvar = dlg.GetNewName();
+    XString newvar = dlg.GetNewName();
     if(!newvar.IsEmpty())
     {
       m_varReturn = newvar;
@@ -240,7 +240,7 @@ OutputDlg::OnCbnSelchangeVarOutput()
   int ind = m_comboOutputVars.GetCurSel();
   if (ind >= 0)
   {
-    CString var;
+    XString var;
     m_comboOutputVars.GetLBText(ind,var);
     m_varOutput = var;
   }
@@ -253,7 +253,7 @@ OutputDlg::OnBnClickedNewOutput()
   NewVariableDlg dlg(ParType::PAR_BUFFER,m_parameters->GetBuffers());
   if(dlg.DoModal() == IDOK)
   {
-    CString newvar = dlg.GetNewName();
+    XString newvar = dlg.GetNewName();
     if(!newvar.IsEmpty())
     {
       m_varOutput = newvar;
@@ -276,7 +276,7 @@ OutputDlg::OnCbnSelchangeVarError()
   int ind = m_comboErrorVars.GetCurSel();
   if (ind >= 0)
   {
-    CString var;
+    XString var;
     m_comboErrorVars.GetLBText(ind,var);
     m_varError = var;
   }
@@ -289,7 +289,7 @@ OutputDlg::OnBnClickedNewError()
   NewVariableDlg dlg(ParType::PAR_BUFFER,m_parameters->GetBuffers());
   if(dlg.DoModal() == IDOK)
   {
-    CString newvar = dlg.GetNewName();
+    XString newvar = dlg.GetNewName();
     if(!newvar.IsEmpty())
     {
       m_varError = newvar;

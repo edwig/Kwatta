@@ -36,10 +36,10 @@ static char THIS_FILE[] = __FILE__;
 #define MINIMUM_INTERVAL_TIME  50 
 
 SQLRunner::SQLRunner(SQLDatabase* p_database
-                    ,CString      p_baseDirectory
-                    ,CString      p_testDirectory
-                    ,CString      p_testStepFilename
-                    ,CString      p_parametersFilename
+                    ,XString      p_baseDirectory
+                    ,XString      p_testDirectory
+                    ,XString      p_testStepFilename
+                    ,XString      p_parametersFilename
                     ,ValiSteps&   p_localValidations
                     ,ValiSteps&   p_globalValidations
                     ,HWND         p_consoleHWND
@@ -218,7 +218,7 @@ SQLRunner::ParameterProcessing()
   // Cannot perform a test step if still unbound parameters exists
   if(unbound)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot perform test. Existing unbound parameters: %d"),unbound);
     throw StdException(error);
   }
@@ -234,10 +234,10 @@ SQLRunner::PerformCommand()
   // Take name and documentation
   m_result->SetName(m_testStep->GetName());
   m_result->SetDocumentation(m_testStep->GetDocumentation());
-  result->SetSucceeded(false);
+  result->ResetEffective();
 
-  CString     standardout;
-  CString     standarderr;
+  XString     standardout;
+  XString     standarderr;
   HPFCounter  counter;
 
   // See if we must set a boobytrap
@@ -289,7 +289,7 @@ SQLRunner::PerformCommand()
   }
   catch(StdException& ex)
   {
-    CString error = ex.GetErrorMessage();
+    XString error = ex.GetErrorMessage();
     if(m_query)
     {
       result->SetNativeStatus(m_query->GetError() + error);
@@ -324,8 +324,8 @@ SQLRunner::ReadResultSet()
   // Record the values of the first row;
   for(int ind = 1;ind <= m_query->GetNumberOfColumns();++ind)
   {
-    CString name;
-    CString value;
+    XString name;
+    XString value;
     m_query->GetColumnName(ind,name);
     m_query->GetColumn(ind)->GetAsString(value);
 
@@ -345,7 +345,7 @@ void
 SQLRunner::PerformAllValidations()
 {
   StepResultSQL* stepresult = dynamic_cast<StepResultSQL*>(m_result);
-  CString documentation;
+  XString documentation;
   bool totalresult = true;
 
   int step = 1;
@@ -416,13 +416,13 @@ SQLRunner::SaveTestResults()
   PerformStep(_T("Saving the test results"));
   StepResultSQL* result = dynamic_cast<StepResultSQL*>(m_result);
 
-  CString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
+  XString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
 
   if(result->WriteToXML(filename) == false)
   {
-    CString error;
+    XString error;
     error.Format(_T("Cannot save results file: %s"),filename.GetString());
     throw StdException(error);
   }
@@ -464,7 +464,7 @@ SQLRunner::ReadTestStep()
 {
   // Read in the definition file for a test step
   TestStepSQL* step = dynamic_cast<TestStepSQL*>(m_testStep);
-  CString filename = GetEffectiveStepFilename();
+  XString filename = GetEffectiveStepFilename();
   step->ReadFromXML(filename);
 }
 
@@ -476,14 +476,14 @@ SQLRunner::ReadValidations()
   for(auto& filename : m_localValidations)
   {
     Validate* validate = new ValidateSQL();
-    CString file = m_baseDirectory + m_testDirectory + filename;
+    XString file = m_baseDirectory + m_testDirectory + filename;
     validate->ReadFromXML(file);
     m_validations.push_back(validate);
   }
   for(auto& filename : m_globalValidations)
   {
     Validate* validate = new ValidateSQL();
-    CString file = m_baseDirectory + _T("Validations\\") + filename;
+    XString file = m_baseDirectory + _T("Validations\\") + filename;
     validate->ReadFromXML(file);
     validate->SetGlobal(true);
     m_validations.push_back(validate);
@@ -503,7 +503,7 @@ SQLRunner::CheckStatusOK(int p_returnCode)
 }
 
 void
-SQLRunner::CreateQLErrorMessage(CString p_error)
+SQLRunner::CreateQLErrorMessage(XString p_error)
 {
   StepResultSQL* result = reinterpret_cast<StepResultSQL*>(m_result);
 

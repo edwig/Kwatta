@@ -131,7 +131,7 @@ int QLScanner::GetToken()
 }
 
 // get the name of a token
-CString QLScanner::TokenName(int tkn)
+XString QLScanner::TokenName(int tkn)
 {
   if (tkn == T_EOF)
   {
@@ -142,7 +142,7 @@ CString QLScanner::TokenName(int tkn)
     return (tokenNames[tkn - _TMIN]);
   }
   // Give back as a string
-  CString tokenAsChar(_T(" "));
+  XString tokenAsChar(_T(" "));
   tokenAsChar.SetAt(0,(_TUCHAR) tkn);
 
   return tokenAsChar;
@@ -476,8 +476,8 @@ int QLScanner::getch()
 void QLScanner::ParseError(const TCHAR* msg)
 {
   int ch;
-  CString buffer;
-  CString pointer;
+  XString buffer;
+  XString pointer;
 
   // redisplay the line with the error
   buffer.Format(_T(">>> %s <<<\n>>> in line %d <<<\n%s"), msg, m_line_number, m_line);

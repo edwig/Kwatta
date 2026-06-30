@@ -160,8 +160,8 @@ UrlHeaderDlg::StoreVariables()
 
   for(int ind = 1; ind < m_list.GetRowCount(); ++ind)
   {
-    CString header = m_list.GetCell(ind,0)->GetText();
-    CString value  = m_list.GetCell(ind,1)->GetText();
+    XString header = m_list.GetCell(ind,0)->GetText();
+    XString value  = m_list.GetCell(ind,1)->GetText();
 
     m_step->SetHeader(header,value);
   }
@@ -196,7 +196,7 @@ UrlHeaderDlg::OnBnClickedDelete()
     CGridCellBase* cell = m_list.GetCell(row, 0);
     if(cell)
     {
-      CString variable = cell->GetText();
+      XString variable = cell->GetText();
 
       // Remove from the grid
       range.SetMinCol(0);
@@ -237,8 +237,8 @@ UrlHeaderDlg::OnBnClickedParms()
       SearchVarDlg dlg(this,m_parameters,true,true,true,true);
       if(dlg.DoModal() == IDOK || dlg.GetSaved())
       {
-        CString variable = dlg.GetVariable();
-        CString txt = cell->GetText() + variable;
+        XString variable = dlg.GetVariable();
+        XString txt = cell->GetText() + variable;
         cell->SetText(txt);
         m_list.Refresh();
 

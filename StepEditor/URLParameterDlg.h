@@ -53,7 +53,7 @@ protected:
   Parameters*   m_parameters { nullptr };
 
   StyleGridCtrl m_list;
-  CString       m_anchor;
+  XString       m_anchor;
   StyleButton   m_buttonNew;
   StyleButton   m_buttonDelete;
   StyleButton   m_buttonParmParm;

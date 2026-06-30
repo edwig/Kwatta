@@ -25,8 +25,8 @@
 typedef struct _valStep
 {
   int     m_number;
-  CString m_validation;
-  CString m_filename;
+  XString m_validation;
+  XString m_filename;
   bool    m_global;
   bool    m_ok;
 }
@@ -38,7 +38,7 @@ using ValSteps = std::vector<ValStep>;
 // General factory to read-in a test step
 class StepResult;
 
-StepResult* ReadStepResult(CString p_filename);
+StepResult* ReadStepResult(XString p_filename);
 
 class StepResult
 {
@@ -47,34 +47,34 @@ public:
   virtual ~StepResult() = default;
   
   // Interface with the file system
-  virtual void ReadFromXML  (CString p_filename) = 0;  // Throws in case of an error
-  virtual bool WriteToXML   (CString p_filename) = 0;
-  virtual void CheckFilename(CString p_filename) = 0;
+  virtual void ReadFromXML  (XString p_filename) = 0;  // Throws in case of an error
+  virtual bool WriteToXML   (XString p_filename) = 0;
+  virtual void CheckFilename(XString p_filename) = 0;
   virtual void ResetEffective() = 0;
   virtual void Reset();
 
   // GETTERS
-  CString   GetName()           { return m_name;           }
-  CString   GetDocumentation()  { return m_documentation;  }
+  XString   GetName()           { return m_name;           }
+  XString   GetDocumentation()  { return m_documentation;  }
   ValSteps& GetValidations()    { return m_validations;    }
   double    GetTiming()         { return m_seconds;        }
   bool      GetTotalResult();
 
   // SETTERS
-  void      SetName(CString p_name)                   { m_name           = p_name;          }
-  void      SetDocumentation(CString p_documentation) { m_documentation  = p_documentation; }
+  void      SetName(XString p_name)                   { m_name           = p_name;          }
+  void      SetDocumentation(XString p_documentation) { m_documentation  = p_documentation; }
   void      SetTiming(double p_time)                  { m_seconds        = p_time;          }
 
   // Add an extra validation
-  void      AddValidation(int p_step,CString p_name,CString p_filename,bool p_result,bool p_global);
+  void      AddValidation(int p_step,XString p_name,XString p_filename,bool p_result,bool p_global);
 
 protected:
   // Interface with the file system
-  virtual void    ReadFromXML(XMLMessage& p_msg,CString p_filename);  // Throws in case of an error
-  virtual bool    WriteToXML (XMLMessage& p_msg,CString p_filename);
+  virtual void    ReadFromXML(XMLMessage& p_msg,XString p_filename);  // Throws in case of an error
+  virtual bool    WriteToXML (XMLMessage& p_msg,XString p_filename);
 
-  CString   m_name;
-  CString   m_documentation;
+  XString   m_name;
+  XString   m_documentation;
   double    m_seconds { 0.0 };
 
   // Validation steps

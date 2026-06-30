@@ -37,7 +37,7 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
-Validate* ReadValidate(CString p_filename)
+Validate* ReadValidate(XString p_filename)
 {
   StepType type = Validate::FindStepTypeFromFile(p_filename);
 
@@ -101,10 +101,10 @@ Validate* ReadValidate(CString p_filename)
 }
 
 /*static*/ StepType
-Validate::FindStepTypeFromFile(CString p_filename)
+Validate::FindStepTypeFromFile(XString p_filename)
 {
   WinFile file(p_filename);
-  CString extension = file.GetFilenamePartExtension();
+  XString extension = file.GetFilenamePartExtension();
 
   if(extension.CompareNoCase(EXTENSION_VALIDATE_CMD) == 0)
   {
@@ -127,7 +127,7 @@ Validate::FindStepTypeFromFile(CString p_filename)
 
 // Interface with the file system
 void 
-Validate::ReadFromXML(XMLMessage& p_msg,CString p_filename)
+Validate::ReadFromXML(XMLMessage& p_msg,XString p_filename)
 {
   // Check that we have a *.xrun extension
   CheckFilename(p_filename);
@@ -144,7 +144,7 @@ Validate::ReadFromXML(XMLMessage& p_msg,CString p_filename)
   // CHeck for XML error
   if(p_msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in XVAL file [%d] %s"),p_msg.GetInternalError(),p_msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -161,21 +161,21 @@ Validate::ReadFromXML(XMLMessage& p_msg,CString p_filename)
 }
 
 bool
-Validate::WriteToXML(XMLMessage& p_msg,CString /*p_filename*/)
+Validate::WriteToXML(XMLMessage& p_msg,XString /*p_filename*/)
 {
   p_msg.SetRootNodeName(_T("Validate"));
 
   XMLElement* root = p_msg.GetRoot();
-  p_msg.AddElement(root,_T("Name"),XDT_String,m_name);
-  p_msg.AddElement(root,_T("Documentation"),XDT_String,m_documentation);
+  p_msg.AddElement(root,_T("Name"),         m_name);
+  p_msg.AddElement(root,_T("Documentation"),m_documentation);
 
   return true;
 }
 
-CString 
+XString 
 Validate::ReturnOperatorToString(ReturnOperator p_oper)
 {
-  CString string;
+  XString string;
   switch (p_oper)
   {
     case ReturnOperator::ROP_NOP:           string = _T("NOP");               break;
@@ -191,10 +191,10 @@ Validate::ReturnOperatorToString(ReturnOperator p_oper)
   return string;
 }
 
-CString 
+XString 
 Validate::BufferOperatorToString(BufferOperator p_oper)
 {
-  CString string;
+  XString string;
   switch (p_oper)
   {
     case BufferOperator::BOP_NOP:         string = _T("NOP");         break;
@@ -212,7 +212,7 @@ Validate::BufferOperatorToString(BufferOperator p_oper)
 }
 
 ReturnOperator 
-Validate::StringToReturnOperator(CString p_oper)
+Validate::StringToReturnOperator(XString p_oper)
 {
   ReturnOperator oper = ReturnOperator::ROP_NOP;
 
@@ -232,7 +232,7 @@ Validate::StringToReturnOperator(CString p_oper)
 }
 
 BufferOperator 
-Validate::StringToBufferOperator(CString p_oper)
+Validate::StringToBufferOperator(XString p_oper)
 {
   BufferOperator oper = BufferOperator::BOP_NOP;
 
@@ -252,7 +252,7 @@ Validate::StringToBufferOperator(CString p_oper)
 }
 
 bool
-Validate::Between(CString p_effective,int p_value)
+Validate::Between(XString p_effective,int p_value)
 {
   int pos = p_effective.Find(',');
   if(pos < 0)
@@ -269,12 +269,12 @@ Validate::Between(CString p_effective,int p_value)
 }
 
 bool
-Validate::ValueIn(CString p_effective,int p_value)
+Validate::ValueIn(XString p_effective,int p_value)
 {
-  std::vector<CString> values;
+  std::vector<XString> values;
 
   // Split effective return in an array
-  CString total(p_effective);
+  XString total(p_effective);
   while(total.GetLength())
   {
     int pos = total.Find(',');
@@ -302,7 +302,7 @@ Validate::ValueIn(CString p_effective,int p_value)
 }
 
 bool
-Validate::FileMatch(CString p_file1,CString p_file2)
+Validate::FileMatch(XString p_file1,XString p_file2)
 {
   bool result = false;
   ULONG size1 = 0;
@@ -326,7 +326,7 @@ Validate::FileMatch(CString p_file1,CString p_file2)
 }
 
 bool
-Validate::FileExist(CString p_file)
+Validate::FileExist(XString p_file)
 {
   // Remove extra newlines from reading stdout/stderr
   p_file.Trim('\n');
@@ -338,7 +338,7 @@ Validate::FileExist(CString p_file)
 // Read a file in a buffer
 // Caller must free the buffer again (if any)
 TCHAR*
-Validate::ReadFileInBuffer(CString p_filename,ULONG& p_size)
+Validate::ReadFileInBuffer(XString p_filename,ULONG& p_size)
 {
   // Try to open the file
   HANDLE file = CreateFile(p_filename            // Filename

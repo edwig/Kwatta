@@ -25,7 +25,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-#include "stdafx.h"
+#include "pch.h"
 #include "URLRewriter.h"
 #include "HTTPMessage.h"
 #include "HTTPClient.h"
@@ -108,7 +108,7 @@ URLRewriter::ProcessHTTPMessage(HTTPMessage* p_message)
     p_message->SetStatus(message.GetStatus());
     p_message->GetFileBuffer()->Reset();
    *p_message->GetFileBuffer() = *message.GetFileBuffer();
-   *p_message->GetHeaderMap()  = *message.GetHeaderMap();
+    *(const_cast<HeaderMap*>(p_message->GetHeaderMap())) = *message.GetHeaderMap();
   }
   else
   {
@@ -141,29 +141,29 @@ URLRewriter::ReWriteURL(CrackedURL& p_url,Routing& p_routing)
 void
 URLRewriter::InitRewriter(MarlinConfig& p_config)
 { 
-  CString rewriter(_T("Rewriter"));
+  XString rewriter(_T("Rewriter"));
 
-  CString protocol        = p_config.GetParameterString(rewriter,_T("Protocol"),      _T(""));
-  CString server          = p_config.GetParameterString(rewriter,_T("Server"),        _T(""));
-  CString port            = p_config.GetParameterString(rewriter,_T("Port"),          _T(""));
-  CString abspath         = p_config.GetParameterString(rewriter,_T("Path"),          _T(""));
-  CString route0          = p_config.GetParameterString(rewriter,_T("Route0"),        _T(""));
-  CString route1          = p_config.GetParameterString(rewriter,_T("Route1"),        _T(""));
-  CString route2          = p_config.GetParameterString(rewriter,_T("Route2"),        _T(""));
-  CString route3          = p_config.GetParameterString(rewriter,_T("Route3"),        _T(""));
-  CString route4          = p_config.GetParameterString(rewriter,_T("Route4"),        _T(""));
-  CString removeRoute     = p_config.GetParameterString(rewriter,_T("RemoveRoute"),   _T(""));
-  CString startRoute      = p_config.GetParameterString(rewriter,_T("StartRoute"),    _T(""));
+  XString protocol        = p_config.GetParameterString(rewriter,_T("Protocol"),      _T(""));
+  XString server          = p_config.GetParameterString(rewriter,_T("Server"),        _T(""));
+  XString port            = p_config.GetParameterString(rewriter,_T("Port"),          _T(""));
+  XString abspath         = p_config.GetParameterString(rewriter,_T("Path"),          _T(""));
+  XString route0          = p_config.GetParameterString(rewriter,_T("Route0"),        _T(""));
+  XString route1          = p_config.GetParameterString(rewriter,_T("Route1"),        _T(""));
+  XString route2          = p_config.GetParameterString(rewriter,_T("Route2"),        _T(""));
+  XString route3          = p_config.GetParameterString(rewriter,_T("Route3"),        _T(""));
+  XString route4          = p_config.GetParameterString(rewriter,_T("Route4"),        _T(""));
+  XString removeRoute     = p_config.GetParameterString(rewriter,_T("RemoveRoute"),   _T(""));
+  XString startRoute      = p_config.GetParameterString(rewriter,_T("StartRoute"),    _T(""));
 
-  CString targetProtocol  = p_config.GetParameterString(rewriter,_T("TargetProtocol"),_T(""));
-  CString targetServer    = p_config.GetParameterString(rewriter,_T("TargetServer"),  _T(""));
-  CString targetPort      = p_config.GetParameterString(rewriter,_T("TargetPort"),    _T(""));
-  CString targetAbspath   = p_config.GetParameterString(rewriter,_T("TargetPath"),    _T(""));
-  CString targetRoute0    = p_config.GetParameterString(rewriter,_T("TargetRoute0"),  _T(""));
-  CString targetRoute1    = p_config.GetParameterString(rewriter,_T("TargetRoute1"),  _T(""));
-  CString targetRoute2    = p_config.GetParameterString(rewriter,_T("TargetRoute2"),  _T(""));
-  CString targetRoute3    = p_config.GetParameterString(rewriter,_T("TargetRoute3"),  _T(""));
-  CString targetRoute4    = p_config.GetParameterString(rewriter,_T("TargetRoute4"),  _T(""));
+  XString targetProtocol  = p_config.GetParameterString(rewriter,_T("TargetProtocol"),_T(""));
+  XString targetServer    = p_config.GetParameterString(rewriter,_T("TargetServer"),  _T(""));
+  XString targetPort      = p_config.GetParameterString(rewriter,_T("TargetPort"),    _T(""));
+  XString targetAbspath   = p_config.GetParameterString(rewriter,_T("TargetPath"),    _T(""));
+  XString targetRoute0    = p_config.GetParameterString(rewriter,_T("TargetRoute0"),  _T(""));
+  XString targetRoute1    = p_config.GetParameterString(rewriter,_T("TargetRoute1"),  _T(""));
+  XString targetRoute2    = p_config.GetParameterString(rewriter,_T("TargetRoute2"),  _T(""));
+  XString targetRoute3    = p_config.GetParameterString(rewriter,_T("TargetRoute3"),  _T(""));
+  XString targetRoute4    = p_config.GetParameterString(rewriter,_T("TargetRoute4"),  _T(""));
 
   if(!protocol.IsEmpty())
   {
@@ -205,7 +205,7 @@ URLRewriter::InitRewriter(MarlinConfig& p_config)
   {
     std::vector<XString> routes;
     SplitString(removeRoute,routes,_T(','));
-    for(int ind = 0; ind < routes.size(); ++ind)
+    for(int ind = 0; ind < (int) routes.size(); ++ind)
     {
       int route = _ttoi(routes[ind]);
       AddDelRoute(route);
@@ -219,14 +219,14 @@ URLRewriter::InitRewriter(MarlinConfig& p_config)
 }
 
 bool
-URLRewriter::AddProtocolMapping(XString p_from,XString p_to)
+URLRewriter::AddProtocolMapping(const XString& p_from,const XString& p_to)
 {
   m_protocolMap[p_from] = p_to;
   return true;
 }
 
 bool
-URLRewriter::AddServerMapping(XString p_from,XString p_to)
+URLRewriter::AddServerMapping(const XString& p_from,const XString& p_to)
 {
   m_serverMap[p_from] = p_to;
   return true;
@@ -240,21 +240,21 @@ URLRewriter::AddPortMapping(int p_from,int p_to)
 }
 
 bool
-URLRewriter::AddPathMapping(XString p_from,XString p_to)
+URLRewriter::AddPathMapping(const XString& p_from,const XString& p_to)
 {
   m_pathMap[p_from] = p_to;
   return true;
 }
 
 bool
-URLRewriter::AddExtensionMapping(XString p_from,XString p_to)
+URLRewriter::AddExtensionMapping(const XString& p_from,const XString& p_to)
 {
   m_extensionMap[p_from] = p_to;
   return true;
 }
 
 bool
-URLRewriter::AddRouteMapping(int p_route,XString p_from,XString p_to)
+URLRewriter::AddRouteMapping(int p_route,const XString& p_from,const XString& p_to)
 {
   m_routeMap[p_route][p_from] = p_to;
   return true;
@@ -363,10 +363,10 @@ URLRewriter::RewriteFromRoute(CrackedURL& p_url,Routing& p_routing)
   }
   int changes = 0;
 
-  if(p_routing.size() > m_fromRoute)
+  if((int)p_routing.size() > m_fromRoute)
   {
     XString path(_T("/"));
-    for(int ind = m_fromRoute;ind < p_routing.size() ;++ind)
+    for(int ind = m_fromRoute;ind < (int)p_routing.size() ;++ind)
     {
       path += p_routing[ind];
       path += _T("/");
@@ -381,7 +381,7 @@ int
 URLRewriter::RewriteRoute(CrackedURL& p_url,Routing& p_routing)
 {
   int changes = 0;
-  for(int ind = 0; ind < p_routing.size(); ++ind)
+  for(int ind = 0; ind < (int)p_routing.size(); ++ind)
   {
     RWRoute::iterator it = m_routeMap.find(ind);
     if(it != m_routeMap.end())
@@ -414,7 +414,7 @@ URLRewriter::RewriteDelRoute(CrackedURL& p_url,Routing& p_routing)
 
   for(auto& delroute : m_delRoute)
   {
-    if(delroute >= 0 && delroute < p_routing.size())
+    if(delroute >= 0 && delroute < (int)p_routing.size())
     {
       p_routing.erase(p_routing.begin() + delroute);
       ++changes;

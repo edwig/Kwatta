@@ -99,7 +99,7 @@ ResultInternetDlg::OnInitDialog()
 	if (pSysMenu != nullptr)
 	{
 		BOOL bNameValid;
-		CString strAboutMenu;
+		XString strAboutMenu;
 		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
 		ASSERT(bNameValid);
 		if (!strAboutMenu.IsEmpty())
@@ -165,7 +165,7 @@ ResultInternetDlg::InitTabs()
 void
 ResultInternetDlg::InitResult()
 {
-  CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetResultFilename();
+  XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + theApp.GetResultFilename();
 
   // Read in the definition file for a test step
   try

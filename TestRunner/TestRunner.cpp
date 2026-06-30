@@ -178,7 +178,7 @@ TestRunnerApp::DeduceTestType()
   int pos = m_stepFilename.ReverseFind('.');
   if(pos > 0)
   {
-    CString extension = m_stepFilename.Mid(pos);
+    XString extension = m_stepFilename.Mid(pos);
     if(extension.CompareNoCase(EXTENSION_TESTSTEP_CMD) == 0)
     {
       return (m_type = RunTestType::RunTest_TestStep_Execute);
@@ -200,7 +200,7 @@ TestRunnerApp::DeduceTestType()
   pos = m_xsetFilename.ReverseFind('.');
   if(pos > 0)
   {
-    CString extension = m_xsetFilename.Mid(pos);
+    XString extension = m_xsetFilename.Mid(pos);
     if(extension.CompareNoCase(EXTENSION_SET) == 0)
     {
       return (m_type = RunTestType::RunTest_TestSet);
@@ -390,7 +390,7 @@ __stdcall StartTheSetRunner(void* p_data)
 
   try
   {
-    CString path = theApp.GetBaseDirectory() +
+    XString path = theApp.GetBaseDirectory() +
                    theApp.GetTestDirectory() +
                    theApp.GetTestSetFilename();
     TestSet set;
@@ -512,8 +512,8 @@ TestRunnerApp::ParseStartParameters()
       else if (_tcsnicmp(&lpszParam[1], _T("PARAM:"), 6) == 0) m_paramFilename = &lpszParam[7];
       else if (_tcsnicmp(&lpszParam[1], _T("HWND:"),  5) == 0) m_callingHWND   = _ttoll(&lpszParam[6]);
       else if (_tcsnicmp(&lpszParam[1], _T("ROW:"),   4) == 0) m_callingROW    = _ttol (&lpszParam[5]);
-      else if (_tcsnicmp(&lpszParam[1], _T("VALI:"),  5) == 0) m_validations.push_back(CString(&lpszParam[6]));
-      else if (_tcsnicmp(&lpszParam[1], _T("GLVAL:"), 6) == 0) m_globalValid.push_back(CString(&lpszParam[7]));
+      else if (_tcsnicmp(&lpszParam[1], _T("VALI:"),  5) == 0) m_validations.push_back(XString(&lpszParam[6]));
+      else if (_tcsnicmp(&lpszParam[1], _T("GLVAL:"), 6) == 0) m_globalValid.push_back(XString(&lpszParam[7]));
       else if (_tcsnicmp(&lpszParam[1], _T("GLOBAL"), 6) == 0) m_global        = true;
       else if (_tcsnicmp(&lpszParam[1], _T("LOAD"),   4) == 0) m_loadtest      = true;
       else if (_tcsnicmp(&lpszParam[1], _T("SCRIPT"), 6) == 0) 
@@ -555,11 +555,11 @@ TestRunnerApp::ParseStartParameters()
     return false;
   }
   // Check formatting of the base directory
-  if(m_baseDirectory.Right(1) != '\\')
+  if(m_baseDirectory.Right(1) != _T("\\"))
   {
     m_baseDirectory += _T('\\');
   }
-  if(m_testDirectory.Right(1) != '\\')
+  if(m_testDirectory.Right(1) != _T("\\"))
   {
     m_testDirectory += _T('\\');
   }
@@ -569,7 +569,7 @@ TestRunnerApp::ParseStartParameters()
 void
 TestRunnerApp::Usage()
 {
-  CString usage = _T("USAGE of this program:\n")
+  XString usage = _T("USAGE of this program:\n")
                   _T("\n")
                   _T("Testrunner.exe <directory-options> <file-options> [<return-options>]\n")
                   _T("\n")

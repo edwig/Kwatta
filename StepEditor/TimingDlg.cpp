@@ -199,7 +199,7 @@ TimingDlg::OnBnClickedBefore()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editWaitBeforeRun.InsertAtCurPos(variable, 0);
     UpdateData();
     Effectuate();
@@ -213,7 +213,7 @@ TimingDlg::OnBnClickedExec()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editMaxExecution.InsertAtCurPos(variable, 0);
     UpdateData();
     Effectuate();
@@ -227,7 +227,7 @@ TimingDlg::OnBnClickedAfter()
   SearchVarDlg dlg(this,m_parameters,true,true,true,true);
   if (dlg.DoModal() == IDOK || dlg.GetSaved())
   {
-    CString variable = dlg.GetVariable();
+    XString variable = dlg.GetVariable();
     m_editWaitAfterRun.InsertAtCurPos(variable, 0);
     UpdateData();
     Effectuate();

@@ -137,8 +137,8 @@ EnvironmentDlg::StoreVariables()
 
   for(int ind = 1; ind < m_list.GetRowCount(); ++ind)
   {
-    CString variable = m_list.GetCell(ind,0)->GetText();
-    CString value    = m_list.GetCell(ind,1)->GetText();
+    XString variable = m_list.GetCell(ind,0)->GetText();
+    XString value    = m_list.GetCell(ind,1)->GetText();
 
     map.insert(std::make_pair(variable,value));
 
@@ -179,7 +179,7 @@ EnvironmentDlg::OnBnClickedDelete()
     CGridCellBase* cell = m_list.GetCell(row, 0);
     if(cell)
     {
-      CString variable = cell->GetText();
+      XString variable = cell->GetText();
       if(!variable.IsEmpty())
       {
         ::SetEnvironmentVariable(variable,_T(""));

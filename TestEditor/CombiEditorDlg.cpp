@@ -37,7 +37,7 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNAMIC(CombiEditorDlg, StyleDialog)
 
-CombiEditorDlg::CombiEditorDlg(CWnd* p_parent,TestSet& p_testSet,CString p_stepname,int p_row)
+CombiEditorDlg::CombiEditorDlg(CWnd* p_parent,TestSet& p_testSet,XString p_stepname,int p_row)
                :StyleDialog(IDD_COMBIEDITOR,p_parent)
                ,m_testSet(p_testSet)
                ,m_stepName(p_stepname)
@@ -132,7 +132,7 @@ CombiEditorDlg::FillGrid()
   if(vals)
   {
     int number = 1;
-    CString num;
+    XString num;
     for(auto& val : *vals)
     {
       num.Format(_T("Number %d"),number++);
@@ -150,7 +150,7 @@ CombiEditorDlg::FillGrid()
 }
 
 void
-CombiEditorDlg::SetTextImage(int p_row,int p_col,CString p_text,int p_image)
+CombiEditorDlg::SetTextImage(int p_row,int p_col,XString p_text,int p_image)
 {
   GV_ITEM item;
   item.mask    = GVIF_IMAGE;
@@ -175,7 +175,7 @@ CombiEditorDlg::TryChangeValiGlobalLocal(int p_row)
   }
   TRValidation& vali = vals[p_row-1];
 
-  CString ask;
+  XString ask;
   ask.Format(_T("Do you want to change the validation to a [%s] validation?"), vali.m_global ? _T("local") : _T("global"));
   if(StyleMessageBox(this,ask,PRODUCT_NAME,MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
   {
@@ -260,7 +260,7 @@ CombiEditorDlg::OnBnClickedAddValidation()
     {
       editor->MakeNewVali(type,page3.GetValiGlobal(),page3.GetValiName(),page3.GetValiFile(),m_row);
 
-      CString num;
+      XString num;
       int number = m_grid.GetRowCount();
       num.Format(_T("Number %d"),number);
 
@@ -284,7 +284,7 @@ CombiEditorDlg::OnBnClickedDelValidation()
   CCellID id = m_grid.GetFocusCell();
   if (id.row >= 1)
   {
-    CString validation = m_grid.GetItemText(id.row,2 /*VALIDATION*/);
+    XString validation = m_grid.GetItemText(id.row,2 /*VALIDATION*/);
     TSValSet* vals = m_testSet.GetValidationsByName(m_stepName);
 
     TSValSet::iterator it = vals->begin();
@@ -294,13 +294,13 @@ CombiEditorDlg::OnBnClickedDelValidation()
       {
         if(it->m_global == false)
         {
-          CString ask;
+          XString ask;
           ask.Format(_T("Delete validation [%s] definitely! Are you sure?"),validation.GetString());
           if(StyleMessageBox(this,ask,_T(KWATTA),MB_YESNO|MB_DEFBUTTON2|MB_ICONQUESTION) == IDNO)
           {
             return;
           }
-          CString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + it->m_filename;
+          XString filename = theApp.GetBaseDirectory() + theApp.GetTestDirectory() + it->m_filename;
           DeleteFile(filename);
         }
         else
@@ -325,7 +325,7 @@ CombiEditorDlg::OnBnClickedMutValidation()
   CCellID id = m_grid.GetFocusCell();
   if(id.row >= 1)
   {
-    CString validation = m_grid.GetItemText(id.row,2);
+    XString validation = m_grid.GetItemText(id.row,2);
     TSValSet* vals = m_testSet.GetValidationsByName(m_stepName);
 
     TSValSet::iterator it = vals->begin();
@@ -339,13 +339,13 @@ CombiEditorDlg::OnBnClickedMutValidation()
         }
         else
         {
-          CString filename = it->m_filename;
+          XString filename = it->m_filename;
 
           AutoFocus focus;
           MutateDlg dlg(this, _T("validation"), filename);
           dlg.DoModal();
 
-          CString newfile = dlg.GetFilename();
+          XString newfile = dlg.GetFilename();
           if (newfile.CompareNoCase(filename))
           {
             it->m_filename = newfile;

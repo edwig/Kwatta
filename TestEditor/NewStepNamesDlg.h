@@ -35,8 +35,8 @@ public:
   virtual bool SaveStyleTab (void* p_data) override;
 
   bool         GetStepGlobal()  { return m_stepGlobal;  }
-  CString      GetStepName()    { return m_stepName;    }
-  CString      GetStepFile()    { return m_stepFile;    }
+  XString      GetStepName()    { return m_stepName;    }
+  XString      GetStepFile()    { return m_stepFile;    }
 
   // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -47,7 +47,7 @@ protected:
   virtual void DoDataExchange(CDataExchange* pDX) override;
   virtual void SetupDynamicLayout() override;
 
-  CString StripExtension(CString p_filename);
+  XString StripExtension(XString p_filename);
   void    PresetFilenames();
   void    CheckFilename();
   void    ResetPage();
@@ -57,8 +57,8 @@ protected:
   StyleEdit    m_editName;
   StyleEdit    m_editFile;
 
-  CString      m_stepName;
-  CString      m_stepFile;
+  XString      m_stepName;
+  XString      m_stepFile;
   bool         m_stepGlobal{false};
   
   DECLARE_MESSAGE_MAP()

@@ -156,7 +156,7 @@ MultiPartDlg::UseMultiPart()
   m_data          =  m_part->GetData();
   m_contentID     =  m_part->GetHeader(_T("Content-ID"));
 
-  m_boundary = FindFieldInHTTPHeader(m_contentType,_T("boundary"));
+  m_boundary = FindFieldInHTTPHeader(m_contentType.GetString(),_T("boundary"));
   int pos = m_contentType.Find(';');
   if (pos > 0)
   {
@@ -167,7 +167,7 @@ MultiPartDlg::UseMultiPart()
 void
 MultiPartDlg::SaveMultiPart()
 {
-  CString content = m_contentType + _T("; boundary=") + m_boundary;
+  XString content = XString(m_contentType) + _T("; boundary=") + m_boundary;
 
   m_part->SetName(m_name);
   m_part->SetContentType(content);
@@ -230,7 +230,7 @@ MultiPartDlg::OnBnClickedMulti()
 {
   UpdateData();
 
-  CString content = m_contentType;
+  XString content = m_contentType;
   content += _T("; boundary=");
   content += m_boundary;
 
@@ -243,7 +243,7 @@ MultiPartDlg::OnBnClickedMulti()
   m_data = msg.GetBody();
   m_contentType = msg.GetContentType();
 
-  m_boundary = FindFieldInHTTPHeader(m_contentType,_T("boundary"));
+  m_boundary = FindFieldInHTTPHeader(m_contentType.GetString(),_T("boundary"));
   int pos = m_contentType.Find(';');
   if (pos)
   {

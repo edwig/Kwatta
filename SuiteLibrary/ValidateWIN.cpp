@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
 
 // Interface with the file system
 void
-ValidateWIN::ReadFromXML(CString p_filename)
+ValidateWIN::ReadFromXML(XString p_filename)
 {
   XMLMessage msg;
   Validate::ReadFromXML(msg, p_filename);
@@ -67,7 +67,7 @@ ValidateWIN::ReadFromXML(CString p_filename)
 }
 
 bool
-ValidateWIN::WriteToXML(CString p_filename)
+ValidateWIN::WriteToXML(XString p_filename)
 {
   XMLMessage msg;
   if (!Validate::WriteToXML(msg, p_filename))
@@ -75,21 +75,21 @@ ValidateWIN::WriteToXML(CString p_filename)
     return false;
   }
   XMLElement* root   = msg.GetRoot();
-  XMLElement* retval = msg.AddElement(root,_T("CheckReturn"),XDT_String,_T(""));
+  XMLElement* retval = msg.AddElement(root,_T("CheckReturn"),_T(""));
   msg.SetElement(retval,_T("IsSigned"),m_returnIsSigned);
   msg.SetElement(retval,_T("Check"),   m_checkReturnValue);
   msg.SetElement(retval,_T("Operator"),ReturnOperatorToString(m_returnOperator));
-  msg.AddElement(retval,_T("Expected"),XDT_CDATA,m_expectedReturn);
+  msg.AddElement(retval,_T("Expected"),m_expectedReturn,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
-  XMLElement* output = msg.AddElement(root,_T("CheckLogging"),XDT_String,_T(""));
+  XMLElement* output = msg.AddElement(root,_T("CheckLogging"),_T(""));
   msg.SetElement(output,_T("Check"),   m_checkLogging);
   msg.SetElement(output,_T("Operator"),BufferOperatorToString(m_loggingOperator));
-  msg.AddElement(output,_T("Expected"),XDT_CDATA,m_expectedLogging);
+  msg.AddElement(output,_T("Expected"),m_expectedLogging, XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
-  XMLElement* error = msg.AddElement(root,_T("CheckErrors"),XDT_String,_T(""));
+  XMLElement* error = msg.AddElement(root,_T("CheckErrors"),_T(""));
   msg.SetElement(error,_T("Check"),   m_checkErrors);
   msg.SetElement(error,_T("Operator"),BufferOperatorToString(m_errorsOperator));
-  msg.AddElement(error,_T("Expected"),XDT_CDATA,m_expectedErrors);
+  msg.AddElement(error,_T("Expected"),m_expectedErrors, XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
 
   // Now save it
   return msg.SaveFile(m_filename);
@@ -110,7 +110,7 @@ ValidateWIN::EffectiveReplacements(Parameters* p_parameters, bool p_forDisplay)
 
 // Check our filenames extension
 void
-ValidateWIN::CheckFilename(CString p_filename)
+ValidateWIN::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -154,7 +154,7 @@ ValidateWIN::ValidateReturnValue(int p_value)
 }
 
 bool
-ValidateWIN::ValidateLogging(CString p_buffer)
+ValidateWIN::ValidateLogging(XString p_buffer)
 {
   // See if we must check the output value
   if(!m_checkLogging)
@@ -180,7 +180,7 @@ ValidateWIN::ValidateLogging(CString p_buffer)
 }
 
 bool
-ValidateWIN::ValidateErrors(CString p_buffer)
+ValidateWIN::ValidateErrors(XString p_buffer)
 {
   // See if we must check the error output
   // But if we DO HAVE AN ERROR, always consider it for an error

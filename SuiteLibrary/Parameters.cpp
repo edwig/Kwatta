@@ -45,7 +45,7 @@ Parameters::Reset()
 }
 
 void
-Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
+Parameters::ReadFromXML(XString p_filename,bool p_global /*=true*/)
 {
   XMLMessage msg;
 
@@ -77,7 +77,7 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
   // CHeck for XML error
   if (msg.GetInternalError() != XmlError::XE_NoError)
   {
-    CString error;
+    XString error;
     error.Format(_T("Internal XML error in XPAR file [%d] %s"), msg.GetInternalError(), msg.GetInternalErrorString().GetString());
     throw StdException(error);
   }
@@ -98,8 +98,8 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
     XMLElement* var = msg.GetElementFirstChild(_tsystem);
     while(var)
     {
-      CString name  = var->GetName();
-      CString value = var->GetValue();
+      XString name  = var->GetName();
+      XString value = var->GetValue();
       CheckPasswordProtection(name,value);
       if(AddSystemParameter(name,value) == false)
       {
@@ -116,8 +116,8 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
     XMLElement* var = msg.GetElementFirstChild(globals);
     while(var)
     {
-      CString name  = var->GetName();
-      CString value = var->GetValue();
+      XString name  = var->GetName();
+      XString value = var->GetValue();
       if(AddGlobalParameter(name,value) == false)
       {
         TRACE(_T("Duplicate global parameter found: %s%s\n"),name.GetString(),value.GetString());
@@ -133,8 +133,8 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
     XMLElement* var = msg.GetElementFirstChild(locals);
     while(var)
     {
-      CString name  = var->GetName();
-      CString value = var->GetValue();
+      XString name  = var->GetName();
+      XString value = var->GetValue();
       if(AddLocalParameter(name,value) == false)
       {
         TRACE(_T("Duplicate local parameter found: %s%s\n"),name.GetString(),value.GetString());
@@ -150,8 +150,8 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
     XMLElement* var = msg.GetElementFirstChild(returns);
     while(var)
     {
-      CString name  = var->GetName();
-      CString value = var->GetValue();
+      XString name  = var->GetName();
+      XString value = var->GetValue();
       if(AddReturnParameter(name,value) == false)
       {
         TRACE(_T("Duplicate return parameter found: %s%s\n"),name.GetString(),value.GetString());
@@ -167,8 +167,8 @@ Parameters::ReadFromXML(CString p_filename,bool p_global /*=true*/)
     XMLElement* var = msg.GetElementFirstChild(buffers);
     while(var)
     {
-      CString name  = var->GetName();
-      CString value = var->GetValue();
+      XString name  = var->GetName();
+      XString value = var->GetValue();
       if(AddBufferParameter(name,value) == false)
       {
         TRACE(_T("Duplicate buffer parameter found: %s%s\n"),name.GetString(),value.GetString());
@@ -196,22 +196,22 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
   // Save all globals
   if(p_globals)
   {
-    XMLElement* _tsystem = msg.AddElement(root,_T("System"),XDT_String,_T(""));
+    XMLElement* _tsystem = msg.AddElement(root,_T("System"),_T(""));
     for(auto& var : m_system)
     {
       if(!var.first.IsEmpty())
       {
-        msg.AddElement(_tsystem,var.first,XDT_CDATA,var.second);
+        msg.AddElement(_tsystem,var.first,var.second,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
         ++count;
       }
     }
 
-    XMLElement* globals = msg.AddElement(root,_T("Globals"),XDT_String,_T(""));
+    XMLElement* globals = msg.AddElement(root,_T("Globals"),_T(""));
     for(auto& var : m_globals)
     {
       if(!var.first.IsEmpty())
       {
-        msg.AddElement(globals,var.first,XDT_CDATA,var.second);
+        msg.AddElement(globals,var.first,var.second,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
         ++count;
       }
     }
@@ -221,34 +221,34 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
   if(p_locals)
   {
     // Save all local variables
-    XMLElement* locals = msg.AddElement(root,_T("Locals"),XDT_String,_T(""));
+    XMLElement* locals = msg.AddElement(root,_T("Locals"),_T(""));
     for(auto& var : m_locals)
     {
       if(!var.first.IsEmpty())
       {
-        msg.AddElement(locals,var.first,XDT_CDATA,var.second);
+        msg.AddElement(locals,var.first,var.second,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
         ++count;
       }
     }
 
     // Save all return values
-    XMLElement* returns = msg.AddElement(root,_T("Returns"),XDT_String,_T(""));
+    XMLElement* returns = msg.AddElement(root,_T("Returns"),_T(""));
     for(auto& var : m_returns)
     {
       if(!var.first.IsEmpty())
       {
-        msg.AddElement(returns, var.first, XDT_Integer | XDT_Type, var.second);
+        msg.AddElement(returns, var.first,var.second,XmlDataType::XDT_Integer | XmlDataType::XDT_Type);
         ++count;
       }
     }
 
     // Save all buffer values
-    XMLElement* buffers = msg.AddElement(root,_T("Buffers"),XDT_String,_T(""));
+    XMLElement* buffers = msg.AddElement(root,_T("Buffers"),_T(""));
     for(auto& var : m_buffers)
     {
       if(!var.first.IsEmpty())
       {
-        msg.AddElement(buffers,var.first,XDT_CDATA,var.second);
+        msg.AddElement(buffers,var.first,var.second,XmlDataType::XDT_CDATA | XmlDataType::XDT_String);
         ++count;
       }
     }
@@ -276,7 +276,7 @@ Parameters::WriteToXML(bool p_locals /*=true*/,bool p_globals /*=false*/)
 //////////////////////////////////////////////////////////////////////////
 
 bool
-Parameters::ExistsAsSystemParameter(CString p_name)
+Parameters::ExistsAsSystemParameter(XString p_name)
 {
   ParMap::iterator it = m_system.find(p_name);
   if(it != m_system.end())
@@ -287,7 +287,7 @@ Parameters::ExistsAsSystemParameter(CString p_name)
 }
 
 bool
-Parameters::ExistsAsGlobalParameter(CString p_name)
+Parameters::ExistsAsGlobalParameter(XString p_name)
 {
   // If we protect our password, the variable exists!
   if(p_name.CompareNoCase(_T("password")) == 0)
@@ -304,7 +304,7 @@ Parameters::ExistsAsGlobalParameter(CString p_name)
 }
 
 bool
-Parameters::ExistsAsLocalParameter(CString p_name)
+Parameters::ExistsAsLocalParameter(XString p_name)
 {
   ParMap::iterator it = m_locals.find(p_name);
   if(it != m_locals.end())
@@ -315,7 +315,7 @@ Parameters::ExistsAsLocalParameter(CString p_name)
 }
 
 bool
-Parameters::ExistsAsReturnParameter(CString p_name)
+Parameters::ExistsAsReturnParameter(XString p_name)
 {
   ParMap::iterator it = m_returns.find(p_name);
   if(it != m_returns.end())
@@ -326,7 +326,7 @@ Parameters::ExistsAsReturnParameter(CString p_name)
 }
 
 bool
-Parameters::ExistsAsBufferParameter(CString p_name)
+Parameters::ExistsAsBufferParameter(XString p_name)
 {
   ParMap::iterator it = m_buffers.find(p_name);
   if(it != m_buffers.end())
@@ -337,9 +337,9 @@ Parameters::ExistsAsBufferParameter(CString p_name)
 }
 
 bool
-Parameters::ExistsAsEnvironParameter(CString p_name)
+Parameters::ExistsAsEnvironParameter(XString p_name)
 {
-  CString value;
+  XString value;
   if(value.GetEnvironmentVariable(p_name))
   {
     return true;
@@ -348,8 +348,8 @@ Parameters::ExistsAsEnvironParameter(CString p_name)
 }
 
 
-CString
-Parameters::FindBufferParameter(CString p_name)
+XString
+Parameters::FindBufferParameter(XString p_name)
 {
   ParMap::iterator it = m_buffers.find(p_name);
   if(it != m_buffers.end())
@@ -359,8 +359,8 @@ Parameters::FindBufferParameter(CString p_name)
   return _T("");
 }
 
-CString
-Parameters::FindReturnParameter(CString p_name)
+XString
+Parameters::FindReturnParameter(XString p_name)
 {
   ParMap::iterator it = m_returns.find(p_name);
   if (it != m_returns.end())
@@ -370,8 +370,8 @@ Parameters::FindReturnParameter(CString p_name)
   return _T("");
 }
 
-CString
-Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
+XString
+Parameters::FindGlobalParameter(XString p_name,bool p_forDisplay)
 {
   // In case we protect our password, it comes from the environment variable
   if(p_name.CompareNoCase(_T("password")) == 0)
@@ -383,7 +383,7 @@ Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
 
     if(m_password)
     {
-      CString pwd;
+      XString pwd;
       if(!pwd.GetEnvironmentVariable(_T(KWATTA_PASSWORD)))
       {
         pwd = GetGlobalEnvironmentVariable(_T(KWATTA_PASSWORD));
@@ -406,8 +406,8 @@ Parameters::FindGlobalParameter(CString p_name,bool p_forDisplay)
   return _T("");
 }
 
-CString
-Parameters::FindLocalParameter(CString p_name)
+XString
+Parameters::FindLocalParameter(XString p_name)
 {
   ParMap::iterator it = m_locals.find(p_name);
   if (it != m_locals.end())
@@ -417,8 +417,8 @@ Parameters::FindLocalParameter(CString p_name)
   return _T("");
 }
 
-CString
-Parameters::FindSystemParameter(CString p_name)
+XString
+Parameters::FindSystemParameter(XString p_name)
 {
   ParMap::iterator it = m_system.find(p_name);
   if (it != m_system.end())
@@ -428,8 +428,8 @@ Parameters::FindSystemParameter(CString p_name)
   return _T("");
 }
 
-CString
-Parameters::FindEnvironParameter(CString p_name)
+XString
+Parameters::FindEnvironParameter(XString p_name)
 {
   if(m_environmentValue.GetEnvironmentVariable(p_name))
   {
@@ -443,7 +443,7 @@ Parameters::FindEnvironParameter(CString p_name)
 }
 
 bool
-Parameters::AddBufferParameter(CString p_name,CString p_value)
+Parameters::AddBufferParameter(XString p_name,XString p_value)
 {
   if(NameNotYetUsed(p_name))
   {
@@ -455,7 +455,7 @@ Parameters::AddBufferParameter(CString p_name,CString p_value)
 }
 
 bool
-Parameters::AddReturnParameter(CString p_name,CString p_value)
+Parameters::AddReturnParameter(XString p_name,XString p_value)
 {
   if(NameNotYetUsed(p_name))
   {
@@ -467,7 +467,7 @@ Parameters::AddReturnParameter(CString p_name,CString p_value)
 }
 
 bool
-Parameters::AddSystemParameter(CString p_name,CString p_value)
+Parameters::AddSystemParameter(XString p_name,XString p_value)
 {
   if(NameNotYetUsed(p_name))
   {
@@ -479,7 +479,7 @@ Parameters::AddSystemParameter(CString p_name,CString p_value)
 }
 
 bool
-Parameters::AddLocalParameter(CString p_name,CString p_value)
+Parameters::AddLocalParameter(XString p_name,XString p_value)
 {
   if(NameNotYetUsed(p_name))
   {
@@ -491,7 +491,7 @@ Parameters::AddLocalParameter(CString p_name,CString p_value)
 }
 
 bool
-Parameters::AddGlobalParameter(CString p_name,CString p_value)
+Parameters::AddGlobalParameter(XString p_name,XString p_value)
 {
   // Protected password always succeeds
   if(m_password && p_value.CompareNoCase(_T("password")) == 0)
@@ -509,7 +509,7 @@ Parameters::AddGlobalParameter(CString p_name,CString p_value)
 }
 
 void
-Parameters::OverwriteBufferParameter(CString p_name,CString p_value)
+Parameters::OverwriteBufferParameter(XString p_name,XString p_value)
 {
   ParMap::iterator it = m_buffers.find(p_name);
   if(it == m_buffers.end())
@@ -524,7 +524,7 @@ Parameters::OverwriteBufferParameter(CString p_name,CString p_value)
 }
 
 void
-Parameters::OverwriteReturnParameter(CString p_name,CString p_value)
+Parameters::OverwriteReturnParameter(XString p_name,XString p_value)
 {
   ParMap::iterator it = m_returns.find(p_name);
   if(it == m_returns.end())
@@ -539,7 +539,7 @@ Parameters::OverwriteReturnParameter(CString p_name,CString p_value)
 }
 
 void
-Parameters::OverwriteLocalParameter(CString p_name,CString p_value)
+Parameters::OverwriteLocalParameter(XString p_name,XString p_value)
 {
   ParMap::iterator it = m_locals.find(p_name);
   if(it == m_locals.end())
@@ -554,7 +554,7 @@ Parameters::OverwriteLocalParameter(CString p_name,CString p_value)
 }
 
 void
-Parameters::OverwriteGlobalParameter(CString p_name,CString p_value)
+Parameters::OverwriteGlobalParameter(XString p_name,XString p_value)
 {
   // Password protection
   if(m_password && p_name.CompareNoCase(_T("password")) == 0)
@@ -575,7 +575,7 @@ Parameters::OverwriteGlobalParameter(CString p_name,CString p_value)
 }
 
 void
-Parameters::OverwriteSystemParameter(CString p_name,CString p_value)
+Parameters::OverwriteSystemParameter(XString p_name,XString p_value)
 {
   ParMap::iterator it = m_system.find(p_name);
   if(it == m_system.end())
@@ -590,7 +590,7 @@ Parameters::OverwriteSystemParameter(CString p_name,CString p_value)
 }
 
 bool
-Parameters::RemoveBufferParameter(CString p_name)
+Parameters::RemoveBufferParameter(XString p_name)
 {
   ParMap::iterator it = m_buffers.find(p_name);
   if(it != m_buffers.end())
@@ -603,7 +603,7 @@ Parameters::RemoveBufferParameter(CString p_name)
 }
 
 bool
-Parameters::RemoveSystemParameter(CString p_name)
+Parameters::RemoveSystemParameter(XString p_name)
 {
   ParMap::iterator it = m_system.find(p_name);
   if (it != m_system.end())
@@ -616,7 +616,7 @@ Parameters::RemoveSystemParameter(CString p_name)
 }
 
 bool
-Parameters::RemoveReturnParameter(CString p_name)
+Parameters::RemoveReturnParameter(XString p_name)
 {
   ParMap::iterator it = m_returns.find(p_name);
   if(it != m_returns.end())
@@ -629,7 +629,7 @@ Parameters::RemoveReturnParameter(CString p_name)
 }
 
 bool
-Parameters::RemoveLocalParameter(CString p_name)
+Parameters::RemoveLocalParameter(XString p_name)
 {
   ParMap::iterator it = m_locals.find(p_name);
   if(it != m_locals.end())
@@ -642,7 +642,7 @@ Parameters::RemoveLocalParameter(CString p_name)
 }
 
 bool
-Parameters::RemoveGlobalParameter(CString p_name)
+Parameters::RemoveGlobalParameter(XString p_name)
 {
   if(m_password && p_name.CompareNoCase(_T("password")) == 0)
   {
@@ -667,7 +667,7 @@ Parameters::RemoveGlobalParameter(CString p_name)
 
 // The general replace function for bound parameters
 int
-Parameters::Replace(CString p_input,CString& p_output,bool p_forDisplay,ParType p_exclude /*= PAR_NONE*/)
+Parameters::Replace(XString p_input,XString& p_output,bool p_forDisplay,ParType p_exclude /*= PAR_NONE*/)
 {
   int notfound = 0;
 
@@ -689,7 +689,7 @@ Parameters::ResetUnboundErrors()
   m_errors.Empty();
 }
 
-CString
+XString
 Parameters::GetUnboundErrors()
 {
   return m_errors;
@@ -703,7 +703,7 @@ Parameters::GetUnboundErrors()
 
 // Check if we should do password protection
 void
-Parameters::CheckPasswordProtection(CString p_name, CString p_value)
+Parameters::CheckPasswordProtection(XString p_name, XString p_value)
 {
   if(p_name.Compare(_T("HidePassword")) == 0)
   {
@@ -712,7 +712,7 @@ Parameters::CheckPasswordProtection(CString p_name, CString p_value)
 }
 
 void
-Parameters::CheckFilename(CString p_filename)
+Parameters::CheckFilename(XString p_filename)
 {
   // Split of only the extension
   TCHAR extension[_MAX_EXT];
@@ -728,7 +728,7 @@ Parameters::CheckFilename(CString p_filename)
 // Name not yet used in other maps
 // This ensures global uniqueness within a testset
 bool
-Parameters::NameNotYetUsed(CString p_name)
+Parameters::NameNotYetUsed(XString p_name)
 {
   if(m_system .find(p_name) != m_system .end()) return false;
   if(m_buffers.find(p_name) != m_buffers.end()) return false;
@@ -743,7 +743,7 @@ Parameters::NameNotYetUsed(CString p_name)
 // processes all strings and all types of variables
 //
 int
-Parameters::Replace(CString& p_string
+Parameters::Replace(XString& p_string
                    ,TCHAR     p_first
                    ,TCHAR     p_last
                    ,ParType  p_find
@@ -752,7 +752,7 @@ Parameters::Replace(CString& p_string
 {
   int last = 0;
   int notReplaced = 0;
-  CString replaced;
+  XString replaced;
 
   // Check if we should perform our actions
   if(p_find == p_exclude)
@@ -765,8 +765,8 @@ Parameters::Replace(CString& p_string
     int ch = p_string.GetAt(ind);
     if(ch == p_first)
     {
-      CString varName;
-      CString value;
+      XString varName;
+      XString value;
 
       //// "str$name$test
       int pos = p_string.Find(p_last,ind + 1);
@@ -850,9 +850,9 @@ Parameters::Replace(CString& p_string
 
 // Add error to the list of errors
 void
-Parameters::AddError(CString p_varname,TCHAR p_first,ParType p_find,CString p_errortext)
+Parameters::AddError(XString p_varname,TCHAR p_first,ParType p_find,XString p_errortext)
 {
-  CString type;
+  XString type;
   switch (p_find)
   {
     case ParType::PAR_GLOBAL:  type = _T("$global$"); break;

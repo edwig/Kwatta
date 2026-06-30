@@ -154,7 +154,7 @@ StyleComboBox::PreSubclassWindow()
   {
     parent->ScreenToClient(rect);
   }
-  int height = (rect.Height() * 13) / 11;
+  int height = WS(GetSafeHwnd(),(LISTBOX_ITEMHEIGTH + COMBO_EDIT_HEIGHT_EXTRA));
 
   // When size factors are set, apply these as well.
   ::MoveWindow(info.hwndCombo,rect.left,rect.top,rect.Width(),height,TRUE);
@@ -217,7 +217,11 @@ StyleComboBox::CreateEditControl()
 void 
 StyleComboBox::CreateListControl()
 {
-  CRect rect(0,0,0,0);
+  CRect rect;
+  GetWindowRect(&rect);
+//   rect.right  = rect.left;
+//   rect.bottom = rect.top;
+
   DWORD cbstyle = GetStyle();
   DWORD style   = LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_POPUP | LBS_NOTIFY | LBS_HASSTRINGS;
   DWORD styleEx = WS_EX_TOOLWINDOW   | WS_EX_TOPMOST;
@@ -243,13 +247,14 @@ StyleComboBox::CreateListControl()
   }
   m_listControl->CreateEx(styleEx,_T("LISTBOX"),_T(""),style,rect,CWnd::FromHandle(::GetDesktopWindow()),0);
   m_listControl->InitSkin();
-  if(m_listControl->GetSkin())
+  SkinScrollWnd* skin = m_listControl->GetSkin();
+  if(skin)
   {
-    m_listControl->GetSkin()->SetScrollbarBias(0);
-    m_listControl->GetSkin()->SetMouseCapture(TRUE,TME_HOVER);
-    m_listControl->GetSkin()->SkinSetMouseTracking();
+    skin->SetScrollbarBias(0);
+    skin->SetMouseCapture(TRUE,TME_HOVER);
+    skin->SkinSetMouseTracking();
   }
-  m_listControl->PostMessage(WM_SETFONT,(WPARAM)GetFont()->GetSafeHandle(),MAKELPARAM(TRUE,0));
+  // m_listControl->SendMessage(WM_SETFONT,(WPARAM)m_itemControl->GetFont()->GetSafeHandle(),MAKELPARAM(TRUE,0));
 }
 
 // Needs to be called when created dynamic and not through a resource *.rc file
@@ -382,6 +387,32 @@ void
 StyleComboBox::PreShowComboList()
 {
   // Provide your own override if necessary
+  // But call this one first!
+
+  if(m_firstShow)
+  {
+    // Do the NCCALSIZE for the current monitor/DPI
+    HMONITOR hMonitor = MonitorFromWindow(GetSafeHwnd(),MONITOR_DEFAULTTONEAREST);
+    m_listControl->SendMessage(WM_DPICHANGED_AFTERPARENT,0,(LPARAM)hMonitor);
+    m_firstShow = false;
+    return;
+  }
+
+  // Move to list the current Monitor and DPI settings
+  // So the calculations for size and position are correct
+  CRect winrect;
+  m_itemControl->GetWindowRect(&winrect);
+
+  CRect listrect;
+  m_listControl->GetSkin()->GetWindowRect(&listrect);
+
+  HMONITOR hMonitor = MonitorFromRect(&winrect, MONITOR_DEFAULTTONEAREST);
+  HMONITOR lMonitor = MonitorFromRect(&listrect,MONITOR_DEFAULTTONEAREST);
+
+  if(hMonitor != lMonitor)
+  {
+    PositionDropList(listrect.Width(),listrect.Height());
+  }
 }
 
 void
@@ -443,7 +474,7 @@ StyleComboBox::FindOptimalWidth()
   for (int index = 0; index < count; ++index)
   {
     CString itemtext;
-    GetLBText(index, itemtext);
+    m_listControl->GetText(index,itemtext);
     CSize size = dc->GetTextExtent(itemtext);
     if (size.cx > width)
     {
@@ -456,6 +487,9 @@ StyleComboBox::FindOptimalWidth()
   // Calculate the max expansion of the drop down list
   if (expanded)
   {
+    // TextExtent is in logical units, we need to take the size factor into account
+    width = (width * GetSFXSizeFactor(GetSafeHwnd())) / 100;
+
     if(width > orgMax)
     {
       width = orgMax;
@@ -504,12 +538,12 @@ StyleComboBox::PositionDropList(int p_width,int p_height)
   if((rc.bottom - 1 + p_height > wa.bottom) && (rc.top > wa.top + wa.Height() / 2))
   {
     // List above the edit box
-    skin->SetWindowPos(0,rc.left,rc.top - p_height + 1,p_width,p_height,SWP_NOREDRAW|SWP_NOACTIVATE);
+    skin->SetWindowPos(0,rc.left,rc.top - p_height + 1,p_width,p_height,SWP_NOREDRAW|SWP_NOACTIVATE|SWP_FRAMECHANGED);
   }
   else
   {
     // List fits in space below the edit box
-    skin->SetWindowPos(0,rc.left,rc.bottom - 1,p_width,p_height,SWP_NOREDRAW | SWP_NOACTIVATE);
+    skin->SetWindowPos(0,rc.left,rc.bottom - 1,p_width,p_height,SWP_NOREDRAW|SWP_NOACTIVATE|SWP_FRAMECHANGED);
   }
   m_listControl->ModifyStyle(0,WS_VISIBLE);
   skin->SkinSetCapture();
@@ -923,17 +957,20 @@ StyleComboBox::OnChar(UINT nChar,UINT nRepCnt,UINT nFlags)
   CEdit::OnChar(nChar,nRepCnt,nFlags);
 }
 
+// wParam = new DPI, lParam = HMONITOR
 LRESULT
 StyleComboBox::OnDpiChanged(WPARAM wParam,LPARAM lParam)
 {
   HMONITOR monitor = reinterpret_cast<HMONITOR>(lParam);
   if(monitor)
   {
-    m_itemControl->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
-    m_listControl->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
-
+    // Item height must be changed before resizing
     int height = LISTBOX_ITEMHEIGTH;
     m_listControl->SetItemHeight(0,(height * GetSFXSizeFactor(monitor)) / 100);
+
+    // Set new DPI and font sizes
+    m_itemControl->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
+    m_listControl->SendMessage(WM_DPICHANGED_AFTERPARENT,wParam,lParam);
   }
   return 0;
 }
@@ -2534,7 +2571,8 @@ void
 SCBListBox::OnSetFocus(CWnd* pOldWnd)
 {
   m_combo->OnSetFocus(pOldWnd);
-  if(pOldWnd != this && pOldWnd != m_combo &&
+  if(m_combo->GetSafeHwnd() &&
+     pOldWnd != this && pOldWnd != m_combo &&
      pOldWnd != m_combo->GetEditControl())
   {
     if(!m_combo->GetDroppedState() && m_combo->GetEditControl())
@@ -2574,10 +2612,8 @@ SCBListBox::OnMouseMove(UINT nFlags,CPoint point)
       SetCurSel(index);
       // Paint optimizations:
       // Only redraw the changed items!
-      Invalidate();
-
-//       InvalidateRect(rcCurrent);
-//       InvalidateRect(rcItem);
+      InvalidateRect(rcCurrent);
+      InvalidateRect(rcItem);
     }
   }
 }

@@ -46,24 +46,24 @@ class ResultViewerApp : public CWinAppEx
 public:
 	ResultViewerApp();
 
-  CString GetResultFilename()     { return m_resultFilename; };
-  CString GetParametersFilename() { return m_paramFilename;  };
-  CString GetBaseDirectory()      { return m_baseDirectory;  };
-  CString GetTestDirectory()      { return m_testDirectory;  };
+  XString GetResultFilename()     { return m_resultFilename; };
+  XString GetParametersFilename() { return m_paramFilename;  };
+  XString GetBaseDirectory()      { return m_baseDirectory;  };
+  XString GetTestDirectory()      { return m_testDirectory;  };
 
-  void    StartValidateEditor(CString p_validation,bool p_global,HWND p_wnd,int p_row);
+  void    StartValidateEditor(XString p_validation,bool p_global,HWND p_wnd,int p_row);
 
 private:
   void    Usage();
   bool    ParseStartParameters();
-  CString StandardParameters(HWND p_wnd,int p_row,bool p_global);
-  CString GetBaseDirectoryClean();
-  CString GetTestDirectoryClean();
+  XString StandardParameters(HWND p_wnd,int p_row,bool p_global);
+  XString GetBaseDirectoryClean();
+  XString GetTestDirectoryClean();
 
-  CString m_resultFilename;
-  CString m_paramFilename;
-  CString m_baseDirectory;
-  CString m_testDirectory;
+  XString m_resultFilename;
+  XString m_paramFilename;
+  XString m_baseDirectory;
+  XString m_testDirectory;
 
   UINT64  m_callingHWND { NULL };
   int     m_callingROW  { 0    };

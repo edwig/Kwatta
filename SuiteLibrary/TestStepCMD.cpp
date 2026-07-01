@@ -11,7 +11,7 @@
 // 
 // This product: KWATTA (KWAliTy Test API) Test suite for Command-line SOAP/JSON/HTTP internet API's
 // This program: SuiteLibrary
-// This File   : TestStepCL.cpp
+// This File   : TestStepCMD.cpp
 // What it does: One (1) test step. Subclass for a command-line test
 // Author      : ir. W.E. Huisman
 // License     : See license.md file in the root directory
@@ -165,7 +165,11 @@ TestStepCMD::GetStandardInput()
   unsigned int   length = 0;
   m_standardInput.GetBuffer(buffer, length);
 
-  return XString(buffer);
+  if(buffer)
+  {
+    return XString(buffer);
+  }
+  return XString();
 }
 
 void

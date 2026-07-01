@@ -76,6 +76,9 @@ OutputDlg::LoadVariables(StepResultCMD* p_stepResult)
   m_standardOutput = m_stepResult->GetStandardOutput();
   m_standardError  = m_stepResult->GetStandardError();
 
+  m_standardOutput.Replace(_T("\n"),_T("\r\n"));
+  m_standardError .Replace(_T("\n"),_T("\r\n"));
+
   UpdateData(FALSE);
 }
 

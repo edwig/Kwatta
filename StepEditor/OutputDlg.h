@@ -41,7 +41,8 @@ public:
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+  virtual void DoDataExchange(CDataExchange* pDX) override;
+  virtual BOOL OnInitDialog() override;
   void InitButtons();
   void FillCombos();
   void SetCombos();

@@ -54,6 +54,7 @@ public:
   // General interface
   virtual int     PerformTest();
   virtual void    StopTestProgram();
+  StepResult*     GetStepResult();
 
 private:
   // Running the test

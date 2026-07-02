@@ -22,10 +22,12 @@
 #include "ParametersDlg.h"
 #include "InputDlg.h"
 #include "OutputDlg.h"
-#include "TestStepCMD.h"
 #include "Parameters.h"
 #include "EnvironmentDlg.h"
 #include "ScriptDlg.h"
+#include "CmdResultDlg.h"
+#include <TestStepCMD.h>
+#include <StepResultCMD.h>
 
 // CStepEditorDlg dialog
 class StepCommandDlg : public StyleDialog
@@ -35,6 +37,8 @@ public:
 	StepCommandDlg(CWnd* pParent = nullptr);	// standard constructor
   virtual ~StepCommandDlg();
   void    EffectiveParameters();
+  void    ResetStepResult();
+  void    SetStepResult(StepResult* p_result);
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
@@ -63,6 +67,7 @@ protected:
   StyleEdit       m_editName;
   StyleButton     m_buttonGlobal;
   StyleEdit       m_editDocumentation;
+  StyleButton     m_buttonGO;
   StyleEdit       m_editBound;
   StyleEdit       m_editDirectory;
   StyleEdit       m_editRuntimer;
@@ -70,7 +75,8 @@ protected:
   StyleButton     m_buttonDirParm;
   StyleButton     m_buttonRunParm;
   StyleButton     m_buttonComParm;
-  StyleTabCtrl    m_tab;
+  StyleTabCtrl    m_tabs1;
+  StyleTabCtrl    m_tabs2;
   StyleButton     m_buttonOK;
   StyleButton     m_buttonCancel;
 
@@ -80,6 +86,7 @@ protected:
   ParametersDlg*  m_tab3;
   EnvironmentDlg* m_tab4;
   ScriptDlg*      m_tab5;
+  CmdResultDlg*   m_tab6;
   
 	// Generated message map functions
   void         InitButtons();
@@ -94,6 +101,7 @@ protected:
   void         StoreVariables();
   bool         SaveStep();
   void         ChooseVariable(StyleEdit& p_edit);
+  void         Redraw();
 
   DECLARE_MESSAGE_MAP()
 
@@ -103,6 +111,7 @@ protected:
   afx_msg void OnEnChangeStepname();
   afx_msg void OnBnClickedGlobal();
   afx_msg void OnEnChangeComment();
+  afx_msg void OnBnClickedGO();
   afx_msg void OnEnChangeDirectory();
   afx_msg void OnEnChangeRuntimer();
   afx_msg void OnEnChangeCommandline();

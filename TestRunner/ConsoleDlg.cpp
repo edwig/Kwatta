@@ -20,7 +20,8 @@
 
 #include "StdAfx.h"
 #include "ConsoleDlg.h"
-#include "afxdialogex.h"
+#include <RunRedirect.h>
+#include <afxdialogex.h>
 
 #ifdef _DEBUG
 #undef THIS_FILE
@@ -98,13 +99,16 @@ ConsoleDlg::OnConsoleTitle(WPARAM wParam,LPARAM lParam)
 LRESULT
 ConsoleDlg::OnConsoleText(WPARAM wParam,LPARAM lParam)
 {
-  const TCHAR* text = reinterpret_cast<const TCHAR*>(lParam);
-  AddLine(text);
+  LPCTSTR text = (LPCTSTR)lParam;
+  if(text)
+  {
+    AddLine(text);
+  }
   return 0;
 }
 
 void
-ConsoleDlg::AddLine(const TCHAR* p_line)
+ConsoleDlg::AddLine(LPCTSTR p_line)
 {
   int line    = m_editText.GetLineCount() - 1;
   int endChar = m_editText.LineIndex(line);

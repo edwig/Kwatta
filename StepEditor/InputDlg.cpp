@@ -59,12 +59,10 @@ BEGIN_MESSAGE_MAP(InputDlg, StyleTab)
   ON_BN_CLICKED  (IDC_INPUT_PARM,&InputDlg::OnBnClickedInputParm)
 END_MESSAGE_MAP()
 
-void
-InputDlg::InitTab(TestStepCMD* p_step,Parameters* p_parameters)
+BOOL
+InputDlg::OnInitDialog()
 {
-  m_step  = p_step;
-  m_input = p_step->GetStandardInput();
-  m_parameters = p_parameters;
+  StyleTab::OnInitDialog();
 
   EnableToolTips();
   m_buttonInputParm.SetIconImage(IDI_LIST);
@@ -72,6 +70,7 @@ InputDlg::InitTab(TestStepCMD* p_step,Parameters* p_parameters)
 
   SetCanResize();
   UpdateData(FALSE);
+  return TRUE;
 }
 
 void
@@ -88,6 +87,16 @@ InputDlg::SetupDynamicLayout()
   manager.AddItem(IDC_INPUT,     CMFCDynamicLayout::MoveNone(),         CMFCDynamicLayout::SizeHorizontalAndVertical(100, 50));
   manager.AddItem(IDC_EFFECTIVE, CMFCDynamicLayout::MoveVertical(50),   CMFCDynamicLayout::SizeHorizontalAndVertical(100, 50));
   manager.AddItem(IDC_INPUT_PARM,CMFCDynamicLayout::MoveHorizontal(100),CMFCDynamicLayout::SizeNone());
+}
+
+void
+InputDlg::InitTab(TestStepCMD* p_step,Parameters* p_parameters)
+{
+  m_step  = p_step;
+  m_input = p_step->GetStandardInput();
+  m_parameters = p_parameters;
+
+  UpdateData(FALSE);
 }
 
 void 

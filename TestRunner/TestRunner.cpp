@@ -280,7 +280,6 @@ TestRunnerApp::ResetHTTPClient()
   }
 }
 
-
 void
 TestRunnerApp::CreateDatabase()
 {

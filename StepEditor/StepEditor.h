@@ -25,6 +25,7 @@
 #endif
 
 #include "TestStep.h"
+#include "ConsoleDlg.h"
 #include "resource.h"		// main symbols
 #include <SQLDatabase.h>
 
@@ -32,6 +33,7 @@
 
 class HTTPClient;
 class OAuth2Cache;
+class StepCommandDlg;
 class StepInternetDlg;
 class StepDatabaseDlg;
 class StepWindowsDlg;
@@ -54,11 +56,13 @@ public:
   XString       GetParametersFilename()     { return m_paramFilename; }
   XString       GetBaseDirectory()          { return m_baseDirectory; }
   XString       GetTestDirectory()          { return m_testDirectory; }
+  HWND          GetConsoleHandle()          { return m_console->GetSafeHwnd(); }
   HTTPClient*   GetHTTPClient()             { return m_client;        }
   OAuth2Cache*  GetOAuth2Cache()            { return m_cache;         }
   ValiSteps&    GetValidations()            { return m_validations;   }
   ValiSteps&    GetGlobalValidations()      { return m_globalValid;   }
   bool          GetGlobal()                 { return m_global;        }
+  int           StartTheCMDRunner (StepCommandDlg*  p_caller);
   int           StartTheInetRunner(StepInternetDlg* p_caller);
   int           StartTheSQLRunner (StepDatabaseDlg* p_caller);
   int           StartTheWINRunner (StepWindowsDlg*  p_caller);
@@ -71,7 +75,8 @@ public:
 public:
 	virtual BOOL InitInstance();
 	virtual int  ExitInstance();
-  void CreateHTTPClient();
+  void         CreateConsole();
+  void         CreateHTTPClient();
 
   // Implementation
 
@@ -89,6 +94,7 @@ private:
   UINT64  m_callingHWND;
   int     m_callingROW;
   int     m_global        { false   };
+  ConsoleDlg*  m_console  { nullptr };
   HTTPClient*  m_client   { nullptr };
   OAuth2Cache* m_cache    { nullptr };
   SQLDatabase* m_database { nullptr };

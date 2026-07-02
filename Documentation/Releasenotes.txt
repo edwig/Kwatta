@@ -1,6 +1,12 @@
 KWATTA RELEASENOTES
 ===================
 
+Version 1.3.8 Release date 02-07-2026
+-------------------------------------
+1) Fixed crash in CMD line testing
+2) CMD line testing extended with a test button in the StepEditor dialog
+   This makes the UI consistent with the other tests (HTTP, SQL, WIN)
+
 Version 1.3.7 Release date 30-06-2026
 -------------------------------------
 1) Updated to version 2.0   of BaseLibrary,   removing MFC dependency

@@ -87,15 +87,21 @@ BEGIN_MESSAGE_MAP(OutputDlg, StyleTab)
   ON_BN_CLICKED   (IDC_NEW_ERROR,  &OutputDlg::OnBnClickedNewError)
 END_MESSAGE_MAP()
 
+BOOL
+OutputDlg::OnInitDialog()
+{
+  StyleTab::OnInitDialog();
+
+  InitButtons();
+  return TRUE;
+}
+
 void
 OutputDlg::InitTab(TestStepCMD* p_step,Parameters* p_param)
 {
   // Remember the objects
   m_step       = p_step;
   m_parameters = p_param;
-
-  InitButtons();
-  FillCombos();
 
   // Extract our values
   m_useReturn = m_step->GetUseReturnValue();
@@ -110,6 +116,7 @@ OutputDlg::InitTab(TestStepCMD* p_step,Parameters* p_param)
   m_buttonUseOutput.SetCheck(m_useOutput);
   m_buttonUseError .SetCheck(m_useError);
 
+  FillCombos();
   SetCombos();
 
   UpdateData(FALSE);

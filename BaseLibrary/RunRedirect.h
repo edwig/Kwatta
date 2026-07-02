@@ -31,6 +31,10 @@
 // Milliseconds wait loop
 #define WAITTIME_STATUS 50
 
+// For sending text to a connected console
+#define CONSOLE_TEXT_TIMEOUT 10000
+
+// Messages to the connected console
 #define WM_CONSOLE_TITLE (WM_USER + 1)
 #define WM_CONSOLE_TEXT  (WM_USER + 2)
 

@@ -263,7 +263,7 @@ CMDRunner::PerformCommand()
     int maxtime = _ttoi(m_testStep->GetEffectiveMaxExecution());
     if (maxtime > 0)
     {
-      SetBoobytrap();
+      // SetBoobytrap();
     }
   }
 
@@ -280,7 +280,6 @@ CMDRunner::PerformCommand()
                                ,step->GetWaitForIdle()
                                ,_ttoi(step->GetMaxExecution())
                                ,&m_redirect);
-  // ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,FALSE,0);
 
   // No more killing of the child program by the boobytrap
   m_redirect = nullptr;
@@ -437,6 +436,12 @@ CMDRunner::ReadTotalResult()
 {
   PerformStep(_T("Getting total result..."));
   return m_result->GetTotalResult();
+}
+
+StepResult*
+CMDRunner::GetStepResult()
+{
+  return m_result;
 }
 
 //////////////////////////////////////////////////////////////////////////

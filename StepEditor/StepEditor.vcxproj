@@ -274,6 +274,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AuthenticateDlg.h" />
+    <ClInclude Include="CmdResultDlg.h" />
+    <ClInclude Include="ConsoleDlg.h" />
     <ClInclude Include="DatabaseDlg.h" />
     <ClInclude Include="EnvironmentDlg.h" />
     <ClInclude Include="FormDataDlg.h" />
@@ -309,6 +311,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AuthenticateDlg.cpp" />
+    <ClCompile Include="CmdResultDlg.cpp" />
+    <ClCompile Include="ConsoleDlg.cpp" />
     <ClCompile Include="DatabaseDlg.cpp" />
     <ClCompile Include="EnvironmentDlg.cpp" />
     <ClCompile Include="FormDataDlg.cpp" />

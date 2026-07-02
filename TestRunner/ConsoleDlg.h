@@ -21,9 +21,6 @@
 #pragma once
 #include "resource.h"
 
-#define WM_CONSOLE_TITLE (WM_USER + 1)
-#define WM_CONSOLE_TEXT  (WM_USER + 2)
-
 // ConsoleDlg dialog
 
 class ConsoleDlg : public CDialogEx
@@ -35,7 +32,7 @@ public:
 	virtual ~ConsoleDlg();
   virtual BOOL OnInitDialog() override;
 
-  void AddLine(const TCHAR* p_line);
+  void AddLine(LPCTSTR p_line);
   void Move();
 
 // Dialog Data

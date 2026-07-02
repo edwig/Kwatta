@@ -44,6 +44,7 @@ StepCommandDlg::StepCommandDlg(CWnd* pParent /*=nullptr*/)
   m_tab3 = new ParametersDlg(this);
   m_tab4 = new EnvironmentDlg(this);
   m_tab5 = new ScriptDlg(this);
+  m_tab6 = new CmdResultDlg(this);
 }
 
 StepCommandDlg::~StepCommandDlg()
@@ -53,6 +54,7 @@ StepCommandDlg::~StepCommandDlg()
   delete m_tab3;
   delete m_tab4;
   delete m_tab5;
+  delete m_tab6;
 
   if(m_testStep)
   {
@@ -69,13 +71,15 @@ void StepCommandDlg::DoDataExchange(CDataExchange* pDX)
   DDX_Control(pDX, IDC_GLOBAL,       m_buttonGlobal);
   DDX_Control(pDX, IDC_BOUND,        m_editBound,         m_bound);
   DDX_Control(pDX, IDC_COMMENT,      m_editDocumentation, m_documentation);
+  DDX_Control(pDX, IDC_GO,           m_buttonGO);
   DDX_Control(pDX, IDC_DIRECTORY,    m_editDirectory,     m_directory);
   DDX_Control(pDX, IDC_RUNTIMER,     m_editRuntimer,      m_runtimer);
   DDX_Control(pDX, IDC_COMMANDLINE,  m_editCommandLine,   m_commandLine);
   DDX_Control(pDX, IDC_DIR_PARM,     m_buttonDirParm);
   DDX_Control(pDX, IDC_RUN_PARM,     m_buttonRunParm);
   DDX_Control(pDX, IDC_COM_PARM,     m_buttonComParm);
-  DDX_Control(pDX, IDC_TABS,         m_tab);
+  DDX_Control(pDX, IDC_TAB1,         m_tabs1);
+  DDX_Control(pDX, IDC_TAB2,         m_tabs2);
   DDX_Control(pDX, IDOK,             m_buttonOK);
   DDX_Control(pDX, IDCANCEL,         m_buttonCancel);
 
@@ -92,6 +96,7 @@ BEGIN_MESSAGE_MAP(StepCommandDlg, StyleDialog)
   ON_EN_KILLFOCUS(IDC_STEPNAME,        &StepCommandDlg::OnEnChangeStepname)
   ON_BN_CLICKED  (IDC_GLOBAL,          &StepCommandDlg::OnBnClickedGlobal)
   ON_EN_KILLFOCUS(IDC_COMMENT,         &StepCommandDlg::OnEnChangeComment)
+  ON_BN_CLICKED  (IDC_GO,              &StepCommandDlg::OnBnClickedGO)
   ON_EN_KILLFOCUS(IDC_DIRECTORY,       &StepCommandDlg::OnEnChangeDirectory)
   ON_EN_KILLFOCUS(IDC_RUNTIMER,        &StepCommandDlg::OnEnChangeRuntimer)
   ON_EN_KILLFOCUS(IDC_COMMANDLINE,     &StepCommandDlg::OnEnChangeCommandline)
@@ -120,34 +125,9 @@ BOOL StepCommandDlg::OnInitDialog()
   SetWindowText(_T("StepEditor"));
   ShowMinMaxButton();
   SetSysMenu(IDR_MENU);
+  SetAboutBoxAndIcon(IDM_ABOUTBOX,IDS_ABOUTBOX);
 
-	// Add "About..." menu item to system menu.
-
-	// IDM_ABOUTBOX must be in the system command range.
-	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
-	ASSERT(IDM_ABOUTBOX < 0xF000);
-
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
-	if (pSysMenu != nullptr)
-	{
-		BOOL bNameValid;
-		XString strAboutMenu;
-		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
-		ASSERT(bNameValid);
-		if (!strAboutMenu.IsEmpty())
-		{
-			pSysMenu->AppendMenu(MF_SEPARATOR);
-			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
-		}
-	}
-
-	// Set the icon for this dialog.  The framework does this automatically
-	//  when the application's main window is not a dialog
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
-
-  // Do our initialization: in this order!!
-  // Read all data
+  // Do our initialization
   InitButtons();
   InitTabs();
   InitStep();
@@ -189,6 +169,7 @@ StepCommandDlg::SetupDynamicLayout()
   manager.AddItem(IDC_GLOBAL,     CMFCDynamicLayout::MoveHorizontal(100), CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_BOUND,      CMFCDynamicLayout::MoveHorizontal(100), CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_COMMENT,    CMFCDynamicLayout::MoveNone(),          CMFCDynamicLayout::SizeHorizontalAndVertical(100,20));
+  manager.AddItem(IDC_GO,         CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_GRP_COMMAND,CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_DIRECTORY,  CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeHorizontal(100));
   manager.AddItem(IDC_RUNTIMER,   CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeHorizontal(100));
@@ -196,10 +177,11 @@ StepCommandDlg::SetupDynamicLayout()
   manager.AddItem(IDC_ST_BASE,    CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_ST_EXEC,    CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDC_ST_COMMAND, CMFCDynamicLayout::MoveVertical(20),    CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_DIR_PARM,   CMFCDynamicLayout::MoveHorizontalAndVertical(100,20), CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_RUN_PARM,   CMFCDynamicLayout::MoveHorizontalAndVertical(100,20), CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_COM_PARM,   CMFCDynamicLayout::MoveHorizontalAndVertical(100,20), CMFCDynamicLayout::SizeNone());
-  manager.AddItem(IDC_TABS,       CMFCDynamicLayout::MoveVertical(20),                  CMFCDynamicLayout::SizeHorizontalAndVertical(100,80));
+  manager.AddItem(IDC_DIR_PARM,   CMFCDynamicLayout::MoveHorizontalAndVertical(100, 20),CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_RUN_PARM,   CMFCDynamicLayout::MoveHorizontalAndVertical(100, 20),CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_COM_PARM,   CMFCDynamicLayout::MoveHorizontalAndVertical(100, 20),CMFCDynamicLayout::SizeNone());
+  manager.AddItem(IDC_TAB1,       CMFCDynamicLayout::MoveVertical(20),                  CMFCDynamicLayout::SizeHorizontalAndVertical(50,80));
+  manager.AddItem(IDC_TAB2,       CMFCDynamicLayout::MoveHorizontalAndVertical( 50, 20),CMFCDynamicLayout::SizeHorizontalAndVertical(50,80));
   manager.AddItem(IDOK,           CMFCDynamicLayout::MoveHorizontalAndVertical(100,100),CMFCDynamicLayout::SizeNone());
   manager.AddItem(IDCANCEL,       CMFCDynamicLayout::MoveHorizontalAndVertical(100,100),CMFCDynamicLayout::SizeNone());
 }
@@ -246,24 +228,32 @@ StepCommandDlg::InitButtons()
   RegisterTooltip(m_buttonDirParm,_T("Choose global/test parameter(s) for the directory."));
   RegisterTooltip(m_buttonRunParm,_T("Choose global/test parameter(s) for the runtimer."));
   RegisterTooltip(m_buttonComParm,_T("Choose global/test parameter(s) for the commandline."));
+
+  // Colors
+  m_buttonGO.SetBkColor(RGB(0,255,0));
+  m_buttonGO.SetTextColor(RGB(1,1,1));
 }
 
 void
 StepCommandDlg::InitTabs()
 {
-  m_tab1->Create(IDD_INPUT,     &m_tab);
-  m_tab2->Create(IDD_OUTPUT,    &m_tab);
-  m_tab3->Create(IDD_PARAMETERS,&m_tab);
-  m_tab4->Create(IDD_ENVIRON,   &m_tab);
-  m_tab5->Create(IDD_SCRIPT,    &m_tab);
+  m_tab1->Create(IDD_INPUT,     &m_tabs1);
+  m_tab2->Create(IDD_OUTPUT,    &m_tabs1);
+  m_tab3->Create(IDD_PARAMETERS,&m_tabs1);
+  m_tab4->Create(IDD_ENVIRON,   &m_tabs1);
+  m_tab5->Create(IDD_SCRIPT,    &m_tabs1);
 
-  m_tab.InsertItem(0, m_tab1,_T("Input"));
-  m_tab.InsertItem(1, m_tab2,_T("Output"));
-  m_tab.InsertItem(2, m_tab3,_T("Parameters"));
-  m_tab.InsertItem(3, m_tab4,_T("Environment"));
-  m_tab.InsertItem(4, m_tab5,_T("Script"));
+  m_tabs1.InsertItem(0, m_tab1,_T("Input"));
+  m_tabs1.InsertItem(1, m_tab2,_T("Output"));
+  m_tabs1.InsertItem(2, m_tab3,_T("Parameters"));
+  m_tabs1.InsertItem(3, m_tab4,_T("Environment"));
+  m_tabs1.InsertItem(4, m_tab5,_T("Script"));
 
-  m_tab.Init();
+  m_tabs1.Init();
+
+  m_tab6->Create(IDD_CMDRESULT,&m_tabs2);
+  m_tabs2.InsertItem(0,m_tab6,_T("Test result"));
+  m_tabs2.Init();
 }
 
 void
@@ -357,6 +347,23 @@ StepCommandDlg::LoadVariablesTabs()
   if(!m_testStep->GetEnvironmentVars().empty())
   {
     EffectiveParameters();
+  }
+  ResetStepResult();
+}
+
+void
+StepCommandDlg::ResetStepResult()
+{
+  m_tab6->InitTab();
+}
+
+void
+StepCommandDlg::SetStepResult(StepResult* p_result)
+{
+  StepResultCMD* result = reinterpret_cast<StepResultCMD*>(p_result);
+  if(result)
+  {
+    m_tab6->LoadVariables(result);
   }
 }
 
@@ -539,6 +546,22 @@ StepCommandDlg::OnBnClickedComParm()
 }
 
 void 
+StepCommandDlg::OnBnClickedGO()
+{
+  CWaitCursor sigh;
+  m_buttonGO.SetBkColor(RGB(255,0,0));
+  m_buttonGO.Invalidate();
+  Redraw();
+  if(SaveStep())
+  {
+    theApp.StartTheCMDRunner(this);
+  }
+  m_buttonGO.SetBkColor(RGB(0,255,0));
+  m_buttonGO.Invalidate();
+  Redraw();
+}
+
+void 
 StepCommandDlg::OnBnClickedOk()
 {
   if(SaveStep())
@@ -552,3 +575,24 @@ StepCommandDlg::OnExit()
 {
   OnBnClickedOk();
 }
+
+void
+StepCommandDlg::Redraw()
+{
+  // Handle all paint messages for a short period of time
+  MSG msg;
+  UINT ticks = GetTickCount();
+  while(GetTickCount() - ticks < 500 && PeekMessage(&msg,NULL,WM_MOVE,WM_USER,PM_REMOVE))
+  {
+    try
+    {
+      ::TranslateMessage(&msg);
+      ::DispatchMessage(&msg);
+    }
+    catch(...)
+    {
+      // How now, brown cow?
+    }
+  }
+}
+

@@ -117,6 +117,12 @@
     <ClInclude Include="WinResultDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CmdResultDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ConsoleDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StepEditor.cpp">
@@ -207,6 +213,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="WinResultDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CmdResultDlg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ConsoleDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

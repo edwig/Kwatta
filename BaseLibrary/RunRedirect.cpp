@@ -83,7 +83,7 @@ void RunRedirect::OnChildStdOutWrite(LPCTSTR lpszOutput)
   m_output += lpszOutput;
   if(m_console)
   {
-    ::SendMessage(m_console,WM_CONSOLE_TEXT,0,(LPARAM)lpszOutput);
+    ::SendMessageTimeout(m_console,WM_CONSOLE_TEXT,1,(LPARAM)lpszOutput,SMTO_NORMAL,CONSOLE_TEXT_TIMEOUT,NULL);
   }
 }
 
@@ -94,7 +94,7 @@ RunRedirect::OnChildStdErrWrite(LPCTSTR lpszOutput)
   m_error += lpszOutput;
   if(m_console)
   {
-    ::SendMessage(m_console,WM_CONSOLE_TEXT,1,(LPARAM)lpszOutput);
+    ::SendMessageTimeout(m_console,WM_CONSOLE_TEXT,1,(LPARAM)lpszOutput,SMTO_NORMAL,CONSOLE_TEXT_TIMEOUT,NULL);
   }
 }
 

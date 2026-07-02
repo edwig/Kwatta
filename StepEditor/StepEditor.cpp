@@ -24,11 +24,13 @@
 #include "StepInternetDlg.h"
 #include "StepDatabaseDlg.h"
 #include "StepWindowsDlg.h"
+#include "ConsoleDlg.h"
 #include <LogAnalysis.h>
 #include <ExtraMessages.h>
 #include <ExtraExtensions.h>
 #include <HTTPClient.h>
 #include <OAuth2Cache.h>
+#include <CMDRunner.h>
 #include <NETRunner.h>
 #include <SQLRunner.h>
 #include <WINRunner.h>
@@ -61,6 +63,11 @@ StepEditorApp::StepEditorApp()
 
 StepEditorApp::~StepEditorApp()
 {
+  if(m_console)
+  {
+    delete m_console;
+    m_console = nullptr;
+  }
   if(m_client)
   {
     delete m_client;
@@ -128,21 +135,25 @@ StepEditorApp::InitInstance()
   if (type == StepType::Step_command)
   {
     StepCommandDlg dlg;
+    m_pMainWnd = &dlg;
     dlg.DoModal();
   }
   else if(type == StepType::Step_http)
   {
     StepInternetDlg dlg;
+    m_pMainWnd = &dlg;
     dlg.DoModal();
   }
   else if(type == StepType::Step_sql)
   {
     StepDatabaseDlg dlg;
+    m_pMainWnd = &dlg;
     dlg.DoModal();
   }
   else if(type == StepType::Step_win)
   {
     StepWindowsDlg dlg;
+    m_pMainWnd = &dlg;
     dlg.DoModal();
   }
   else
@@ -218,6 +229,68 @@ StepEditorApp::CreateHTTPClient()
   m_cache  = new OAuth2Cache();
 }
 
+void
+StepEditorApp::CreateConsole()
+{
+  if(m_console)
+  {
+    return;
+  }
+  // Creating the console
+  m_console = new ConsoleDlg();
+  m_console->Create(MAKEINTRESOURCE(IDD_CONSOLE));
+  m_console->OnInitDialog();
+  m_console->Move();
+  m_console->ShowWindow(SW_SHOW);
+}
+
+unsigned __stdcall ProcesCMDRunner(void* p_caller)
+{
+  StepCommandDlg* caller = reinterpret_cast<StepCommandDlg*>(p_caller);
+
+  int result = 0;
+  if(caller)
+  {
+    CMDRunner runner(theApp.GetBaseDirectory()
+                    ,theApp.GetTestDirectory()
+                    ,theApp.GetTestStepFilename()
+                    ,theApp.GetParametersFilename()
+                    ,theApp.GetValidations()
+                    ,theApp.GetGlobalValidations()
+                    ,theApp.GetConsoleHandle()
+                    ,caller->GetSafeHwnd()
+                    ,NULL
+                    ,0
+                    ,theApp.GetGlobal());
+
+    result = runner.PerformTest();
+
+    caller->SetStepResult(runner.GetStepResult());
+    ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,FALSE,0);
+  }
+  return result;
+}
+
+
+int
+StepEditorApp::StartTheCMDRunner(StepCommandDlg* p_caller)
+{
+  p_caller->ResetStepResult();
+
+  CreateConsole();
+  m_console->ResetConsole();
+  ::PostMessage(theApp.GetConsoleHandle(),WM_SHOWWINDOW,TRUE,0);
+
+  // Start a new thread
+  unsigned int threadID = 0L;
+  if((HANDLE)_beginthreadex(NULL,0,ProcesCMDRunner,p_caller,0,&threadID) == INVALID_HANDLE_VALUE)
+  {
+    threadID = 0;
+    StyleMessageBox(NULL,_T("Cannot start a thread for the TestRunner."),PRODUCT_NAME,MB_OK | MB_ICONERROR);
+  }
+  return 0;
+}
+
 int
 StepEditorApp::StartTheInetRunner(StepInternetDlg* p_caller)
 {
@@ -286,12 +359,6 @@ StepEditorApp::StartTheSQLRunner(StepDatabaseDlg* p_caller)
   
     // Tel the main program what the test results are.
     p_caller->SetStepResult(runner.GetStepResult());
-
-    if(m_client && m_client->GetLogging())
-    {
-      m_client->GetLogging()->Reset();
-      ShellExecute(NULL,_T("open"),m_client->GetLogging()->GetLogFileName().GetString(),_T(""),_T(""),SW_SHOW);
-    }
   }
   return result;
 }

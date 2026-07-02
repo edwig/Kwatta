@@ -47,6 +47,9 @@ public:
   virtual int     PerformTest();
   virtual void    StopTestProgram();
 
+  bool            SaveTestResults();
+  bool            SaveResultParameters();
+
   StepResultWIN*  GetStepResult();
 private:
   // Running the test
@@ -55,8 +58,6 @@ private:
   void  ParameterProcessing();
   void  PerformCommand();
   void  PerformAllValidations();
-  void  SaveTestResults();
-  void  SaveResultParameters();
   int   ReadTotalResult();
   void  SetBoobytrap();
   void  StopBoobytrap();

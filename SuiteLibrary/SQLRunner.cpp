@@ -35,6 +35,10 @@ static char THIS_FILE[] = __FILE__;
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
+bool SaveSQLResults   (TestRunner* p_runner);
+bool SaveSQLParameters(TestRunner* p_runner);
+
+
 SQLRunner::SQLRunner(SQLDatabase* p_database
                     ,XString      p_baseDirectory
                     ,XString      p_testDirectory
@@ -106,9 +110,9 @@ SQLRunner::PerformTest()
       // Perform the validations (x * 1 steps)
       PerformAllValidations();
       // Write the results (1 step)
-      SaveTestResults();
+      SavingWithRetries(SaveSQLResults,this);
       // Save return parameters (if any)
-      SaveResultParameters();
+      SavingWithRetries(SaveSQLParameters,this);
       // Return the conclusion (1 step)
       result = ReadTotalResult();
       // Possibly run our script, controlling m_running
@@ -409,8 +413,19 @@ SQLRunner::PerformAllValidations()
   m_result->SetDocumentation(documentation);
 }
 
+bool
+SaveSQLResults(TestRunner* p_runner)
+{
+  SQLRunner* runner = reinterpret_cast<SQLRunner*>(p_runner);
+  if(runner)
+  {
+    return runner->SaveTestResults();
+  }
+  return false;
+}
+
 // Saving the test results to the disk
-void
+bool
 SQLRunner::SaveTestResults()
 {
   PerformStep(_T("Saving the test results"));
@@ -420,24 +435,28 @@ SQLRunner::SaveTestResults()
   filename.MakeLower();
   filename.Replace(EXTENSION_TESTSTEP_SQL,EXTENSION_RESULT_SQL);
 
-  if(result->WriteToXML(filename) == false)
-  {
-    XString error;
-    error.Format(_T("Cannot save results file: %s"),filename.GetString());
-    throw StdException(error);
-  }
+  return result->WriteToXML(filename);
+}
 
-  // Eventually changed parameters need to be written
-  m_parameters.WriteToXML();
+bool
+SaveSQLParameters(TestRunner* p_runner)
+{
+  SQLRunner* runner = reinterpret_cast<SQLRunner*>(p_runner);
+  if(runner)
+  {
+    return runner->SaveResultParameters();
+  }
+  return false;
 }
 
 // Save return parameters (if any)
-void
+bool
 SQLRunner::SaveResultParameters()
 {
   PerformStep(_T("Saving result parameters"));
+
   // Write back local parameters (return + stream)
-  m_parameters.WriteToXML();
+  return m_parameters.WriteToXML();
 }
 
 // Conclusion of the test

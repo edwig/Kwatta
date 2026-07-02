@@ -59,6 +59,9 @@ public:
   // General interface
   virtual int     PerformTest();
   virtual void    StopTestProgram();
+  // Saving results
+  bool            SaveTestResults();
+  bool            SaveResultParameters();
 
   // GETTERS
   StepResultNET*  GetStepResult();
@@ -73,8 +76,6 @@ private:
   void  PerformAuthentication();
   void  PerformCommand();
   void  PerformAllValidations();
-  void  SaveTestResults();
-  void  SaveResultParameters();
   int   ReadTotalResult();
   void  SetBoobytrap();
   void  StopBoobytrap();

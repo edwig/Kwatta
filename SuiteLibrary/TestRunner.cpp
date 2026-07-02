@@ -191,6 +191,35 @@ TestRunner::WaitingForATimeout(XString p_stepname, int p_milliseconds)
 
 //////////////////////////////////////////////////////////////////////////
 //
+// SAVING A FILE WITH TIMEOUTS
+// Under load-testing conditions, writing can fail due to share locking
+// so we try multiple times to write the test results
+//
+//////////////////////////////////////////////////////////////////////////
+
+void
+TestRunner::SavingWithRetries(SaveResults p_results,TestRunner* p_runner)
+{
+  int  retry   = SAVING_RETRIES;
+  bool written = false;
+
+  while(retry && !written)
+  {
+    --retry;
+    written = (*p_results)(p_runner);
+    if(!written)
+    {
+      Sleep(SAVING_WAITTIME);
+    }
+  }
+  if(!written)
+  {
+    throw StdException(_T("Cannot save results/parameters file!"));
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
 // TELLING IT THE OUTSIDE WORLD
 //
 //////////////////////////////////////////////////////////////////////////

@@ -33,6 +33,9 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
+bool SaveCMDResults   (TestRunner* p_runner);
+bool SaveCMDParameters(TestRunner* p_runner);
+
 CMDRunner::CMDRunner(XString    p_baseDirectory
                     ,XString    p_testDirectory
                     ,XString    p_testStepFilename
@@ -98,9 +101,9 @@ CMDRunner::PerformTest()
       // Perform the validations (x * 1 steps)
       PerformAllValidations();
       // Write the results (1 step)
-      SaveTestResults();
+      SavingWithRetries(SaveCMDResults,this);
       // Save return parameters (if any)
-      SaveResultParameters();
+      SavingWithRetries(SaveCMDParameters,this);
       // Return the conclusion (1 step)
       result = ReadTotalResult();
       // Possibly run our script, controlling m_running
@@ -373,33 +376,47 @@ CMDRunner::PerformAllValidations()
   m_result->SetDocumentation(documentation);
 }
 
+bool
+SaveCMDResults(TestRunner* p_runner)
+{
+  CMDRunner* runner = reinterpret_cast<CMDRunner*>(p_runner);
+  if(runner)
+  {
+    return runner->SaveTestResults();
+  }
+  return false;
+}
+
 // Saving the test results to the disk
-void
+bool
 CMDRunner::SaveTestResults()
 {
-  PerformStep(_T("Saving the test results"));
+  PerformStep(_T("Saving the CMD test results"));
 
   XString filename = m_baseDirectory + m_testDirectory + m_testStepFilename;
   filename.MakeLower();
   filename.Replace(_T(".xrun"),_T(".xres"));
 
   StepResultCMD* result = reinterpret_cast<StepResultCMD*>(m_result);
-  if(result->WriteToXML(filename) == false)
-  {
-    XString error;
-    error.Format(_T("Cannot save results file: %s"),filename.GetString());
-    throw StdException(error);
-  }
+  return result->WriteToXML(filename);
+}
 
-  // Eventually changed parameters need to be written
-  m_parameters.WriteToXML();
+bool
+SaveCMDParameters(TestRunner* p_runner)
+{
+  CMDRunner* runner = reinterpret_cast<CMDRunner*>(p_runner);
+  if(runner)
+  {
+    return runner->SaveResultParameters();
+  }
+  return false;
 }
 
 // Save return parameters (if any)
-void
+bool
 CMDRunner::SaveResultParameters()
 {
-  PerformStep(_T("Saving result parameters"));
+  PerformStep(_T("Saving CMD result parameters"));
   bool saved(false);
 
   TestStepCMD*   step   = reinterpret_cast<TestStepCMD*>(m_testStep);
@@ -422,12 +439,13 @@ CMDRunner::SaveResultParameters()
     m_parameters.OverwriteBufferParameter(step->GetErrorVariable(),result->GetStandardError());
     saved = true;
   }
-
   if(saved)
   {
     // Write back local parameters (return + stream)
-    m_parameters.WriteToXML();
+    return m_parameters.WriteToXML();
   }
+  // Nothing to save
+  return true;
 }
 
 // Conclusion of the test

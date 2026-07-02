@@ -22,7 +22,6 @@
 #include "KwattaAppDlg.h"
 #include "KwattaApp.h"
 #include "StdException.h"
-#include "afxdialogex.h"
 #include "GridCellCheck.h"
 #include "NewTestDlg.h"
 #include "StarterDlg.h"
@@ -316,12 +315,12 @@ KwattaAppDlg::InitGrid()
   m_list.SetSingleRowSelection(TRUE);
 
   m_list.GetCell(0,0)->SetText(_T("Testset"));
-  m_list.GetCell(0,1)->SetText(_T("Run this testset"));
+  m_list.GetCell(0,1)->SetText(_T("Active"));
   m_list.GetCell(0,2)->SetText(_T("Name of the testset"));
   m_list.GetCell(0,3)->SetText(_T("Result of last run"));
 
   m_list.SetColumnWidth(0,100);
-  m_list.SetColumnWidth(1,120);
+  m_list.SetColumnWidth(1, 60);
   m_list.SetColumnWidth(2,400);
   m_list.SetColumnWidth(3,300);
 
@@ -357,7 +356,7 @@ KwattaAppDlg::FillGrid()
       {
         case 0: item.strText.Format(_T("Test %d"), it->first); 
                 break;
-        case 1: item.strText.Format(_T("%s"), test.m_active ? _T("Active") : _T("Inactive"));
+        case 1: item.strText.Empty();
                 break;
         case 2: item.strText = test.m_name;
                 break;

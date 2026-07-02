@@ -173,6 +173,7 @@ StarterDlg::InitButtons()
   {
     XString suite;
     XString shorter;
+    LPCTSTR tooltip(nullptr);
     bool active(false);
     bool bold(false);
 
@@ -181,6 +182,7 @@ StarterDlg::InitButtons()
       suite   = m_suites[index];
       file.SetFilename(suite);
       shorter = file.GetFilenamePartFilename();
+      tooltip = m_suites[index].GetString();
       active  = true;
       bold    = true;
     }
@@ -195,31 +197,31 @@ StarterDlg::InitButtons()
               m_buttonSuite1.EnableWindow(active);
               m_buttonSuite1.SetBold(bold);
               m_buttonSuite1.SetStyle(_T("ok"));
-              RegisterTooltip(m_buttonSuite1,suite);
+              RegisterTooltip(m_buttonSuite1,tooltip);
               break;
       case 1: m_buttonSuite2.SetWindowText(shorter);
               m_buttonSuite2.EnableWindow(active);
               m_buttonSuite2.SetBold(bold);
               m_buttonSuite2.SetStyle(_T("ok"));
-              RegisterTooltip(m_buttonSuite2,suite);
+              RegisterTooltip(m_buttonSuite2,tooltip);
               break;
       case 2: m_buttonSuite3.SetWindowText(shorter);
               m_buttonSuite3.EnableWindow(active);
               m_buttonSuite3.SetBold(bold);
               m_buttonSuite3.SetStyle(_T("ok"));
-              RegisterTooltip(m_buttonSuite3,suite);
+              RegisterTooltip(m_buttonSuite3,tooltip);
               break;
       case 3: m_buttonSuite4.SetWindowText(shorter);
               m_buttonSuite4.EnableWindow(active);
               m_buttonSuite4.SetBold(bold);
               m_buttonSuite4.SetStyle(_T("ok"));
-              RegisterTooltip(m_buttonSuite4,suite);
+              RegisterTooltip(m_buttonSuite4,tooltip);
               break;
       case 4: m_buttonSuite5.SetWindowText(shorter);
               m_buttonSuite5.EnableWindow(active);
               m_buttonSuite5.SetBold(bold);
               m_buttonSuite5.SetStyle(_T("ok"));
-              RegisterTooltip(m_buttonSuite5,suite);
+              RegisterTooltip(m_buttonSuite5,tooltip);
               break;
     }
   }

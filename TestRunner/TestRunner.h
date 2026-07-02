@@ -94,6 +94,7 @@ public:
   void          ResetHTTPClient();
 
 private:
+  void          WaitingForTheEnd();
   bool          ParseStartParameters();
   bool          CreateTestBed();
   void          CreateConsole();
@@ -123,6 +124,7 @@ private:
   UINT64        m_callingHWND { NULL  };
   int           m_callingROW  { 0     };
   bool          m_global      { false };
+  bool          m_ending      { false };
 
 public:
   // Overrides

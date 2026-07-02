@@ -142,8 +142,8 @@ TestRunnerApp::InitInstance()
   else
   {
     StartRunner();
-    // Test must run, sow e start the message pump
-    return TRUE;
+    WaitingForTheEnd();
+    return FALSE;
   }
 }
 
@@ -489,9 +489,25 @@ TestRunnerApp::EndApplication(int p_result)
   // Safe for ExitInstance
   m_totalResult = p_result;
 
-  if(m_last && m_pMainWnd)
+  if(m_last)
   {
-    m_pMainWnd->PostMessage(WM_TEST_ENDING,(WPARAM)p_result,0);
+    if(m_pMainWnd)
+    {
+      m_pMainWnd->PostMessage(WM_TEST_ENDING,(WPARAM)p_result,0);
+    }
+    else
+    {
+      m_ending = true;
+    }
+  }
+}
+
+void
+TestRunnerApp::WaitingForTheEnd()
+{
+  while(!m_ending)
+  {
+    Sleep(1000);
   }
 }
 

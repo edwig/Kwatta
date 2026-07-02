@@ -550,7 +550,7 @@ void
 StyleDialog::RegisterTooltip(int p_ID,LPCTSTR p_text)
 {
   CWnd* wnd = GetDlgItem(p_ID);
-  if(wnd && wnd->GetSafeHwnd())
+  if(wnd && wnd->GetSafeHwnd() && p_text)
   {
     m_tooltips[wnd->GetSafeHwnd()] = p_text;
   }
@@ -559,7 +559,7 @@ StyleDialog::RegisterTooltip(int p_ID,LPCTSTR p_text)
 void
 StyleDialog::RegisterTooltip(CWnd& p_wnd,LPCTSTR p_text)
 {
-  if(p_wnd.GetSafeHwnd())
+  if(p_wnd.GetSafeHwnd() && p_text)
   {
     m_tooltips[p_wnd.GetSafeHwnd()] = p_text;
   }
@@ -568,7 +568,7 @@ StyleDialog::RegisterTooltip(CWnd& p_wnd,LPCTSTR p_text)
 void
 StyleDialog::RegisterTooltip(StyleComboBox& p_wnd,LPCTSTR p_text)
 {
-  if(p_wnd.GetSafeHwnd() && p_wnd.GetEditControl()->GetSafeHwnd())
+  if(p_wnd.GetSafeHwnd() && p_wnd.GetEditControl()->GetSafeHwnd() && p_text)
   {
     m_tooltips[p_wnd.GetSafeHwnd()] = p_text;
     m_tooltips[p_wnd.GetEditControl()->GetSafeHwnd()] = p_text;

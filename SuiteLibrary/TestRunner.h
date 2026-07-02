@@ -34,10 +34,19 @@
 // 50 milliseconds is the smallest amount of waiting time
 #define MINIMUM_INTERVAL_TIME  50 
 
+// Saving during load-balancing tests might need retries
+#define SAVING_RETRIES         20
+#define SAVING_WAITTIME       500
+
+
 using ValiSteps = std::vector<XString>;
 class TestStep;
 class StepResult;
 class LogAnalysis;
+class TestRunner;
+
+// Prototype for saving results multiple times in load-tests
+using SaveResults = bool (*)(TestRunner* p_runner);
 
 class TestRunner
 {
@@ -60,6 +69,9 @@ public:
   // General interface
   virtual int  PerformTest() = 0;
   virtual void StopTestProgram() = 0;
+
+  // Saving with retries
+  void    SavingWithRetries(SaveResults p_results,TestRunner* p_runner);
 
   // GETTERS
   XString GetEffectiveStepFilename();

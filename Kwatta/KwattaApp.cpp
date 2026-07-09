@@ -53,9 +53,8 @@ KwattaApp::KwattaApp() noexcept
 {
 	m_bHiColorIcons = TRUE;
 
-	// replace application ID string below with unique ID string; recommended
-	// format for string is CompanyName.ProductName.SubProduct.VersionInformation
-	SetAppID(_T("EDO.Kwatta.TestSuite.Version"));
+	// replace application ID string for taskbar grouping
+	SetAppID(_T(KWATTA_APPID));
 }
 
 // The one and only CTestSuiteApp object

@@ -44,8 +44,8 @@ END_MESSAGE_MAP()
 
 TestEditorApp::TestEditorApp()
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
+  // replace application ID string for taskbar grouping
+  SetAppID(_T(KWATTA_APPID));
 }
 
 // The one and only CTestEditorApp object

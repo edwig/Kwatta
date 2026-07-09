@@ -33,6 +33,10 @@
 #define KWATTA_PASSWORD       "KWATTA_PASSWORD"
 #define KWATTA_ENCRYPT        "Kw@77@P@r@m@r1b0$ur1n@m3"
 
+// Kwatta APP ID for the taskbar grouping
+// format for string is CompanyName.ProductName.SubProduct.VersionInformation
+#define KWATTA_APPID          "EDO.Kwatta.TestSuite" KWATTA_VERSION
+
 // Used for global objects
 #define GLOBAL_COLOR          RGB(200,191,231)
 

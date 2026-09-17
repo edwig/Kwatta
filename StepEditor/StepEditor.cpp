@@ -323,10 +323,10 @@ StepEditorApp::StartTheInetRunner(StepInternetDlg* p_caller)
 
     if(m_client->GetLogging())
     {
-      m_client->GetLogging()->Reset();
-      ShellExecute(NULL,_T("open"),m_client->GetLogging()->GetLogFileName().GetString(),_T(""),_T(""),SW_SHOW);
+      XString logfile = m_client->GetLogging()->GetLogFileName();
       m_client->SetLogging(nullptr);
       m_client->SetLogLevel(HLL_NOLOG);
+      ShellExecute(NULL,_T("open"),logfile.GetString(),_T(""),_T(""),SW_SHOW);
     }
   }
   return result;

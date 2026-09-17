@@ -392,6 +392,7 @@ LogAnalysis::Initialisation()
       {
         // Give up. Cannot create a logfile
         m_logLevel = HLL_NOLOG;
+        m_initialised = false;
         return;
       }
     }
